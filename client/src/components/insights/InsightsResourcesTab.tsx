@@ -497,7 +497,7 @@ Try typing:
     <div className="space-y-6">
       {/* Web Content Summarizer - Notion Style */}
       <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm relative overflow-hidden mb-8">
-        <div className="absolute top-0 left-0 w-full h-1 bg-blue-500"></div>
+
         <div className="flex items-center space-x-3 mb-6">
           <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
             <Globe className="h-4 w-4 text-blue-500" />
