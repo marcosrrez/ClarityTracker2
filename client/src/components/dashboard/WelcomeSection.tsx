@@ -43,15 +43,15 @@ export const WelcomeSection = () => {
 
   return (
     <section className="space-y-6">
-      {/* Welcome Card - Inspired by the smart home dashboard */}
-      <div className="bg-gradient-to-br from-orange-400 to-orange-500 rounded-3xl p-8 text-white relative overflow-hidden">
+      {/* Welcome Card - Using our brand primary blue */}
+      <div className="bg-gradient-to-br from-primary to-primary/90 rounded-3xl p-8 text-white relative overflow-hidden">
         <div className="relative z-10">
           <div className="flex items-start justify-between mb-6">
             <div>
               <h1 className="text-2xl font-semibold mb-1">
                 Hello, {displayName}!
               </h1>
-              <p className="text-orange-100 text-sm font-medium">
+              <p className="text-blue-100 text-sm font-medium">
                 {new Date().toLocaleDateString('en-US', { 
                   weekday: 'long', 
                   month: 'long', 
@@ -63,7 +63,7 @@ export const WelcomeSection = () => {
               <div className="text-2xl font-bold">
                 {entries?.length || 0}
               </div>
-              <div className="text-orange-100 text-xs">Sessions logged</div>
+              <div className="text-blue-100 text-xs">Sessions logged</div>
             </div>
           </div>
           
@@ -86,26 +86,26 @@ export const WelcomeSection = () => {
         <div className="absolute right-8 bottom-8 w-16 h-16 bg-white/5 rounded-full"></div>
       </div>
 
-      {/* Dashboard Widgets Grid */}
+      {/* Dashboard Widgets Grid - Brand Colors */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {/* Hours Progress */}
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-4 text-white">
+        {/* Hours Progress - Primary Blue */}
+        <div className="bg-gradient-to-br from-primary/90 to-primary rounded-2xl p-4 text-white">
           <div className="text-2xl font-bold mb-1">
             {Math.round(entries?.reduce((sum: number, entry: any) => sum + (entry.clientContactHours || 0), 0) || 0)}
           </div>
           <div className="text-blue-100 text-xs font-medium">Hours Logged</div>
         </div>
 
-        {/* Supervision */}
-        <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-4 text-white">
+        {/* Supervision - Darker Blue Variant */}
+        <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-4 text-white">
           <div className="text-2xl font-bold mb-1">
             {Math.round(entries?.reduce((sum: number, entry: any) => sum + (entry.supervisionHours || 0), 0) || 0)}
           </div>
-          <div className="text-purple-100 text-xs font-medium">Supervision</div>
+          <div className="text-blue-100 text-xs font-medium">Supervision</div>
         </div>
 
-        {/* This Week */}
-        <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-4 text-white">
+        {/* This Week - Accent Green */}
+        <div className="bg-gradient-to-br from-accent to-accent/90 rounded-2xl p-4 text-white">
           <div className="text-2xl font-bold mb-1">
             {entries?.filter((entry: any) => {
               const entryDate = new Date(entry.dateOfContact);
@@ -117,12 +117,12 @@ export const WelcomeSection = () => {
           <div className="text-green-100 text-xs font-medium">This Week</div>
         </div>
 
-        {/* AI Insights */}
-        <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl p-4 text-white">
+        {/* AI Insights - Chart Color */}
+        <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-4 text-white">
           <div className="text-2xl font-bold mb-1">
             <Sparkles className="h-6 w-6" />
           </div>
-          <div className="text-amber-100 text-xs font-medium">AI Ready</div>
+          <div className="text-orange-100 text-xs font-medium">AI Ready</div>
         </div>
       </div>
     </section>
