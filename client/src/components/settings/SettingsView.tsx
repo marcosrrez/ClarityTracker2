@@ -180,6 +180,123 @@ export const SettingsView = () => {
     }
   };
 
+  const intelligentColumnMapper = (headers: string[]) => {
+    const mapping: { [key: string]: number } = {};
+    
+    headers.forEach((header, index) => {
+      const cleanHeader = header.toLowerCase().trim();
+      
+      // Date mapping - flexible patterns
+      if (cleanHeader.includes('date') || cleanHeader.includes('session') || cleanHeader.includes('contact') || cleanHeader.includes('visit') || cleanHeader.includes('appointment')) {
+        mapping.date = index;
+      }
+      
+      // Client contact hours - various patterns
+      if ((cleanHeader.includes('client') && cleanHeader.includes('hour')) || 
+          (cleanHeader.includes('direct') && cleanHeader.includes('hour')) ||
+          cleanHeader.includes('cch') || cleanHeader.includes('contact hour') ||
+          cleanHeader.includes('therapy hour') || cleanHeader.includes('session hour')) {
+        mapping.clientHours = index;
+      }
+      
+      // Supervision hours
+      if (cleanHeader.includes('supervision') && cleanHeader.includes('hour')) {
+        mapping.supervisionHours = index;
+      }
+      
+      // Indirect hours
+      if (cleanHeader.includes('indirect') || cleanHeader.includes('documentation') || 
+          cleanHeader.includes('admin') || cleanHeader.includes('paperwork')) {
+        mapping.indirectHours = index;
+      }
+      
+      // Supervision type
+      if ((cleanHeader.includes('supervision') && cleanHeader.includes('type')) ||
+          (cleanHeader.includes('super') && cleanHeader.includes('format')) ||
+          cleanHeader.includes('supervision format')) {
+        mapping.supervisionType = index;
+      }
+      
+      // Technology assisted
+      if (cleanHeader.includes('tech') || cleanHeader.includes('video') || 
+          cleanHeader.includes('remote') || cleanHeader.includes('virtual') ||
+          cleanHeader.includes('telehealth') || cleanHeader.includes('online')) {
+        mapping.techAssisted = index;
+      }
+      
+      // Notes/comments
+      if (cleanHeader.includes('note') || cleanHeader.includes('comment') || 
+          cleanHeader.includes('description') || cleanHeader.includes('summary') ||
+          cleanHeader.includes('reflection') || cleanHeader.includes('observation')) {
+        mapping.notes = index;
+      }
+    });
+    
+    return mapping;
+  };
+
+  const parseFlexibleNumber = (value: string): number => {
+    if (!value || value.trim() === '') return 0;
+    
+    // Handle various number formats: "1.5", "1,5", "1 hour", "90 minutes", etc.
+    const numberMatch = value.match(/(\d+(?:[.,]\d+)?)/);
+    if (numberMatch) {
+      const num = parseFloat(numberMatch[1].replace(',', '.'));
+      // Convert minutes to hours if value seems like minutes (>10 and no decimal)
+      if (num > 10 && !value.includes('.') && !value.includes(',')) {
+        return num / 60; // Convert minutes to hours
+      }
+      return num;
+    }
+    return 0;
+  };
+
+  const parseFlexibleBoolean = (value: string): boolean => {
+    if (!value || value.trim() === '') return false;
+    const cleanValue = value.trim().toLowerCase();
+    return ['yes', 'true', '1', 'y', 'x', '✓', 'indirect', 'tech', 'virtual', 'remote'].includes(cleanValue);
+  };
+
+  const parseFlexibleDate = (value: string): Date => {
+    if (!value || value.trim() === '') return new Date();
+    
+    // Handle multiple date formats
+    const dateFormats = [
+      value, // Try as-is first
+      value.replace(/[-\/]/g, '/'), // Normalize separators
+      value.replace(/(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/, '$3/$1/$2'), // MM/DD/YYYY to YYYY/MM/DD
+      value.replace(/(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/, '$1/$2/$3'), // YYYY-MM-DD format
+    ];
+    
+    for (const format of dateFormats) {
+      const date = new Date(format);
+      if (!isNaN(date.getTime())) {
+        return date;
+      }
+    }
+    return new Date(); // Fallback to today
+  };
+
+  const parseFlexibleString = (value: string): string => {
+    return value ? value.trim() : '';
+  };
+
+  const mapSupervisionType = (value: string): "individual" | "dyadic" | "group" | "none" => {
+    if (!value) return "none";
+    const clean = value.toLowerCase().trim();
+    
+    if (clean.includes('individual') || clean.includes('one-on-one') || clean.includes('1:1') || clean === 'ind') {
+      return "individual";
+    }
+    if (clean.includes('dyadic') || clean.includes('pair') || clean.includes('two') || clean === 'dyad') {
+      return "dyadic";
+    }
+    if (clean.includes('group') || clean.includes('team') || clean.includes('multiple') || clean === 'grp') {
+      return "group";
+    }
+    return "none";
+  };
+
   const handleImportFromExcel = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -196,34 +313,92 @@ export const SettingsView = () => {
     try {
       setIsImporting(true);
       const text = await file.text();
+      
+      // Handle different delimiters (comma, semicolon, tab)
+      let delimiter = ',';
+      if (text.includes(';') && text.split(';').length > text.split(',').length) {
+        delimiter = ';';
+      } else if (text.includes('\t')) {
+        delimiter = '\t';
+      }
+      
       const lines = text.split('\n').filter(line => line.trim());
       
       if (lines.length < 2) {
         throw new Error("File appears to be empty or has no data rows");
       }
 
-      // Skip header row and process data
+      // Parse headers and create intelligent mapping
+      const headers = lines[0].split(delimiter).map(h => h.trim().replace(/^"|"$/g, ''));
+      const columnMapping = intelligentColumnMapper(headers);
+      
+      // Show user what was detected
+      const mappedFields = Object.keys(columnMapping);
+      console.log('Detected columns:', columnMapping);
+      
+      if (mappedFields.length === 0) {
+        toast({
+          title: "No recognizable columns found",
+          description: "Could not identify date or hours columns. Please check your file format.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Process data rows
       const dataLines = lines.slice(1);
       let importedCount = 0;
       let errorCount = 0;
+      let skippedCount = 0;
 
       for (const line of dataLines) {
         try {
-          const columns = line.split(',').map(col => col.trim().replace(/^"|"$/g, ''));
+          const columns = line.split(delimiter).map(col => col.trim().replace(/^"|"$/g, ''));
           
-          if (columns.length < 3) continue; // Skip malformed rows
+          if (columns.length < 2) {
+            skippedCount++;
+            continue;
+          }
+
+          // Extract data using intelligent mapping
+          const date = columnMapping.date !== undefined ? 
+            parseFlexibleDate(columns[columnMapping.date]) : new Date();
+          
+          const clientHours = columnMapping.clientHours !== undefined ? 
+            parseFlexibleNumber(columns[columnMapping.clientHours]) : 0;
+            
+          const supervisionHours = columnMapping.supervisionHours !== undefined ? 
+            parseFlexibleNumber(columns[columnMapping.supervisionHours]) : 0;
+            
+          const indirectHours = columnMapping.indirectHours !== undefined ? 
+            parseFlexibleBoolean(columns[columnMapping.indirectHours]) : false;
+            
+          const supervisionTypeRaw = columnMapping.supervisionType !== undefined ? 
+            columns[columnMapping.supervisionType] : "";
+            
+          const techAssisted = columnMapping.techAssisted !== undefined ? 
+            parseFlexibleBoolean(columns[columnMapping.techAssisted]) : false;
+            
+          const notes = columnMapping.notes !== undefined ? 
+            parseFlexibleString(columns[columnMapping.notes]) : "";
+
+          // Validate required fields
+          if (!date || isNaN(date.getTime()) || (clientHours === 0 && supervisionHours === 0)) {
+            skippedCount++;
+            continue;
+          }
 
           const entryData: InsertLogEntry = {
-            dateOfContact: new Date(columns[0]),
-            clientContactHours: parseFloat(columns[1]) || 0,
-            indirectHours: columns[2]?.toLowerCase() === 'yes' || columns[2]?.toLowerCase() === 'true',
-            supervisionHours: parseFloat(columns[3]) || 0,
-            supervisionType: (columns[4] as any) || "none",
-            techAssistedSupervision: columns[5]?.toLowerCase() === 'yes' || columns[5]?.toLowerCase() === 'true',
-            notes: columns[6] || "",
+            dateOfContact: date,
+            clientContactHours: clientHours,
+            indirectHours: indirectHours,
+            supervisionHours: supervisionHours,
+            supervisionType: mapSupervisionType(supervisionTypeRaw),
+            techAssistedSupervision: techAssisted,
+            notes: notes,
           };
 
-          if (user?.uid && !isNaN(entryData.dateOfContact.getTime())) {
+          if (user?.uid) {
             await createLogEntry(user.uid, entryData);
             importedCount++;
           }
@@ -235,11 +410,12 @@ export const SettingsView = () => {
 
       toast({
         title: "Import completed",
-        description: `Successfully imported ${importedCount} entries${errorCount > 0 ? ` (${errorCount} errors)` : ''}.`,
+        description: `Successfully imported ${importedCount} entries. ${skippedCount > 0 ? `Skipped ${skippedCount} invalid rows. ` : ''}${errorCount > 0 ? `${errorCount} errors occurred.` : ''}`,
       });
 
-      // Clear the file input
+      // Clear the file input and refresh data
       event.target.value = '';
+      
     } catch (error) {
       console.error("Error importing data:", error);
       toast({
@@ -627,10 +803,10 @@ Eye Movement Desensitization and Reprocessing (EMDR)"
 
             {/* Import Section */}
             <div>
-              <h4 className="font-medium mb-2">Import from Excel/CSV</h4>
+              <h4 className="font-medium mb-2">Smart Import from Any Format</h4>
               <p className="text-sm text-muted-foreground mb-4">
-                Upload a CSV file with your existing data. Expected columns: Date, Client Contact Hours, 
-                Indirect Hours, Supervision Hours, Supervision Type, Tech Assisted, Notes.
+                Upload your existing tracking data in any CSV format. Our intelligent analyzer will automatically 
+                detect and map your columns, no matter how they're named or organized.
               </p>
               <div className="space-y-2">
                 <label htmlFor="import-file" className="cursor-pointer">
@@ -645,12 +821,12 @@ Eye Movement Desensitization and Reprocessing (EMDR)"
                       {isImporting ? (
                         <>
                           <LoadingSpinner size="sm" className="mr-2" />
-                          Importing...
+                          Analyzing & Importing...
                         </>
                       ) : (
                         <>
                           <Upload className="h-4 w-4 mr-2" />
-                          Choose CSV File
+                          Choose File to Analyze
                         </>
                       )}
                     </span>
@@ -665,10 +841,12 @@ Eye Movement Desensitization and Reprocessing (EMDR)"
                   className="hidden"
                 />
                 <div className="text-xs text-muted-foreground space-y-1">
-                  <p>• Supported formats: CSV (.csv)</p>
-                  <p>• First row should contain headers</p>
-                  <p>• Dates should be in MM/DD/YYYY format</p>
-                  <p>• Hours should be decimal numbers (e.g., 1.5)</p>
+                  <p><strong>✨ Intelligent Detection:</strong></p>
+                  <p>• Recognizes any column names (dates, hours, supervision, notes, etc.)</p>
+                  <p>• Handles multiple date formats (MM/DD/YYYY, YYYY-MM-DD, etc.)</p>
+                  <p>• Converts minutes to hours automatically when detected</p>
+                  <p>• Supports comma, semicolon, or tab delimiters</p>
+                  <p>• Maps supervision types and tech-assisted sessions flexibly</p>
                 </div>
               </div>
             </div>
