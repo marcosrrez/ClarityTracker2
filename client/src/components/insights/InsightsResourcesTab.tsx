@@ -522,12 +522,12 @@ Try typing:
                 placeholder="https://example.com/article"
                 {...register("url")}
                 disabled={isSummarizing}
-                className="flex-1 rounded-xl border-gray-200"
+                className="flex-1 rounded-3xl border-gray-200"
               />
               <Button 
                 type="submit" 
                 disabled={isSummarizing}
-                className="bg-blue-500 hover:bg-blue-600 text-white rounded-xl"
+                className="bg-blue-500 hover:bg-blue-600 text-white rounded-3xl"
               >
                 {isSummarizing ? (
                   <>
@@ -565,7 +565,7 @@ Try typing:
               variant="outline" 
               size="sm" 
               onClick={handleDownloadAll}
-              className="border-gray-200 text-gray-600 hover:bg-gray-50 rounded-xl"
+              className="border-gray-200 text-gray-600 hover:bg-gray-50 rounded-3xl"
             >
               <Download className="h-4 w-4 mr-2" />
               Download All
@@ -573,7 +573,7 @@ Try typing:
             <Button 
               size="sm" 
               onClick={handleCreateNote}
-              className="bg-purple-500 hover:bg-purple-600 text-white rounded-xl"
+              className="bg-purple-500 hover:bg-purple-600 text-white rounded-3xl"
             >
               <Plus className="h-4 w-4 mr-2" />
               New Note
@@ -589,7 +589,7 @@ Try typing:
                 placeholder="Search insights, notes, and tags..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 rounded-xl border-gray-200"
+                className="pl-10 rounded-3xl border-gray-200"
               />
             </div>
             
@@ -598,7 +598,7 @@ Try typing:
                 variant={filterType === "all" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setFilterType("all")}
-                className={filterType === "all" ? "bg-purple-500 hover:bg-purple-600 rounded-xl" : "border-gray-200 text-gray-600 hover:bg-gray-50 rounded-xl"}
+                className={filterType === "all" ? "bg-purple-500 hover:bg-purple-600 rounded-3xl" : "border-gray-200 text-gray-600 hover:bg-gray-50 rounded-3xl"}
               >
                 All
               </Button>
@@ -606,7 +606,7 @@ Try typing:
                 variant={filterType === "note" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setFilterType("note")}
-                className={filterType === "note" ? "bg-purple-500 hover:bg-purple-600 rounded-xl" : "border-gray-200 text-gray-600 hover:bg-gray-50 rounded-xl"}
+                className={filterType === "note" ? "bg-purple-500 hover:bg-purple-600 rounded-3xl" : "border-gray-200 text-gray-600 hover:bg-gray-50 rounded-3xl"}
               >
                 Notes
               </Button>
@@ -614,7 +614,7 @@ Try typing:
                 variant={filterType === "articleSummary" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setFilterType("articleSummary")}
-                className={filterType === "articleSummary" ? "bg-purple-500 hover:bg-purple-600 rounded-xl" : "border-gray-200 text-gray-600 hover:bg-gray-50 rounded-xl"}
+                className={filterType === "articleSummary" ? "bg-purple-500 hover:bg-purple-600 rounded-3xl" : "border-gray-200 text-gray-600 hover:bg-gray-50 rounded-3xl"}
               >
                 Summaries
               </Button>
@@ -665,7 +665,7 @@ Try typing:
                     
                     <div className="space-y-3">
                       <div 
-                        className="text-sm text-gray-600 line-clamp-3 cursor-pointer hover:bg-gray-50 p-2 rounded-xl transition-colors"
+                        className="text-sm text-gray-600 line-clamp-3 cursor-pointer hover:bg-gray-50 p-2 rounded-3xl transition-colors"
                         onClick={() => card.type === "note" ? handleEditCard(card) : null}
                         dangerouslySetInnerHTML={{
                           __html: card.content.replace(/<[^>]*>/g, "") || "Click to start writing..."
