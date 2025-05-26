@@ -2,27 +2,59 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Dieter Rams: "Good design is as little design as possible" */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    /* Rams principle: Unobtrusive, purposeful typography */
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    letter-spacing: -0.005em;
+    line-height: 1.7;
+    font-weight: 400;
+  }
+  
+  /* Rams principle: Clear visual hierarchy without decoration */
+  h1, h2, h3, h4, h5, h6 {
+    @apply tracking-tight text-foreground;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+  
+  h1 { @apply text-2xl; }
+  h2 { @apply text-xl; }
+  h3 { @apply text-lg; }
+  h4 { @apply text-base; }
+}
+
 :root {
-  --background: 210 11% 98%; /* #F5F7FA */
-  --foreground: 210 11% 15%; /* #2D3748 */
-  --muted: 210 11% 93%; /* #E2E8F0 */
-  --muted-foreground: 210 6% 46%; /* #718096 */
-  --popover: 210 11% 98%; /* #F5F7FA */
-  --popover-foreground: 210 11% 15%; /* #2D3748 */
-  --card: 0 0% 100%; /* #FFFFFF */
-  --card-foreground: 210 11% 15%; /* #2D3748 */
-  --border: 210 13% 88%; /* #CBD5E0 */
-  --input: 210 13% 88%; /* #CBD5E0 */
-  --primary: 207 90% 54%; /* #2563EB */
-  --primary-foreground: 210 40% 98%; /* #F8FAFC */
-  --secondary: 210 11% 93%; /* #E2E8F0 */
-  --secondary-foreground: 210 11% 15%; /* #2D3748 */
-  --accent: 142 76% 36%; /* #10B981 */
-  --accent-foreground: 210 40% 98%; /* #F8FAFC */
-  --destructive: 0 84% 60%; /* #EF4444 */
-  --destructive-foreground: 210 40% 98%; /* #F8FAFC */
-  --ring: 207 90% 54%; /* #2563EB */
-  --radius: 0.5rem;
+  /* Dieter Rams inspired - Pure, minimal palette with purposeful restraint */
+  --background: 0 0% 99.5%; /* Almost pure white, warm undertone */
+  --foreground: 0 0% 8%; /* Deep charcoal, never harsh black */
+  --muted: 0 0% 95%; /* Subtle background separation */
+  --muted-foreground: 0 0% 45%; /* Perfect reading gray */
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 8%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 8%;
+  --border: 0 0% 90%; /* Minimal, barely-there borders */
+  --input: 0 0% 97%;
+  --primary: 0 0% 12%; /* Sophisticated dark gray */
+  --primary-foreground: 0 0% 98%;
+  --secondary: 0 0% 96%;
+  --secondary-foreground: 0 0% 12%;
+  --accent: 210 25% 58%; /* Single accent - calm, purposeful blue */
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 45% 55%;
+  --destructive-foreground: 0 0% 98%;
+  --ring: 210 25% 58%;
+  --radius: 0.25rem; /* Minimal, purposeful rounding */
 
   /* Chart colors */
   --chart-1: 207 90% 54%; /* #2563EB */

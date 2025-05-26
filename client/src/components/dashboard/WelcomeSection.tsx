@@ -10,23 +10,24 @@ export const WelcomeSection = () => {
   const displayName = userProfile?.preferredName || "there";
 
   return (
-    <section className="mb-8">
-      <Card className="bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20">
-        <CardContent className="p-8">
-          <h2 className="text-3xl font-bold text-foreground mb-2">
-            Welcome back, {displayName}!
+    <section>
+      {/* Rams: Pure function over decoration */}
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-medium text-foreground mb-1">
+            Welcome back, {displayName}
           </h2>
-          <p className="text-muted-foreground mb-6">
-            Ready to log your professional development hours and track your progress toward licensure?
+          <p className="text-muted-foreground">
+            Ready to log your professional development?
           </p>
-          <Link href="/add-entry">
-            <Button size="lg" className="shadow-md hover:shadow-lg transition-shadow">
-              <Plus className="h-5 w-5 mr-2" />
-              Log Hours
-            </Button>
-          </Link>
-        </CardContent>
-      </Card>
+        </div>
+        <Link href="/add-entry">
+          <Button className="bg-accent hover:bg-accent/90 text-accent-foreground border-0 px-6 py-2.5 rounded-sm font-medium transition-colors">
+            <Plus className="h-4 w-4 mr-2" />
+            Log Session
+          </Button>
+        </Link>
+      </div>
     </section>
   );
 };
