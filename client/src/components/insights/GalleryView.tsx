@@ -4,7 +4,10 @@ import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Sparkles, Search } from "lucide-react";
+import { Calendar, Sparkles, Search, Lightbulb, Target, Eye, BookOpen, Tag, X } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
 import { useLogEntries } from "@/hooks/use-firestore";
 import { getAiAnalysis } from "@/lib/firestore";
@@ -22,6 +25,7 @@ export const GalleryView = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null);
 
   useEffect(() => {
     const loadAnalyses = async () => {
@@ -140,7 +144,11 @@ export const GalleryView = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredItems.map((item) => (
-            <Card key={item.id} className="hover:shadow-md transition-shadow duration-200">
+            <Card 
+              key={item.id} 
+              className="hover:shadow-md transition-shadow duration-200 cursor-pointer"
+              onClick={() => setSelectedItem(item)}
+            >
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2 text-sm text-muted-foreground">
@@ -228,6 +236,150 @@ export const GalleryView = () => {
           ))}
         </div>
       )}
+
+      {/* Detailed Analysis Modal */}
+      <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              <span>AI Analysis Details</span>
+            </DialogTitle>
+          </DialogHeader>
+
+          {selectedItem && (
+            <div className="space-y-6">
+              {/* Session Info */}
+              <div className="bg-muted/50 p-4 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                    <Calendar className="h-4 w-4" />
+                    <span>{format(new Date(selectedItem.dateOfContact), "MMMM dd, yyyy")}</span>
+                  </div>
+                  <Badge variant="outline">
+                    {selectedItem.clientContactHours}h session
+                  </Badge>
+                </div>
+                {selectedItem.analysis?.ccsrCategory && (
+                  <Badge variant="secondary" className="w-fit">
+                    {selectedItem.analysis.ccsrCategory}
+                  </Badge>
+                )}
+              </div>
+
+              {selectedItem.analysis ? (
+                <div className="space-y-6">
+                  {/* Summary */}
+                  <div>
+                    <div className="flex items-center space-x-2 mb-3">
+                      <Sparkles className="h-5 w-5 text-primary" />
+                      <h3 className="text-lg font-semibold">Summary</h3>
+                    </div>
+                    <p className="text-muted-foreground leading-relaxed">
+                      {selectedItem.analysis.summary}
+                    </p>
+                  </div>
+
+                  <Separator />
+
+                  {/* Key Themes */}
+                  {selectedItem.analysis.themes.length > 0 && (
+                    <div>
+                      <div className="flex items-center space-x-2 mb-3">
+                        <Lightbulb className="h-5 w-5 text-amber-500" />
+                        <h3 className="text-lg font-semibold">Key Themes</h3>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {selectedItem.analysis.themes.map((theme, index) => (
+                          <div key={index} className="bg-amber-50 dark:bg-amber-950/20 p-3 rounded-lg">
+                            <p className="text-sm">{theme}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <Separator />
+
+                  {/* Potential Blind Spots */}
+                  {selectedItem.analysis.potentialBlindSpots.length > 0 && (
+                    <div>
+                      <div className="flex items-center space-x-2 mb-3">
+                        <Eye className="h-5 w-5 text-orange-500" />
+                        <h3 className="text-lg font-semibold">Potential Blind Spots</h3>
+                      </div>
+                      <div className="space-y-3">
+                        {selectedItem.analysis.potentialBlindSpots.map((blindSpot, index) => (
+                          <div key={index} className="bg-orange-50 dark:bg-orange-950/20 p-3 rounded-lg">
+                            <p className="text-sm">{blindSpot}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <Separator />
+
+                  {/* Reflective Prompts */}
+                  {selectedItem.analysis.reflectivePrompts.length > 0 && (
+                    <div>
+                      <div className="flex items-center space-x-2 mb-3">
+                        <Target className="h-5 w-5 text-blue-500" />
+                        <h3 className="text-lg font-semibold">Reflective Prompts</h3>
+                      </div>
+                      <div className="space-y-3">
+                        {selectedItem.analysis.reflectivePrompts.map((prompt, index) => (
+                          <div key={index} className="bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg">
+                            <p className="text-sm font-medium">Question {index + 1}:</p>
+                            <p className="text-sm text-muted-foreground mt-1">{prompt}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <Separator />
+
+                  {/* Key Learnings */}
+                  {selectedItem.analysis.keyLearnings.length > 0 && (
+                    <div>
+                      <div className="flex items-center space-x-2 mb-3">
+                        <BookOpen className="h-5 w-5 text-green-500" />
+                        <h3 className="text-lg font-semibold">Key Learnings</h3>
+                      </div>
+                      <div className="space-y-3">
+                        {selectedItem.analysis.keyLearnings.map((learning, index) => (
+                          <div key={index} className="bg-green-50 dark:bg-green-950/20 p-3 rounded-lg">
+                            <p className="text-sm">{learning}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Original Notes */}
+                  <Separator />
+                  <div>
+                    <div className="flex items-center space-x-2 mb-3">
+                      <Tag className="h-5 w-5 text-purple-500" />
+                      <h3 className="text-lg font-semibold">Original Session Notes</h3>
+                    </div>
+                    <div className="bg-purple-50 dark:bg-purple-950/20 p-4 rounded-lg">
+                      <pre className="text-sm whitespace-pre-wrap text-muted-foreground">
+                        {selectedItem.notes}
+                      </pre>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No AI analysis available for this session.</p>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
