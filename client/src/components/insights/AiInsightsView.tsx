@@ -6,7 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Bot, Lightbulb, Target, Eye, BookOpen, Tag } from "lucide-react";
+import { Sparkles, Lightbulb, Target, Eye, BookOpen, Tag } from "lucide-react";
 import { analyzeSessionNotes } from "@/lib/ai";
 import type { AiAnalysisResult } from "@/lib/ai";
 
