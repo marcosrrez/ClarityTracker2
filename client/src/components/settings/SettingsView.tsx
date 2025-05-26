@@ -948,22 +948,650 @@ Eye Movement Desensitization and Reprocessing (EMDR)"
                           "128": "icons/icon128.png"
                         }
                       }, null, 2),
-                      'README.txt': `ClarityLog Browser Extension Installation
+                      
+                      'popup.html': \`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      width: 320px;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .logo {
+      width: 24px;
+      height: 24px;
+      background: #3b82f6;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 12px;
+    }
+    .title {
+      font-weight: 600;
+      color: #111827;
+    }
+    .subtitle {
+      font-size: 12px;
+      color: #6b7280;
+      margin-bottom: 16px;
+    }
+    .capture-btn {
+      width: 100%;
+      padding: 12px;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-bottom: 8px;
+    }
+    .capture-btn:hover {
+      background: #2563eb;
+    }
+    .selection-btn {
+      width: 100%;
+      padding: 10px;
+      background: white;
+      color: #374151;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      margin-bottom: 12px;
+    }
+    .status {
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      text-align: center;
+      margin-top: 8px;
+    }
+    .status.success {
+      background: #dcfce7;
+      color: #166534;
+    }
+    .status.error {
+      background: #fef2f2;
+      color: #dc2626;
+    }
+    .status.loading {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">C</div>
+    <div>
+      <div class="title">ClarityLog</div>
+    </div>
+  </div>
+  
+  <div class="subtitle">Capture content for professional development</div>
+  
+  <button id="captureArticle" class="capture-btn">
+    📄 Capture Full Article
+  </button>
+  
+  <button id="captureSelection" class="selection-btn">
+    ✂️ Capture Selected Text
+  </button>
+  
+  <div id="status" class="status" style="display: none;"></div>
 
-1. Extract all files to a folder called "claritylog-extension"
-2. Open Chrome and go to chrome://extensions/
-3. Enable "Developer mode" (toggle in top right)
-4. Click "Load unpacked" and select the extension folder
-5. Configure your ClarityLog server URL in the extension popup
+  <script src="popup.js"></script>
+</body>
+</html>\`,
+
+                      'popup.js': \`document.addEventListener('DOMContentLoaded', function() {
+  const captureArticleBtn = document.getElementById('captureArticle');
+  const captureSelectionBtn = document.getElementById('captureSelection');
+  const statusDiv = document.getElementById('status');
+
+  function showStatus(message, type = 'loading') {
+    statusDiv.textContent = message;
+    statusDiv.className = \`status \${type}\`;
+    statusDiv.style.display = 'block';
+  }
+
+  function hideStatus() {
+    statusDiv.style.display = 'none';
+  }
+
+  async function getServerUrl() {
+    const result = await chrome.storage.sync.get(['claritylogUrl']);
+    return result.claritylogUrl || '${window.location.origin}';
+  }
+
+  captureArticleBtn.addEventListener('click', async function() {
+    try {
+      showStatus('Capturing article...', 'loading');
+      
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      
+      const results = await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        function: extractArticleContent
+      });
+      
+      const articleData = results[0].result;
+      
+      if (!articleData.content || articleData.content.length < 100) {
+        showStatus('No substantial content found', 'error');
+        return;
+      }
+      
+      await sendToClarityLog(articleData);
+      
+      showStatus('✅ Added to ClarityLog!', 'success');
+      setTimeout(() => window.close(), 1500);
+      
+    } catch (error) {
+      console.error('Error capturing article:', error);
+      showStatus('Failed to capture content', 'error');
+    }
+  });
+
+  captureSelectionBtn.addEventListener('click', async function() {
+    try {
+      showStatus('Capturing selection...', 'loading');
+      
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      
+      const results = await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        function: getSelectedText
+      });
+      
+      const selectionData = results[0].result;
+      
+      if (!selectionData.content || selectionData.content.length < 20) {
+        showStatus('Please select some text first', 'error');
+        return;
+      }
+      
+      await sendToClarityLog(selectionData);
+      
+      showStatus('✅ Selection added!', 'success');
+      setTimeout(() => window.close(), 1500);
+      
+    } catch (error) {
+      console.error('Error capturing selection:', error);
+      showStatus('Failed to capture selection', 'error');
+    }
+  });
+
+  async function sendToClarityLog(contentData) {
+    const serverUrl = await getServerUrl();
+    
+    const response = await fetch(\`\${serverUrl}/api/insight-cards\`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        type: 'note',
+        title: contentData.title,
+        content: \`**Captured from:** \${contentData.url}\\n\\n\${contentData.content}\`,
+        tags: ['web-capture', 'extension', 'professional-development'],
+        originalUrl: contentData.url
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to send to ClarityLog');
+    }
+  }
+});
+
+function extractArticleContent() {
+  const unwantedSelectors = [
+    'script', 'style', 'nav', 'header', 'footer', 
+    '.advertisement', '.ad', '.sidebar', '.comments'
+  ];
+  
+  unwantedSelectors.forEach(selector => {
+    document.querySelectorAll(selector).forEach(el => el.remove());
+  });
+  
+  const contentSelectors = [
+    'main', 'article', '[role="main"]',
+    '.content', '.post', '.entry', '.article-body'
+  ];
+  
+  let mainContent = null;
+  for (const selector of contentSelectors) {
+    mainContent = document.querySelector(selector);
+    if (mainContent) break;
+  }
+  
+  if (!mainContent) {
+    mainContent = document.body;
+  }
+  
+  const content = mainContent.textContent || mainContent.innerText || '';
+  
+  return {
+    title: document.title,
+    url: window.location.href,
+    content: content.replace(/\\s+/g, ' ').trim(),
+    timestamp: new Date().toISOString()
+  };
+}
+
+function getSelectedText() {
+  const selection = window.getSelection();
+  const selectedText = selection.toString().trim();
+  
+  return {
+    title: \`Selection from \${document.title}\`,
+    url: window.location.href,
+    content: selectedText,
+    timestamp: new Date().toISOString()
+  };
+}\`,
+
+                      'content.js': \`(function() {
+  'use strict';
+
+  function createCaptureButton() {
+    const button = document.createElement('div');
+    button.id = 'claritylog-capture-btn';
+    button.innerHTML = \`
+      <div class="claritylog-btn-icon">📄</div>
+      <div class="claritylog-btn-text">Add to ClarityLog</div>
+    \`;
+    
+    button.addEventListener('click', handleCapture);
+    document.body.appendChild(button);
+    
+    return button;
+  }
+
+  async function handleCapture() {
+    try {
+      const button = document.getElementById('claritylog-capture-btn');
+      button.classList.add('capturing');
+      button.innerHTML = \`
+        <div class="claritylog-btn-icon">⏳</div>
+        <div class="claritylog-btn-text">Capturing...</div>
+      \`;
+      
+      const contentData = extractPageContent();
+      
+      chrome.runtime.sendMessage({
+        action: 'captureContent',
+        data: contentData
+      }, (response) => {
+        if (response.success) {
+          showSuccessMessage();
+        } else {
+          showErrorMessage(response.error);
+        }
+        
+        setTimeout(() => {
+          button.classList.remove('capturing');
+          button.innerHTML = \`
+            <div class="claritylog-btn-icon">📄</div>
+            <div class="claritylog-btn-text">Add to ClarityLog</div>
+          \`;
+        }, 2000);
+      });
+      
+    } catch (error) {
+      console.error('ClarityLog capture error:', error);
+      showErrorMessage('Failed to capture content');
+    }
+  }
+
+  function extractPageContent() {
+    const selection = window.getSelection();
+    const selectedText = selection.toString().trim();
+    
+    if (selectedText && selectedText.length > 20) {
+      return {
+        title: \`Selection from \${document.title}\`,
+        url: window.location.href,
+        content: selectedText,
+        type: 'selection',
+        timestamp: new Date().toISOString()
+      };
+    }
+    
+    const unwantedSelectors = [
+      'script', 'style', 'nav', 'header', 'footer', 
+      '.advertisement', '.ad', '.sidebar', '.comments',
+      '#claritylog-capture-btn', '.claritylog-notification'
+    ];
+    
+    const docClone = document.cloneNode(true);
+    
+    unwantedSelectors.forEach(selector => {
+      docClone.querySelectorAll(selector).forEach(el => el.remove());
+    });
+    
+    const contentSelectors = [
+      'main', 'article', '[role="main"]',
+      '.content', '.post', '.entry', '.article-body',
+      '.post-content', '.entry-content'
+    ];
+    
+    let mainContent = null;
+    for (const selector of contentSelectors) {
+      mainContent = docClone.querySelector(selector);
+      if (mainContent && mainContent.textContent.trim().length > 200) break;
+    }
+    
+    if (!mainContent) {
+      mainContent = docClone.body;
+    }
+    
+    const content = mainContent.textContent || mainContent.innerText || '';
+    const cleanContent = content.replace(/\\s+/g, ' ').trim();
+    
+    return {
+      title: document.title,
+      url: window.location.href,
+      content: cleanContent,
+      type: 'article',
+      timestamp: new Date().toISOString()
+    };
+  }
+
+  function showSuccessMessage() {
+    const notification = document.createElement('div');
+    notification.className = 'claritylog-notification success';
+    notification.innerHTML = \`
+      <div class="claritylog-notification-content">
+        <div class="claritylog-notification-icon">✅</div>
+        <div class="claritylog-notification-text">Added to ClarityLog!</div>
+      </div>
+    \`;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      notification.classList.add('show');
+    }, 100);
+    
+    setTimeout(() => {
+      notification.classList.remove('show');
+      setTimeout(() => notification.remove(), 300);
+    }, 3000);
+  }
+
+  function showErrorMessage(error) {
+    const notification = document.createElement('div');
+    notification.className = 'claritylog-notification error';
+    notification.innerHTML = \`
+      <div class="claritylog-notification-content">
+        <div class="claritylog-notification-icon">❌</div>
+        <div class="claritylog-notification-text">\${error || 'Capture failed'}</div>
+      </div>
+    \`;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      notification.classList.add('show');
+    }, 100);
+    
+    setTimeout(() => {
+      notification.classList.remove('show');
+      setTimeout(() => notification.remove(), 300);
+    }, 3000);
+  }
+
+  function init() {
+    if (document.body && !document.getElementById('claritylog-capture-btn')) {
+      const skipDomains = ['chrome-extension://', 'chrome://', 'moz-extension://'];
+      if (skipDomains.some(domain => window.location.href.startsWith(domain))) {
+        return;
+      }
+      
+      createCaptureButton();
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+})();\`,
+
+                      'content.css': \`#claritylog-capture-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 140px;
+}
+
+#claritylog-capture-btn:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+}
+
+#claritylog-capture-btn.capturing {
+  background: #6b7280;
+  cursor: not-allowed;
+  animation: pulse 1.5s infinite;
+}
+
+.claritylog-btn-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.claritylog-btn-text {
+  white-space: nowrap;
+}
+
+.claritylog-notification {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 10001;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  min-width: 200px;
+}
+
+.claritylog-notification.show {
+  transform: translateX(0);
+}
+
+.claritylog-notification.success {
+  background: #10b981;
+  color: white;
+}
+
+.claritylog-notification.error {
+  background: #ef4444;
+  color: white;
+}
+
+.claritylog-notification-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}\`,
+
+                      'background.js': \`chrome.runtime.onInstalled.addListener(() => {
+  chrome.contextMenus.create({
+    id: "captureToClarity",
+    title: "Add to ClarityLog",
+    contexts: ["selection", "page"]
+  });
+});
+
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  if (info.menuItemId === "captureToClarity") {
+    try {
+      const contentData = {
+        title: info.selectionText ? \`Selection from \${tab.title}\` : tab.title,
+        url: tab.url,
+        content: info.selectionText || "",
+        type: info.selectionText ? "selection" : "page",
+        timestamp: new Date().toISOString()
+      };
+
+      await sendToClarityLog(contentData);
+      
+      chrome.tabs.sendMessage(tab.id, {
+        action: "showNotification",
+        type: "success",
+        message: "Added to ClarityLog!"
+      });
+      
+    } catch (error) {
+      console.error("Context menu capture failed:", error);
+      chrome.tabs.sendMessage(tab.id, {
+        action: "showNotification", 
+        type: "error",
+        message: "Capture failed"
+      });
+    }
+  }
+});
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === "captureContent") {
+    handleContentCapture(request.data)
+      .then(result => sendResponse(result))
+      .catch(error => sendResponse({ success: false, error: error.message }));
+    return true;
+  }
+});
+
+async function sendToClarityLog(contentData) {
+  try {
+    const settings = await chrome.storage.sync.get(['claritylogUrl']);
+    const serverUrl = settings.claritylogUrl || '${window.location.origin}';
+
+    const response = await fetch(\`\${serverUrl}/api/insight-cards\`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Extension-Capture': 'true'
+      },
+      body: JSON.stringify({
+        type: 'note',
+        title: contentData.title,
+        content: \`**Captured from:** \${contentData.url}\\n\\n\${contentData.content}\`,
+        tags: ['web-capture', 'extension', 'professional-development'],
+        originalUrl: contentData.url
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(\`Server responded with \${response.status}\`);
+    }
+
+    return await response.json();
+    
+  } catch (error) {
+    console.error('Failed to send to ClarityLog:', error);
+    throw error;
+  }
+}
+
+async function handleContentCapture(contentData) {
+  try {
+    if (!contentData.content || contentData.content.length < 20) {
+      throw new Error('No content to capture');
+    }
+
+    await sendToClarityLog(contentData);
+    
+    return { success: true };
+    
+  } catch (error) {
+    console.error('Content capture failed:', error);
+    return { success: false, error: error.message };
+  }
+}\`,
+                      
+                      'README.txt': \`ClarityLog Browser Extension Installation
+
+You should have 6 files total:
+1. manifest.json - Extension configuration
+2. popup.html - Extension popup interface  
+3. popup.js - Popup functionality
+4. content.js - Webpage integration script
+5. content.css - Styling for capture button
+6. background.js - Background service worker
+
+INSTALLATION STEPS:
+1. Create a folder called "claritylog-extension" 
+2. Save all 6 files in this folder
+3. Open Chrome and go to chrome://extensions/
+4. Enable "Developer mode" (toggle in top right)
+5. Click "Load unpacked" and select your extension folder
+6. You should see ClarityLog extension appear in your toolbar!
+
+USAGE:
+- Visit any article or blog post
+- Click the floating "Add to ClarityLog" button that appears
+- Or right-click and select "Add to ClarityLog"
+- Content automatically gets AI analysis in your ClarityLog app!
 
 Current server URL: ${window.location.origin}
 
-Features:
-- Click the floating button on any webpage to capture content
-- Right-click selected text and choose "Add to ClarityLog"
-- All captured content gets AI analysis automatically
+The extension will automatically use your current ClarityLog server. 
+Once installed, you can capture content from any website directly 
+into your professional development knowledge base.
 
-Support: Contact us if you need help setting up the extension.`
+Support: Contact us if you need help setting up the extension.\`
                     };
 
                     // Create download for each file
