@@ -5,31 +5,31 @@ import { CrossSessionAnalysisView } from "@/components/insights/CrossSessionAnal
 
 export default function InsightsPage() {
   return (
-    <div className="ive-spacing-lg">
-      <div className="ive-fade-in space-y-3">
-        <h1 className="text-3xl font-bold text-foreground">Insights & Resources</h1>
-        <p className="text-muted-foreground/80 text-lg leading-relaxed">
+    <div className="space-y-8">
+      <div className="space-y-3">
+        <h1 className="text-3xl font-bold text-gray-900">Insights & Resources</h1>
+        <p className="text-gray-600 text-lg leading-relaxed font-medium">
           AI-powered analysis, pattern discovery, and professional development insights.
         </p>
       </div>
       
-      <div className="ive-fade-in">
+      <div>
         <Tabs defaultValue="patterns" className="w-full">
-          <TabsList className="ive-card grid w-full grid-cols-3 p-1 bg-muted/20">
-            <TabsTrigger value="patterns" className="ive-button">Pattern Analysis</TabsTrigger>
-            <TabsTrigger value="gallery" className="ive-button">Analysis Gallery</TabsTrigger>
-            <TabsTrigger value="resources" className="ive-button">Resources</TabsTrigger>
+          <TabsList className="bg-gray-50 border border-gray-200 grid w-full grid-cols-3 p-1 rounded-2xl">
+            <TabsTrigger value="patterns" className="rounded-xl font-medium">Pattern Analysis</TabsTrigger>
+            <TabsTrigger value="gallery" className="rounded-xl font-medium">Analysis Gallery</TabsTrigger>
+            <TabsTrigger value="resources" className="rounded-xl font-medium">Resources</TabsTrigger>
           </TabsList>
         
-          <TabsContent value="patterns" className="ive-spacing">
+          <TabsContent value="patterns" className="mt-6">
             <CrossSessionAnalysisView />
           </TabsContent>
           
-          <TabsContent value="gallery" className="ive-spacing">
+          <TabsContent value="gallery" className="mt-6">
             <GalleryView />
           </TabsContent>
           
-          <TabsContent value="resources" className="ive-spacing">
+          <TabsContent value="resources" className="mt-6">
             <InsightsResourcesTab />
           </TabsContent>
         </Tabs>
