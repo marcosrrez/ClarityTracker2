@@ -13,6 +13,17 @@ export const WelcomeSection = () => {
 
   const displayName = userProfile?.preferredName || "there";
   
+  // Get intelligent greeting with time awareness
+  const getIntelligentGreeting = () => {
+    const timeOfDay = new Date().getHours();
+    let timeGreeting = "Good morning";
+    if (timeOfDay >= 12 && timeOfDay < 17) timeGreeting = "Good afternoon";
+    if (timeOfDay >= 17 && timeOfDay < 22) timeGreeting = "Good evening";
+    if (timeOfDay >= 22 || timeOfDay < 6) timeGreeting = "Working late";
+    
+    return `${timeGreeting}, ${displayName}!`;
+  };
+  
   useEffect(() => {
     generatePersonalizedWelcome();
   }, [entries, userProfile]);
@@ -20,22 +31,59 @@ export const WelcomeSection = () => {
   const generatePersonalizedWelcome = () => {
     const sessionCount = entries?.length || 0;
     const totalHours = entries?.reduce((sum: number, entry: any) => sum + (entry.clientContactHours || 0), 0) || 0;
-    const timeOfDay = new Date().getHours();
+    const now = new Date();
+    const timeOfDay = now.getHours();
+    const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
     
+    // Get last session date
+    const lastSession = entries?.length > 0 ? 
+      new Date(Math.max(...entries.map((e: any) => new Date(e.dateOfContact).getTime()))) : null;
+    
+    const daysSinceLastSession = lastSession ? 
+      Math.floor((now.getTime() - lastSession.getTime()) / (1000 * 60 * 60 * 24)) : null;
+    
+    // Time-based greeting
     let greeting = "Good morning";
     if (timeOfDay >= 12 && timeOfDay < 17) greeting = "Good afternoon";
-    if (timeOfDay >= 17) greeting = "Good evening";
+    if (timeOfDay >= 17 && timeOfDay < 22) greeting = "Good evening";
+    if (timeOfDay >= 22 || timeOfDay < 6) greeting = "Working late";
     
+    // Contextual messages based on user activity and time
     let message = "";
     
     if (sessionCount === 0) {
-      message = "Ready to start your professional development journey? Your first session awaits!";
-    } else if (sessionCount < 5) {
-      message = `You're building great momentum with ${sessionCount} session${sessionCount === 1 ? '' : 's'} logged. Keep up the excellent work!`;
-    } else if (totalHours >= 100) {
-      message = `Incredible progress! You've logged ${Math.round(totalHours)} hours across ${sessionCount} sessions. You're making real strides toward your goals.`;
-    } else {
-      message = `You're doing amazing work! ${sessionCount} sessions logged and growing stronger as a counselor every day.`;
+      message = `${greeting}! Ready to start your professional journey? Let's log your first session and begin tracking your path to LPC licensure.`;
+    } else if (daysSinceLastSession === 0) {
+      message = `${greeting}! Great to see you back today. You're building excellent momentum in your professional development.`;
+    } else if (daysSinceLastSession === 1) {
+      message = `${greeting}! Welcome back from yesterday. Ready to continue documenting your growth and insights?`;
+    } else if (daysSinceLastSession && daysSinceLastSession <= 3) {
+      message = `${greeting}! Good to have you back. Let's catch up on your recent sessions and keep that progress flowing.`;
+    } else if (daysSinceLastSession && daysSinceLastSession <= 7) {
+      message = `${greeting}! It's been a week since your last entry. Ready to document this week's professional experiences?`;
+    } else if (daysSinceLastSession && daysSinceLastSession > 7) {
+      message = `${greeting}! Welcome back! Let's get your professional development tracking back on track.`;
+    } else if (isWeekend && timeOfDay < 12) {
+      message = `${greeting}! Taking time on the weekend to reflect on your professional growth - that's dedication!`;
+    } else if (timeOfDay >= 22) {
+      message = `${greeting}! Burning the midnight oil? Don't forget to capture today's insights while they're fresh.`;
+    } else if (timeOfDay < 6) {
+      message = `${greeting}, early bird! Starting your day with professional reflection sets a powerful tone.`;
+    }
+    
+    // Add milestone celebrations
+    if (totalHours >= 1000 && totalHours < 1010) {
+      message += " 🎉 Congratulations on reaching 1,000+ hours - a major milestone in your journey!";
+    } else if (totalHours >= 500 && totalHours < 510) {
+      message += " 🌟 You've hit 500+ hours! You're making incredible progress toward your goals.";
+    } else if (sessionCount % 50 === 0 && sessionCount > 0) {
+      message += ` 🎯 Impressive! You've logged ${sessionCount} sessions - your consistency is paying off.`;
+    }
+    
+    // Default fallback if no specific condition matched
+    if (!message) {
+      message = `${greeting}! Ready to continue your professional development journey?`;
     }
     
     setPersonalizedMessage(message);
@@ -49,7 +97,7 @@ export const WelcomeSection = () => {
           <div className="flex items-start justify-between mb-6">
             <div>
               <h1 className="text-2xl font-bold mb-1 text-gray-900">
-                Hello, {displayName}!
+                {getIntelligentGreeting()}
               </h1>
               <p className="text-gray-500 text-sm font-medium">
                 {new Date().toLocaleDateString('en-US', { 
