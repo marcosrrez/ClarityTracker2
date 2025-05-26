@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -21,7 +22,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { useInsightCards } from "@/hooks/use-firestore";
-import { createInsightCard, deleteInsightCard } from "@/lib/firestore";
+import { createInsightCard, deleteInsightCard, updateInsightCard } from "@/lib/firestore";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import type { InsightCard, InsertInsightCard } from "@shared/schema";
@@ -40,6 +41,8 @@ export const InsightsResourcesTab = () => {
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<"all" | "note" | "articleSummary">("all");
+  const [editingCard, setEditingCard] = useState<string | null>(null);
+  const [editingContent, setEditingContent] = useState("");
 
   const {
     register,
@@ -115,6 +118,41 @@ export const InsightsResourcesTab = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleEditCard = (card: InsightCard) => {
+    setEditingCard(card.id);
+    setEditingContent(card.content.replace(/<[^>]*>/g, ""));
+  };
+
+  const handleSaveCard = async (cardId: string) => {
+    if (!user || !editingContent.trim()) return;
+
+    try {
+      await updateInsightCard(user.uid, cardId, {
+        content: editingContent,
+      });
+      await refetch();
+      setEditingCard(null);
+      setEditingContent("");
+      
+      toast({
+        title: "Note updated",
+        description: "Your note has been saved successfully.",
+      });
+    } catch (error) {
+      console.error("Error updating card:", error);
+      toast({
+        title: "Error saving note",
+        description: "Failed to save your note. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCard(null);
+    setEditingContent("");
   };
 
   const handleDeleteCard = async (cardId: string) => {
@@ -332,50 +370,84 @@ export const InsightsResourcesTab = () => {
                   </CardHeader>
                   
                   <CardContent className="space-y-3">
-                    <div 
-                      className="text-sm text-muted-foreground line-clamp-3"
-                      dangerouslySetInnerHTML={{
-                        __html: card.content.replace(/<[^>]*>/g, "")
-                      }}
-                    />
+                    {editingCard === card.id ? (
+                      <div className="space-y-3">
+                        <Textarea
+                          value={editingContent}
+                          onChange={(e) => setEditingContent(e.target.value)}
+                          placeholder="Write your reflection here..."
+                          className="min-h-[120px]"
+                        />
+                        <div className="flex space-x-2">
+                          <Button size="sm" onClick={() => handleSaveCard(card.id)}>
+                            Save
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={handleCancelEdit}>
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div 
+                          className="text-sm text-muted-foreground line-clamp-3 cursor-pointer hover:bg-muted/50 p-2 rounded"
+                          onClick={() => card.type === "note" ? handleEditCard(card) : null}
+                          dangerouslySetInnerHTML={{
+                            __html: card.content.replace(/<[^>]*>/g, "")
+                          }}
+                        />
 
-                    {card.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {card.tags.slice(0, 3).map((tag, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                        {card.tags.length > 3 && (
-                          <Badge variant="secondary" className="text-xs">
-                            +{card.tags.length - 3}
-                          </Badge>
+                        {card.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {card.tags.slice(0, 3).map((tag, index) => (
+                              <Badge key={index} variant="secondary" className="text-xs">
+                                {tag}
+                              </Badge>
+                            ))}
+                            {card.tags.length > 3 && (
+                              <Badge variant="secondary" className="text-xs">
+                                +{card.tags.length - 3}
+                              </Badge>
+                            )}
+                          </div>
                         )}
-                      </div>
-                    )}
 
-                    {card.originalUrl && (
-                      <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                        <ExternalLink className="h-3 w-3" />
-                        <span className="truncate">{new URL(card.originalUrl).hostname}</span>
-                      </div>
-                    )}
+                        {card.originalUrl && (
+                          <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                            <ExternalLink className="h-3 w-3" />
+                            <span className="truncate">{new URL(card.originalUrl).hostname}</span>
+                          </div>
+                        )}
 
-                    <div className="flex items-center justify-between pt-2 border-t">
-                      <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                        <Calendar className="h-3 w-3" />
-                        <span>{format(new Date(card.createdAt), "MMM dd, yyyy")}</span>
-                      </div>
-                      
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteCard(card.id)}
-                        className="text-xs text-destructive hover:text-destructive"
-                      >
-                        Delete
-                      </Button>
-                    </div>
+                        <div className="flex items-center justify-between pt-2 border-t">
+                          <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                            <Calendar className="h-3 w-3" />
+                            <span>{format(new Date(card.createdAt), "MMM dd, yyyy")}</span>
+                          </div>
+                          
+                          <div className="flex space-x-1">
+                            {card.type === "note" && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditCard(card)}
+                                className="text-xs"
+                              >
+                                Edit
+                              </Button>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteCard(card.id)}
+                              className="text-xs text-destructive hover:text-destructive"
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </CardContent>
                 </Card>
               ))}

@@ -16,6 +16,20 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
       <div className="min-h-screen bg-background">
         <div className="container mx-auto p-8">
           <div className="bg-card rounded-xl shadow-sm border p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-2">
+                <Sprout className="h-6 w-6 text-primary" />
+                <span className="text-lg font-semibold">Focus Mode</span>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setFocusMode(false)}
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                Exit Focus
+              </Button>
+            </div>
             {children}
           </div>
         </div>
