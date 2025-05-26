@@ -43,16 +43,16 @@ export const WelcomeSection = () => {
 
   return (
     <section>
-      {/* Jony Ive: Sophisticated warmth through AI personalization */}
-      <div className="ive-card bg-gradient-to-br from-primary/4 via-background to-accent/3 border-primary/8 overflow-hidden">
-        <div className="p-12">
-          <div className="space-y-8">
-            <div className="space-y-4">
-              <h1 className="text-5xl font-light text-foreground tracking-tight leading-tight">
+      {/* Claude-inspired: Elegant warmth through refined typography */}
+      <div className="ive-card bg-gradient-to-br from-slate-50/50 to-blue-50/30 border-slate-200/60 overflow-hidden">
+        <div className="p-10">
+          <div className="space-y-6">
+            <div className="space-y-3">
+              <h1 className="text-3xl font-medium text-slate-800 tracking-tight leading-snug">
                 {new Date().getHours() < 12 ? 'Good morning' : 
                  new Date().getHours() < 17 ? 'Good afternoon' : 'Good evening'}, {displayName}
               </h1>
-              <p className="text-lg text-muted-foreground/70 font-light">
+              <p className="text-base text-slate-500 font-normal">
                 {new Date().toLocaleDateString('en-US', { 
                   weekday: 'long', 
                   month: 'long', 
@@ -61,19 +61,19 @@ export const WelcomeSection = () => {
               </p>
             </div>
             
-            <div className="max-w-3xl">
-              <p className="text-2xl text-foreground/85 leading-relaxed font-light tracking-wide">
+            <div className="max-w-2xl">
+              <p className="text-lg text-slate-700 leading-relaxed font-normal">
                 {personalizedMessage}
               </p>
             </div>
             
-            <div className="pt-4">
+            <div className="pt-2">
               <Link href="/add-entry">
                 <Button 
                   size="lg" 
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-base font-medium shadow-sm hover:shadow-md transition-all duration-300 ive-scale ive-focus rounded-2xl"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 text-base font-medium shadow-sm hover:shadow-md transition-all duration-200 ive-scale rounded-xl"
                 >
-                  <Plus className="h-5 w-5 mr-3" />
+                  <Plus className="h-4 w-4 mr-2" />
                   Log New Session
                 </Button>
               </Link>
