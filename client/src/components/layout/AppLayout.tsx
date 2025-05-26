@@ -40,41 +40,39 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Rams: Header becomes invisible until needed */}
-      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border/50">
-        <div className="flex items-center justify-between px-8 h-14">
-          <div className="flex items-center space-x-2">
-            <Sprout className="h-5 w-5 text-accent" />
-            <h1 className="text-lg font-medium text-foreground tracking-tight">ClarityLog</h1>
+      {/* Rams polish: Refined version of your original header */}
+      <header className="sticky top-0 z-40 bg-background/90 backdrop-blur-sm border-b">
+        <div className="flex items-center justify-between px-6 h-16">
+          <div className="flex items-center space-x-3">
+            <Sprout className="h-6 w-6 text-primary" />
+            <h1 className="text-xl font-semibold text-foreground tracking-tight">ClarityLog</h1>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-4">
             <NotificationCenter />
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setFocusMode(true)}
-              className="text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-sm"
+              className="text-muted-foreground hover:text-foreground transition-colors duration-200"
             >
-              <Eye className="h-4 w-4 mr-1.5" />
-              Focus
+              <Eye className="h-4 w-4 mr-2" />
+              Focus Mode
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setSidebarOpen(true)}
-              className="text-muted-foreground hover:text-foreground transition-colors px-2 py-1.5 rounded-sm"
+              className="text-muted-foreground hover:text-foreground transition-colors duration-200"
             >
-              <Menu className="h-4 w-4" />
+              <Menu className="h-5 w-5" />
             </Button>
           </div>
         </div>
       </header>
 
-      {/* Rams: Content-first layout with perfect proportions */}
-      <main className="px-8 py-12 max-w-5xl mx-auto">
-        <div className="space-y-12">
-          {children}
-        </div>
+      {/* Rams polish: Keeping your original proportions with refined spacing */}
+      <main className="px-6 py-8 max-w-7xl mx-auto">
+        {children}
       </main>
 
       {/* Footer */}
