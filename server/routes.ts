@@ -11,30 +11,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Download extension files
+  // Download browser extension as zip
   app.get("/api/download-extension", (req, res) => {
     const path = require('path');
     const fs = require('fs');
+    const archiver = require('archiver');
     
     try {
       const extensionDir = path.join(process.cwd(), 'extension');
       
       // Set headers for zip download
       res.setHeader('Content-Type', 'application/zip');
-      res.setHeader('Content-Disposition', 'attachment; filename="claritylog-extension.zip"');
+      res.setHeader('Content-Disposition', 'attachment; filename="claritylog-browser-extension.zip"');
       
-      // Create a simple zip-like response with all files
-      const files = fs.readdirSync(extensionDir);
-      let zipContent = '';
+      // Create archiver instance
+      const archive = archiver('zip', { zlib: { level: 9 } });
       
-      files.forEach(file => {
-        const filePath = path.join(extensionDir, file);
-        const fileContent = fs.readFileSync(filePath, 'utf8');
-        zipContent += `--- ${file} ---\n${fileContent}\n\n`;
+      // Handle archiver errors
+      archive.on('error', (err) => {
+        res.status(500).json({ error: 'Failed to create zip file' });
       });
       
-      res.send(zipContent);
+      // Pipe archive data to response
+      archive.pipe(res);
+      
+      // Add all files from extension directory
+      archive.directory(extensionDir, false);
+      
+      // Finalize the archive
+      archive.finalize();
+      
     } catch (error) {
+      console.error('Extension download error:', error);
       res.status(500).json({ error: 'Failed to create extension download' });
     }
   });
