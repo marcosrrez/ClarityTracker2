@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { Button } from "@/components/ui/button";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
-import { Sprout, Menu, Eye } from "lucide-react";
+import { Sprout, Menu, Eye, Moon, Sun } from "lucide-react";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -11,6 +12,7 @@ interface AppLayoutProps {
 export const AppLayout = ({ children }: AppLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   if (focusMode) {
     return (
@@ -49,6 +51,18 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
           </div>
           <div className="flex items-center space-x-4">
             <NotificationCenter />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleTheme}
+              className="ive-button text-muted-foreground hover:text-foreground transition-colors duration-200"
+            >
+              {theme === 'dark' ? (
+                <Sun className="h-4 w-4" />
+              ) : (
+                <Moon className="h-4 w-4" />
+              )}
+            </Button>
             <Button
               variant="ghost"
               size="sm"

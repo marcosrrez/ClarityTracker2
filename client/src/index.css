@@ -1,9 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Dieter Rams: "Good design is as little design as possible" */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
 
 @layer base {
   * {
@@ -36,9 +35,9 @@
 }
 
 @layer components {
-  /* Jony Ive: Material honesty - cards feel physically grounded */
+  /* Jony Ive: Material honesty with seamless dark mode adaptation */
   .ive-card {
-    @apply bg-white;
+    @apply bg-white dark:bg-slate-900;
     border: 1px solid hsl(var(--border));
     border-radius: 12px;
     box-shadow: 
@@ -47,11 +46,23 @@
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.175);
   }
   
+  .dark .ive-card {
+    box-shadow: 
+      0 1px 3px 0 rgba(0, 0, 0, 0.2),
+      0 1px 2px 0 rgba(0, 0, 0, 0.15);
+  }
+  
   .ive-card:hover {
     transform: translateY(-1px);
     box-shadow: 
       0 4px 8px 0 rgba(0, 0, 0, 0.08),
       0 2px 4px 0 rgba(0, 0, 0, 0.06);
+  }
+  
+  .dark .ive-card:hover {
+    box-shadow: 
+      0 4px 8px 0 rgba(0, 0, 0, 0.25),
+      0 2px 4px 0 rgba(0, 0, 0, 0.2);
   }
   
   /* Jony Ive: Buttons with physical presence */
