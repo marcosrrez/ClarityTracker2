@@ -580,44 +580,48 @@ Use the toolbar above to format your text with headings, bold, italic, lists, an
           </div>
         </div>
         <div className="space-y-6">
-          {/* Search and Filter */}
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search insights, notes, and tags..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 rounded-3xl border-gray-200"
-              />
+          {/* Clean Header with Search, Filters, and Add Button */}
+          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+            <div className="flex flex-col sm:flex-row gap-4 flex-1">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search notes and resources..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              
+              <div className="flex space-x-1">
+                <Button
+                  variant={filterType === "all" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setFilterType("all")}
+                >
+                  All
+                </Button>
+                <Button
+                  variant={filterType === "note" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setFilterType("note")}
+                >
+                  Notes
+                </Button>
+                <Button
+                  variant={filterType === "articleSummary" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setFilterType("articleSummary")}
+                >
+                  Summaries
+                </Button>
+              </div>
             </div>
             
-            <div className="flex space-x-2">
-              <Button
-                variant={filterType === "all" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setFilterType("all")}
-                className={filterType === "all" ? "bg-purple-500 hover:bg-purple-600 rounded-3xl" : "border-gray-200 text-gray-600 hover:bg-gray-50 rounded-3xl"}
-              >
-                All
-              </Button>
-              <Button
-                variant={filterType === "note" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setFilterType("note")}
-                className={filterType === "note" ? "bg-purple-500 hover:bg-purple-600 rounded-3xl" : "border-gray-200 text-gray-600 hover:bg-gray-50 rounded-3xl"}
-              >
-                Notes
-              </Button>
-              <Button
-                variant={filterType === "articleSummary" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setFilterType("articleSummary")}
-                className={filterType === "articleSummary" ? "bg-purple-500 hover:bg-purple-600 rounded-3xl" : "border-gray-200 text-gray-600 hover:bg-gray-50 rounded-3xl"}
-              >
-                Summaries
-              </Button>
-            </div>
+            <Button onClick={handleCreateNote} className="shrink-0">
+              <Plus className="h-4 w-4 mr-2" />
+              New Note
+            </Button>
           </div>
 
           {/* Empty State for New Note */}
