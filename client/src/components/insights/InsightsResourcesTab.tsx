@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -446,46 +446,22 @@ export const InsightsResourcesTab = () => {
           </div>
         </div>
 
-        {/* Full-screen Bear-style editor with side-by-side view */}
-        <div className="flex-1 flex max-w-6xl mx-auto w-full p-6 space-x-6">
-          {/* Markdown editor side */}
-          <div className="flex-1 flex flex-col">
-            <div className="text-sm text-muted-foreground mb-4 font-medium">Write (Markdown)</div>
-            <Textarea
-              value={editingContent}
-              onChange={(e) => setEditingContent(e.target.value)}
-              placeholder="Start writing your reflection...
+        {/* Beautiful rich text editor */}
+        <div className="flex-1 max-w-5xl mx-auto w-full p-6">
+          <div className="flex flex-col h-full">
+            <div className="text-sm text-muted-foreground mb-4 font-medium">Write Your Reflection</div>
+            <div className="flex-1 border border-border rounded-xl overflow-hidden shadow-sm bg-background">
+              <RichTextEditor
+                content={editingContent}
+                onChange={setEditingContent}
+                placeholder="Start writing your professional reflection, insights, or notes...
 
-Try typing:
-# Hello World (becomes a header)
-**bold text** (becomes bold)
-- bullet point (becomes a list)
-> quote text (becomes a blockquote)"
-              className="flex-1 resize-none border-0 text-lg leading-relaxed focus:ring-0 shadow-none bg-transparent font-mono"
-              style={{ 
-                minHeight: "calc(100vh - 200px)",
-                lineHeight: "1.6",
-                fontFamily: "ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace"
-              }}
-              autoFocus
-            />
-          </div>
-          
-          {/* Live preview side */}
-          <div className="flex-1 flex flex-col border-l pl-6">
-            <div className="text-sm text-muted-foreground mb-4 font-medium">Live Preview</div>
-            <div 
-              className="flex-1 prose prose-lg max-w-none text-foreground overflow-y-auto"
-              dangerouslySetInnerHTML={{
-                __html: editingContent ? 
-                  formatMarkdown(editingContent) : 
-                  '<p class="text-muted-foreground italic">Your beautiful formatted text will appear here as you type...</p>'
-              }}
-              style={{ 
-                minHeight: "calc(100vh - 240px)",
-                lineHeight: "1.6"
-              }}
-            />
+Use the toolbar above to format your text with headings, bold, italic, lists, and more. No markdown syntax needed!"
+                minHeight="calc(100vh - 280px)"
+                maxLength={50000}
+                showCharacterCount={true}
+              />
+            </div>
           </div>
         </div>
         
