@@ -38,7 +38,7 @@ export const GalleryView = () => {
           entriesWithNotes.map(async (entry) => {
             try {
               const analysis = await getAiAnalysis(user.uid, entry.id);
-              return { ...entry, analysis };
+              return { ...entry, analysis: analysis || undefined };
             } catch (error) {
               console.error(`Error loading analysis for entry ${entry.id}:`, error);
               return entry;

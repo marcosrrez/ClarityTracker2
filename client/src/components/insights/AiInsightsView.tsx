@@ -8,17 +8,28 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Sparkles, Lightbulb, Target, Eye, BookOpen, Tag } from "lucide-react";
 import { analyzeSessionNotes } from "@/lib/ai";
+import { createLogEntry, createAiAnalysis } from "@/lib/firestore";
+import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
 import type { AiAnalysisResult } from "@/lib/ai";
+import type { InsertLogEntry, InsertAiAnalysis } from "@shared/schema";
 
 export const AiInsightsView = () => {
   const [notes, setNotes] = useState("");
   const [analysis, setAnalysis] = useState<AiAnalysisResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   const handleAnalyze = async () => {
     if (!notes.trim()) {
       setError("Please enter session notes to analyze");
+      return;
+    }
+
+    if (!user) {
+      setError("You must be logged in to analyze notes");
       return;
     }
 
@@ -29,6 +40,39 @@ export const AiInsightsView = () => {
       // Use real Firebase AI analysis
       const result = await analyzeSessionNotes(notes);
       setAnalysis(result);
+
+      // Save the analysis as a log entry and AI analysis for future reference
+      const logEntry: InsertLogEntry = {
+        dateOfContact: new Date(),
+        clientContactHours: 0,
+        indirectHours: false,
+        supervisionHours: 0,
+        supervisionType: "none",
+        techAssistedSupervision: false,
+        notes: notes
+      };
+
+      const logEntryId = await createLogEntry(user.uid, logEntry);
+
+      // Save the AI analysis linked to the log entry
+      const aiAnalysis: InsertAiAnalysis = {
+        logEntryId: logEntryId,
+        summary: result.summary,
+        themes: result.themes,
+        potentialBlindSpots: result.potentialBlindSpots,
+        reflectivePrompts: result.reflectivePrompts,
+        keyLearnings: result.keyLearnings,
+        ccsrCategory: result.ccsrCategory,
+        originalNotesSnapshot: notes
+      };
+
+      await createAiAnalysis(user.uid, aiAnalysis);
+
+      toast({
+        title: "Analysis saved!",
+        description: "Your AI analysis has been saved and will appear in the gallery for future reference.",
+      });
+
     } catch (err) {
       setError("Failed to analyze notes. Please try again.");
       console.error("AI analysis error:", err);
