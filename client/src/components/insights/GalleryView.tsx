@@ -269,11 +269,6 @@ export const GalleryView = () => {
 
               {selectedItem.analysis ? (
                 <div className="space-y-6">
-                  {/* Debug info - remove after testing */}
-                  <div className="bg-gray-100 p-2 rounded text-xs">
-                    <pre>{JSON.stringify(selectedItem.analysis, null, 2)}</pre>
-                  </div>
-
                   {/* Summary */}
                   <div>
                     <div className="flex items-center space-x-2 mb-3">
@@ -288,14 +283,14 @@ export const GalleryView = () => {
                   <Separator />
 
                   {/* Key Themes */}
-                  {selectedItem.analysis.themes && selectedItem.analysis.themes.length > 0 && (
+                  {selectedItem.analysis.themes && Object.keys(selectedItem.analysis.themes).length > 0 && (
                     <div>
                       <div className="flex items-center space-x-2 mb-3">
                         <Lightbulb className="h-5 w-5 text-amber-500" />
                         <h3 className="text-lg font-semibold">Key Themes</h3>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {selectedItem.analysis.themes.map((theme, index) => (
+                        {Object.values(selectedItem.analysis.themes).map((theme, index) => (
                           <div key={index} className="bg-amber-50 dark:bg-amber-950/20 p-3 rounded-lg">
                             <p className="text-sm">{theme}</p>
                           </div>
@@ -307,14 +302,14 @@ export const GalleryView = () => {
                   <Separator />
 
                   {/* Potential Blind Spots */}
-                  {selectedItem.analysis.potentialBlindSpots.length > 0 && (
+                  {selectedItem.analysis.potentialBlindSpots && Object.keys(selectedItem.analysis.potentialBlindSpots).length > 0 && (
                     <div>
                       <div className="flex items-center space-x-2 mb-3">
                         <Eye className="h-5 w-5 text-orange-500" />
                         <h3 className="text-lg font-semibold">Potential Blind Spots</h3>
                       </div>
                       <div className="space-y-3">
-                        {selectedItem.analysis.potentialBlindSpots.map((blindSpot, index) => (
+                        {Object.values(selectedItem.analysis.potentialBlindSpots).map((blindSpot, index) => (
                           <div key={index} className="bg-orange-50 dark:bg-orange-950/20 p-3 rounded-lg">
                             <p className="text-sm">{blindSpot}</p>
                           </div>
@@ -326,14 +321,14 @@ export const GalleryView = () => {
                   <Separator />
 
                   {/* Reflective Prompts */}
-                  {selectedItem.analysis.reflectivePrompts.length > 0 && (
+                  {selectedItem.analysis.reflectivePrompts && Object.keys(selectedItem.analysis.reflectivePrompts).length > 0 && (
                     <div>
                       <div className="flex items-center space-x-2 mb-3">
                         <Target className="h-5 w-5 text-blue-500" />
                         <h3 className="text-lg font-semibold">Reflective Prompts</h3>
                       </div>
                       <div className="space-y-3">
-                        {selectedItem.analysis.reflectivePrompts.map((prompt, index) => (
+                        {Object.values(selectedItem.analysis.reflectivePrompts).map((prompt, index) => (
                           <div key={index} className="bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg">
                             <p className="text-sm font-medium">Question {index + 1}:</p>
                             <p className="text-sm text-muted-foreground mt-1">{prompt}</p>
@@ -346,14 +341,14 @@ export const GalleryView = () => {
                   <Separator />
 
                   {/* Key Learnings */}
-                  {selectedItem.analysis.keyLearnings.length > 0 && (
+                  {selectedItem.analysis.keyLearnings && Object.keys(selectedItem.analysis.keyLearnings).length > 0 && (
                     <div>
                       <div className="flex items-center space-x-2 mb-3">
                         <BookOpen className="h-5 w-5 text-green-500" />
                         <h3 className="text-lg font-semibold">Key Learnings</h3>
                       </div>
                       <div className="space-y-3">
-                        {selectedItem.analysis.keyLearnings.map((learning, index) => (
+                        {Object.values(selectedItem.analysis.keyLearnings).map((learning, index) => (
                           <div key={index} className="bg-green-50 dark:bg-green-950/20 p-3 rounded-lg">
                             <p className="text-sm">{learning}</p>
                           </div>
