@@ -650,37 +650,36 @@ Use the toolbar above to format your text with headings, bold, italic, lists, an
           {filteredCards.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
               {filteredCards.map((card) => (
-                <Card key={card.id} className="hover:shadow-lg transition-all duration-200 border-border bg-card">
-                  <CardContent className="p-8">
-                    <div className="space-y-6">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-4">
-                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${card.type === "note" ? "bg-blue-50 dark:bg-blue-950/20" : "bg-green-50 dark:bg-green-950/20"}`}>
-                              {card.type === "note" ? (
-                                <FileText className="h-4 w-4 text-blue-500" />
-                              ) : (
-                                <Globe className="h-4 w-4 text-green-500" />
-                              )}
-                            </div>
-                            <Badge variant="outline" className="text-xs">
-                              {card.type === "note" ? "Note" : "Summary"}
-                            </Badge>
+                <Card key={card.id} className="hover:shadow-lg transition-all duration-200">
+                  <CardContent className="p-6 space-y-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-3">
+                          <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${card.type === "note" ? "bg-blue-50" : "bg-green-50"}`}>
+                            {card.type === "note" ? (
+                              <FileText className="h-3 w-3 text-blue-500" />
+                            ) : (
+                              <Globe className="h-3 w-3 text-green-500" />
+                            )}
                           </div>
-                          <h4 className="font-semibold text-foreground text-lg line-clamp-2 mb-4">
-                            {getCardTitle(card)}
-                          </h4>
+                          <Badge variant="outline" className="text-xs">
+                            {card.type === "note" ? "Note" : "Summary"}
+                          </Badge>
                         </div>
+                        <h4 className="font-bold text-foreground text-base line-clamp-2 mb-3">
+                          {getCardTitle(card)}
+                        </h4>
                       </div>
+                    </div>
                     
-                      <div className="space-y-4">
-                        <div 
-                          className="text-sm text-muted-foreground line-clamp-3 cursor-pointer hover:bg-muted/50 p-3 rounded-xl transition-colors"
-                          onClick={() => handleEditCard(card)}
-                          dangerouslySetInnerHTML={{
-                            __html: card.content.replace(/<[^>]*>/g, "") || "Click to start writing..."
-                          }}
-                        />
+                    <div className="space-y-3">
+                      <div 
+                        className="text-sm text-muted-foreground line-clamp-3 cursor-pointer hover:bg-muted p-2 rounded-lg transition-colors"
+                        onClick={() => handleEditCard(card)}
+                        dangerouslySetInnerHTML={{
+                          __html: card.content.replace(/<[^>]*>/g, "") || "Click to start writing..."
+                        }}
+                      />
 
                       {card.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1">
