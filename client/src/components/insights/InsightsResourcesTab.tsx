@@ -405,26 +405,25 @@ export const InsightsResourcesTab = () => {
         
         {/* Bear-style bottom stats */}
         <div className="flex items-center justify-between pt-4 border-t text-xs text-muted-foreground max-w-7xl mx-auto px-6">
-            <div className="flex items-center space-x-4">
-              <span>{editingContent.length} characters</span>
-              <span>{editingContent.split(/\s+/).filter(word => word.length > 0).length} words</span>
-              <span>{editingContent.split('\n').length} lines</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              {lastSaved ? (
-                <span className="text-green-600">
-                  Saved {format(lastSaved, "h:mm a")}
-                </span>
-              ) : autoSaveTimer ? (
-                <span className="text-yellow-600">
-                  Saving...
-                </span>
-              ) : (
-                <span>
-                  Last edited: {format(new Date(), "h:mm a")}
-                </span>
-              )}
-            </div>
+          <div className="flex items-center space-x-4">
+            <span>{editingContent.length} characters</span>
+            <span>{editingContent.split(/\s+/).filter(word => word.length > 0).length} words</span>
+            <span>{editingContent.split('\n').length} lines</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            {lastSaved ? (
+              <span className="text-green-600">
+                Saved {format(lastSaved, "h:mm a")}
+              </span>
+            ) : autoSaveTimer ? (
+              <span className="text-yellow-600">
+                Saving...
+              </span>
+            ) : (
+              <span>
+                Last edited: {format(new Date(), "h:mm a")}
+              </span>
+            )}
           </div>
         </div>
       </div>
