@@ -359,7 +359,7 @@ Multicultural counseling
 Group therapy facilitation"
                 className="min-h-[100px]"
                 {...register("personalPreferences.userDefinedGrowthAreas", {
-                  setValueAs: (value: string) => value.split('\n').filter(line => line.trim() !== '')
+                  setValueAs: (value: string) => typeof value === 'string' ? value.split('\n').filter(line => line.trim() !== '') : []
                 })}
               />
               <p className="text-xs text-muted-foreground">
