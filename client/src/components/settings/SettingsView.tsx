@@ -12,7 +12,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { Calendar as CalendarIcon, Save, AlertTriangle, Shield, Download, Upload, FileSpreadsheet } from "lucide-react";
+import { Calendar as CalendarIcon, Save, AlertTriangle, Shield, Download, Upload, FileSpreadsheet, Target, User, Palette } from "lucide-react";
 import { format } from "date-fns";
 import { useAppSettings, useLogEntries } from "@/hooks/use-firestore";
 import { updateAppSettings, createLogEntry } from "@/lib/firestore";
@@ -29,7 +29,6 @@ export const SettingsView = () => {
   
   const [isSaving, setIsSaving] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
-  const [dateCalendarOpen, setDateCalendarOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
 
@@ -48,25 +47,24 @@ export const SettingsView = () => {
         directCCH: 1500,
         supervisionHours: 200,
         ethicsHours: 20,
-        targetDate: new Date(),
+        stateRegion: "",
       },
-      preferences: {
-        reminderFrequency: "weekly",
-        notificationTypes: ["progress", "deadlines"],
-        autoSave: true,
-        darkMode: false,
+      importedHours: {
+        totalCCH: 0,
+        directCCH: 0,
+        supervisionHours: 0,
+        ethicsHours: 0,
       },
-      profile: {
-        licenseNumber: "",
-        licenseState: "",
-        institution: "",
-        supervisor: "",
-        notes: "",
+      licenseInfo: {
+        lacLicenseDate: undefined,
+        supervisionCheckInInterval: 30,
+      },
+      personalPreferences: {
+        userDefinedGrowthAreas: [],
+        favoriteTherapeuticModalities: [],
       },
     },
   });
-
-  const watchedDate = watch("goals.targetDate");
 
   useEffect(() => {
     if (settings) {
@@ -82,8 +80,8 @@ export const SettingsView = () => {
       await updateAppSettings(user.uid, data);
       await refetch();
       toast({
-        title: "Settings saved",
-        description: "Your preferences have been updated successfully.",
+        title: "Settings saved successfully",
+        description: "Your preferences have been updated and saved.",
       });
     } catch (error) {
       console.error("Error saving settings:", error);
@@ -127,9 +125,10 @@ export const SettingsView = () => {
       const csvHeaders = [
         "Date of Contact",
         "Client Contact Hours",
-        "Direct Client Contact Hours",
+        "Indirect Hours",
         "Supervision Type",
         "Supervision Hours",
+        "Tech-Assisted Supervision",
         "Notes",
         "Created At"
       ];
@@ -137,9 +136,10 @@ export const SettingsView = () => {
       const csvData = entries.map(entry => [
         entry.dateOfContact.toISOString().split('T')[0],
         entry.clientContactHours.toString(),
-        entry.directClientContactHours.toString(),
+        entry.indirectHours ? "Yes" : "No",
         entry.supervisionType || "none",
         entry.supervisionHours.toString(),
+        entry.techAssistedSupervision ? "Yes" : "No",
         `"${(entry.notes || "").replace(/"/g, '""')}"`,
         entry.createdAt.toISOString().split('T')[0]
       ]);
@@ -159,8 +159,8 @@ export const SettingsView = () => {
       URL.revokeObjectURL(url);
 
       toast({
-        title: "Data exported",
-        description: "Your log entries have been exported to CSV successfully.",
+        title: "Data exported successfully",
+        description: `${entries.length} log entries exported to CSV.`,
       });
     } catch (error) {
       console.error("Error exporting data:", error);
@@ -195,181 +195,148 @@ export const SettingsView = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-        {/* Goals Section */}
-        <Card>
+        {/* Licensure Goals Section */}
+        <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20">
           <CardHeader>
-            <CardTitle>Licensure Goals</CardTitle>
+            <CardTitle className="flex items-center space-x-2 text-blue-700 dark:text-blue-300">
+              <Target className="h-5 w-5" />
+              <span>Licensure Goals</span>
+            </CardTitle>
             <CardDescription>
               Set your target hours for professional development and licensure requirements.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="totalCCH">Total Client Contact Hours Goal</Label>
+                <Label htmlFor="totalCCH" className="font-medium">Total Client Contact Hours Goal</Label>
                 <Input
                   id="totalCCH"
                   type="number"
                   min="0"
+                  className="border-blue-200 focus:border-blue-400"
                   {...register("goals.totalCCH", { valueAsNumber: true })}
                 />
                 {errors.goals?.totalCCH && (
-                  <p className="text-sm text-destructive">{errors.goals.totalCCH.message}</p>
+                  <p className="text-sm text-red-600">{errors.goals.totalCCH.message}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="directCCH">Direct Client Contact Hours Goal</Label>
+                <Label htmlFor="directCCH" className="font-medium">Direct Client Contact Hours Goal</Label>
                 <Input
                   id="directCCH"
                   type="number"
                   min="0"
+                  className="border-blue-200 focus:border-blue-400"
                   {...register("goals.directCCH", { valueAsNumber: true })}
                 />
                 {errors.goals?.directCCH && (
-                  <p className="text-sm text-destructive">{errors.goals.directCCH.message}</p>
+                  <p className="text-sm text-red-600">{errors.goals.directCCH.message}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="supervisionHours">Supervision Hours Goal</Label>
+                <Label htmlFor="supervisionHours" className="font-medium">Supervision Hours Goal</Label>
                 <Input
                   id="supervisionHours"
                   type="number"
                   min="0"
+                  className="border-blue-200 focus:border-blue-400"
                   {...register("goals.supervisionHours", { valueAsNumber: true })}
                 />
                 {errors.goals?.supervisionHours && (
-                  <p className="text-sm text-destructive">{errors.goals.supervisionHours.message}</p>
+                  <p className="text-sm text-red-600">{errors.goals.supervisionHours.message}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="ethicsHours">Ethics Hours Goal</Label>
+                <Label htmlFor="ethicsHours" className="font-medium">Ethics Hours Goal</Label>
                 <Input
                   id="ethicsHours"
                   type="number"
                   min="0"
+                  className="border-blue-200 focus:border-blue-400"
                   {...register("goals.ethicsHours", { valueAsNumber: true })}
                 />
                 {errors.goals?.ethicsHours && (
-                  <p className="text-sm text-destructive">{errors.goals.ethicsHours.message}</p>
+                  <p className="text-sm text-red-600">{errors.goals.ethicsHours.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="stateRegion" className="font-medium">State/Region</Label>
+                <Input
+                  id="stateRegion"
+                  placeholder="e.g., CA, NY, TX"
+                  className="border-blue-200 focus:border-blue-400"
+                  {...register("goals.stateRegion")}
+                />
+                {errors.goals?.stateRegion && (
+                  <p className="text-sm text-red-600">{errors.goals.stateRegion.message}</p>
                 )}
               </div>
             </div>
+          </CardContent>
+        </Card>
 
+        {/* License Information */}
+        <Card className="border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2 text-green-700 dark:text-green-300">
+              <User className="h-5 w-5" />
+              <span>License Information</span>
+            </CardTitle>
+            <CardDescription>
+              Track your LAC license date and supervision intervals.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>Target Completion Date</Label>
-              <Popover open={dateCalendarOpen} onOpenChange={setDateCalendarOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !watchedDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {watchedDate ? format(watchedDate, "PPP") : "Pick a date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={watchedDate}
-                    onSelect={(date) => {
-                      setValue("goals.targetDate", date || new Date());
-                      setDateCalendarOpen(false);
-                    }}
-                    disabled={(date) => date < new Date()}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              {errors.goals?.targetDate && (
-                <p className="text-sm text-destructive">{errors.goals.targetDate.message}</p>
+              <Label htmlFor="supervisionCheckIn" className="font-medium">Supervision Check-in Interval (days)</Label>
+              <Input
+                id="supervisionCheckIn"
+                type="number"
+                min="1"
+                className="border-green-200 focus:border-green-400"
+                {...register("licenseInfo.supervisionCheckInInterval", { valueAsNumber: true })}
+                placeholder="30"
+              />
+              {errors.licenseInfo?.supervisionCheckInInterval && (
+                <p className="text-sm text-red-600">{errors.licenseInfo.supervisionCheckInInterval.message}</p>
               )}
             </div>
           </CardContent>
         </Card>
 
-        {/* Professional Information */}
-        <Card>
+        {/* Personal Preferences */}
+        <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-950/20 dark:to-violet-950/20">
           <CardHeader>
-            <CardTitle>Professional Information</CardTitle>
+            <CardTitle className="flex items-center space-x-2 text-purple-700 dark:text-purple-300">
+              <Palette className="h-5 w-5" />
+              <span>Personal Preferences</span>
+            </CardTitle>
             <CardDescription>
-              Manage your professional details and license information.
+              Define your growth areas and therapeutic approaches.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="licenseNumber">License Number</Label>
-                <Input
-                  id="licenseNumber"
-                  {...register("profile.licenseNumber")}
-                  placeholder="Enter your license number"
-                />
-                {errors.profile?.licenseNumber && (
-                  <p className="text-sm text-destructive">{errors.profile.licenseNumber.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="licenseState">License State</Label>
-                <Input
-                  id="licenseState"
-                  {...register("profile.licenseState")}
-                  placeholder="e.g., CA, NY, TX"
-                />
-                {errors.profile?.licenseState && (
-                  <p className="text-sm text-destructive">{errors.profile.licenseState.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="institution">Institution/Practice</Label>
-                <Input
-                  id="institution"
-                  {...register("profile.institution")}
-                  placeholder="Your workplace or institution"
-                />
-                {errors.profile?.institution && (
-                  <p className="text-sm text-destructive">{errors.profile.institution.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="supervisor">Primary Supervisor</Label>
-                <Input
-                  id="supervisor"
-                  {...register("profile.supervisor")}
-                  placeholder="Your supervisor's name"
-                />
-                {errors.profile?.supervisor && (
-                  <p className="text-sm text-destructive">{errors.profile.supervisor.message}</p>
-                )}
-              </div>
-            </div>
-
             <div className="space-y-2">
-              <Label htmlFor="notes">Professional Notes</Label>
-              <Textarea
-                id="notes"
-                {...register("profile.notes")}
-                placeholder="Any additional notes about your professional development"
-                rows={3}
-              />
-              {errors.profile?.notes && (
-                <p className="text-sm text-destructive">{errors.profile.notes.message}</p>
-              )}
+              <Label className="font-medium">Therapeutic Modalities</Label>
+              <p className="text-sm text-muted-foreground">
+                Your preferred therapeutic approaches (managed in your profile settings).
+              </p>
             </div>
           </CardContent>
         </Card>
 
         {/* Save Button */}
         <div className="flex justify-end">
-          <Button type="submit" disabled={isSaving} className="min-w-[120px]">
+          <Button 
+            type="submit" 
+            disabled={isSaving} 
+            className="min-w-[140px] bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium"
+          >
             {isSaving ? (
               <>
                 <LoadingSpinner size="sm" className="mr-2" />
@@ -388,7 +355,10 @@ export const SettingsView = () => {
       {/* Account Security */}
       <Card>
         <CardHeader>
-          <CardTitle>Account & Security</CardTitle>
+          <CardTitle className="flex items-center space-x-2">
+            <Shield className="h-5 w-5 text-blue-600" />
+            <span>Account & Security</span>
+          </CardTitle>
           <CardDescription>
             Manage your account settings and security preferences.
           </CardDescription>
@@ -405,6 +375,7 @@ export const SettingsView = () => {
               variant="outline"
               onClick={handlePasswordReset}
               disabled={isResettingPassword}
+              className="border-blue-200 hover:border-blue-400"
             >
               {isResettingPassword ? (
                 <>
@@ -421,8 +392,8 @@ export const SettingsView = () => {
 
           <div className="space-y-2">
             <h4 className="font-medium">Email Address</h4>
-            <p>{user?.email}</p>
-            <p className="mt-2 text-xs">
+            <p className="text-muted-foreground">{user?.email}</p>
+            <p className="text-xs text-muted-foreground">
               To change your email address, please contact support.
             </p>
           </div>
@@ -433,15 +404,14 @@ export const SettingsView = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
-            <FileSpreadsheet className="h-5 w-5 text-blue-500" />
+            <FileSpreadsheet className="h-5 w-5 text-green-600" />
             <span>Data Management</span>
           </CardTitle>
           <CardDescription>
-            Export your data for backup or import existing entries from Excel/CSV files.
+            Export your data for backup or external analysis.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Export Section */}
           <div className="space-y-4">
             <div>
               <h4 className="font-medium mb-2">Export Your Data</h4>
@@ -452,7 +422,7 @@ export const SettingsView = () => {
                 variant="outline"
                 onClick={handleExportData}
                 disabled={isExporting || !entries || entries.length === 0}
-                className="w-full sm:w-auto"
+                className="w-full sm:w-auto border-green-200 hover:border-green-400"
               >
                 {isExporting ? (
                   <>
@@ -485,9 +455,9 @@ export const SettingsView = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Alert>
-            <Shield className="h-4 w-4" />
-            <AlertDescription>
+          <Alert className="border-green-200 bg-green-50 dark:bg-green-950/20">
+            <Shield className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-800 dark:text-green-200">
               <strong>Your data is secure:</strong> All information is encrypted and stored securely using Firebase. 
               Your personal information and client data (when properly anonymized) are protected with 
               industry-standard security measures.
@@ -506,9 +476,9 @@ export const SettingsView = () => {
       </Card>
 
       {/* Danger Zone */}
-      <Card className="border-destructive/50">
+      <Card className="border-red-200 bg-red-50 dark:bg-red-950/20">
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2 text-destructive">
+          <CardTitle className="flex items-center space-x-2 text-red-700 dark:text-red-300">
             <AlertTriangle className="h-5 w-5" />
             <span>Danger Zone</span>
           </CardTitle>
@@ -528,22 +498,6 @@ export const SettingsView = () => {
               Reset Settings
             </Button>
           </div>
-
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0 pt-4 border-t">
-            <div>
-              <h4 className="font-medium">Delete Account</h4>
-              <p className="text-sm text-muted-foreground">
-                Permanently delete your account and all associated data. This action cannot be undone.
-              </p>
-            </div>
-            <Button variant="destructive" disabled>
-              Delete Account
-            </Button>
-          </div>
-          
-          <p className="text-xs text-muted-foreground">
-            Account deletion is not yet available. Please contact support if you need to delete your account.
-          </p>
         </CardContent>
       </Card>
     </div>

@@ -121,8 +121,8 @@ export const GalleryView = () => {
           <SelectContent>
             <SelectItem value="all">All Categories</SelectItem>
             {uniqueCategories.map(category => (
-              <SelectItem key={category} value={category}>
-                {category}
+              <SelectItem key={category} value={category || "uncategorized"}>
+                {category || "Uncategorized"}
               </SelectItem>
             ))}
           </SelectContent>
