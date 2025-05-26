@@ -429,91 +429,76 @@ export const InsightsResourcesTab = () => {
                           </Badge>
                         </div>
                         <CardTitle className="text-base line-clamp-2">
-                          {card.title}
+                          {getCardTitle(card)}
                         </CardTitle>
                       </div>
                     </div>
                   </CardHeader>
                   
                   <CardContent className="space-y-3">
-                    {editingCard === card.id ? (
-                      <div className="space-y-3">
-                        <Textarea
-                          value={editingContent}
-                          onChange={(e) => setEditingContent(e.target.value)}
-                          placeholder="Write your reflection here..."
-                          className="min-h-[120px]"
-                        />
-                        <div className="flex space-x-2">
-                          <Button size="sm" onClick={() => handleSaveCard(card.id)}>
-                            Save
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={handleCancelEdit}>
-                            Cancel
-                          </Button>
-                        </div>
+                    <div 
+                      className="text-sm text-muted-foreground line-clamp-3 cursor-pointer hover:bg-muted/50 p-2 rounded transition-colors"
+                      onClick={() => card.type === "note" ? handleEditCard(card) : null}
+                      dangerouslySetInnerHTML={{
+                        __html: card.content.replace(/<[^>]*>/g, "") || "Click to start writing..."
+                      }}
+                    />
+
+                    {card.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {card.tags.slice(0, 3).map((tag, index) => (
+                          <Badge key={index} variant="secondary" className="text-xs">
+                            {tag}
+                          </Badge>
+                        ))}
+                        {card.tags.length > 3 && (
+                          <Badge variant="secondary" className="text-xs">
+                            +{card.tags.length - 3}
+                          </Badge>
+                        )}
                       </div>
-                    ) : (
-                      <>
-                        <div 
-                          className="text-sm text-muted-foreground line-clamp-3 cursor-pointer hover:bg-muted/50 p-2 rounded"
-                          onClick={() => card.type === "note" ? handleEditCard(card) : null}
-                          dangerouslySetInnerHTML={{
-                            __html: card.content.replace(/<[^>]*>/g, "")
-                          }}
-                        />
-
-                        {card.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-1">
-                            {card.tags.slice(0, 3).map((tag, index) => (
-                              <Badge key={index} variant="secondary" className="text-xs">
-                                {tag}
-                              </Badge>
-                            ))}
-                            {card.tags.length > 3 && (
-                              <Badge variant="secondary" className="text-xs">
-                                +{card.tags.length - 3}
-                              </Badge>
-                            )}
-                          </div>
-                        )}
-
-                        {card.originalUrl && (
-                          <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                            <ExternalLink className="h-3 w-3" />
-                            <span className="truncate">{new URL(card.originalUrl).hostname}</span>
-                          </div>
-                        )}
-
-                        <div className="flex items-center justify-between pt-2 border-t">
-                          <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                            <Calendar className="h-3 w-3" />
-                            <span>{format(new Date(card.createdAt), "MMM dd, yyyy")}</span>
-                          </div>
-                          
-                          <div className="flex space-x-1">
-                            {card.type === "note" && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEditCard(card)}
-                                className="text-xs"
-                              >
-                                Edit
-                              </Button>
-                            )}
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteCard(card.id)}
-                              className="text-xs text-destructive hover:text-destructive"
-                            >
-                              Delete
-                            </Button>
-                          </div>
-                        </div>
-                      </>
                     )}
+
+                    {card.originalUrl && (
+                      <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                        <ExternalLink className="h-3 w-3" />
+                        <span className="truncate">{new URL(card.originalUrl).hostname}</span>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between pt-2 border-t">
+                      <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                        <Calendar className="h-3 w-3" />
+                        <span>{format(new Date(card.createdAt), "MMM dd, yyyy")}</span>
+                      </div>
+                      
+                      <div className="flex space-x-1">
+                        {card.type === "note" && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditCard(card);
+                            }}
+                            className="text-xs"
+                          >
+                            Edit
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteCard(card.id);
+                          }}
+                          className="text-xs text-destructive hover:text-destructive"
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               ))}
