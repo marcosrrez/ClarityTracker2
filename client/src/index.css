@@ -35,9 +35,9 @@
 }
 
 @layer components {
-  /* Jony Ive: Soft, cohesive design with rounded corners */
-  .ive-card {
-    @apply bg-white dark:bg-slate-900;
+  /* Production-ready card styling with enhanced visual hierarchy */
+  .clarity-card {
+    @apply bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm hover:shadow-md transition-all duration-200;
     border: 1px solid hsl(var(--border));
     border-radius: 20px;
     box-shadow: 
