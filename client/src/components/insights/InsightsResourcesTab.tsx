@@ -49,6 +49,9 @@ export const InsightsResourcesTab = () => {
   const [editingContent, setEditingContent] = useState("");
   const [editingTitle, setEditingTitle] = useState("");
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [showManualInput, setShowManualInput] = useState(false);
+  const [manualUrl, setManualUrl] = useState("");
+  const [manualContent, setManualContent] = useState("");
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [autoSaveTimer, setAutoSaveTimer] = useState<NodeJS.Timeout | null>(null);
   const [showMarkdown, setShowMarkdown] = useState(false);
@@ -155,11 +158,22 @@ export const InsightsResourcesTab = () => {
       reset();
     } catch (error) {
       console.error("Error summarizing URL:", error);
-      toast({
-        title: "Error summarizing content",
-        description: "Failed to process the web content. Please try again.",
-        variant: "destructive",
-      });
+      
+      // Smart fallback: offer manual content paste
+      const shouldTryManual = confirm(
+        "Website blocked automatic access. Would you like to paste the article content manually? This will still provide the same AI analysis."
+      );
+      
+      if (shouldTryManual) {
+        setShowManualInput(true);
+        setManualUrl(data.url);
+      } else {
+        toast({
+          title: "Content capture failed",
+          description: "Website blocked access. Try copying the content manually.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsSummarizing(false);
     }
