@@ -564,19 +564,12 @@ Use the toolbar above to format your text with headings, bold, italic, lists, an
               variant="outline" 
               size="sm" 
               onClick={handleDownloadAll}
-              className="border-gray-200 text-gray-600 hover:bg-gray-50 rounded-3xl"
+              className="rounded-xl"
             >
               <Download className="h-4 w-4 mr-2" />
               Download All
             </Button>
-            <Button 
-              size="sm" 
-              onClick={handleCreateNote}
-              className="bg-purple-500 hover:bg-purple-600 text-white rounded-3xl"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              New Note
-            </Button>
+
           </div>
         </div>
         <div className="space-y-8">
