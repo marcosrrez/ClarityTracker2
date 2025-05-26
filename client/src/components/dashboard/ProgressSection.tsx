@@ -151,31 +151,43 @@ export const ProgressSection = () => {
 
   return (
     <section className="mb-8">
-      <h3 className="text-lg font-semibold text-foreground mb-6">Licensure Progress</h3>
+      <h3 className="text-xl font-bold text-gray-900 mb-6">Licensure Progress</h3>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Progress Cards */}
+        {/* Progress Cards - Notion Style */}
         <div className="space-y-6">
           {progressCards.map((card, index) => (
-            <Card key={index}>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className="font-semibold text-foreground">{card.title}</h4>
-                  <span className="text-sm text-muted-foreground">
-                    {Math.round(card.progress)}%
-                  </span>
+            <div key={index} className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm relative overflow-hidden">
+              <div className={`absolute top-0 left-0 w-full h-1 ${
+                index === 0 ? 'bg-blue-500' : 
+                index === 1 ? 'bg-purple-500' : 
+                'bg-green-500'
+              }`}></div>
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-lg font-bold text-gray-900">{card.title}</h4>
+                <span className="text-2xl font-bold text-gray-900">
+                  {Math.round(card.progress)}%
+                </span>
+              </div>
+              <div className="mb-4">
+                <div className="flex justify-between text-sm text-gray-600 mb-2 font-medium">
+                  <span>{card.current.toFixed(1)} hours</span>
+                  <span>Goal: {card.goal}</span>
                 </div>
-                <div className="mb-2">
-                  <div className="flex justify-between text-sm text-muted-foreground mb-1">
-                    <span>{card.current.toFixed(1)}</span>
-                    <span>{card.goal}</span>
-                  </div>
-                  <Progress value={card.progress} className="h-2" />
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div 
+                    className={`h-3 rounded-full transition-all duration-300 ${
+                      index === 0 ? 'bg-blue-500' : 
+                      index === 1 ? 'bg-purple-500' : 
+                      'bg-green-500'
+                    }`}
+                    style={{ width: `${card.progress}%` }}
+                  ></div>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  {card.remaining.toFixed(1)} hours remaining
-                </p>
-              </CardContent>
-            </Card>
+              </div>
+              <p className="text-sm text-gray-500 font-medium">
+                {card.remaining.toFixed(1)} hours remaining to reach your goal
+              </p>
+            </div>
           ))}
         </div>
 

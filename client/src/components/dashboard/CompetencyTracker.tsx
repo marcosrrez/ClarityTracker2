@@ -16,7 +16,10 @@ import {
   FileText,
   Scale,
   Shield,
-  Target
+  Target,
+  ChevronDown,
+  ChevronUp,
+  Award
 } from "lucide-react";
 
 interface CompetencyArea {
@@ -94,6 +97,7 @@ export const CompetencyTracker = () => {
   const { cards: insightCards = [] } = useInsightCards();
   const [competencies, setCompetencies] = useState<CompetencyArea[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const analyzeCompetencies = () => {
     setIsAnalyzing(true);
@@ -169,44 +173,30 @@ export const CompetencyTracker = () => {
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
-          <Skeleton className="h-6 w-48" />
-          <Skeleton className="h-4 w-32" />
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="space-y-2">
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-2 w-full" />
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm">
+        <div className="space-y-4">
+          <div className="h-4 bg-gray-100 rounded animate-pulse"></div>
+          <div className="h-4 bg-gray-100 rounded animate-pulse w-3/4"></div>
+          <div className="h-2 bg-gray-100 rounded animate-pulse"></div>
+        </div>
+      </div>
     );
   }
 
   if (!logEntries.length) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Target className="h-5 w-5 text-primary" />
-            <span>Competency Tracking</span>
-          </CardTitle>
-          <CardDescription>Monitor your progress across core counseling competencies</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-6">
-            <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">
-              Start logging sessions to track your competency development.
-            </p>
+      <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-1 bg-green-500"></div>
+        <div className="text-center py-6">
+          <div className="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center mx-auto mb-4">
+            <Target className="h-6 w-6 text-green-500" />
           </div>
-        </CardContent>
-      </Card>
+          <h3 className="text-lg font-bold text-gray-900 mb-2">Competency Tracking</h3>
+          <p className="text-gray-500">
+            Start logging sessions to track your competency development.
+          </p>
+        </div>
+      </div>
     );
   }
 
@@ -215,81 +205,112 @@ export const CompetencyTracker = () => {
     : 0;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <Target className="h-5 w-5 text-primary" />
-          <span>Competency Tracking</span>
-          <Badge variant="secondary">{overallProgress}% Overall</Badge>
-        </CardTitle>
-        <CardDescription>
-          Progress across core counseling competencies based on your session documentation
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {isAnalyzing ? (
-          <div className="space-y-4">
-            <div className="text-center text-sm text-muted-foreground">
-              Analyzing your competency development...
+    <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-full h-1 bg-green-500"></div>
+      <div className="relative z-10">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
+              <Target className="h-4 w-4 text-green-500" />
             </div>
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="space-y-2">
-                <Skeleton className="h-4 w-48" />
-                <Skeleton className="h-2 w-full" />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {competencies.map((competency) => {
-              const IconComponent = competency.icon;
-              const isHighProgress = competency.progress >= 70;
-              const isMediumProgress = competency.progress >= 40;
-              
-              return (
-                <div key={competency.id} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <IconComponent className={`h-4 w-4 ${competency.color}`} />
-                      <span className="font-medium text-sm">{competency.name}</span>
-                      {isHighProgress && <CheckCircle2 className="h-4 w-4 text-green-500" />}
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xs text-muted-foreground">
-                        {competency.evidenceCount} evidence points
-                      </span>
-                      <Badge 
-                        variant={isHighProgress ? "default" : isMediumProgress ? "secondary" : "outline"}
-                        className="text-xs"
-                      >
-                        {competency.progress}%
-                      </Badge>
-                    </div>
-                  </div>
-                  <Progress 
-                    value={competency.progress} 
-                    className="h-2"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Next: {competency.nextMilestone}
-                  </p>
-                </div>
-              );
-            })}
-
-            <div className="pt-4 border-t">
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-medium">Overall Competency Development</span>
-                <span className="font-bold">{overallProgress}%</span>
-              </div>
-              <Progress value={overallProgress} className="h-3 mt-2" />
-              <p className="text-xs text-muted-foreground mt-2">
-                Based on analysis of {logEntries.length} sessions and {insightCards.length} reflections
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">Competency Tracking</h3>
+              <p className="text-sm text-gray-500 font-medium">
+                {overallProgress}% overall progress across core competencies
               </p>
             </div>
           </div>
+          <div className="flex items-center space-x-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={analyzeCompetencies}
+              disabled={isAnalyzing}
+              className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-xl"
+            >
+              <TrendingUp className={`h-4 w-4 ${isAnalyzing ? 'animate-pulse' : ''}`} />
+            </Button>
+            {competencies.length > 0 && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-xl"
+              >
+                {isExpanded ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </Button>
+            )}
+          </div>
+        </div>
+        
+        {isAnalyzing ? (
+          <div className="text-center py-4">
+            <div className="text-sm text-gray-500 mb-3">Analyzing your competency development...</div>
+            <div className="space-y-3">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="h-2 bg-gray-100 rounded-full animate-pulse"></div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Progress Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="text-center p-4 bg-gray-50 rounded-2xl">
+                <div className="text-2xl font-bold text-gray-900">{overallProgress}%</div>
+                <div className="text-sm text-gray-500">Overall Progress</div>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-2xl">
+                <div className="text-2xl font-bold text-gray-900">{competencies.filter(c => c.progress >= 70).length}</div>
+                <div className="text-sm text-gray-500">Advanced Areas</div>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-2xl">
+                <div className="text-2xl font-bold text-gray-900">{logEntries.length}</div>
+                <div className="text-sm text-gray-500">Evidence Points</div>
+              </div>
+            </div>
+
+            {/* Expandable Detailed View */}
+            {isExpanded && (
+              <div className="space-y-4 border-t border-gray-100 pt-6">
+                <h4 className="font-semibold text-gray-900 mb-4">Detailed Competency Breakdown</h4>
+                {competencies.map((competency) => {
+                  const IconComponent = competency.icon;
+                  const isHighProgress = competency.progress >= 70;
+                  
+                  return (
+                    <div key={competency.id} className="p-4 bg-gray-50 rounded-2xl">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-6 h-6 bg-white rounded-lg flex items-center justify-center">
+                            <IconComponent className={`h-3 w-3 ${competency.color}`} />
+                          </div>
+                          <span className="font-medium text-gray-900">{competency.name}</span>
+                          {isHighProgress && <Award className="h-4 w-4 text-green-500" />}
+                        </div>
+                        <span className="text-sm font-semibold text-gray-700">{competency.progress}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
+                        <div 
+                          className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${competency.progress}%` }}
+                        ></div>
+                      </div>
+                      <p className="text-xs text-gray-600">
+                        Next milestone: {competency.nextMilestone}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
