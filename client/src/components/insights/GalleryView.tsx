@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Sparkles, Search, Lightbulb, Target, Eye, BookOpen, Tag, X } from "lucide-react";
+import { Calendar, Sparkles, Search, Lightbulb, Target, Eye, BookOpen, Tag, X, Bot } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
