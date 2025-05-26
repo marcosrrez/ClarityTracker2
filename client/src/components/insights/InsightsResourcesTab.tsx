@@ -423,66 +423,46 @@ export const InsightsResourcesTab = () => {
           </div>
         </div>
 
-        {/* Full-screen Bear-style live editor */}
+        {/* Full-screen Bear-style editor */}
         <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full p-6">
-          <div 
-            contentEditable
-            suppressContentEditableWarning={true}
-            className="flex-1 prose prose-lg max-w-none text-foreground overflow-y-auto focus:outline-none"
-            style={{ 
-              minHeight: "calc(100vh - 200px)",
-              lineHeight: "1.6",
-              paddingTop: "1rem"
-            }}
-            onInput={(e) => {
-              const target = e.target as HTMLDivElement;
-              const text = target.innerText || target.textContent || '';
-              setEditingContent(text);
-              
-              // Get cursor position
-              const selection = window.getSelection();
-              const range = selection?.getRangeAt(0);
-              const cursorPos = range?.startOffset || 0;
-              setCursorPosition(cursorPos);
-            }}
-            onKeyDown={(e) => {
-              // Handle special keys for Bear-style experience
-              if (e.key === 'Enter') {
-                const target = e.target as HTMLDivElement;
-                const text = target.innerText || '';
-                const selection = window.getSelection();
-                const cursorPos = selection?.anchorOffset || 0;
-                
-                // Find current line
-                const lines = text.split('\n');
-                let currentLineIndex = 0;
-                let charCount = 0;
-                
-                for (let i = 0; i < lines.length; i++) {
-                  if (charCount + lines[i].length >= cursorPos) {
-                    currentLineIndex = i;
-                    break;
-                  }
-                  charCount += lines[i].length + 1;
-                }
-                
-                const currentLine = lines[currentLineIndex] || '';
-                
-                // Auto-continue lists
-                if (/^[\s]*[-*+]\s/.test(currentLine)) {
-                  e.preventDefault();
-                  const indent = currentLine.match(/^[\s]*/)?.[0] || '';
-                  const bullet = currentLine.match(/[-*+]/)?.[0] || '-';
-                  document.execCommand('insertText', false, `\n${indent}${bullet} `);
-                }
-              }
-            }}
-            dangerouslySetInnerHTML={{
-              __html: editingContent ? 
-                processLiveMarkdown(editingContent, cursorPosition).html : 
-                '<p class="text-muted-foreground italic">Start writing... Try typing # Hello or **bold text**</p>'
-            }}
-          />
+          {showMarkdown ? (
+            /* Raw markdown editor */
+            <Textarea
+              value={editingContent}
+              onChange={(e) => setEditingContent(e.target.value)}
+              placeholder="Start writing your reflection...
+
+Try markdown formatting:
+# Headers
+**bold text** and *italic text*
+- Bullet points
+> Blockquotes
+`code snippets`"
+              className="flex-1 resize-none border-0 text-lg leading-relaxed focus:ring-0 shadow-none bg-transparent font-mono"
+              style={{ 
+                minHeight: "calc(100vh - 200px)",
+                lineHeight: "1.6",
+                fontFamily: "ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace"
+              }}
+              autoFocus
+            />
+          ) : (
+            /* Beautiful rendered preview */
+            <div 
+              className="flex-1 prose prose-lg max-w-none text-foreground overflow-y-auto cursor-text focus:outline-none"
+              onClick={() => setShowMarkdown(true)}
+              style={{ 
+                minHeight: "calc(100vh - 200px)",
+                lineHeight: "1.6",
+                paddingTop: "1rem"
+              }}
+              dangerouslySetInnerHTML={{
+                __html: editingContent ? 
+                  formatMarkdown(editingContent) : 
+                  '<p class="text-muted-foreground italic">Click to start writing... You can use markdown formatting like **bold**, *italic*, # headings, and more.</p>'
+              }}
+            />
+          )}
         </div>
         
         {/* Bear-style bottom stats */}
