@@ -134,7 +134,7 @@ export const AddEntryForm = () => {
                 type="number"
                 step="0.25"
                 min="0"
-                className="rounded-xl border-gray-200 focus:border-blue-500"
+                className="rounded-3xl border-gray-200 focus:border-blue-500"
               />
               {errors.clientContactHours && (
                 <p className="text-sm text-red-500">{errors.clientContactHours.message}</p>
@@ -165,7 +165,7 @@ export const AddEntryForm = () => {
                   type="number"
                   step="0.25"
                   min="0"
-                  className="rounded-xl border-gray-200 focus:border-blue-500"
+                  className="rounded-3xl border-gray-200 focus:border-blue-500"
                 />
                 {errors.supervisionHours && (
                   <p className="text-sm text-red-500">{errors.supervisionHours.message}</p>
@@ -245,7 +245,7 @@ export const AddEntryForm = () => {
                 {...register("notes")}
                 rows={4}
                 placeholder="Describe the session, interventions used, client progress, challenges, insights..."
-                className="rounded-xl border-gray-200 focus:border-blue-500 resize-none"
+                className="rounded-3xl border-gray-200 focus:border-blue-500 resize-none"
               />
               {errors.notes && (
                 <p className="text-sm text-red-500">{errors.notes.message}</p>

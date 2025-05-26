@@ -69,7 +69,7 @@ export const LoginForm = ({ onSwitchToSignUp }: LoginFormProps) => {
       
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {error && (
-          <Alert variant="destructive" className="bg-red-50 border-red-200 rounded-xl">
+          <Alert variant="destructive" className="bg-red-50 border-red-200 rounded-3xl">
             <AlertDescription className="text-red-700">{error}</AlertDescription>
           </Alert>
         )}
@@ -82,7 +82,7 @@ export const LoginForm = ({ onSwitchToSignUp }: LoginFormProps) => {
             placeholder="your@email.com"
             {...register("email")}
             disabled={isLoading}
-            className="rounded-xl border-gray-200 focus:border-blue-500"
+            className="rounded-3xl border-gray-200 focus:border-blue-500"
           />
           {errors.email && (
             <p className="text-sm text-red-500">{errors.email.message}</p>
@@ -97,7 +97,7 @@ export const LoginForm = ({ onSwitchToSignUp }: LoginFormProps) => {
             placeholder="Enter your password"
             {...register("password")}
             disabled={isLoading}
-            className="rounded-xl border-gray-200 focus:border-blue-500"
+            className="rounded-3xl border-gray-200 focus:border-blue-500"
           />
           {errors.password && (
             <p className="text-sm text-red-500">{errors.password.message}</p>
@@ -106,7 +106,7 @@ export const LoginForm = ({ onSwitchToSignUp }: LoginFormProps) => {
 
         <Button 
           type="submit" 
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-3 text-base font-medium" 
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-3xl py-3 text-base font-medium" 
           disabled={isLoading}
         >
           {isLoading ? (
