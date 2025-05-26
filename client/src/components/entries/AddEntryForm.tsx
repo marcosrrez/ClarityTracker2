@@ -142,6 +142,117 @@ export const AddEntryForm = () => {
               )}
             </div>
 
+            {/* Indirect Hours Checkbox */}
+            <div className="flex items-center space-x-3">
+              <Checkbox
+                {...register("indirectHours")}
+                id="indirectHours"
+                className="rounded border-gray-300"
+              />
+              <Label htmlFor="indirectHours" className="text-gray-700 font-medium">
+                Indirect client contact hours
+              </Label>
+            </div>
+
+            {/* Supervision Section */}
+            <div className="space-y-4 p-4 bg-gray-50 rounded-2xl">
+              <h3 className="font-semibold text-gray-900">Supervision Details</h3>
+              
+              {/* Supervision Hours */}
+              <div className="space-y-2">
+                <Label htmlFor="supervisionHours" className="text-gray-700 font-medium">Supervision Hours</Label>
+                <Input
+                  {...register("supervisionHours", { valueAsNumber: true })}
+                  type="number"
+                  step="0.25"
+                  min="0"
+                  className="rounded-xl border-gray-200 focus:border-blue-500"
+                />
+                {errors.supervisionHours && (
+                  <p className="text-sm text-red-500">{errors.supervisionHours.message}</p>
+                )}
+              </div>
+
+              {/* Supervision Type */}
+              <div className="space-y-2">
+                <Label className="text-gray-700 font-medium">Supervision Type</Label>
+                <Select onValueChange={(value) => setValue("supervisionType", value as any)}>
+                  <SelectTrigger className="rounded-xl border-gray-200">
+                    <SelectValue placeholder="Select supervision type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="individual">Individual</SelectItem>
+                    <SelectItem value="dyadic">Dyadic (Two Supervisees)</SelectItem>
+                    <SelectItem value="group">Group (3+ Supervisees)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Supervision Date */}
+              {watch("supervisionHours") > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-gray-700 font-medium">Supervision Date</Label>
+                  <Popover open={supervisionCalendarOpen} onOpenChange={setSupervisionCalendarOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal rounded-xl border-gray-200 hover:border-gray-300",
+                          !watchedSupervisionDate && "text-gray-500"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {watchedSupervisionDate ? (
+                          format(watchedSupervisionDate, "PPP")
+                        ) : (
+                          "Pick supervision date"
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={watchedSupervisionDate}
+                        onSelect={(date) => {
+                          setValue("supervisionDate", date);
+                          setSupervisionCalendarOpen(false);
+                        }}
+                        disabled={(date) => date > new Date()}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              )}
+
+              {/* Tech Assisted Supervision */}
+              <div className="flex items-center space-x-3">
+                <Checkbox
+                  {...register("techAssistedSupervision")}
+                  id="techAssistedSupervision"
+                  className="rounded border-gray-300"
+                />
+                <Label htmlFor="techAssistedSupervision" className="text-gray-700 font-medium">
+                  Technology-assisted supervision
+                </Label>
+              </div>
+            </div>
+
+            {/* Notes */}
+            <div className="space-y-2">
+              <Label htmlFor="notes" className="text-gray-700 font-medium">Session Notes</Label>
+              <Textarea
+                {...register("notes")}
+                rows={4}
+                placeholder="Describe the session, interventions used, client progress, challenges, insights..."
+                className="rounded-xl border-gray-200 focus:border-blue-500 resize-none"
+              />
+              {errors.notes && (
+                <p className="text-sm text-red-500">{errors.notes.message}</p>
+              )}
+            </div>
+
             {/* Submit Button */}
             <Button 
               type="submit" 

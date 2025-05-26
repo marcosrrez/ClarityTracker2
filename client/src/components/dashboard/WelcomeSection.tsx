@@ -86,32 +86,32 @@ export const WelcomeSection = () => {
         <div className="absolute right-8 bottom-8 w-16 h-16 bg-gray-100 rounded-full"></div>
       </div>
 
-      {/* Enhanced Dashboard Widgets - Bigger with full descriptions */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+      {/* Dashboard Widgets - Slightly Smaller */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {/* Hours Progress - Notion Blue */}
-        <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-2 bg-blue-500"></div>
-          <div className="text-5xl font-bold mb-3 text-gray-900">
+        <div className="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-blue-500"></div>
+          <div className="text-3xl font-bold mb-2 text-gray-900">
             {Math.round(entries?.reduce((sum: number, entry: any) => sum + (entry.clientContactHours || 0), 0) || 0)}
           </div>
-          <div className="text-gray-600 text-base font-medium mb-2">Total Hours</div>
-          <div className="text-gray-400 text-sm">Client Contact Sessions</div>
+          <div className="text-gray-600 text-sm font-medium mb-1">Total Hours</div>
+          <div className="text-gray-400 text-xs">Client Contact Sessions</div>
         </div>
 
         {/* Supervision - Notion Purple */}
-        <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-2 bg-purple-500"></div>
-          <div className="text-5xl font-bold mb-3 text-gray-900">
+        <div className="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-purple-500"></div>
+          <div className="text-3xl font-bold mb-2 text-gray-900">
             {Math.round(entries?.reduce((sum: number, entry: any) => sum + (entry.supervisionHours || 0), 0) || 0)}
           </div>
-          <div className="text-gray-600 text-base font-medium mb-2">Supervision</div>
-          <div className="text-gray-400 text-sm">Hours Completed</div>
+          <div className="text-gray-600 text-sm font-medium mb-1">Supervision</div>
+          <div className="text-gray-400 text-xs">Hours Completed</div>
         </div>
 
         {/* This Week - Notion Green */}
-        <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-2 bg-green-500"></div>
-          <div className="text-5xl font-bold mb-3 text-gray-900">
+        <div className="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-green-500"></div>
+          <div className="text-3xl font-bold mb-2 text-gray-900">
             {entries?.filter((entry: any) => {
               const entryDate = new Date(entry.dateOfContact);
               const weekAgo = new Date();
@@ -119,18 +119,18 @@ export const WelcomeSection = () => {
               return entryDate >= weekAgo;
             }).length || 0}
           </div>
-          <div className="text-gray-600 text-base font-medium mb-2">This Week</div>
-          <div className="text-gray-400 text-sm">Recent Sessions</div>
+          <div className="text-gray-600 text-sm font-medium mb-1">This Week</div>
+          <div className="text-gray-400 text-xs">Recent Sessions</div>
         </div>
 
         {/* Progress Summary */}
-        <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-2 bg-orange-500"></div>
-          <div className="text-5xl font-bold mb-3 text-gray-900">
+        <div className="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-orange-500"></div>
+          <div className="text-3xl font-bold mb-2 text-gray-900">
             {Math.round(((entries?.reduce((sum: number, entry: any) => sum + (entry.clientContactHours || 0), 0) || 0) / 4000) * 100)}%
           </div>
-          <div className="text-gray-600 text-base font-medium mb-2">Progress</div>
-          <div className="text-gray-400 text-sm">Toward Licensure Goal</div>
+          <div className="text-gray-600 text-sm font-medium mb-1">Progress</div>
+          <div className="text-gray-400 text-xs">Toward Licensure Goal</div>
         </div>
       </div>
     </section>
