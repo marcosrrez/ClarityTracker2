@@ -6,7 +6,7 @@ import { Calendar as CalendarIcon, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor, RichTextEditorStyles } from "@/components/ui/rich-text-editor";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -28,6 +28,7 @@ export const AddEntryForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dateCalendarOpen, setDateCalendarOpen] = useState(false);
   const [supervisionCalendarOpen, setSupervisionCalendarOpen] = useState(false);
+  const [notesContent, setNotesContent] = useState("");
 
   const {
     register,
@@ -58,16 +59,17 @@ export const AddEntryForm = () => {
 
     setIsSubmitting(true);
     try {
-      // Create the log entry first
-      const entryId = await createLogEntry(user.uid, data);
+      // Create the log entry with notes content
+      const finalData = { ...data, notes: notesContent };
+      const entryId = await createLogEntry(user.uid, finalData);
       
       // If there are notes, automatically generate AI analysis
-      if (data.notes && data.notes.trim().length > 0) {
+      if (notesContent && notesContent.trim().length > 0) {
         try {
-          const analysis = await analyzeSessionNotes(data.notes);
+          const analysis = await analyzeSessionNotes(notesContent);
           await createAiAnalysis(user.uid, {
             logEntryId: entryId,
-            originalNotesSnapshot: data.notes,
+            originalNotesSnapshot: notesContent,
             summary: analysis.summary,
             themes: analysis.themes,
             potentialBlindSpots: analysis.potentialBlindSpots,
@@ -271,14 +273,21 @@ export const AddEntryForm = () => {
             </div>
 
             {/* Notes */}
-            <div className="space-y-2">
-              <Label htmlFor="notes" className="text-gray-700 font-medium">Session Notes</Label>
-              <Textarea
-                {...register("notes")}
-                rows={4}
-                placeholder="Describe the session, interventions used, client progress, challenges, insights..."
-                className="rounded-3xl border-gray-200 focus:border-blue-500 resize-none"
-              />
+            <div className="space-y-3">
+              <Label className="text-gray-700 font-medium text-lg">Session Notes</Label>
+              <div className="border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
+                <RichTextEditor
+                  content={notesContent}
+                  onChange={setNotesContent}
+                  placeholder="Describe the session, interventions used, client progress, challenges, insights, and your reflections..."
+                  minHeight="250px"
+                  maxLength={10000}
+                  showCharacterCount={true}
+                />
+              </div>
+              <p className="text-sm text-gray-500">
+                Use this rich text editor to write detailed session notes. Your notes will be automatically analyzed for professional insights.
+              </p>
               {errors.notes && (
                 <p className="text-sm text-red-500">{errors.notes.message}</p>
               )}
