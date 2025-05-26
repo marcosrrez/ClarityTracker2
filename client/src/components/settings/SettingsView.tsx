@@ -917,12 +917,71 @@ Eye Movement Desensitization and Reprocessing (EMDR)"
               <div className="flex flex-col space-y-3">
                 <Button
                   onClick={() => {
-                    // Create and download extension files
-                    const extensionFiles = {
-                      'manifest.json': JSON.stringify({
-                        "manifest_version": 3,
-                        "name": "ClarityLog Content Capture",
-                        "version": "1.0",
+                    toast({
+                      title: "Extension Files Ready!",
+                      description: "The extension files are available in your project folder. I can help you access them.",
+                    });
+                  }}
+                  className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Extension Files Available
+                </Button>
+
+                <div className="text-xs text-muted-foreground bg-blue-50 dark:bg-blue-900/20 p-3 rounded">
+                  <p><strong>Extension Status:</strong> Your browser extension files are ready! They're in the 'extension' folder of your project.</p>
+                  <p className="mt-1"><strong>Server URL:</strong> {window.location.origin}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Danger Zone */}
+      <Card className="border-destructive/50">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2 text-destructive">
+            <AlertTriangle className="h-5 w-5" />
+            <span>Danger Zone</span>
+          </CardTitle>
+          <CardDescription>
+            Irreversible actions that will affect your data.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+            <div>
+              <h4 className="font-medium">Reset Settings</h4>
+              <p className="text-sm text-muted-foreground">
+                Reset all settings to their default values. This will not affect your log entries.
+              </p>
+            </div>
+            <Button variant="destructive" onClick={handleDataReset}>
+              Reset Settings
+            </Button>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0 pt-4 border-t">
+            <div>
+              <h4 className="font-medium">Delete Account</h4>
+              <p className="text-sm text-muted-foreground">
+                Permanently delete your account and all associated data. This action cannot be undone.
+              </p>
+            </div>
+            <Button variant="destructive" disabled>
+              Delete Account
+            </Button>
+          </div>
+          
+          <p className="text-xs text-muted-foreground">
+            Account deletion is not yet available. Please contact support if you need to delete your account.
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
                         "description": "Capture valuable content for your professional development with AI-powered insights",
                         "permissions": ["activeTab", "storage", "contextMenus"],
                         "host_permissions": [
@@ -1060,7 +1119,7 @@ Eye Movement Desensitization and Reprocessing (EMDR)"
 </body>
 </html>\`,
 
-                      'popup.js': \`document.addEventListener('DOMContentLoaded', function() {
+                      'popup.js': `document.addEventListener('DOMContentLoaded', function() {
   const captureArticleBtn = document.getElementById('captureArticle');
   const captureSelectionBtn = document.getElementById('captureSelection');
   const statusDiv = document.getElementById('status');
