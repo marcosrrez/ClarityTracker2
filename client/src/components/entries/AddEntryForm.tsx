@@ -111,16 +111,16 @@ export const AddEntryForm = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      {/* Notion-style clean white form */}
-      <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm relative overflow-hidden">
-        <div className="relative z-10">
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Add New Entry</h1>
-            <p className="text-gray-500 font-medium">
-              Log your client contact hours, supervision, and session notes.
-            </p>
-          </div>
+    <div className="space-y-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-foreground mb-2">Add New Entry</h1>
+        <p className="text-muted-foreground">
+          Log your client contact hours, supervision, and session notes.
+        </p>
+      </div>
+      
+      <Card className="border border-border shadow-sm">
+        <CardContent className="p-8">
           
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* Date of Contact */}
@@ -313,8 +313,8 @@ export const AddEntryForm = () => {
               )}
             </Button>
           </form>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

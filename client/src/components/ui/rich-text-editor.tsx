@@ -92,7 +92,7 @@ export const RichTextEditor = ({
           'prose-code:text-foreground prose-pre:bg-muted',
           className
         ),
-        style: `min-height: ${minHeight}; padding: 16px;`,
+        style: `min-height: ${minHeight}; padding: 16px; user-select: text; -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text;`,
       },
     },
   });
