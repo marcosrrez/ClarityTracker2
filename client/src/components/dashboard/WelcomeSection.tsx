@@ -8,7 +8,7 @@ import { useLogEntries } from "@/hooks/use-firestore";
 
 export const WelcomeSection = () => {
   const { userProfile } = useAuth();
-  const { data: entries = [] } = useLogEntries();
+  const { entries } = useLogEntries();
   const [personalizedMessage, setPersonalizedMessage] = useState("");
 
   const displayName = userProfile?.preferredName || "there";
@@ -18,8 +18,8 @@ export const WelcomeSection = () => {
   }, [entries, userProfile]);
 
   const generatePersonalizedWelcome = () => {
-    const sessionCount = entries.length;
-    const totalHours = entries.reduce((sum, entry) => sum + (entry.clientContactHours || 0), 0);
+    const sessionCount = entries?.length || 0;
+    const totalHours = entries?.reduce((sum: number, entry: any) => sum + (entry.clientContactHours || 0), 0) || 0;
     const timeOfDay = new Date().getHours();
     
     let greeting = "Good morning";
@@ -43,19 +43,16 @@ export const WelcomeSection = () => {
 
   return (
     <section>
-      {/* Warm, hospitable welcome with AI personalization */}
-      <div className="ive-card bg-gradient-to-br from-primary/6 via-background to-accent/4 border-primary/10 overflow-hidden">
-        <div className="p-10">
-          <div className="flex items-start space-x-4 mb-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-primary/15 to-accent/10 rounded-3xl flex items-center justify-center ive-hover-lift ive-scale shadow-lg">
-              <Sparkles className="h-8 w-8 text-primary" />
-            </div>
-            <div className="flex-1">
-              <h1 className="text-4xl font-bold text-foreground tracking-tight mb-2">
+      {/* Jony Ive: Sophisticated warmth through AI personalization */}
+      <div className="ive-card bg-gradient-to-br from-primary/4 via-background to-accent/3 border-primary/8 overflow-hidden">
+        <div className="p-12">
+          <div className="space-y-8">
+            <div className="space-y-4">
+              <h1 className="text-5xl font-light text-foreground tracking-tight leading-tight">
                 {new Date().getHours() < 12 ? 'Good morning' : 
-                 new Date().getHours() < 17 ? 'Good afternoon' : 'Good evening'}, {displayName}! 👋
+                 new Date().getHours() < 17 ? 'Good afternoon' : 'Good evening'}, {displayName}
               </h1>
-              <p className="text-xl text-muted-foreground/90 font-medium">
+              <p className="text-lg text-muted-foreground/70 font-light">
                 {new Date().toLocaleDateString('en-US', { 
                   weekday: 'long', 
                   month: 'long', 
@@ -63,23 +60,25 @@ export const WelcomeSection = () => {
                 })}
               </p>
             </div>
+            
+            <div className="max-w-3xl">
+              <p className="text-2xl text-foreground/85 leading-relaxed font-light tracking-wide">
+                {personalizedMessage}
+              </p>
+            </div>
+            
+            <div className="pt-4">
+              <Link href="/add-entry">
+                <Button 
+                  size="lg" 
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-base font-medium shadow-sm hover:shadow-md transition-all duration-300 ive-scale ive-focus rounded-2xl"
+                >
+                  <Plus className="h-5 w-5 mr-3" />
+                  Log New Session
+                </Button>
+              </Link>
+            </div>
           </div>
-          
-          <div className="mb-10">
-            <p className="text-xl text-foreground/90 leading-relaxed font-medium">
-              {personalizedMessage}
-            </p>
-          </div>
-          
-          <Link href="/add-entry">
-            <Button 
-              size="lg" 
-              className="bg-primary hover:bg-primary/90 text-primary-foreground px-10 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 ive-scale ive-focus rounded-2xl"
-            >
-              <Plus className="h-6 w-6 mr-3" />
-              Log New Session
-            </Button>
-          </Link>
         </div>
       </div>
     </section>
