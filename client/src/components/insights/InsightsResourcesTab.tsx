@@ -43,6 +43,8 @@ export const InsightsResourcesTab = () => {
   const [filterType, setFilterType] = useState<"all" | "note" | "articleSummary">("all");
   const [editingCard, setEditingCard] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState("");
+  const [editingTitle, setEditingTitle] = useState("");
+  const [isFullScreen, setIsFullScreen] = useState(false);
 
   const {
     register,
@@ -92,6 +94,28 @@ export const InsightsResourcesTab = () => {
     }
   };
 
+
+
+  // Helper function to extract title from content or generate one
+  const getCardTitle = (card: InsightCard): string => {
+    if (card.title && card.title !== "New Reflection") {
+      return card.title;
+    }
+    const plainContent = card.content.replace(/<[^>]*>/g, "").trim();
+    if (plainContent.length === 0) return "Untitled Note";
+    
+    // Extract first line or first 50 characters as title
+    const firstLine = plainContent.split('\n')[0];
+    return firstLine.length > 50 ? firstLine.substring(0, 47) + "..." : firstLine;
+  };
+
+  const handleEditCard = (card: InsightCard) => {
+    setEditingCard(card.id);
+    setEditingContent(card.content.replace(/<[^>]*>/g, ""));
+    setEditingTitle(card.title || getCardTitle(card));
+    setIsFullScreen(true);
+  };
+
   const handleCreateNote = async () => {
     if (!user) return;
 
@@ -99,7 +123,7 @@ export const InsightsResourcesTab = () => {
       const newNote: InsertInsightCard = {
         type: "note",
         title: "New Reflection",
-        content: "<p>Start writing your thoughts and reflections here...</p>",
+        content: "",
         tags: [],
       };
 
@@ -120,25 +144,26 @@ export const InsightsResourcesTab = () => {
     }
   };
 
-  const handleEditCard = (card: InsightCard) => {
-    setEditingCard(card.id);
-    setEditingContent(card.content.replace(/<[^>]*>/g, ""));
-  };
-
   const handleSaveCard = async (cardId: string) => {
-    if (!user || !editingContent.trim()) return;
+    if (!user) return;
 
     try {
+      // Generate title from first line of content if not explicitly set
+      const finalTitle = editingTitle || (editingContent.split('\n')[0] || "Untitled Note");
+      
       await updateInsightCard(user.uid, cardId, {
+        title: finalTitle,
         content: editingContent,
       });
       await refetch();
       setEditingCard(null);
       setEditingContent("");
+      setEditingTitle("");
+      setIsFullScreen(false);
       
       toast({
-        title: "Note updated",
-        description: "Your note has been saved successfully.",
+        title: "Note saved",
+        description: "Your reflection has been saved successfully.",
       });
     } catch (error) {
       console.error("Error updating card:", error);
@@ -153,6 +178,8 @@ export const InsightsResourcesTab = () => {
   const handleCancelEdit = () => {
     setEditingCard(null);
     setEditingContent("");
+    setEditingTitle("");
+    setIsFullScreen(false);
   };
 
   const handleDeleteCard = async (cardId: string) => {
@@ -217,6 +244,45 @@ export const InsightsResourcesTab = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  // Bear app-like full-screen editor
+  if (isFullScreen && editingCard) {
+    return (
+      <div className="fixed inset-0 bg-background z-50 flex flex-col">
+        {/* Full-screen editor header */}
+        <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur-sm">
+          <div className="flex items-center space-x-3">
+            <Button variant="ghost" size="sm" onClick={handleCancelEdit}>
+              <Search className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+            <div className="text-sm text-muted-foreground">
+              {format(new Date(), "MMM dd, yyyy")}
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button variant="outline" size="sm" onClick={handleCancelEdit}>
+              Cancel
+            </Button>
+            <Button size="sm" onClick={() => handleSaveCard(editingCard)}>
+              Save
+            </Button>
+          </div>
+        </div>
+
+        {/* Full-screen editor content */}
+        <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full p-6">
+          <Textarea
+            value={editingContent}
+            onChange={(e) => setEditingContent(e.target.value)}
+            placeholder="Start writing your reflection..."
+            className="flex-1 resize-none border-0 text-base leading-relaxed focus:ring-0 shadow-none bg-transparent"
+            style={{ minHeight: "calc(100vh - 200px)" }}
+          />
+        </div>
       </div>
     );
   }
