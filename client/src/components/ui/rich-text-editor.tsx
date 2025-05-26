@@ -135,21 +135,33 @@ export const RichTextEditor = ({
       <div className="border-b border-border bg-muted/30 p-2">
         <div className="flex items-center space-x-1 flex-wrap gap-1">
           {/* Text Formatting */}
-          <ToolbarButton
-            onClick={() => editor.chain().focus().toggleBold().run()}
-            isActive={editor.isActive('bold')}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className={cn(
+              "h-8 w-8 p-0 transition-colors",
+              editor?.isActive('bold') && "bg-primary text-primary-foreground shadow-sm"
+            )}
+            onClick={() => editor?.chain().focus().toggleBold().run()}
             title="Bold (Ctrl+B)"
           >
             <Bold className="h-4 w-4" />
-          </ToolbarButton>
+          </Button>
           
-          <ToolbarButton
-            onClick={() => editor.chain().focus().toggleItalic().run()}
-            isActive={editor.isActive('italic')}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className={cn(
+              "h-8 w-8 p-0 transition-colors",
+              editor?.isActive('italic') && "bg-primary text-primary-foreground shadow-sm"
+            )}
+            onClick={() => editor?.chain().focus().toggleItalic().run()}
             title="Italic (Ctrl+I)"
           >
             <Italic className="h-4 w-4" />
-          </ToolbarButton>
+          </Button>
           
           <ToolbarButton
             onClick={() => editor.chain().focus().toggleStrike().run()}
