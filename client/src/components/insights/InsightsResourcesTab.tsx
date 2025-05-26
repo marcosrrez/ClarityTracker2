@@ -666,7 +666,7 @@ Try typing:
                     <div className="space-y-3">
                       <div 
                         className="text-sm text-gray-600 line-clamp-3 cursor-pointer hover:bg-gray-50 p-2 rounded-3xl transition-colors"
-                        onClick={() => card.type === "note" ? handleEditCard(card) : null}
+                        onClick={() => handleEditCard(card)}
                         dangerouslySetInnerHTML={{
                           __html: card.content.replace(/<[^>]*>/g, "") || "Click to start writing..."
                         }}

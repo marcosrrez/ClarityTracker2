@@ -11,7 +11,8 @@ import {
   Settings, 
   Shield,
   ExternalLink,
-  Mail
+  Mail,
+  Bot
 } from "lucide-react";
 
 export default function HelpPage() {
