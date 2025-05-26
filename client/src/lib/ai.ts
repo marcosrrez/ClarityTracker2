@@ -214,11 +214,68 @@ Provide JSON response:
 
 export const summarizeWebContent = async (url: string): Promise<string> => {
   try {
-    // Note: This would require a backend endpoint to fetch web content
-    // For now, return a placeholder that explains the limitation
-    return "Web content summarization requires additional setup. Please copy and paste the content you'd like to summarize into the notes section.";
+    const { GoogleGenerativeAI } = await import('@google/generative-ai');
+    const apiKey = import.meta.env.VITE_GOOGLE_AI_API_KEY;
+    
+    if (!apiKey) {
+      throw new Error("Google AI API key not configured. Please add your API key in settings.");
+    }
+    
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    
+    // Fetch the webpage content
+    const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+    const data = await response.json();
+    
+    if (!data.contents) {
+      throw new Error("Unable to fetch webpage content.");
+    }
+    
+    // Clean up HTML content - extract text content
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(data.contents, 'text/html');
+    
+    // Remove scripts, styles, navigation, ads, etc.
+    const elementsToRemove = doc.querySelectorAll('script, style, nav, header, footer, aside, .ad, .advertisement, .sidebar');
+    elementsToRemove.forEach(el => el.remove());
+    
+    // Get main content area if it exists
+    const mainContent = doc.querySelector('main, article, .content, .post, .entry') || doc.body;
+    const textContent = mainContent?.textContent || '';
+    
+    // Clean and limit content
+    const cleanContent = textContent
+      .replace(/\s+/g, ' ')
+      .trim()
+      .substring(0, 6000); // Limit to avoid token limits
+    
+    if (cleanContent.length < 100) {
+      throw new Error("Insufficient content found on the webpage.");
+    }
+    
+    const prompt = `As an AI assistant for Licensed Associate Counselors, analyze this article and provide a focused summary:
+
+Article Content: "${cleanContent}"
+
+Please provide:
+1. **Key Points** (3-4 main takeaways)
+2. **Clinical Relevance** (How this applies to counseling practice)
+3. **Professional Development** (Skills or knowledge areas this addresses)
+4. **Action Items** (Practical steps a counselor could take)
+
+Keep the summary concise but comprehensive, focusing on what's most valuable for a counseling professional's growth and practice.`;
+
+    const result = await model.generateContent(prompt);
+    const summary = result.response.text();
+    
+    return summary;
+    
   } catch (error) {
     console.error("Error summarizing web content:", error);
-    throw new Error("Unable to summarize web content at this time.");
+    if (error.message?.includes("API key")) {
+      throw new Error("Google AI API key is required for web content summarization. Please check your settings.");
+    }
+    throw new Error(`Unable to summarize this webpage: ${error.message}`);
   }
 };
