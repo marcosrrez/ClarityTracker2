@@ -224,12 +224,35 @@ export const summarizeWebContent = async (url: string): Promise<string> => {
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     
-    // Fetch the webpage content
-    const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
-    const data = await response.json();
+    // Try multiple CORS proxy services for better reliability
+    let data;
+    const proxyServices = [
+      `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+      `https://corsproxy.io/?${encodeURIComponent(url)}`,
+      `https://cors-anywhere.herokuapp.com/${url}`
+    ];
     
-    if (!data.contents) {
-      throw new Error("Unable to fetch webpage content.");
+    for (const proxyUrl of proxyServices) {
+      try {
+        const response = await fetch(proxyUrl);
+        if (response.ok) {
+          if (proxyUrl.includes('allorigins')) {
+            data = await response.json();
+            if (data.contents) break;
+          } else {
+            const contents = await response.text();
+            data = { contents };
+            break;
+          }
+        }
+      } catch (error) {
+        console.warn(`Proxy ${proxyUrl} failed:`, error);
+        continue;
+      }
+    }
+    
+    if (!data?.contents) {
+      throw new Error("Unable to fetch webpage content. The website may be blocking automated access.");
     }
     
     // Clean up HTML content - extract text content
