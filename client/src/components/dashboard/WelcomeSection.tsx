@@ -138,7 +138,7 @@ export const WelcomeSection = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {/* Hours Progress - Notion Blue */}
         <div className="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-blue-500"></div>
+
           <div className="text-3xl font-bold mb-2 text-gray-900">
             {Math.round(entries?.reduce((sum: number, entry: any) => sum + (entry.clientContactHours || 0), 0) || 0)}
           </div>
@@ -148,7 +148,7 @@ export const WelcomeSection = () => {
 
         {/* Supervision - Notion Purple */}
         <div className="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-purple-500"></div>
+
           <div className="text-3xl font-bold mb-2 text-gray-900">
             {Math.round(entries?.reduce((sum: number, entry: any) => sum + (entry.supervisionHours || 0), 0) || 0)}
           </div>
@@ -158,7 +158,7 @@ export const WelcomeSection = () => {
 
         {/* This Week - Notion Green */}
         <div className="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-green-500"></div>
+
           <div className="text-3xl font-bold mb-2 text-gray-900">
             {entries?.filter((entry: any) => {
               const entryDate = new Date(entry.dateOfContact);
@@ -173,7 +173,7 @@ export const WelcomeSection = () => {
 
         {/* Progress Summary */}
         <div className="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-orange-500"></div>
+
           <div className="text-3xl font-bold mb-2 text-gray-900">
             {Math.round(((entries?.reduce((sum: number, entry: any) => sum + (entry.clientContactHours || 0), 0) || 0) / 4000) * 100)}%
           </div>

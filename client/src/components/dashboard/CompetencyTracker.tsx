@@ -186,7 +186,6 @@ export const CompetencyTracker = () => {
   if (!logEntries.length) {
     return (
       <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1 bg-green-500"></div>
         <div className="text-center py-6">
           <div className="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center mx-auto mb-4">
             <Target className="h-6 w-6 text-green-500" />
@@ -206,7 +205,6 @@ export const CompetencyTracker = () => {
 
   return (
     <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-1 bg-green-500"></div>
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">

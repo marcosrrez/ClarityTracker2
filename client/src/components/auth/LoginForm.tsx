@@ -65,7 +65,7 @@ export const LoginForm = ({ onSwitchToSignUp }: LoginFormProps) => {
 
   return (
     <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-1 bg-blue-500"></div>
+
       
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {error && (
