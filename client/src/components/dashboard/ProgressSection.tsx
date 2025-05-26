@@ -100,7 +100,9 @@ export const ProgressSection = () => {
       setSavingEthics(true);
       await updateAppSettings(user.uid, {
         importedHours: {
-          ...settings?.importedHours,
+          supervisionHours: settings?.importedHours?.supervisionHours ?? 0,
+          totalCCH: settings?.importedHours?.totalCCH ?? 0,
+          directCCH: settings?.importedHours?.directCCH ?? 0,
           ethicsHours: hours,
         },
       });
@@ -191,83 +193,94 @@ export const ProgressSection = () => {
           ))}
         </div>
 
-        {/* Motivation & Alerts */}
+        {/* Motivation & Alerts - Notion Style */}
         <div className="space-y-6">
           {/* Milestone Achievement */}
           {hasReached1000CCH && (
-            <Card className="bg-gradient-to-br from-accent/10 to-green-50 dark:from-accent/10 dark:to-green-900/20 border-accent/30">
-              <CardContent className="p-6">
-                <div className="flex items-start space-x-4">
-                  <div className="p-3 bg-accent/20 rounded-lg">
-                    <Trophy className="h-5 w-5 text-accent" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-foreground mb-2">Milestone Reached!</h4>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Congratulations! You've completed over 1,000 client contact hours. You're making excellent progress toward your LPC licensure.
-                    </p>
-                    <div className="text-xs text-accent font-medium">🎉 Keep up the great work!</div>
-                  </div>
+            <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1 bg-green-500"></div>
+              <div className="flex items-start space-x-4">
+                <div className="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center">
+                  <Trophy className="h-6 w-6 text-green-500" />
                 </div>
-              </CardContent>
-            </Card>
+                <div>
+                  <h4 className="text-lg font-bold text-gray-900 mb-2">Milestone Reached!</h4>
+                  <p className="text-sm text-gray-600 mb-3 font-medium">
+                    Congratulations! You've completed over 1,000 client contact hours. You're making excellent progress toward your LPC licensure.
+                  </p>
+                  <div className="text-sm text-green-600 font-semibold">Keep up the great work!</div>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Supervision Alert */}
           {supervisionDue && (
-            <Alert className="bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-yellow-200 dark:border-yellow-700">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>
-                <div className="space-y-2">
-                  <h4 className="font-semibold">Supervision Check-in Due</h4>
-                  <p className="text-sm">
+            <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1 bg-orange-500"></div>
+              <div className="flex items-start space-x-4">
+                <div className="w-12 h-12 bg-orange-50 rounded-lg flex items-center justify-center">
+                  <AlertTriangle className="h-6 w-6 text-orange-500" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-lg font-bold text-gray-900 mb-2">Supervision Check-in Due</h4>
+                  <p className="text-sm text-gray-600 mb-4 font-medium">
                     Your next supervision session is due in {daysToCheckIn} days. Don't forget to schedule your meeting with your supervisor.
                   </p>
-                  <Button size="sm" variant="outline" className="mt-2">
+                  <Button 
+                    size="sm" 
+                    className="bg-orange-500 hover:bg-orange-600 text-white rounded-xl"
+                  >
                     Schedule Now
                   </Button>
                 </div>
-              </AlertDescription>
-            </Alert>
+              </div>
+            </div>
           )}
 
           {/* Ethics Hours */}
-          <Card>
-            <CardContent className="p-6">
-              <h4 className="font-semibold text-foreground mb-4">Renewal Requirements</h4>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="ethicsHours" className="text-sm font-medium">
-                    Ethics Hours
-                  </Label>
-                  <div className="flex space-x-3 mt-2">
-                    <Input
-                      id="ethicsHours"
-                      type="number"
-                      placeholder="0"
-                      value={ethicsHours}
-                      onChange={(e) => setEthicsHours(e.target.value)}
-                      min="0"
-                      step="0.5"
-                    />
-                    <Button 
-                      onClick={handleSaveEthics}
-                      disabled={savingEthics}
-                    >
-                      {savingEthics ? "Saving..." : "Save"}
-                    </Button>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-sm text-muted-foreground mb-1">
-                    <span>Progress</span>
-                    <span>{finalEthicsHours}/{goalEthicsHours} hours</span>
-                  </div>
-                  <Progress value={ethicsProgress} className="h-2" />
+          <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-blue-500"></div>
+            <h4 className="text-lg font-bold text-gray-900 mb-6">Renewal Requirements</h4>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="ethicsHours" className="text-sm font-semibold text-gray-700 mb-2 block">
+                  Ethics Hours
+                </Label>
+                <div className="flex space-x-3 mt-2">
+                  <Input
+                    id="ethicsHours"
+                    type="number"
+                    placeholder="0"
+                    value={ethicsHours}
+                    onChange={(e) => setEthicsHours(e.target.value)}
+                    min="0"
+                    step="0.5"
+                    className="rounded-xl border-gray-200"
+                  />
+                  <Button 
+                    onClick={handleSaveEthics}
+                    disabled={savingEthics}
+                    className="bg-blue-500 hover:bg-blue-600 text-white rounded-xl"
+                  >
+                    {savingEthics ? "Saving..." : "Save"}
+                  </Button>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+              <div>
+                <div className="flex justify-between text-sm text-gray-600 mb-2 font-medium">
+                  <span>Progress</span>
+                  <span>{finalEthicsHours}/{goalEthicsHours} hours</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div 
+                    className="bg-blue-500 h-3 rounded-full transition-all duration-300"
+                    style={{ width: `${ethicsProgress}%` }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
