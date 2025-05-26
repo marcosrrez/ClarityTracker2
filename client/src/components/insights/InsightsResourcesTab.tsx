@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -45,6 +45,8 @@ export const InsightsResourcesTab = () => {
   const [editingContent, setEditingContent] = useState("");
   const [editingTitle, setEditingTitle] = useState("");
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [autoSaveTimer, setAutoSaveTimer] = useState<NodeJS.Timeout | null>(null);
 
   const {
     register,
@@ -54,6 +56,61 @@ export const InsightsResourcesTab = () => {
   } = useForm<UrlFormData>({
     resolver: zodResolver(urlSchema),
   });
+
+  // Bear-style auto-save functionality
+  useEffect(() => {
+    if (!editingCard || !editingContent) return;
+
+    // Clear existing timer
+    if (autoSaveTimer) {
+      clearTimeout(autoSaveTimer);
+    }
+
+    // Set new auto-save timer (2 seconds after typing stops)
+    const timer = setTimeout(async () => {
+      if (editingCard && editingContent.trim()) {
+        try {
+          const finalTitle = editingTitle || (editingContent.split('\n')[0] || "Untitled Note");
+          await updateInsightCard(user?.uid || "", editingCard, {
+            title: finalTitle,
+            content: editingContent,
+          });
+          setLastSaved(new Date());
+          await refetch();
+        } catch (error) {
+          console.error("Auto-save failed:", error);
+        }
+      }
+    }, 2000);
+
+    setAutoSaveTimer(timer);
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [editingContent, editingTitle, editingCard, user?.uid]);
+
+  // Bear-style keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isFullScreen) return;
+
+      // Cmd/Ctrl + S to save
+      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+        e.preventDefault();
+        if (editingCard) handleSaveCard(editingCard);
+      }
+
+      // Escape to cancel
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        handleCancelEdit();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isFullScreen, editingCard]);
 
   const onSummarizeUrl = async (data: UrlFormData) => {
     if (!user) return;
@@ -279,9 +336,37 @@ export const InsightsResourcesTab = () => {
             value={editingContent}
             onChange={(e) => setEditingContent(e.target.value)}
             placeholder="Start writing your reflection..."
-            className="flex-1 resize-none border-0 text-base leading-relaxed focus:ring-0 shadow-none bg-transparent"
-            style={{ minHeight: "calc(100vh - 200px)" }}
+            className="flex-1 resize-none border-0 text-lg leading-relaxed focus:ring-0 shadow-none bg-transparent font-medium"
+            style={{ 
+              minHeight: "calc(100vh - 200px)",
+              lineHeight: "1.6"
+            }}
+            autoFocus
           />
+          
+          {/* Bear-style bottom stats */}
+          <div className="flex items-center justify-between pt-4 border-t text-xs text-muted-foreground">
+            <div className="flex items-center space-x-4">
+              <span>{editingContent.length} characters</span>
+              <span>{editingContent.split(/\s+/).filter(word => word.length > 0).length} words</span>
+              <span>{editingContent.split('\n').length} lines</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              {lastSaved ? (
+                <span className="text-green-600">
+                  Saved {format(lastSaved, "h:mm a")}
+                </span>
+              ) : autoSaveTimer ? (
+                <span className="text-yellow-600">
+                  Saving...
+                </span>
+              ) : (
+                <span>
+                  Last edited: {format(new Date(), "h:mm a")}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     );
