@@ -13,7 +13,8 @@ import {
   Users,
   Sparkles,
   TrendingUp,
-  RefreshCw
+  RefreshCw,
+  Brain
 } from "lucide-react";
 
 interface PersonalizedInsights {
