@@ -94,7 +94,7 @@
     border-radius: 24px;
   }
   
-  /* Jony Ive: Subtle motion that feels natural */
+  /* Jony Ive: Sophisticated micro-interactions that feel natural */
   .ive-fade-in {
     animation: iveSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     opacity: 0;
@@ -105,12 +105,53 @@
   .ive-fade-in:nth-child(2) { animation-delay: 100ms; }
   .ive-fade-in:nth-child(3) { animation-delay: 200ms; }
   .ive-fade-in:nth-child(4) { animation-delay: 300ms; }
+  .ive-fade-in:nth-child(5) { animation-delay: 400ms; }
+  .ive-fade-in:nth-child(6) { animation-delay: 500ms; }
   
   @keyframes iveSlideUp {
     to {
       opacity: 1;
       transform: translateY(0);
     }
+  }
+  
+  /* Sophisticated hover interactions */
+  .ive-hover-lift {
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.175);
+  }
+  
+  .ive-hover-lift:hover {
+    transform: translateY(-2px);
+  }
+  
+  /* Pulse animation for interactive elements */
+  .ive-pulse {
+    animation: ivePulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  @keyframes ivePulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+  }
+  
+  /* Scale interaction for buttons */
+  .ive-scale {
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.175);
+  }
+  
+  .ive-scale:active {
+    transform: scale(0.96);
+  }
+  
+  /* Sophisticated focus states */
+  .ive-focus:focus-visible {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 2px;
+    border-radius: 12px;
   }
   
   /* Jony Ive: Generous breathing room */

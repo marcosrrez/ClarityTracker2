@@ -15,7 +15,7 @@ export const WelcomeSection = () => {
       <div className="ive-card bg-gradient-to-r from-primary/8 to-accent/8 border-primary/15 overflow-hidden">
         <div className="p-8">
           <div className="flex items-center space-x-4 mb-6">
-            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center ive-hover-lift ive-scale">
               <span className="text-xl font-semibold text-primary">
                 {displayName.charAt(0).toUpperCase()}
               </span>
@@ -41,7 +41,7 @@ export const WelcomeSection = () => {
           <Link href="/add-entry">
             <Button 
               size="lg" 
-              className="ive-button bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-base font-medium shadow-sm"
+              className="ive-button ive-scale ive-focus bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-base font-medium shadow-sm ive-hover-lift"
             >
               <Plus className="h-5 w-5 mr-3" />
               Log New Session

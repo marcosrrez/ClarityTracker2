@@ -124,33 +124,41 @@ export const OnboardingFlow = ({ isOpen, onClose }: OnboardingFlowProps) => {
     switch (currentStepData.id) {
       case "welcome":
         return (
-          <div className="text-center space-y-6">
-            <div className="mx-auto w-24 h-24 bg-gradient-to-r from-primary/20 to-accent/20 rounded-full flex items-center justify-center">
-              <Heart className="h-12 w-12 text-primary" />
+          <div className="text-center space-y-8 ive-fade-in">
+            <div className="mx-auto w-28 h-28 bg-gradient-to-br from-primary/15 to-accent/10 rounded-3xl flex items-center justify-center shadow-lg hover:scale-105 transition-transform duration-300">
+              <Heart className="h-14 w-14 text-primary" />
             </div>
-            <div>
-              <h3 className="text-2xl font-bold mb-2">Welcome to ClarityLog!</h3>
-              <p className="text-muted-foreground text-lg">
+            <div className="space-y-4">
+              <h3 className="text-3xl font-bold text-foreground">Welcome to ClarityLog!</h3>
+              <p className="text-muted-foreground/80 text-lg leading-relaxed max-w-2xl mx-auto">
                 Your intelligent companion for professional counseling development. 
                 Let's get you set up to track your progress toward licensure with AI-powered insights.
               </p>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-              <div className="text-center">
-                <FileText className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-                <p className="text-sm font-medium">Session Tracking</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-10">
+              <div className="ive-fade-in text-center group">
+                <div className="w-16 h-16 bg-primary/10 ive-rounded-lg mx-auto mb-3 flex items-center justify-center group-hover:bg-primary/15 transition-colors duration-300">
+                  <FileText className="h-8 w-8 text-primary" />
+                </div>
+                <p className="text-sm font-medium text-foreground">Session Tracking</p>
               </div>
-              <div className="text-center">
-                <BarChart3 className="h-8 w-8 text-green-500 mx-auto mb-2" />
-                <p className="text-sm font-medium">AI Analysis</p>
+              <div className="ive-fade-in text-center group">
+                <div className="w-16 h-16 bg-accent/10 ive-rounded-lg mx-auto mb-3 flex items-center justify-center group-hover:bg-accent/15 transition-colors duration-300">
+                  <BarChart3 className="h-8 w-8 text-accent" />
+                </div>
+                <p className="text-sm font-medium text-foreground">AI Analysis</p>
               </div>
-              <div className="text-center">
-                <Target className="h-8 w-8 text-purple-500 mx-auto mb-2" />
-                <p className="text-sm font-medium">Competency Tracking</p>
+              <div className="ive-fade-in text-center group">
+                <div className="w-16 h-16 bg-primary/8 ive-rounded-lg mx-auto mb-3 flex items-center justify-center group-hover:bg-primary/12 transition-colors duration-300">
+                  <Target className="h-8 w-8 text-primary" />
+                </div>
+                <p className="text-sm font-medium text-foreground">Competency Tracking</p>
               </div>
-              <div className="text-center">
-                <BookOpen className="h-8 w-8 text-amber-500 mx-auto mb-2" />
-                <p className="text-sm font-medium">Professional Growth</p>
+              <div className="ive-fade-in text-center group">
+                <div className="w-16 h-16 bg-accent/8 ive-rounded-lg mx-auto mb-3 flex items-center justify-center group-hover:bg-accent/12 transition-colors duration-300">
+                  <BookOpen className="h-8 w-8 text-accent" />
+                </div>
+                <p className="text-sm font-medium text-foreground">Professional Growth</p>
               </div>
             </div>
           </div>
