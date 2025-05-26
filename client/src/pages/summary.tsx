@@ -122,11 +122,13 @@ export default function SummaryPage() {
   ];
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold text-foreground">Progress Summary</h1>
-        <p className="text-muted-foreground">
-          Comprehensive overview of your professional development progress and achievements.
+    <div className="max-w-7xl mx-auto space-y-8">
+      <div className="text-center space-y-3">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+          Progress Summary
+        </h1>
+        <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+          Comprehensive overview of your professional development progress and achievements toward licensure.
         </p>
       </div>
 
