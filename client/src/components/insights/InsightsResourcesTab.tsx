@@ -26,6 +26,7 @@ import { format } from "date-fns";
 import { useInsightCards } from "@/hooks/use-firestore";
 import { marked } from "marked";
 import { createInsightCard, deleteInsightCard, updateInsightCard } from "@/lib/firestore";
+import { summarizeWebContent } from "@/lib/ai";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import type { InsightCard, InsertInsightCard } from "@shared/schema";
@@ -123,19 +124,27 @@ export const InsightsResourcesTab = () => {
     try {
       setIsSummarizing(true);
       
-      // TODO: Implement actual web content summarization with Google AI
-      // For now, create a mock summary
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Get the page title from URL for better UX
+      let title = data.url;
+      try {
+        const urlObj = new URL(data.url);
+        title = urlObj.hostname.replace('www.', '');
+      } catch (e) {
+        // Use URL as-is if parsing fails
+      }
       
-      const mockSummary: InsertInsightCard = {
+      // Use the actual Google AI web summarization
+      const summary = await summarizeWebContent(data.url);
+      
+      const summaryCard: InsertInsightCard = {
         type: "articleSummary",
-        title: "Article Summary from " + new URL(data.url).hostname,
-        content: `<h3>Summary of ${data.url}</h3><p>This is a summarized version of the web content. The AI has extracted key insights and main points from the article to help with your professional development.</p>`,
-        tags: ["web-content", "summary", "resource"],
+        title: `Article from ${title}`,
+        content: summary,
+        tags: ["web-content", "summary", "professional-development"],
         originalUrl: data.url,
       };
 
-      await createInsightCard(user.uid, mockSummary);
+      await createInsightCard(user.uid, summaryCard);
       await refetch();
       
       toast({
