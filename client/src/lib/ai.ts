@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Initialize Google AI client with Firebase API key
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_FIREBASE_API_KEY);
+// Initialize Google AI client with your API key
+const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GOOGLE_AI_API_KEY);
 
 export interface AiAnalysisResult {
   summary: string;
