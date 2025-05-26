@@ -377,7 +377,7 @@ Dialectical Behavior Therapy (DBT)
 Eye Movement Desensitization and Reprocessing (EMDR)"
                 className="min-h-[100px]"
                 {...register("personalPreferences.favoriteTherapeuticModalities", {
-                  setValueAs: (value: string) => value.split('\n').filter(line => line.trim() !== '')
+                  setValueAs: (value: string) => typeof value === 'string' ? value.split('\n').filter(line => line.trim() !== '') : []
                 })}
               />
               <p className="text-xs text-muted-foreground">
