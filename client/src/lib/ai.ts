@@ -57,30 +57,145 @@ Keep responses professional, constructive, and supportive of growth.`;
   }
 };
 
-export const generateInsightSummary = async (entries: any[]): Promise<string> => {
+export interface CrossSessionAnalysis {
+  overallGrowthTrajectory: string;
+  recurringThemes: string[];
+  progressIndicators: string[];
+  developmentAreas: string[];
+  patternInsights: string[];
+  personalizedRecommendations: string[];
+  strengthsIdentified: string[];
+  blindSpotPatterns: string[];
+  sessionToSessionEvolution: string[];
+  timeBasedTrends: string[];
+}
+
+export const generateCrossSessionAnalysis = async (entries: any[], userProfile?: any): Promise<CrossSessionAnalysis> => {
+  if (!entries.length) {
+    throw new Error("No entries provided for analysis");
+  }
+
   try {
-    const prompt = `As a professional development advisor for Licensed Associate Counselors, analyze the following collection of session entries and provide a comprehensive professional development summary.
+    const sessionsData = entries.map((entry, index) => `
+Session ${index + 1} (${new Date(entry.dateOfContact).toLocaleDateString()}):
+Type: ${entry.contactType || 'Individual'}
+Hours: ${entry.clientContactHours}
+Supervision: ${entry.supervisionType || 'None'}
+Notes: ${entry.notes.substring(0, 500)}...
+${entry.analysis ? `Key Themes from Previous Analysis: ${Object.values(entry.analysis.themes || {}).join(', ')}` : ''}
+`).join('\n');
 
-Number of entries: ${entries.length}
-Total hours logged: ${entries.reduce((sum, entry) => sum + entry.clientContactHours, 0)}
+    const userContext = userProfile ? `
+Counselor Profile:
+- License Stage: ${userProfile.licenseStage || 'LAC'}
+- Specialties: ${userProfile.specialties?.join(', ') || 'General Practice'}
+- Experience Level: ${userProfile.yearsOfExperience || 'Early Career'}
+- Professional Goals: ${userProfile.professionalGoals || 'General Development'}
+` : '';
 
-Please provide insights on:
-- Overall professional growth patterns
-- Strengths demonstrated across sessions
-- Areas for continued development
-- Recommendations for supervision discussions
-- Progress toward licensure goals
+    const totalHours = entries.reduce((sum, entry) => sum + (entry.clientContactHours || 0), 0);
+    const timeSpan = entries.length > 1 ? 
+      Math.ceil((new Date(entries[entries.length - 1].dateOfContact).getTime() - new Date(entries[0].dateOfContact).getTime()) / (1000 * 60 * 60 * 24)) 
+      : 0;
 
-Keep the response supportive, professional, and focused on growth opportunities.`;
+    const prompt = `As an expert clinical supervisor and professional development coach, analyze this counselor's journey across ${entries.length} sessions spanning ${timeSpan} days with ${totalHours} total client contact hours.
+
+${userContext}
+
+Session Data:
+${sessionsData}
+
+Provide a comprehensive cross-session analysis in JSON format:
+
+{
+  "overallGrowthTrajectory": "Narrative of professional growth journey and development arc",
+  "recurringThemes": ["Most frequent themes across sessions"],
+  "progressIndicators": ["Specific evidence of skill building and professional development"],
+  "developmentAreas": ["Areas needing continued focus and growth"],
+  "patternInsights": ["Deeper patterns in approach, intervention style, or client work"],
+  "personalizedRecommendations": ["Specific actionable recommendations based on observed patterns"],
+  "strengthsIdentified": ["Core strengths consistently demonstrated"],
+  "blindSpotPatterns": ["Recurring potential blind spots or growth edges"],
+  "sessionToSessionEvolution": ["How clinical approach or insights have evolved"],
+  "timeBasedTrends": ["Trends visible over time in confidence, skill, or focus areas"]
+}
+
+Focus on professional development, clinical competency growth, and personalized insights that compound over time.`;
 
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    return response.text();
+    const text = response.text();
+    
+    // Parse the JSON response
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0]);
+    }
+    
+    throw new Error("No valid response received from AI");
     
   } catch (error) {
-    console.error("Error generating insight summary:", error);
-    throw new Error("Unable to generate insights summary. Please try again.");
+    console.error("Error generating cross-session analysis:", error);
+    throw new Error("Unable to generate cross-session analysis. Please try again.");
+  }
+};
+
+export const generateInsightSummary = async (entries: any[]): Promise<string> => {
+  const analysis = await generateCrossSessionAnalysis(entries);
+  return analysis.overallGrowthTrajectory;
+};
+
+export const generatePersonalizedDashboardInsights = async (entries: any[], userProfile?: any): Promise<{
+  weeklyFocus: string;
+  skillDevelopmentTip: string;
+  supervisionTopic: string;
+  professionalGrowthInsight: string;
+}> => {
+  if (!entries.length) {
+    return {
+      weeklyFocus: "Begin your professional journey by documenting your first client session.",
+      skillDevelopmentTip: "Start with reflective note-taking to build self-awareness.",
+      supervisionTopic: "Discuss your initial comfort level with different therapeutic approaches.",
+      professionalGrowthInsight: "Every expert was once a beginner - embrace the learning process."
+    };
+  }
+
+  try {
+    const recentEntries = entries.slice(-5); // Last 5 sessions
+    const prompt = `Based on these recent counseling sessions, provide personalized weekly insights for professional development:
+
+${recentEntries.map((entry, index) => `
+Recent Session ${index + 1}: ${entry.notes.substring(0, 200)}...
+`).join('\n')}
+
+Provide JSON response:
+{
+  "weeklyFocus": "One specific area to focus on this week based on recent patterns",
+  "skillDevelopmentTip": "Actionable skill-building tip based on recent work",
+  "supervisionTopic": "Specific topic to bring to supervision based on patterns",
+  "professionalGrowthInsight": "Encouraging insight about professional development progress"
+}`;
+
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+    
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0]);
+    }
+    
+    throw new Error("No valid response received");
+  } catch (error) {
+    console.error("Error generating personalized insights:", error);
+    return {
+      weeklyFocus: "Continue developing your clinical skills through consistent practice.",
+      skillDevelopmentTip: "Reflect on your therapeutic presence and client engagement.",
+      supervisionTopic: "Discuss your confidence levels with different intervention techniques.",
+      professionalGrowthInsight: "Your dedication to growth is building strong clinical foundations."
+    };
   }
 };
 
