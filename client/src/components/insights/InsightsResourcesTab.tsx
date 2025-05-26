@@ -18,6 +18,8 @@ import {
   Download, 
   Calendar,
   Tag,
+  Eye,
+  EyeOff,
   ExternalLink 
 } from "lucide-react";
 import { format } from "date-fns";
@@ -164,6 +166,34 @@ export const InsightsResourcesTab = () => {
     // Extract first line or first 50 characters as title
     const firstLine = plainContent.split('\n')[0];
     return firstLine.length > 50 ? firstLine.substring(0, 47) + "..." : firstLine;
+  };
+
+  // Simple markdown formatter for Bear-style preview
+  const formatMarkdown = (content: string): string => {
+    if (!content) return '<p class="text-muted-foreground">Start writing...</p>';
+    
+    return content
+      // Headers
+      .replace(/^### (.*$)/gm, '<h3 class="text-xl font-semibold mt-6 mb-3">$1</h3>')
+      .replace(/^## (.*$)/gm, '<h2 class="text-2xl font-bold mt-8 mb-4">$1</h2>')
+      .replace(/^# (.*$)/gm, '<h1 class="text-3xl font-bold mt-8 mb-6">$1</h1>')
+      // Bold
+      .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
+      .replace(/__(.*?)__/g, '<strong class="font-semibold">$1</strong>')
+      // Italic
+      .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
+      .replace(/_(.*?)_/g, '<em class="italic">$1</em>')
+      // Code
+      .replace(/`(.*?)`/g, '<code class="bg-muted px-1 py-0.5 rounded text-sm font-mono">$1</code>')
+      // Blockquotes
+      .replace(/^> (.*$)/gm, '<blockquote class="border-l-4 border-primary pl-4 italic text-muted-foreground">$1</blockquote>')
+      // Lists
+      .replace(/^- (.*$)/gm, '<li class="ml-4">• $1</li>')
+      .replace(/^\d+\. (.*$)/gm, '<li class="ml-4 list-decimal">$1</li>')
+      // Line breaks
+      .replace(/\n/g, '<br>')
+      // Wrap in paragraph if no other formatting
+      .replace(/^(?!<[h|l|b])(.*$)/gm, '<p class="mb-3">$1</p>');
   };
 
   const handleEditCard = (card: InsightCard) => {
@@ -335,11 +365,19 @@ export const InsightsResourcesTab = () => {
           <Textarea
             value={editingContent}
             onChange={(e) => setEditingContent(e.target.value)}
-            placeholder="Start writing your reflection..."
-            className="flex-1 resize-none border-0 text-lg leading-relaxed focus:ring-0 shadow-none bg-transparent font-medium"
+            placeholder="Start writing your reflection...
+
+# Use markdown formatting:
+**bold text** *italic text*
+## Headings
+- Bullet points  
+> Blockquotes
+`code snippets`"
+            className="flex-1 resize-none border-0 text-lg leading-relaxed focus:ring-0 shadow-none bg-transparent font-mono"
             style={{ 
               minHeight: "calc(100vh - 200px)",
-              lineHeight: "1.6"
+              lineHeight: "1.6",
+              fontFamily: "ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace"
             }}
             autoFocus
           />
