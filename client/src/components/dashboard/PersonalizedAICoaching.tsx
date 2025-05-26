@@ -93,16 +93,17 @@ export const PersonalizedAICoaching = () => {
   }
 
   return (
-    <div className="ive-card">
-      <div className="p-6">
+    <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-full h-1 bg-purple-500"></div>
+      <div className="relative z-10">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-              <Sparkles className="h-4 w-4 text-primary" />
+            <div className="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center">
+              <Sparkles className="h-4 w-4 text-purple-500" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-foreground">AI Coaching</h3>
-              <p className="text-sm text-muted-foreground">
+              <h3 className="text-lg font-bold text-gray-900">AI Coaching</h3>
+              <p className="text-sm text-gray-500 font-medium">
                 Personalized insights from your sessions
               </p>
             </div>
@@ -112,7 +113,7 @@ export const PersonalizedAICoaching = () => {
             size="sm" 
             onClick={generateInsights}
             disabled={isLoading}
-            className="ive-button opacity-60 hover:opacity-100"
+            className="text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-xl"
           >
             <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
           </Button>
@@ -127,57 +128,57 @@ export const PersonalizedAICoaching = () => {
             </div>
           ) : insights ? (
             <div className="space-y-4">
-              {/* Jony Ive: Cohesive rounded design with brand color consistency */}
-              <div className="bg-primary/5 border border-primary/15 p-6 ive-rounded-lg hover:bg-primary/8 transition-colors duration-300">
+              {/* Notion-style clean insight cards */}
+              <div className="bg-gray-50 border border-gray-200 p-6 rounded-2xl hover:bg-gray-100 transition-colors duration-200">
                 <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                    <Target className="h-4 w-4 text-primary" />
+                  <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center">
+                    <Target className="h-4 w-4 text-blue-500" />
                   </div>
-                  <h4 className="font-semibold text-primary text-base">This Week's Focus</h4>
+                  <h4 className="font-bold text-gray-900 text-base">This Week's Focus</h4>
                 </div>
-                <p className="text-primary/80 text-sm leading-relaxed">
+                <p className="text-gray-700 text-sm leading-relaxed font-medium">
                   {insights.weeklyFocus}
                 </p>
               </div>
 
-              <div className="bg-accent/5 border border-accent/15 p-6 ive-rounded-lg hover:bg-accent/8 transition-colors duration-300">
+              <div className="bg-gray-50 border border-gray-200 p-6 rounded-2xl hover:bg-gray-100 transition-colors duration-200">
                 <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-8 h-8 bg-accent/10 rounded-full flex items-center justify-center">
-                    <TrendingUp className="h-4 w-4 text-accent" />
+                  <div className="w-8 h-8 bg-green-50 rounded-full flex items-center justify-center">
+                    <TrendingUp className="h-4 w-4 text-green-500" />
                   </div>
-                  <h4 className="font-semibold text-accent text-base">Skill Development</h4>
+                  <h4 className="font-bold text-gray-900 text-base">Skill Development</h4>
                 </div>
-                <p className="text-accent/80 text-sm leading-relaxed">
+                <p className="text-gray-700 text-sm leading-relaxed font-medium">
                   {insights.skillDevelopmentTip}
                 </p>
               </div>
 
-              <div className="bg-muted/30 border border-muted-foreground/15 p-6 ive-rounded-lg hover:bg-muted/40 transition-colors duration-300">
+              <div className="bg-gray-50 border border-gray-200 p-6 rounded-2xl hover:bg-gray-100 transition-colors duration-200">
                 <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-8 h-8 bg-muted-foreground/10 rounded-full flex items-center justify-center">
-                    <Users className="h-4 w-4 text-muted-foreground" />
+                  <div className="w-8 h-8 bg-purple-50 rounded-full flex items-center justify-center">
+                    <Users className="h-4 w-4 text-purple-500" />
                   </div>
-                  <h4 className="font-semibold text-muted-foreground text-base">Supervision Discussion</h4>
+                  <h4 className="font-bold text-gray-900 text-base">Supervision Discussion</h4>
                 </div>
-                <p className="text-muted-foreground/80 text-sm leading-relaxed">
+                <p className="text-gray-700 text-sm leading-relaxed font-medium">
                   {insights.supervisionTopic}
                 </p>
               </div>
 
-              <div className="bg-primary/8 border border-primary/20 p-6 ive-rounded-lg hover:bg-primary/12 transition-colors duration-300">
+              <div className="bg-gray-50 border border-gray-200 p-6 rounded-2xl hover:bg-gray-100 transition-colors duration-200">
                 <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-8 h-8 bg-primary/15 rounded-full flex items-center justify-center">
-                    <Lightbulb className="h-4 w-4 text-primary" />
+                  <div className="w-8 h-8 bg-orange-50 rounded-full flex items-center justify-center">
+                    <Lightbulb className="h-4 w-4 text-orange-500" />
                   </div>
-                  <h4 className="font-semibold text-primary text-base">Growth Insight</h4>
+                  <h4 className="font-bold text-gray-900 text-base">Growth Insight</h4>
                 </div>
-                <p className="text-primary/80 text-sm leading-relaxed">
+                <p className="text-gray-700 text-sm leading-relaxed font-medium">
                   {insights.professionalGrowthInsight}
                 </p>
               </div>
 
               {lastUpdated && (
-                <div className="text-xs text-muted-foreground/60 text-center pt-3">
+                <div className="text-xs text-gray-400 text-center pt-3">
                   Last updated: {lastUpdated.toLocaleString()}
                 </div>
               )}
