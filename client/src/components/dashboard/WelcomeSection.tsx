@@ -14,9 +14,9 @@ export const WelcomeSection = () => {
       {/* Jony Ive: Material honesty with emotional warmth */}
       <div className="ive-card bg-gradient-to-r from-primary/8 to-accent/8 border-primary/15 overflow-hidden">
         <div className="p-8">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-              <span className="text-lg font-semibold text-primary">
+          <div className="flex items-center space-x-4 mb-6">
+            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+              <span className="text-xl font-semibold text-primary">
                 {displayName.charAt(0).toUpperCase()}
               </span>
             </div>

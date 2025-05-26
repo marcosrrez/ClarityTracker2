@@ -127,51 +127,51 @@ export const PersonalizedAICoaching = () => {
             </div>
           ) : insights ? (
             <div className="space-y-4">
-              {/* Jony Ive: Material depth with purposeful color psychology */}
-              <div className="bg-blue-50/50 border border-blue-100 p-5 rounded-xl hover:bg-blue-50/70 transition-colors duration-300">
-                <div className="flex items-center space-x-3 mb-3">
-                  <div className="w-6 h-6 bg-blue-500/10 rounded-lg flex items-center justify-center">
-                    <Target className="h-3 w-3 text-blue-600" />
+              {/* Jony Ive: Cohesive rounded design with brand color consistency */}
+              <div className="bg-primary/5 border border-primary/15 p-6 ive-rounded-lg hover:bg-primary/8 transition-colors duration-300">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                    <Target className="h-4 w-4 text-primary" />
                   </div>
-                  <h4 className="font-semibold text-blue-900 text-sm">This Week's Focus</h4>
+                  <h4 className="font-semibold text-primary text-base">This Week's Focus</h4>
                 </div>
-                <p className="text-blue-800 text-sm leading-relaxed">
+                <p className="text-primary/80 text-sm leading-relaxed">
                   {insights.weeklyFocus}
                 </p>
               </div>
 
-              <div className="bg-green-50/50 border border-green-100 p-5 rounded-xl hover:bg-green-50/70 transition-colors duration-300">
-                <div className="flex items-center space-x-3 mb-3">
-                  <div className="w-6 h-6 bg-green-500/10 rounded-lg flex items-center justify-center">
-                    <TrendingUp className="h-3 w-3 text-green-600" />
+              <div className="bg-accent/5 border border-accent/15 p-6 ive-rounded-lg hover:bg-accent/8 transition-colors duration-300">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-8 h-8 bg-accent/10 rounded-full flex items-center justify-center">
+                    <TrendingUp className="h-4 w-4 text-accent" />
                   </div>
-                  <h4 className="font-semibold text-green-900 text-sm">Skill Development</h4>
+                  <h4 className="font-semibold text-accent text-base">Skill Development</h4>
                 </div>
-                <p className="text-green-800 text-sm leading-relaxed">
+                <p className="text-accent/80 text-sm leading-relaxed">
                   {insights.skillDevelopmentTip}
                 </p>
               </div>
 
-              <div className="bg-amber-50/50 border border-amber-100 p-5 rounded-xl hover:bg-amber-50/70 transition-colors duration-300">
-                <div className="flex items-center space-x-3 mb-3">
-                  <div className="w-6 h-6 bg-amber-500/10 rounded-lg flex items-center justify-center">
-                    <Users className="h-3 w-3 text-amber-600" />
+              <div className="bg-muted/30 border border-muted-foreground/15 p-6 ive-rounded-lg hover:bg-muted/40 transition-colors duration-300">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-8 h-8 bg-muted-foreground/10 rounded-full flex items-center justify-center">
+                    <Users className="h-4 w-4 text-muted-foreground" />
                   </div>
-                  <h4 className="font-semibold text-amber-900 text-sm">Supervision Discussion</h4>
+                  <h4 className="font-semibold text-muted-foreground text-base">Supervision Discussion</h4>
                 </div>
-                <p className="text-amber-800 text-sm leading-relaxed">
+                <p className="text-muted-foreground/80 text-sm leading-relaxed">
                   {insights.supervisionTopic}
                 </p>
               </div>
 
-              <div className="bg-purple-50/50 border border-purple-100 p-5 rounded-xl hover:bg-purple-50/70 transition-colors duration-300">
-                <div className="flex items-center space-x-3 mb-3">
-                  <div className="w-6 h-6 bg-purple-500/10 rounded-lg flex items-center justify-center">
-                    <Lightbulb className="h-3 w-3 text-purple-600" />
+              <div className="bg-primary/8 border border-primary/20 p-6 ive-rounded-lg hover:bg-primary/12 transition-colors duration-300">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-8 h-8 bg-primary/15 rounded-full flex items-center justify-center">
+                    <Lightbulb className="h-4 w-4 text-primary" />
                   </div>
-                  <h4 className="font-semibold text-purple-900 text-sm">Growth Insight</h4>
+                  <h4 className="font-semibold text-primary text-base">Growth Insight</h4>
                 </div>
-                <p className="text-purple-800 text-sm leading-relaxed">
+                <p className="text-primary/80 text-sm leading-relaxed">
                   {insights.professionalGrowthInsight}
                 </p>
               </div>

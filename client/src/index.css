@@ -35,11 +35,11 @@
 }
 
 @layer components {
-  /* Jony Ive: Material honesty with seamless dark mode adaptation */
+  /* Jony Ive: Soft, cohesive design with rounded corners */
   .ive-card {
     @apply bg-white dark:bg-slate-900;
     border: 1px solid hsl(var(--border));
-    border-radius: 12px;
+    border-radius: 20px;
     box-shadow: 
       0 1px 3px 0 rgba(0, 0, 0, 0.05),
       0 1px 2px 0 rgba(0, 0, 0, 0.04);
@@ -65,10 +65,10 @@
       0 2px 4px 0 rgba(0, 0, 0, 0.2);
   }
   
-  /* Jony Ive: Buttons with physical presence */
+  /* Jony Ive: Buttons with soft, rounded presence */
   .ive-button {
     @apply transition-all duration-300 ease-out;
-    @apply font-medium tracking-tight;
+    @apply font-medium tracking-tight rounded-2xl;
     transform: perspective(1px) translateZ(0);
   }
   
@@ -79,6 +79,19 @@
   .ive-button:active {
     transform: translateY(0px);
     transition-duration: 100ms;
+  }
+  
+  /* Cohesive rounded components */
+  .ive-rounded {
+    border-radius: 16px;
+  }
+  
+  .ive-rounded-lg {
+    border-radius: 20px;
+  }
+  
+  .ive-rounded-xl {
+    border-radius: 24px;
   }
   
   /* Jony Ive: Subtle motion that feels natural */
