@@ -17,7 +17,8 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { cn } from "@/lib/utils";
 import { insertLogEntrySchema } from "@shared/schema";
 import type { InsertLogEntry } from "@shared/schema";
-import { createLogEntry } from "@/lib/firestore";
+import { createLogEntry, createAiAnalysis } from "@/lib/firestore";
+import { analyzeSessionNotes } from "@/lib/ai";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 
@@ -57,11 +58,42 @@ export const AddEntryForm = () => {
 
     setIsSubmitting(true);
     try {
-      await createLogEntry(user.uid, data);
-      toast({
-        title: "Entry saved successfully",
-        description: "Your session has been logged.",
-      });
+      // Create the log entry first
+      const entryId = await createLogEntry(user.uid, data);
+      
+      // If there are notes, automatically generate AI analysis
+      if (data.notes && data.notes.trim().length > 0) {
+        try {
+          const analysis = await analyzeSessionNotes(data.notes);
+          await createAiAnalysis(user.uid, {
+            logEntryId: entryId,
+            originalNotesSnapshot: data.notes,
+            summary: analysis.summary,
+            themes: analysis.themes,
+            potentialBlindSpots: analysis.potentialBlindSpots,
+            reflectivePrompts: analysis.reflectivePrompts,
+            keyLearnings: analysis.keyLearnings,
+            ccsrCategory: analysis.ccsrCategory,
+          });
+          
+          toast({
+            title: "Entry saved with AI analysis",
+            description: "Your session has been logged and analyzed for insights.",
+          });
+        } catch (aiError) {
+          console.error("AI analysis failed:", aiError);
+          toast({
+            title: "Entry saved successfully",
+            description: "Your session has been logged. AI analysis will be available once configured.",
+          });
+        }
+      } else {
+        toast({
+          title: "Entry saved successfully",
+          description: "Your session has been logged.",
+        });
+      }
+      
       reset();
     } catch (error) {
       console.error("Error creating entry:", error);

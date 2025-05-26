@@ -271,11 +271,11 @@ Keep the summary concise but comprehensive, focusing on what's most valuable for
     
     return summary;
     
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error summarizing web content:", error);
-    if (error.message?.includes("API key")) {
+    if (error?.message?.includes("API key")) {
       throw new Error("Google AI API key is required for web content summarization. Please check your settings.");
     }
-    throw new Error(`Unable to summarize this webpage: ${error.message}`);
+    throw new Error(`Unable to summarize this webpage: ${error?.message || 'Unknown error'}`);
   }
 };
