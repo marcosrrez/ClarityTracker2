@@ -64,84 +64,83 @@ export const LoginForm = ({ onSwitchToSignUp }: LoginFormProps) => {
   };
 
   return (
-    <div className="ive-card w-full max-w-md">
-      <div className="p-8 space-y-6">
-        <div className="text-center space-y-2">
-          <h2 className="text-2xl font-bold text-foreground">Welcome back</h2>
-          <p className="text-muted-foreground/80 leading-relaxed">
-            Sign in to continue tracking your professional development journey.
-          </p>
-        </div>
-        
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
+    <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-full h-1 bg-blue-500"></div>
+      
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {error && (
+          <Alert variant="destructive" className="bg-red-50 border-red-200 rounded-xl">
+            <AlertDescription className="text-red-700">{error}</AlertDescription>
+          </Alert>
+        )}
+
+        <div className="space-y-2">
+          <Label htmlFor="email" className="text-gray-700 font-medium">Email Address</Label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="your@email.com"
+            {...register("email")}
+            disabled={isLoading}
+            className="rounded-xl border-gray-200 focus:border-blue-500"
+          />
+          {errors.email && (
+            <p className="text-sm text-red-500">{errors.email.message}</p>
           )}
+        </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              {...register("email")}
-              disabled={isLoading}
-            />
-            {errors.email && (
-              <p className="text-sm text-destructive">{errors.email.message}</p>
-            )}
-          </div>
+        <div className="space-y-2">
+          <Label htmlFor="password" className="text-gray-700 font-medium">Password</Label>
+          <Input
+            id="password"
+            type="password"
+            placeholder="Enter your password"
+            {...register("password")}
+            disabled={isLoading}
+            className="rounded-xl border-gray-200 focus:border-blue-500"
+          />
+          {errors.password && (
+            <p className="text-sm text-red-500">{errors.password.message}</p>
+          )}
+        </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              {...register("password")}
-              disabled={isLoading}
-            />
-            {errors.password && (
-              <p className="text-sm text-destructive">{errors.password.message}</p>
-            )}
-          </div>
+        <Button 
+          type="submit" 
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-3 text-base font-medium" 
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <>
+              <LoadingSpinner size="sm" className="mr-2" />
+              Signing in...
+            </>
+          ) : (
+            "Sign In"
+          )}
+        </Button>
+      </form>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? (
-              <>
-                <LoadingSpinner size="sm" className="mr-2" />
-                Signing in...
-              </>
-            ) : (
-              "Sign In"
-            )}
+      <div className="mt-6 text-center space-y-3">
+        <Button
+          type="button"
+          variant="link"
+          onClick={handleForgotPassword}
+          className="text-sm text-gray-600 hover:text-gray-900"
+        >
+          Forgot your password?
+        </Button>
+        
+        <p className="text-sm text-gray-600">
+          Don't have an account?{" "}
+          <Button
+            type="button"
+            variant="link"
+            onClick={onSwitchToSignUp}
+            className="p-0 h-auto text-blue-600 hover:text-blue-700 font-medium"
+          >
+            Sign up
           </Button>
-
-          <div className="text-center space-y-2">
-            <Button
-              type="button"
-              variant="link"
-              onClick={handleForgotPassword}
-              className="text-sm text-muted-foreground"
-            >
-              Forgot your password?
-            </Button>
-            
-            <div className="text-sm text-muted-foreground">
-              Don't have an account?{" "}
-              <Button
-                type="button"
-                variant="link"
-                onClick={onSwitchToSignUp}
-                className="p-0 h-auto text-primary"
-              >
-                Sign up here
-              </Button>
-            </div>
-          </div>
-        </form>
+        </p>
       </div>
     </div>
   );
