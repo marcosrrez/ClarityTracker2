@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Initialize the AI client with your Firebase API key
+// Initialize Google AI client with Firebase API key
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_FIREBASE_API_KEY);
 
 export interface AiAnalysisResult {
@@ -14,8 +14,6 @@ export interface AiAnalysisResult {
 
 export const analyzeSessionNotes = async (notes: string, userProfile?: any): Promise<AiAnalysisResult> => {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
     const prompt = `As a professional development AI assistant for Licensed Associate Counselors, analyze the following session notes and provide insights for professional growth.
 
 Session Notes:
@@ -40,6 +38,7 @@ Focus on:
 
 Keep responses professional, constructive, and supportive of growth.`;
 
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
@@ -50,15 +49,7 @@ Keep responses professional, constructive, and supportive of growth.`;
       return JSON.parse(jsonMatch[0]);
     }
     
-    // Fallback if JSON parsing fails
-    return {
-      summary: "Analysis completed successfully",
-      themes: ["Professional Growth", "Clinical Skills"],
-      potentialBlindSpots: ["Consider exploring additional therapeutic approaches"],
-      reflectivePrompts: ["What therapeutic techniques were most effective in this session?"],
-      keyLearnings: ["Continued development in clinical practice"],
-      ccsrCategory: "Direct Client Contact"
-    };
+    throw new Error("No valid response received from AI");
     
   } catch (error) {
     console.error("Error analyzing session notes:", error);
@@ -68,8 +59,6 @@ Keep responses professional, constructive, and supportive of growth.`;
 
 export const generateInsightSummary = async (entries: any[]): Promise<string> => {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
     const prompt = `As a professional development advisor for Licensed Associate Counselors, analyze the following collection of session entries and provide a comprehensive professional development summary.
 
 Number of entries: ${entries.length}
@@ -84,9 +73,22 @@ Please provide insights on:
 
 Keep the response supportive, professional, and focused on growth opportunities.`;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    return response.text();
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: "You are a professional development advisor for Licensed Associate Counselors. Provide supportive, constructive insights that promote growth."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      temperature: 0.7
+    });
+
+    return response.choices[0].message.content || "Unable to generate summary at this time.";
     
   } catch (error) {
     console.error("Error generating insight summary:", error);
