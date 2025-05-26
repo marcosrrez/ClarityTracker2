@@ -579,25 +579,26 @@ Use the toolbar above to format your text with headings, bold, italic, lists, an
             </Button>
           </div>
         </div>
-        <div className="space-y-6">
-          {/* Clean Header with Search, Filters, and Add Button */}
-          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+        <div className="space-y-8">
+          {/* Clean, Airy Header */}
+          <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
             <div className="flex flex-col sm:flex-row gap-4 flex-1">
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <div className="relative flex-1 max-w-lg">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search notes and resources..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-12 h-11 text-base rounded-xl"
                 />
               </div>
               
-              <div className="flex space-x-1">
+              <div className="flex space-x-2">
                 <Button
                   variant={filterType === "all" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setFilterType("all")}
+                  className="rounded-xl px-4"
                 >
                   All
                 </Button>
@@ -605,6 +606,7 @@ Use the toolbar above to format your text with headings, bold, italic, lists, an
                   variant={filterType === "note" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setFilterType("note")}
+                  className="rounded-xl px-4"
                 >
                   Notes
                 </Button>
@@ -612,68 +614,73 @@ Use the toolbar above to format your text with headings, bold, italic, lists, an
                   variant={filterType === "articleSummary" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setFilterType("articleSummary")}
+                  className="rounded-xl px-4"
                 >
                   Summaries
                 </Button>
               </div>
             </div>
             
-            <Button onClick={handleCreateNote} className="shrink-0">
+            <Button onClick={handleCreateNote} className="shrink-0 rounded-xl px-6 h-11">
               <Plus className="h-4 w-4 mr-2" />
               New Note
             </Button>
           </div>
 
-          {/* Empty State for New Note */}
-          {filteredCards.length === 0 && filterType === "all" && !searchQuery && (
-            <Card 
-              className="border-dashed border-2 hover:border-primary/50 cursor-pointer transition-colors"
-              onClick={handleCreateNote}
-            >
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <Plus className="h-8 w-8 text-muted-foreground mb-3" />
-                <h3 className="font-medium text-foreground mb-1">Add a reflection or idea...</h3>
-                <p className="text-sm text-muted-foreground text-center">
-                  Start documenting your professional insights and learning journey.
+          {/* Empty State */}
+          {filteredCards.length === 0 && !searchQuery && (
+            <div className="text-center py-16">
+              <div className="mb-4">
+                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-foreground mb-2">
+                  {filterType === "note" ? "No notes yet" : 
+                   filterType === "articleSummary" ? "No summaries yet" : 
+                   "No resources yet"}
+                </h3>
+                <p className="text-muted-foreground max-w-md mx-auto">
+                  {filterType === "note" ? "Start documenting your professional insights and reflections." :
+                   filterType === "articleSummary" ? "Use the browser extension to save article summaries." :
+                   "Create notes or save article summaries to build your knowledge base."}
                 </p>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           )}
 
-          {/* Insights Grid - Notion Style Cards */}
+          {/* Airy Cards Grid */}
           {filteredCards.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
               {filteredCards.map((card) => (
-                <div key={card.id} className="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
-                  <div className="space-y-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-3">
-                          <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${card.type === "note" ? "bg-blue-50" : "bg-green-50"}`}>
-                            {card.type === "note" ? (
-                              <FileText className="h-3 w-3 text-blue-500" />
-                            ) : (
-                              <Globe className="h-3 w-3 text-green-500" />
-                            )}
+                <Card key={card.id} className="hover:shadow-lg transition-all duration-200 border-border bg-card">
+                  <CardContent className="p-8">
+                    <div className="space-y-6">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-4">
+                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${card.type === "note" ? "bg-blue-50 dark:bg-blue-950/20" : "bg-green-50 dark:bg-green-950/20"}`}>
+                              {card.type === "note" ? (
+                                <FileText className="h-4 w-4 text-blue-500" />
+                              ) : (
+                                <Globe className="h-4 w-4 text-green-500" />
+                              )}
+                            </div>
+                            <Badge variant="outline" className="text-xs">
+                              {card.type === "note" ? "Note" : "Summary"}
+                            </Badge>
                           </div>
-                          <Badge variant="outline" className="text-xs border-gray-200 text-gray-600">
-                            {card.type === "note" ? "Note" : "Summary"}
-                          </Badge>
+                          <h4 className="font-semibold text-foreground text-lg line-clamp-2 mb-4">
+                            {getCardTitle(card)}
+                          </h4>
                         </div>
-                        <h4 className="font-bold text-gray-900 text-base line-clamp-2 mb-3">
-                          {getCardTitle(card)}
-                        </h4>
                       </div>
-                    </div>
                     
-                    <div className="space-y-3">
-                      <div 
-                        className="text-sm text-gray-600 line-clamp-3 cursor-pointer hover:bg-gray-50 p-2 rounded-3xl transition-colors"
-                        onClick={() => handleEditCard(card)}
-                        dangerouslySetInnerHTML={{
-                          __html: card.content.replace(/<[^>]*>/g, "") || "Click to start writing..."
-                        }}
-                      />
+                      <div className="space-y-4">
+                        <div 
+                          className="text-sm text-muted-foreground line-clamp-3 cursor-pointer hover:bg-muted/50 p-3 rounded-xl transition-colors"
+                          onClick={() => handleEditCard(card)}
+                          dangerouslySetInnerHTML={{
+                            __html: card.content.replace(/<[^>]*>/g, "") || "Click to start writing..."
+                          }}
+                        />
 
                       {card.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1">
@@ -731,8 +738,8 @@ Use the toolbar above to format your text with headings, bold, italic, lists, an
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           )}
