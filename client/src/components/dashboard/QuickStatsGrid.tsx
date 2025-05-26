@@ -78,21 +78,19 @@ export const QuickStatsGrid = () => {
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <Card key={index} className="hover:shadow-md transition-shadow duration-200">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className={`p-3 rounded-lg ${stat.iconBg}`}>
-                    <Icon className={`h-5 w-5 ${stat.iconColor}`} />
-                  </div>
-                  <span className="text-sm text-muted-foreground">{stat.subtitle}</span>
+            <div key={index} className="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center justify-between mb-4">
+                <div className={`p-3 rounded-lg ${stat.iconBg}`}>
+                  <Icon className={`h-5 w-5 ${stat.iconColor}`} />
                 </div>
-                <h4 className="text-2xl font-bold text-foreground mb-1">{stat.value}</h4>
-                <p className="text-sm text-muted-foreground">{stat.title}</p>
-                <div className="mt-3 flex items-center text-sm">
-                  <span className="text-accent font-medium">{stat.change}</span>
-                </div>
-              </CardContent>
-            </Card>
+                <span className="text-sm text-muted-foreground">{stat.subtitle}</span>
+              </div>
+              <h4 className="text-2xl font-bold text-foreground mb-1">{stat.value}</h4>
+              <p className="text-sm text-muted-foreground">{stat.title}</p>
+              <div className="mt-3 flex items-center text-sm">
+                <span className="text-accent font-medium">{stat.change}</span>
+              </div>
+            </div>
           );
         })}
       </div>

@@ -159,11 +159,6 @@ export const ProgressSection = () => {
         <div className="space-y-6">
           {progressCards.map((card, index) => (
             <div key={index} className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm relative overflow-hidden">
-              <div className={`absolute top-0 left-0 w-full h-1 ${
-                index === 0 ? 'bg-blue-500' : 
-                index === 1 ? 'bg-purple-500' : 
-                'bg-green-500'
-              }`}></div>
               <div className="flex items-center justify-between mb-4">
                 <h4 className="text-lg font-bold text-gray-900">{card.title}</h4>
                 <span className="text-2xl font-bold text-gray-900">
@@ -198,7 +193,6 @@ export const ProgressSection = () => {
           {/* Milestone Achievement */}
           {hasReached1000CCH && (
             <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-1 bg-green-500"></div>
               <div className="flex items-start space-x-4">
                 <div className="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center">
                   <Trophy className="h-6 w-6 text-green-500" />
@@ -217,7 +211,6 @@ export const ProgressSection = () => {
           {/* Supervision Alert */}
           {supervisionDue && (
             <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-1 bg-orange-500"></div>
               <div className="flex items-start space-x-4">
                 <div className="w-12 h-12 bg-orange-50 rounded-lg flex items-center justify-center">
                   <AlertTriangle className="h-6 w-6 text-orange-500" />
