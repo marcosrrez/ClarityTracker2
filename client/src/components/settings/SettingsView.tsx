@@ -12,23 +12,26 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { Calendar as CalendarIcon, Save, AlertTriangle, Shield, Download } from "lucide-react";
+import { Calendar as CalendarIcon, Save, AlertTriangle, Shield, Download, Upload, FileSpreadsheet } from "lucide-react";
 import { format } from "date-fns";
-import { useAppSettings } from "@/hooks/use-firestore";
-import { updateAppSettings } from "@/lib/firestore";
+import { useAppSettings, useLogEntries } from "@/hooks/use-firestore";
+import { updateAppSettings, createLogEntry } from "@/lib/firestore";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { insertAppSettingsSchema } from "@shared/schema";
-import type { AppSettings, InsertAppSettings } from "@shared/schema";
+import type { AppSettings, InsertAppSettings, InsertLogEntry } from "@shared/schema";
 
 export const SettingsView = () => {
   const { user, resetPassword } = useAuth();
   const { settings, loading, refetch } = useAppSettings();
+  const { entries } = useLogEntries();
   const { toast } = useToast();
   
   const [isSaving, setIsSaving] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [dateCalendarOpen, setDateCalendarOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
 
   const {
     register,
@@ -121,6 +124,131 @@ export const SettingsView = () => {
       });
     } finally {
       setIsResettingPassword(false);
+    }
+  };
+
+  const handleExportData = async () => {
+    if (!entries || entries.length === 0) {
+      toast({
+        title: "No data to export",
+        description: "You don't have any log entries to export yet.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsExporting(true);
+      
+      // Create CSV content
+      const headers = ["Date", "Client Contact Hours", "Indirect Hours", "Supervision Hours", "Supervision Type", "Tech Assisted", "Notes"];
+      const csvContent = [
+        headers.join(","),
+        ...entries.map(entry => [
+          new Date(entry.dateOfContact).toLocaleDateString(),
+          entry.clientContactHours.toString(),
+          entry.indirectHours ? "Yes" : "No",
+          entry.supervisionHours.toString(),
+          entry.supervisionType,
+          entry.techAssistedSupervision ? "Yes" : "No",
+          `"${entry.notes.replace(/"/g, '""')}"`
+        ].join(","))
+      ].join("\n");
+
+      // Download CSV file
+      const blob = new Blob([csvContent], { type: "text/csv" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `claritylog-data-${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: "Data exported successfully",
+        description: "Your log entries have been downloaded as a CSV file.",
+      });
+    } catch (error) {
+      console.error("Error exporting data:", error);
+      toast({
+        title: "Export failed",
+        description: "Failed to export your data. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleImportFromExcel = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().includes('.csv') && !file.name.toLowerCase().includes('.xlsx')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a CSV or Excel file.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsImporting(true);
+      const text = await file.text();
+      const lines = text.split('\n').filter(line => line.trim());
+      
+      if (lines.length < 2) {
+        throw new Error("File appears to be empty or has no data rows");
+      }
+
+      // Skip header row and process data
+      const dataLines = lines.slice(1);
+      let importedCount = 0;
+      let errorCount = 0;
+
+      for (const line of dataLines) {
+        try {
+          const columns = line.split(',').map(col => col.trim().replace(/^"|"$/g, ''));
+          
+          if (columns.length < 3) continue; // Skip malformed rows
+
+          const entryData: InsertLogEntry = {
+            dateOfContact: new Date(columns[0]),
+            clientContactHours: parseFloat(columns[1]) || 0,
+            indirectHours: columns[2]?.toLowerCase() === 'yes' || columns[2]?.toLowerCase() === 'true',
+            supervisionHours: parseFloat(columns[3]) || 0,
+            supervisionType: (columns[4] as any) || "none",
+            techAssistedSupervision: columns[5]?.toLowerCase() === 'yes' || columns[5]?.toLowerCase() === 'true',
+            notes: columns[6] || "",
+          };
+
+          if (user?.uid && !isNaN(entryData.dateOfContact.getTime())) {
+            await createLogEntry(user.uid, entryData);
+            importedCount++;
+          }
+        } catch (rowError) {
+          console.error("Error processing row:", rowError);
+          errorCount++;
+        }
+      }
+
+      toast({
+        title: "Import completed",
+        description: `Successfully imported ${importedCount} entries${errorCount > 0 ? ` (${errorCount} errors)` : ''}.`,
+      });
+
+      // Clear the file input
+      event.target.value = '';
+    } catch (error) {
+      console.error("Error importing data:", error);
+      toast({
+        title: "Import failed",
+        description: "Failed to import data. Please check your file format and try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsImporting(false);
     }
   };
 
@@ -447,6 +575,103 @@ Eye Movement Desensitization and Reprocessing (EMDR)"
             <p className="mt-2 text-xs">
               To change your email address, please contact support.
             </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Data Management */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <FileSpreadsheet className="h-5 w-5 text-blue-500" />
+            <span>Data Management</span>
+          </CardTitle>
+          <CardDescription>
+            Export your data for backup or import existing entries from Excel/CSV files.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Export Section */}
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-medium mb-2">Export Your Data</h4>
+              <p className="text-sm text-muted-foreground mb-4">
+                Download all your log entries as a CSV file for backup or external analysis.
+              </p>
+              <Button
+                variant="outline"
+                onClick={handleExportData}
+                disabled={isExporting || !entries || entries.length === 0}
+                className="w-full sm:w-auto"
+              >
+                {isExporting ? (
+                  <>
+                    <LoadingSpinner size="sm" className="mr-2" />
+                    Exporting...
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-4 w-4 mr-2" />
+                    Export Data to CSV
+                  </>
+                )}
+              </Button>
+              {(!entries || entries.length === 0) && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  No entries available to export. Add some log entries first.
+                </p>
+              )}
+            </div>
+
+            <Separator />
+
+            {/* Import Section */}
+            <div>
+              <h4 className="font-medium mb-2">Import from Excel/CSV</h4>
+              <p className="text-sm text-muted-foreground mb-4">
+                Upload a CSV file with your existing data. Expected columns: Date, Client Contact Hours, 
+                Indirect Hours, Supervision Hours, Supervision Type, Tech Assisted, Notes.
+              </p>
+              <div className="space-y-2">
+                <label htmlFor="import-file" className="cursor-pointer">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={isImporting}
+                    className="w-full sm:w-auto"
+                    asChild
+                  >
+                    <span>
+                      {isImporting ? (
+                        <>
+                          <LoadingSpinner size="sm" className="mr-2" />
+                          Importing...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="h-4 w-4 mr-2" />
+                          Choose CSV File
+                        </>
+                      )}
+                    </span>
+                  </Button>
+                </label>
+                <input
+                  id="import-file"
+                  type="file"
+                  accept=".csv,.xlsx"
+                  onChange={handleImportFromExcel}
+                  disabled={isImporting}
+                  className="hidden"
+                />
+                <div className="text-xs text-muted-foreground space-y-1">
+                  <p>• Supported formats: CSV (.csv)</p>
+                  <p>• First row should contain headers</p>
+                  <p>• Dates should be in MM/DD/YYYY format</p>
+                  <p>• Hours should be decimal numbers (e.g., 1.5)</p>
+                </div>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
