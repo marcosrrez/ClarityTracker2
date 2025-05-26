@@ -269,6 +269,11 @@ export const GalleryView = () => {
 
               {selectedItem.analysis ? (
                 <div className="space-y-6">
+                  {/* Debug info - remove after testing */}
+                  <div className="bg-gray-100 p-2 rounded text-xs">
+                    <pre>{JSON.stringify(selectedItem.analysis, null, 2)}</pre>
+                  </div>
+
                   {/* Summary */}
                   <div>
                     <div className="flex items-center space-x-2 mb-3">
@@ -283,7 +288,7 @@ export const GalleryView = () => {
                   <Separator />
 
                   {/* Key Themes */}
-                  {selectedItem.analysis.themes.length > 0 && (
+                  {selectedItem.analysis.themes && selectedItem.analysis.themes.length > 0 && (
                     <div>
                       <div className="flex items-center space-x-2 mb-3">
                         <Lightbulb className="h-5 w-5 text-amber-500" />
