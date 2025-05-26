@@ -18,6 +18,7 @@ import GalleryPage from "@/pages/gallery";
 import AiAnalysisPage from "@/pages/ai-analysis";
 import RequirementsPage from "@/pages/requirements";
 import SettingsPage from "@/pages/settings";
+import FeedbackPage from "@/pages/feedback";
 import HelpPage from "@/pages/help";
 import SummaryPage from "@/pages/summary";
 import NotFound from "@/pages/not-found";
@@ -33,6 +34,7 @@ function Router() {
       <Route path="/ai-analysis" component={AiAnalysisPage} />
       <Route path="/requirements" component={RequirementsPage} />
       <Route path="/settings" component={SettingsPage} />
+      <Route path="/feedback" component={FeedbackPage} />
       <Route path="/help" component={HelpPage} />
       <Route path="/summary" component={SummaryPage} />
       

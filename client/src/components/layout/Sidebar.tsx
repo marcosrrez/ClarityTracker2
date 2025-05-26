@@ -25,6 +25,7 @@ import {
   Sun,
   LogOut,
   Sprout,
+  MessageSquare,
 } from "lucide-react";
 
 const navigationItems = [
@@ -36,6 +37,7 @@ const navigationItems = [
   { href: "/ai-analysis", label: "AI Analysis", icon: Bot },
   { href: "/requirements", label: "Requirements", icon: ClipboardList },
   { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/feedback", label: "Feedback", icon: MessageSquare },
   { href: "/help", label: "Help", icon: HelpCircle },
 ];
 
