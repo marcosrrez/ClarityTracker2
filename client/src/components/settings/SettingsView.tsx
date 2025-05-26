@@ -883,6 +883,123 @@ Eye Movement Desensitization and Reprocessing (EMDR)"
         </CardContent>
       </Card>
 
+      {/* Browser Extension */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Download className="h-5 w-5 text-purple-500" />
+            <span>Browser Extension</span>
+          </CardTitle>
+          <CardDescription>
+            Capture valuable content from any webpage directly into your knowledge base with one click.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-medium mb-2">🚀 One-Click Content Capture</h4>
+              <p className="text-sm text-muted-foreground mb-4">
+                Transform any webpage into professional development insights! Our extension adds a floating capture button 
+                to every site, letting you save articles, research, and resources directly to ClarityLog with AI-powered analysis.
+              </p>
+              
+              <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 p-4 rounded-lg mb-4">
+                <h5 className="font-medium text-sm mb-2">✨ Extension Features:</h5>
+                <ul className="text-xs text-muted-foreground space-y-1">
+                  <li>• Floating capture button on every webpage</li>
+                  <li>• Right-click menu for quick text selection capture</li>
+                  <li>• Smart content extraction from articles and blogs</li>
+                  <li>• Automatic AI analysis and insight generation</li>
+                  <li>• Direct integration with your ClarityLog knowledge base</li>
+                </ul>
+              </div>
+
+              <div className="flex flex-col space-y-3">
+                <Button
+                  onClick={() => {
+                    // Create and download extension files
+                    const extensionFiles = {
+                      'manifest.json': JSON.stringify({
+                        "manifest_version": 3,
+                        "name": "ClarityLog Content Capture",
+                        "version": "1.0",
+                        "description": "Capture valuable content for your professional development with AI-powered insights",
+                        "permissions": ["activeTab", "storage", "contextMenus"],
+                        "host_permissions": [
+                          "http://localhost:5000/*",
+                          "https://*.replit.app/*",
+                          "https://*.replit.dev/*"
+                        ],
+                        "action": {
+                          "default_popup": "popup.html",
+                          "default_title": "Capture to ClarityLog"
+                        },
+                        "content_scripts": [{
+                          "matches": ["<all_urls>"],
+                          "js": ["content.js"],
+                          "css": ["content.css"]
+                        }],
+                        "background": {
+                          "service_worker": "background.js"
+                        },
+                        "icons": {
+                          "16": "icons/icon16.png",
+                          "48": "icons/icon48.png",
+                          "128": "icons/icon128.png"
+                        }
+                      }, null, 2),
+                      'README.txt': `ClarityLog Browser Extension Installation
+
+1. Extract all files to a folder called "claritylog-extension"
+2. Open Chrome and go to chrome://extensions/
+3. Enable "Developer mode" (toggle in top right)
+4. Click "Load unpacked" and select the extension folder
+5. Configure your ClarityLog server URL in the extension popup
+
+Current server URL: ${window.location.origin}
+
+Features:
+- Click the floating button on any webpage to capture content
+- Right-click selected text and choose "Add to ClarityLog"
+- All captured content gets AI analysis automatically
+
+Support: Contact us if you need help setting up the extension.`
+                    };
+
+                    // Create download for each file
+                    Object.entries(extensionFiles).forEach(([filename, content]) => {
+                      const blob = new Blob([content], { type: 'text/plain' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = filename;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                    });
+
+                    toast({
+                      title: "Extension files downloaded!",
+                      description: "Check your Downloads folder for the extension files and README instructions.",
+                    });
+                  }}
+                  className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Browser Extension Files
+                </Button>
+
+                <div className="text-xs text-muted-foreground bg-blue-50 dark:bg-blue-900/20 p-3 rounded">
+                  <p><strong>Installation:</strong> After downloading, extract files to a folder, go to chrome://extensions/, 
+                  enable Developer mode, and click "Load unpacked" to select your extension folder.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Danger Zone */}
       <Card className="border-destructive/50">
         <CardHeader>
