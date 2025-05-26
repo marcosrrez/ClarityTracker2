@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { Button } from "@/components/ui/button";
+import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { Sprout, Menu, Eye } from "lucide-react";
 
 interface AppLayoutProps {
@@ -47,6 +48,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
             <h1 className="text-xl font-semibold text-foreground">ClarityLog</h1>
           </div>
           <div className="flex items-center space-x-4">
+            <NotificationCenter />
             <Button
               variant="ghost"
               size="sm"
