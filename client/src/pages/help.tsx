@@ -114,11 +114,13 @@ export default function HelpPage() {
   ];
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold text-foreground">Help & Support</h1>
-        <p className="text-muted-foreground">
-          Everything you need to know about using ClarityLog effectively for your professional development.
+    <div className="max-w-5xl mx-auto space-y-8">
+      <div className="text-center space-y-3">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">
+          Help & Support
+        </h1>
+        <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+          Everything you need to know about using ClarityLog effectively for your professional development toward licensure.
         </p>
       </div>
 
