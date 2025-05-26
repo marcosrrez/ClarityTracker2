@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthGuard } from "@/components/auth/AuthGuard";
-import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
+import { OnboardingTrigger } from "@/components/onboarding/OnboardingTrigger";
 import { AppLayout } from "@/components/layout/AppLayout";
 
 // Pages
@@ -21,19 +21,6 @@ import SettingsPage from "@/pages/settings";
 import HelpPage from "@/pages/help";
 import SummaryPage from "@/pages/summary";
 import NotFound from "@/pages/not-found";
-
-import { useAuth } from "@/hooks/use-auth";
-
-function OnboardingCheck({ children }: { children: React.ReactNode }) {
-  const { userProfile } = useAuth();
-
-  // If user hasn't completed main onboarding, show onboarding flow
-  if (userProfile && !userProfile.mainOnboardingCompleted) {
-    return <OnboardingFlow />;
-  }
-
-  return <>{children}</>;
-}
 
 function Router() {
   return (
@@ -64,11 +51,10 @@ function App() {
         <AuthProvider>
           <TooltipProvider>
             <AuthGuard fallback={<AuthPage />}>
-              <OnboardingCheck>
-                <AppLayout>
-                  <Router />
-                </AppLayout>
-              </OnboardingCheck>
+              <AppLayout>
+                <Router />
+              </AppLayout>
+              <OnboardingTrigger />
             </AuthGuard>
             <Toaster />
           </TooltipProvider>
