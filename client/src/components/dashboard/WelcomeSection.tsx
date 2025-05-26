@@ -86,30 +86,32 @@ export const WelcomeSection = () => {
         <div className="absolute right-8 bottom-8 w-16 h-16 bg-gray-100 rounded-full"></div>
       </div>
 
-      {/* Dashboard Widgets Grid - Notion-style colored accents */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* Enhanced Dashboard Widgets - Larger and more impactful */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Hours Progress - Notion Blue */}
-        <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-blue-500"></div>
-          <div className="text-2xl font-bold mb-1 text-gray-900">
+        <div className="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-2 bg-blue-500"></div>
+          <div className="text-4xl font-bold mb-2 text-gray-900">
             {Math.round(entries?.reduce((sum: number, entry: any) => sum + (entry.clientContactHours || 0), 0) || 0)}
           </div>
-          <div className="text-gray-500 text-xs font-medium">Hours Logged</div>
+          <div className="text-gray-600 text-sm font-medium mb-1">Total Hours</div>
+          <div className="text-gray-400 text-xs">Client Contact</div>
         </div>
 
         {/* Supervision - Notion Purple */}
-        <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-purple-500"></div>
-          <div className="text-2xl font-bold mb-1 text-gray-900">
+        <div className="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-2 bg-purple-500"></div>
+          <div className="text-4xl font-bold mb-2 text-gray-900">
             {Math.round(entries?.reduce((sum: number, entry: any) => sum + (entry.supervisionHours || 0), 0) || 0)}
           </div>
-          <div className="text-gray-500 text-xs font-medium">Supervision</div>
+          <div className="text-gray-600 text-sm font-medium mb-1">Supervision</div>
+          <div className="text-gray-400 text-xs">Hours Completed</div>
         </div>
 
         {/* This Week - Notion Green */}
-        <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-green-500"></div>
-          <div className="text-2xl font-bold mb-1 text-gray-900">
+        <div className="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-2 bg-green-500"></div>
+          <div className="text-4xl font-bold mb-2 text-gray-900">
             {entries?.filter((entry: any) => {
               const entryDate = new Date(entry.dateOfContact);
               const weekAgo = new Date();
@@ -117,16 +119,18 @@ export const WelcomeSection = () => {
               return entryDate >= weekAgo;
             }).length || 0}
           </div>
-          <div className="text-gray-500 text-xs font-medium">This Week</div>
+          <div className="text-gray-600 text-sm font-medium mb-1">This Week</div>
+          <div className="text-gray-400 text-xs">Recent Sessions</div>
         </div>
 
-        {/* AI Insights - Notion Orange */}
-        <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-orange-500"></div>
-          <div className="text-2xl font-bold mb-1 text-gray-900">
-            <Sparkles className="h-6 w-6 text-orange-500" />
+        {/* Progress Summary */}
+        <div className="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-2 bg-orange-500"></div>
+          <div className="text-4xl font-bold mb-2 text-gray-900">
+            {Math.round(((entries?.reduce((sum: number, entry: any) => sum + (entry.clientContactHours || 0), 0) || 0) / 4000) * 100)}%
           </div>
-          <div className="text-gray-500 text-xs font-medium">AI Ready</div>
+          <div className="text-gray-600 text-sm font-medium mb-1">Progress</div>
+          <div className="text-gray-400 text-xs">Toward Goal</div>
         </div>
       </div>
     </section>

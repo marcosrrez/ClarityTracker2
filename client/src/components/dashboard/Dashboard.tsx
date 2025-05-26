@@ -8,32 +8,25 @@ import { AchievementCelebration } from "./AchievementCelebration";
 
 export const Dashboard = () => {
   return (
-    <div className="ive-spacing-lg">
-      <div className="ive-fade-in">
+    <div className="space-y-8">
+      {/* Welcome section with integrated stats */}
+      <div>
         <WelcomeSection />
       </div>
       
-      <div className="ive-fade-in">
-        <QuickStatsGrid />
+      {/* Collapsible coaching and insights */}
+      <div className="space-y-6">
+        <PersonalizedAICoaching />
+        <CompetencyTracker />
       </div>
       
-      <div className="ive-fade-in">
-        <AchievementCelebration />
-      </div>
-      
-      {/* Jony Ive: Seamless integration of AI components */}
-      <div className="ive-fade-in">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <PersonalizedAICoaching />
-          <CompetencyTracker />
-        </div>
-      </div>
-      
-      <div className="ive-fade-in">
+      {/* Progress tracking */}
+      <div>
         <ProgressSection />
       </div>
       
-      <div className="ive-fade-in">
+      {/* Recent entries */}
+      <div>
         <LogTableSection />
       </div>
     </div>
