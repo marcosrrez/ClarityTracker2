@@ -86,26 +86,29 @@ export const WelcomeSection = () => {
         <div className="absolute right-8 bottom-8 w-16 h-16 bg-gray-100 rounded-full"></div>
       </div>
 
-      {/* Dashboard Widgets Grid - Clean white cards */}
+      {/* Dashboard Widgets Grid - Notion-style colored accents */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {/* Hours Progress */}
-        <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm">
+        {/* Hours Progress - Notion Blue */}
+        <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-blue-500"></div>
           <div className="text-2xl font-bold mb-1 text-gray-900">
             {Math.round(entries?.reduce((sum: number, entry: any) => sum + (entry.clientContactHours || 0), 0) || 0)}
           </div>
           <div className="text-gray-500 text-xs font-medium">Hours Logged</div>
         </div>
 
-        {/* Supervision */}
-        <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm">
+        {/* Supervision - Notion Purple */}
+        <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-purple-500"></div>
           <div className="text-2xl font-bold mb-1 text-gray-900">
             {Math.round(entries?.reduce((sum: number, entry: any) => sum + (entry.supervisionHours || 0), 0) || 0)}
           </div>
           <div className="text-gray-500 text-xs font-medium">Supervision</div>
         </div>
 
-        {/* This Week */}
-        <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm">
+        {/* This Week - Notion Green */}
+        <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-green-500"></div>
           <div className="text-2xl font-bold mb-1 text-gray-900">
             {entries?.filter((entry: any) => {
               const entryDate = new Date(entry.dateOfContact);
@@ -117,10 +120,11 @@ export const WelcomeSection = () => {
           <div className="text-gray-500 text-xs font-medium">This Week</div>
         </div>
 
-        {/* AI Insights */}
-        <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm">
+        {/* AI Insights - Notion Orange */}
+        <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-orange-500"></div>
           <div className="text-2xl font-bold mb-1 text-gray-900">
-            <Sparkles className="h-6 w-6" />
+            <Sparkles className="h-6 w-6 text-orange-500" />
           </div>
           <div className="text-gray-500 text-xs font-medium">AI Ready</div>
         </div>
