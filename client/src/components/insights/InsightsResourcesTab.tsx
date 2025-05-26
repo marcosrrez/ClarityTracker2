@@ -495,19 +495,21 @@ Try typing:
 
   return (
     <div className="space-y-6">
-      {/* Web Content Summarizer */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Globe className="h-5 w-5 text-primary" />
-            <span>Summarize Web Content</span>
-          </CardTitle>
-          <CardDescription>
-            Enter a URL to automatically summarize and save key insights from web articles, 
-            research papers, or professional resources.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+      {/* Web Content Summarizer - Notion Style */}
+      <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm relative overflow-hidden mb-8">
+        <div className="absolute top-0 left-0 w-full h-1 bg-blue-500"></div>
+        <div className="flex items-center space-x-3 mb-6">
+          <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+            <Globe className="h-4 w-4 text-blue-500" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-gray-900">Summarize Web Content</h3>
+            <p className="text-sm text-gray-500 font-medium">
+              Enter a URL to automatically summarize and save key insights from web articles, research papers, or professional resources.
+            </p>
+          </div>
+        </div>
+        <div>
           <form onSubmit={handleSubmit(onSummarizeUrl)} className="space-y-4">
             {errors.url && (
               <Alert variant="destructive">
@@ -520,9 +522,13 @@ Try typing:
                 placeholder="https://example.com/article"
                 {...register("url")}
                 disabled={isSummarizing}
-                className="flex-1"
+                className="flex-1 rounded-xl border-gray-200"
               />
-              <Button type="submit" disabled={isSummarizing}>
+              <Button 
+                type="submit" 
+                disabled={isSummarizing}
+                className="bg-blue-500 hover:bg-blue-600 text-white rounded-xl"
+              >
                 {isSummarizing ? (
                   <>
                     <LoadingSpinner size="sm" className="mr-2" />
@@ -537,41 +543,54 @@ Try typing:
               </Button>
             </div>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      {/* My Insights & Reflections */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>My Insights & Reflections</CardTitle>
-              <CardDescription>
-                Your personal notes, reflections, and summarized resources.
-              </CardDescription>
+      {/* My Insights & Reflections - Notion Style */}
+      <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-1 bg-purple-500"></div>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center">
+              <FileText className="h-4 w-4 text-purple-500" />
             </div>
-            <div className="flex space-x-2">
-              <Button variant="outline" size="sm" onClick={handleDownloadAll}>
-                <Download className="h-4 w-4 mr-2" />
-                Download All
-              </Button>
-              <Button size="sm" onClick={handleCreateNote}>
-                <Plus className="h-4 w-4 mr-2" />
-                New Note
-              </Button>
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">My Insights & Reflections</h3>
+              <p className="text-sm text-gray-500 font-medium">
+                Your personal notes, reflections, and summarized resources.
+              </p>
             </div>
           </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
+          <div className="flex space-x-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleDownloadAll}
+              className="border-gray-200 text-gray-600 hover:bg-gray-50 rounded-xl"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download All
+            </Button>
+            <Button 
+              size="sm" 
+              onClick={handleCreateNote}
+              className="bg-purple-500 hover:bg-purple-600 text-white rounded-xl"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              New Note
+            </Button>
+          </div>
+        </div>
+        <div className="space-y-6">
           {/* Search and Filter */}
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Search insights, notes, and tags..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className="pl-10 rounded-xl border-gray-200"
               />
             </div>
             
@@ -580,6 +599,7 @@ Try typing:
                 variant={filterType === "all" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setFilterType("all")}
+                className={filterType === "all" ? "bg-purple-500 hover:bg-purple-600 rounded-xl" : "border-gray-200 text-gray-600 hover:bg-gray-50 rounded-xl"}
               >
                 All
               </Button>
@@ -587,6 +607,7 @@ Try typing:
                 variant={filterType === "note" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setFilterType("note")}
+                className={filterType === "note" ? "bg-purple-500 hover:bg-purple-600 rounded-xl" : "border-gray-200 text-gray-600 hover:bg-gray-50 rounded-xl"}
               >
                 Notes
               </Button>
@@ -594,6 +615,7 @@ Try typing:
                 variant={filterType === "articleSummary" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setFilterType("articleSummary")}
+                className={filterType === "articleSummary" ? "bg-purple-500 hover:bg-purple-600 rounded-xl" : "border-gray-200 text-gray-600 hover:bg-gray-50 rounded-xl"}
               >
                 Summaries
               </Button>
@@ -616,112 +638,115 @@ Try typing:
             </Card>
           )}
 
-          {/* Insights Grid */}
+          {/* Insights Grid - Notion Style Cards */}
           {filteredCards.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredCards.map((card) => (
-                <Card key={card.id} className="hover:shadow-md transition-shadow">
-                  <CardHeader className="pb-3">
+                <div key={card.id} className="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+                  <div className={`absolute top-0 left-0 w-full h-1 ${card.type === "note" ? "bg-blue-500" : "bg-green-500"}`}></div>
+                  <div className="space-y-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-2">
-                          {card.type === "note" ? (
-                            <FileText className="h-4 w-4 text-blue-500" />
-                          ) : (
-                            <Globe className="h-4 w-4 text-green-500" />
-                          )}
-                          <Badge variant="outline" className="text-xs">
+                        <div className="flex items-center space-x-2 mb-3">
+                          <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${card.type === "note" ? "bg-blue-50" : "bg-green-50"}`}>
+                            {card.type === "note" ? (
+                              <FileText className="h-3 w-3 text-blue-500" />
+                            ) : (
+                              <Globe className="h-3 w-3 text-green-500" />
+                            )}
+                          </div>
+                          <Badge variant="outline" className="text-xs border-gray-200 text-gray-600">
                             {card.type === "note" ? "Note" : "Summary"}
                           </Badge>
                         </div>
-                        <CardTitle className="text-base line-clamp-2">
+                        <h4 className="font-bold text-gray-900 text-base line-clamp-2 mb-3">
                           {getCardTitle(card)}
-                        </CardTitle>
+                        </h4>
                       </div>
                     </div>
-                  </CardHeader>
-                  
-                  <CardContent className="space-y-3">
-                    <div 
-                      className="text-sm text-muted-foreground line-clamp-3 cursor-pointer hover:bg-muted/50 p-2 rounded transition-colors"
-                      onClick={() => card.type === "note" ? handleEditCard(card) : null}
-                      dangerouslySetInnerHTML={{
-                        __html: card.content.replace(/<[^>]*>/g, "") || "Click to start writing..."
-                      }}
-                    />
+                    
+                    <div className="space-y-3">
+                      <div 
+                        className="text-sm text-gray-600 line-clamp-3 cursor-pointer hover:bg-gray-50 p-2 rounded-xl transition-colors"
+                        onClick={() => card.type === "note" ? handleEditCard(card) : null}
+                        dangerouslySetInnerHTML={{
+                          __html: card.content.replace(/<[^>]*>/g, "") || "Click to start writing..."
+                        }}
+                      />
 
-                    {card.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {card.tags.slice(0, 3).map((tag, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                        {card.tags.length > 3 && (
-                          <Badge variant="secondary" className="text-xs">
-                            +{card.tags.length - 3}
-                          </Badge>
-                        )}
-                      </div>
-                    )}
+                      {card.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {card.tags.slice(0, 3).map((tag, index) => (
+                            <Badge key={index} variant="secondary" className="text-xs bg-gray-100 text-gray-600">
+                              {tag}
+                            </Badge>
+                          ))}
+                          {card.tags.length > 3 && (
+                            <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-600">
+                              +{card.tags.length - 3}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
 
-                    {card.originalUrl && (
-                      <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                        <ExternalLink className="h-3 w-3" />
-                        <span className="truncate">{new URL(card.originalUrl).hostname}</span>
-                      </div>
-                    )}
+                      {card.originalUrl && (
+                        <div className="flex items-center space-x-2 text-xs text-gray-500">
+                          <ExternalLink className="h-3 w-3" />
+                          <span className="truncate">{new URL(card.originalUrl).hostname}</span>
+                        </div>
+                      )}
 
-                    <div className="flex items-center justify-between pt-2 border-t">
-                      <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                        <Calendar className="h-3 w-3" />
-                        <span>{format(new Date(card.createdAt), "MMM dd, yyyy")}</span>
-                      </div>
-                      
-                      <div className="flex space-x-1">
-                        {card.type === "note" && (
+                      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                        <div className="flex items-center space-x-2 text-xs text-gray-500">
+                          <Calendar className="h-3 w-3" />
+                          <span>{format(new Date(card.createdAt), "MMM dd, yyyy")}</span>
+                        </div>
+                        
+                        <div className="flex space-x-1">
+                          {card.type === "note" && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditCard(card);
+                              }}
+                              className="text-xs text-gray-600 hover:bg-gray-50 rounded-lg"
+                            >
+                              Edit
+                            </Button>
+                          )}
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleEditCard(card);
+                              handleDeleteCard(card.id);
                             }}
-                            className="text-xs"
+                            className="text-xs text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg"
                           >
-                            Edit
+                            Delete
                           </Button>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteCard(card.id);
-                          }}
-                          className="text-xs text-destructive hover:text-destructive"
-                        >
-                          Delete
-                        </Button>
+                        </div>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               ))}
             </div>
           )}
 
           {filteredCards.length === 0 && (searchQuery || filterType !== "all") && (
             <div className="text-center py-12">
-              <Search className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
-              <h3 className="font-medium text-foreground mb-1">No results found</h3>
-              <p className="text-sm text-muted-foreground">
+              <Search className="h-8 w-8 text-gray-400 mx-auto mb-3" />
+              <h3 className="font-semibold text-gray-900 mb-2">No results found</h3>
+              <p className="text-sm text-gray-500">
                 Try adjusting your search terms or filters.
               </p>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };
