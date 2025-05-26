@@ -51,7 +51,11 @@ function App() {
       <ThemeProvider>
         <AuthProvider>
           <TooltipProvider>
-            <AuthGuard fallback={<AuthPage />}>
+            <AuthGuard fallback={
+              <div className="min-h-screen">
+                <AuthPage />
+              </div>
+            }>
               <AppLayout>
                 <Router />
               </AppLayout>

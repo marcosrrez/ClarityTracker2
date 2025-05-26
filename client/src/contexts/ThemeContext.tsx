@@ -25,10 +25,9 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
   const [theme, setTheme] = useState<Theme>("light");
 
   useEffect(() => {
-    // Initialize theme from localStorage or system preference
+    // Initialize theme from localStorage, default to light
     const savedTheme = localStorage.getItem("theme") as Theme;
-    const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-    const initialTheme = savedTheme || systemTheme;
+    const initialTheme = savedTheme || "light";
     
     setTheme(initialTheme);
     updateDocumentClass(initialTheme);

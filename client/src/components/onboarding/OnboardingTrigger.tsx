@@ -9,17 +9,16 @@ export const OnboardingTrigger = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
-    // Only show onboarding if user is authenticated and hasn't completed it
+    // Show onboarding for authenticated users who haven't completed it
     if (user && userProfile && !loading) {
       const hasCompletedOnboarding = userProfile.hasCompletedOnboarding;
-      const isNewUser = logEntries.length === 0;
       
-      // Show onboarding for new users who haven't completed it
-      if (!hasCompletedOnboarding && isNewUser) {
+      // Show onboarding for users who haven't completed it (regardless of log entries)
+      if (!hasCompletedOnboarding) {
         setShowOnboarding(true);
       }
     }
-  }, [user, userProfile, logEntries.length, loading]);
+  }, [user, userProfile, loading]);
 
   const handleCloseOnboarding = () => {
     setShowOnboarding(false);
