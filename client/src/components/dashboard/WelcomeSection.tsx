@@ -73,7 +73,7 @@ export const WelcomeSection = () => {
           
           <Link href="/add-entry">
             <Button 
-              className="bg-gray-900 hover:bg-gray-800 text-white border-0 rounded-2xl px-6 py-2.5 text-sm font-medium transition-all duration-200"
+              className="bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-2xl px-6 py-2.5 text-sm font-medium transition-all duration-200"
             >
               <Plus className="h-4 w-4 mr-2" />
               Log New Session
