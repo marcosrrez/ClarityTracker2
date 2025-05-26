@@ -70,7 +70,7 @@ export interface CrossSessionAnalysis {
   timeBasedTrends: string[];
 }
 
-export const generateCrossSessionAnalysis = async (entries: any[], userProfile?: any): Promise<CrossSessionAnalysis> => {
+export const generateCrossSessionAnalysis = async (entries: any[], userProfile?: any, insightCards?: any[]): Promise<CrossSessionAnalysis> => {
   if (!entries.length) {
     throw new Error("No entries provided for analysis");
   }
@@ -85,6 +85,17 @@ Notes: ${entry.notes.substring(0, 500)}...
 ${entry.analysis ? `Key Themes from Previous Analysis: ${Object.values(entry.analysis.themes || {}).join(', ')}` : ''}
 `).join('\n');
 
+    const insightCardsData = insightCards?.length ? `
+Personal Reflections & Learning Resources:
+${insightCards.map((card, index) => `
+Insight ${index + 1} (${new Date(card.createdAt).toLocaleDateString()}):
+Title: ${card.title}
+Content: ${card.content}
+Type: ${card.type}
+Tags: ${card.tags?.join(', ') || 'None'}
+`).join('\n')}
+` : '';
+
     const userContext = userProfile ? `
 Counselor Profile:
 - License Stage: ${userProfile.licenseStage || 'LAC'}
@@ -98,14 +109,16 @@ Counselor Profile:
       Math.ceil((new Date(entries[entries.length - 1].dateOfContact).getTime() - new Date(entries[0].dateOfContact).getTime()) / (1000 * 60 * 60 * 24)) 
       : 0;
 
-    const prompt = `As an expert clinical supervisor and professional development coach, analyze this counselor's journey across ${entries.length} sessions spanning ${timeSpan} days with ${totalHours} total client contact hours.
+    const prompt = `As an expert clinical supervisor and professional development coach, analyze this counselor's complete professional development journey across ${entries.length} sessions spanning ${timeSpan} days with ${totalHours} total client contact hours.
 
 ${userContext}
 
 Session Data:
 ${sessionsData}
 
-Provide a comprehensive cross-session analysis in JSON format:
+${insightCardsData}
+
+Provide a comprehensive cross-session analysis in JSON format, integrating ALL data sources (session notes, previous AI analyses, and personal reflections/resources):
 
 {
   "overallGrowthTrajectory": "Narrative of professional growth journey and development arc",

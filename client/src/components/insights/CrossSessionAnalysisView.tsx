@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLogEntries } from "@/hooks/use-firestore";
+import { useLogEntries, useInsightCards } from "@/hooks/use-firestore";
 import { useAuth } from "@/hooks/use-auth";
 import { generateCrossSessionAnalysis, CrossSessionAnalysis } from "@/lib/ai";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ import {
 export const CrossSessionAnalysisView = () => {
   const { user, userProfile } = useAuth();
   const { entries: logEntries = [], loading: isLoading } = useLogEntries();
+  const { cards: insightCards = [], loading: cardsLoading } = useInsightCards();
   const [analysis, setAnalysis] = useState<CrossSessionAnalysis | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
@@ -40,7 +41,7 @@ export const CrossSessionAnalysisView = () => {
 
     setIsGenerating(true);
     try {
-      const result = await generateCrossSessionAnalysis(logEntries, userProfile);
+      const result = await generateCrossSessionAnalysis(logEntries, userProfile, insightCards);
       setAnalysis(result);
       toast({
         title: "Analysis Complete!",
@@ -58,7 +59,7 @@ export const CrossSessionAnalysisView = () => {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || cardsLoading) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-8 w-64" />
@@ -96,7 +97,7 @@ export const CrossSessionAnalysisView = () => {
       </div>
 
       {/* Session Overview Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center space-x-2">
@@ -124,6 +125,18 @@ export const CrossSessionAnalysisView = () => {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center space-x-2">
+              <BookOpen className="h-5 w-5 text-amber-500" />
+              <div>
+                <p className="text-2xl font-bold">{insightCards.length}</p>
+                <p className="text-sm text-muted-foreground">Insight Cards</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center space-x-2">
               <TrendingUp className="h-5 w-5 text-purple-500" />
               <div>
                 <p className="text-2xl font-bold">{timeSpan}</p>
@@ -140,8 +153,8 @@ export const CrossSessionAnalysisView = () => {
             <Brain className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">Ready for Deep Analysis</h3>
             <p className="text-muted-foreground mb-4">
-              Generate comprehensive insights across your {totalSessions} sessions to discover patterns, 
-              growth areas, and personalized recommendations.
+              Generate comprehensive insights across your {totalSessions} sessions and {insightCards.length} insight cards.
+              The AI will analyze all your session notes, previous analyses, and personal reflections for deep pattern discovery.
             </p>
             <Button onClick={generateAnalysis}>
               <Sparkles className="h-4 w-4 mr-2" />
