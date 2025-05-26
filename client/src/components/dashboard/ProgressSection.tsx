@@ -233,7 +233,6 @@ export const ProgressSection = () => {
 
           {/* Ethics Hours */}
           <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-blue-500"></div>
             <h4 className="text-lg font-bold text-gray-900 mb-6">Renewal Requirements</h4>
             <div className="space-y-4">
               <div>

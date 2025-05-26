@@ -79,7 +79,6 @@ export const AddEntryForm = () => {
     <div className="max-w-2xl mx-auto">
       {/* Notion-style clean white form */}
       <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1 bg-blue-500"></div>
         <div className="relative z-10">
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Add New Entry</h1>

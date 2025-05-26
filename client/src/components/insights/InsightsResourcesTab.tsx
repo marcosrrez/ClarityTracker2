@@ -548,7 +548,6 @@ Try typing:
 
       {/* My Insights & Reflections - Notion Style */}
       <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1 bg-purple-500"></div>
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center">
@@ -643,7 +642,6 @@ Try typing:
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredCards.map((card) => (
                 <div key={card.id} className="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
-                  <div className={`absolute top-0 left-0 w-full h-1 ${card.type === "note" ? "bg-blue-500" : "bg-green-500"}`}></div>
                   <div className="space-y-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
