@@ -7,11 +7,11 @@ import { useAuth } from "@/hooks/use-auth";
 import { useLogEntries } from "@/hooks/use-firestore";
 
 export const WelcomeSection = () => {
-  const { userProfile } = useAuth();
+  const { user, userProfile } = useAuth();
   const { entries } = useLogEntries();
   const [personalizedMessage, setPersonalizedMessage] = useState("");
 
-  const displayName = userProfile?.preferredName || "there";
+  const displayName = userProfile?.preferredName || user?.displayName || user?.email?.split('@')[0] || "there";
   
   // Get intelligent greeting with time awareness
   const getIntelligentGreeting = () => {
