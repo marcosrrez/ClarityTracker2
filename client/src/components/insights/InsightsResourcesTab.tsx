@@ -423,95 +423,47 @@ export const InsightsResourcesTab = () => {
           </div>
         </div>
 
-        {/* Full-screen Bear-style live editor */}
-        <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full p-6 relative">
-          <div
-            contentEditable
-            suppressContentEditableWarning={true}
-            className="flex-1 prose prose-lg max-w-none text-foreground overflow-y-auto focus:outline-none"
-            style={{ 
-              minHeight: "calc(100vh - 200px)",
-              lineHeight: "1.6",
-              paddingTop: "1rem"
-            }}
-            onInput={(e) => {
-              const target = e.target as HTMLDivElement;
-              const text = target.innerText || target.textContent || '';
-              setEditingContent(text);
-            }}
-            onKeyUp={(e) => {
-              if (e.key === ' ' || e.key === 'Enter') {
-                const target = e.target as HTMLDivElement;
-                const selection = window.getSelection();
-                const range = selection?.getRangeAt(0);
-                const currentNode = range?.startContainer;
-                
-                // Get current line content
-                let currentLine = '';
-                if (currentNode?.nodeType === Node.TEXT_NODE) {
-                  currentLine = currentNode.textContent || '';
-                } else if (currentNode?.parentElement) {
-                  currentLine = currentNode.parentElement.textContent || '';
-                }
-                
-                // Transform markdown patterns
-                let shouldTransform = false;
-                let newHTML = '';
-                
-                // Headers
-                if (/^#{1,6}\s/.test(currentLine)) {
-                  const headerLevel = currentLine.match(/^#{1,6}/)?.[0].length || 1;
-                  const headerText = currentLine.replace(/^#{1,6}\s+/, '');
-                  const headingClass = headerLevel === 1 ? 'text-3xl font-bold' : 
-                                     headerLevel === 2 ? 'text-2xl font-bold' : 
-                                     'text-xl font-semibold';
-                  newHTML = `<h${headerLevel} class="${headingClass} my-4">${headerText}</h${headerLevel}>`;
-                  shouldTransform = true;
-                }
-                // Bold text completion
-                else if (/\*\*([^*]+)\*\*/.test(currentLine)) {
-                  newHTML = currentLine.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-semibold">$1</strong>');
-                  shouldTransform = true;
-                }
-                // Italic text completion
-                else if (/\*([^*]+)\*(?!\*)/.test(currentLine)) {
-                  newHTML = currentLine.replace(/\*([^*]+)\*(?!\*)/g, '<em class="italic">$1</em>');
-                  shouldTransform = true;
-                }
-                // Lists
-                else if (/^[-*+]\s/.test(currentLine)) {
-                  const listText = currentLine.replace(/^[-*+]\s+/, '');
-                  newHTML = `<li class="ml-6 my-1">• ${listText}</li>`;
-                  shouldTransform = true;
-                }
-                // Blockquotes
-                else if (/^>\s/.test(currentLine)) {
-                  const quoteText = currentLine.replace(/^>\s+/, '');
-                  newHTML = `<blockquote class="border-l-4 border-primary pl-4 italic text-muted-foreground my-2">${quoteText}</blockquote>`;
-                  shouldTransform = true;
-                }
-                
-                if (shouldTransform && currentNode?.parentElement) {
-                  // Replace current line with formatted version
-                  const parentElement = currentNode.parentElement;
-                  parentElement.innerHTML = newHTML;
-                  
-                  // Move cursor to end of transformed element
-                  const newRange = document.createRange();
-                  const newSelection = window.getSelection();
-                  newRange.selectNodeContents(parentElement);
-                  newRange.collapse(false);
-                  newSelection?.removeAllRanges();
-                  newSelection?.addRange(newRange);
-                }
-              }
-            }}
-            dangerouslySetInnerHTML={{
-              __html: editingContent ? 
-                editingContent.split('\n').map(line => `<p>${line || '<br>'}</p>`).join('') : 
-                '<p class="text-muted-foreground italic">Start typing... Try "# Hello" + space for headers!</p>'
-            }}
-          />
+        {/* Full-screen Bear-style editor with side-by-side view */}
+        <div className="flex-1 flex max-w-6xl mx-auto w-full p-6 space-x-6">
+          {/* Markdown editor side */}
+          <div className="flex-1 flex flex-col">
+            <div className="text-sm text-muted-foreground mb-4 font-medium">Write (Markdown)</div>
+            <Textarea
+              value={editingContent}
+              onChange={(e) => setEditingContent(e.target.value)}
+              placeholder="Start writing your reflection...
+
+Try typing:
+# Hello World (becomes a header)
+**bold text** (becomes bold)
+- bullet point (becomes a list)
+> quote text (becomes a blockquote)"
+              className="flex-1 resize-none border-0 text-lg leading-relaxed focus:ring-0 shadow-none bg-transparent font-mono"
+              style={{ 
+                minHeight: "calc(100vh - 200px)",
+                lineHeight: "1.6",
+                fontFamily: "ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace"
+              }}
+              autoFocus
+            />
+          </div>
+          
+          {/* Live preview side */}
+          <div className="flex-1 flex flex-col border-l pl-6">
+            <div className="text-sm text-muted-foreground mb-4 font-medium">Live Preview</div>
+            <div 
+              className="flex-1 prose prose-lg max-w-none text-foreground overflow-y-auto"
+              dangerouslySetInnerHTML={{
+                __html: editingContent ? 
+                  formatMarkdown(editingContent) : 
+                  '<p class="text-muted-foreground italic">Your beautiful formatted text will appear here as you type...</p>'
+              }}
+              style={{ 
+                minHeight: "calc(100vh - 240px)",
+                lineHeight: "1.6"
+              }}
+            />
+          </div>
         </div>
         
         {/* Bear-style bottom stats */}
