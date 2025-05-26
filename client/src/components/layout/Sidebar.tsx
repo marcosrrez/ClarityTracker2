@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/contexts/ThemeContext";
+import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import {
   ChartLine,
   Plus,
@@ -67,11 +68,30 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-80 p-0">
         <SheetHeader className="p-6 border-b">
-          <SheetTitle className="flex items-center space-x-3">
-            <Sprout className="h-6 w-6 text-primary" />
-            <span>ClarityLog</span>
-          </SheetTitle>
+          <div className="flex items-center justify-between">
+            <SheetTitle className="flex items-center space-x-3">
+              <Sprout className="h-6 w-6 text-primary" />
+              <span>ClarityLog</span>
+            </SheetTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleTheme}
+              className="ive-button h-8 w-8 rounded-full p-0"
+            >
+              {theme === 'dark' ? (
+                <Sun className="h-4 w-4" />
+              ) : (
+                <Moon className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
         </SheetHeader>
+
+        {/* Notifications Section */}
+        <div className="p-6 border-b">
+          <NotificationCenter />
+        </div>
 
         <nav className="flex-1 p-6 space-y-2">
           {navigationItems.map((item) => {
