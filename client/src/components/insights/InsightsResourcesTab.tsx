@@ -50,7 +50,7 @@ export const InsightsResourcesTab = () => {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [autoSaveTimer, setAutoSaveTimer] = useState<NodeJS.Timeout | null>(null);
-  const [showPreview, setShowPreview] = useState(true);
+  const [showMarkdown, setShowMarkdown] = useState(false);
 
   const {
     register,
@@ -190,7 +190,9 @@ export const InsightsResourcesTab = () => {
 
   const handleEditCard = (card: InsightCard) => {
     setEditingCard(card.id);
-    setEditingContent(card.content.replace(/<[^>]*>/g, ""));
+    // Keep the content as markdown if it doesn't contain HTML tags
+    const isHtml = /<[^>]*>/.test(card.content);
+    setEditingContent(isHtml ? card.content.replace(/<[^>]*>/g, "") : card.content);
     setEditingTitle(card.title || getCardTitle(card));
     setIsFullScreen(true);
   };
@@ -346,10 +348,10 @@ export const InsightsResourcesTab = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setShowPreview(!showPreview)}
+              onClick={() => setShowMarkdown(!showMarkdown)}
             >
-              {showPreview ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
-              {showPreview ? "Hide Preview" : "Show Preview"}
+              <FileText className="h-4 w-4 mr-2" />
+              {showMarkdown ? "Show Preview" : "Show Markdown"}
             </Button>
             <Button variant="outline" size="sm" onClick={handleCancelEdit}>
               Cancel
@@ -361,9 +363,9 @@ export const InsightsResourcesTab = () => {
         </div>
 
         {/* Full-screen editor content */}
-        <div className={`flex-1 flex ${showPreview ? 'max-w-7xl' : 'max-w-4xl'} mx-auto w-full p-6 ${showPreview ? 'space-x-6' : ''}`}>
-          {/* Editor side */}
-          <div className={`${showPreview ? 'flex-1' : 'w-full'} flex flex-col`}>
+        <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full p-6">
+          {showMarkdown ? (
+            /* Markdown source editor */
             <Textarea
               value={editingContent}
               onChange={(e) => setEditingContent(e.target.value)}
@@ -383,23 +385,20 @@ export const InsightsResourcesTab = () => {
               }}
               autoFocus
             />
-          </div>
-          
-          {/* Live preview side */}
-          {showPreview && (
-            <div className="flex-1 flex flex-col border-l pl-6">
-              <div className="text-sm text-muted-foreground mb-4 font-medium">Live Preview</div>
-              <div 
-                className="flex-1 prose prose-lg max-w-none text-foreground overflow-y-auto"
-                dangerouslySetInnerHTML={{
-                  __html: formatMarkdown(editingContent)
-                }}
-                style={{ 
-                  minHeight: "calc(100vh - 240px)",
-                  lineHeight: "1.6"
-                }}
-              />
-            </div>
+          ) : (
+            /* Beautiful rendered preview as default */
+            <div 
+              className="flex-1 prose prose-lg max-w-none text-foreground overflow-y-auto cursor-text"
+              onClick={() => setShowMarkdown(true)}
+              dangerouslySetInnerHTML={{
+                __html: editingContent ? formatMarkdown(editingContent) : '<p class="text-muted-foreground italic">Click to start writing... You can use markdown formatting like **bold**, *italic*, # headings, and more.</p>'
+              }}
+              style={{ 
+                minHeight: "calc(100vh - 200px)",
+                lineHeight: "1.6",
+                paddingTop: "1rem"
+              }}
+            />
           )}
         </div>
         
