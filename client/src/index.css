@@ -12,25 +12,91 @@
   
   body {
     @apply bg-background text-foreground;
-    /* Rams principle: Unobtrusive, purposeful typography */
+    /* Jony Ive: Typography with emotional resonance */
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
-    letter-spacing: -0.005em;
-    line-height: 1.7;
+    letter-spacing: -0.011em;
+    line-height: 1.6;
     font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   
-  /* Rams principle: Clear visual hierarchy without decoration */
+  /* Jony Ive: Hierarchy through weight and space, not decoration */
   h1, h2, h3, h4, h5, h6 {
     @apply tracking-tight text-foreground;
-    font-weight: 500;
-    line-height: 1.4;
+    font-weight: 600;
+    line-height: 1.3;
   }
   
-  h1 { @apply text-2xl; }
-  h2 { @apply text-xl; }
-  h3 { @apply text-lg; }
-  h4 { @apply text-base; }
+  h1 { @apply text-3xl; }
+  h2 { @apply text-2xl; }
+  h3 { @apply text-xl; }
+  h4 { @apply text-lg; }
+}
+
+@layer components {
+  /* Jony Ive: Material honesty - cards feel physically grounded */
+  .ive-card {
+    @apply bg-white;
+    border: 1px solid hsl(var(--border));
+    border-radius: 12px;
+    box-shadow: 
+      0 1px 3px 0 rgba(0, 0, 0, 0.05),
+      0 1px 2px 0 rgba(0, 0, 0, 0.04);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.175);
+  }
+  
+  .ive-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 
+      0 4px 8px 0 rgba(0, 0, 0, 0.08),
+      0 2px 4px 0 rgba(0, 0, 0, 0.06);
+  }
+  
+  /* Jony Ive: Buttons with physical presence */
+  .ive-button {
+    @apply transition-all duration-300 ease-out;
+    @apply font-medium tracking-tight;
+    transform: perspective(1px) translateZ(0);
+  }
+  
+  .ive-button:hover {
+    transform: translateY(-0.5px);
+  }
+  
+  .ive-button:active {
+    transform: translateY(0px);
+    transition-duration: 100ms;
+  }
+  
+  /* Jony Ive: Subtle motion that feels natural */
+  .ive-fade-in {
+    animation: iveSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  
+  .ive-fade-in:nth-child(1) { animation-delay: 0ms; }
+  .ive-fade-in:nth-child(2) { animation-delay: 100ms; }
+  .ive-fade-in:nth-child(3) { animation-delay: 200ms; }
+  .ive-fade-in:nth-child(4) { animation-delay: 300ms; }
+  
+  @keyframes iveSlideUp {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Jony Ive: Generous breathing room */
+  .ive-spacing {
+    @apply space-y-8;
+  }
+  
+  .ive-spacing-lg {
+    @apply space-y-12;
+  }
 }
 
 :root {
