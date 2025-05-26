@@ -41,7 +41,7 @@ export const AiInsightsView = () => {
     {
       title: "Summary",
       content: analysis?.summary,
-      icon: Bot,
+      icon: Sparkles,
       color: "text-primary",
     },
     {
@@ -95,7 +95,7 @@ export const AiInsightsView = () => {
             </>
           ) : (
             <>
-              <Bot className="mr-2 h-4 w-4" />
+              <Sparkles className="mr-2 h-4 w-4" />
               Analyze Session Notes
             </>
           )}
@@ -114,7 +114,7 @@ export const AiInsightsView = () => {
           
           <div>
             <h3 className="text-lg font-semibold mb-4 flex items-center">
-              <Bot className="mr-2 h-5 w-5 text-primary" />
+              <Sparkles className="mr-2 h-5 w-5 text-primary" />
               AI Analysis Results
             </h3>
             

@@ -7,7 +7,7 @@ import {
   Clock, 
   Users, 
   FileText, 
-  Bot, 
+  Sparkles, 
   Settings, 
   Shield,
   ExternalLink,

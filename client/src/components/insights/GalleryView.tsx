@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Bot, Search } from "lucide-react";
+import { Calendar, Sparkles, Search } from "lucide-react";
 import { format } from "date-fns";
 import { useLogEntries } from "@/hooks/use-firestore";
 import { getAiAnalysis } from "@/lib/firestore";
@@ -206,7 +206,7 @@ export const GalleryView = () => {
                   </>
                 ) : (
                   <div className="text-center py-6">
-                    <Bot className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                    <Sparkles className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
                     <p className="text-sm text-muted-foreground">
                       Analysis not available
                     </p>
