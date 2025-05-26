@@ -82,14 +82,15 @@ export const AddEntryForm = () => {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Card>
-        <CardHeader>
-          <CardTitle>Add New Entry</CardTitle>
-          <CardDescription>
-            Log your client contact hours, supervision, and session notes.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+      <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-1 bg-blue-500"></div>
+        <div className="relative z-10">
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Add New Entry</h1>
+            <p className="text-gray-500 font-medium">
+              Log your client contact hours, supervision, and session notes.
+            </p>
+          </div>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* Date of Contact */}
             <div className="space-y-2">
@@ -295,8 +296,8 @@ export const AddEntryForm = () => {
               )}
             </Button>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };
