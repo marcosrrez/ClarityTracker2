@@ -51,6 +51,7 @@ export const InsightsResourcesTab = () => {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [autoSaveTimer, setAutoSaveTimer] = useState<NodeJS.Timeout | null>(null);
   const [showMarkdown, setShowMarkdown] = useState(false);
+  const [cursorPosition, setCursorPosition] = useState(0);
 
   const {
     register,
@@ -186,6 +187,66 @@ export const InsightsResourcesTab = () => {
       console.error('Markdown parsing error:', error);
       return content.replace(/\n/g, '<br>');
     }
+  };
+
+  // Live markdown transformation as you type (Bear-style)
+  const processLiveMarkdown = (text: string, cursorPos: number): { html: string; newCursorPos: number } => {
+    const lines = text.split('\n');
+    let processedLines: string[] = [];
+    let currentPos = 0;
+    let newCursorPos = cursorPos;
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const lineStart = currentPos;
+      const lineEnd = currentPos + line.length;
+      
+      // Check if cursor is in this line
+      const cursorInLine = cursorPos >= lineStart && cursorPos <= lineEnd + 1;
+      
+      // Only auto-transform if cursor is NOT in this line (to avoid interrupting typing)
+      if (!cursorInLine && line.trim()) {
+        // Transform completed markdown patterns
+        let transformedLine = line;
+        
+        // Headers (only transform if line ends with space or is complete)
+        if (/^#{1,6}\s/.test(transformedLine)) {
+          const headerLevel = transformedLine.match(/^#{1,6}/)?.[0].length || 1;
+          const headerText = transformedLine.replace(/^#{1,6}\s+/, '');
+          transformedLine = `<h${headerLevel} class="text-${headerLevel === 1 ? '3xl' : headerLevel === 2 ? '2xl' : 'xl'} font-bold my-4">${headerText}</h${headerLevel}>`;
+        }
+        // Bold text
+        else if (/\*\*([^*]+)\*\*/.test(transformedLine)) {
+          transformedLine = transformedLine.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-semibold">$1</strong>');
+        }
+        // Italic text
+        else if (/\*([^*]+)\*/.test(transformedLine)) {
+          transformedLine = transformedLine.replace(/\*([^*]+)\*/g, '<em class="italic">$1</em>');
+        }
+        // Lists
+        else if (/^[\s]*[-*+]\s/.test(transformedLine)) {
+          const listText = transformedLine.replace(/^[\s]*[-*+]\s+/, '');
+          transformedLine = `<li class="ml-6 my-1">• ${listText}</li>`;
+        }
+        // Blockquotes
+        else if (/^>\s/.test(transformedLine)) {
+          const quoteText = transformedLine.replace(/^>\s+/, '');
+          transformedLine = `<blockquote class="border-l-4 border-primary pl-4 italic text-muted-foreground my-2">${quoteText}</blockquote>`;
+        }
+        
+        processedLines.push(transformedLine);
+      } else {
+        // Keep original line if cursor is in it or if it's empty
+        processedLines.push(line);
+      }
+      
+      currentPos = lineEnd + 1; // +1 for newline character
+    }
+    
+    return {
+      html: processedLines.join('<br>'),
+      newCursorPos: newCursorPos
+    };
   };
 
   const handleEditCard = (card: InsightCard) => {
@@ -362,44 +423,66 @@ export const InsightsResourcesTab = () => {
           </div>
         </div>
 
-        {/* Full-screen editor content */}
+        {/* Full-screen Bear-style live editor */}
         <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full p-6">
-          {showMarkdown ? (
-            /* Markdown source editor */
-            <Textarea
-              value={editingContent}
-              onChange={(e) => setEditingContent(e.target.value)}
-              placeholder="Start writing your reflection...
-
-# Use markdown formatting:
-**bold text** *italic text*
-## Headings
-- Bullet points  
-> Blockquotes
-`code snippets`"
-              className="flex-1 resize-none border-0 text-lg leading-relaxed focus:ring-0 shadow-none bg-transparent font-mono"
-              style={{ 
-                minHeight: "calc(100vh - 200px)",
-                lineHeight: "1.6",
-                fontFamily: "ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace"
-              }}
-              autoFocus
-            />
-          ) : (
-            /* Beautiful rendered preview as default */
-            <div 
-              className="flex-1 prose prose-lg max-w-none text-foreground overflow-y-auto cursor-text"
-              onClick={() => setShowMarkdown(true)}
-              dangerouslySetInnerHTML={{
-                __html: editingContent ? formatMarkdown(editingContent) : '<p class="text-muted-foreground italic">Click to start writing... You can use markdown formatting like **bold**, *italic*, # headings, and more.</p>'
-              }}
-              style={{ 
-                minHeight: "calc(100vh - 200px)",
-                lineHeight: "1.6",
-                paddingTop: "1rem"
-              }}
-            />
-          )}
+          <div 
+            contentEditable
+            suppressContentEditableWarning={true}
+            className="flex-1 prose prose-lg max-w-none text-foreground overflow-y-auto focus:outline-none"
+            style={{ 
+              minHeight: "calc(100vh - 200px)",
+              lineHeight: "1.6",
+              paddingTop: "1rem"
+            }}
+            onInput={(e) => {
+              const target = e.target as HTMLDivElement;
+              const text = target.innerText || target.textContent || '';
+              setEditingContent(text);
+              
+              // Get cursor position
+              const selection = window.getSelection();
+              const range = selection?.getRangeAt(0);
+              const cursorPos = range?.startOffset || 0;
+              setCursorPosition(cursorPos);
+            }}
+            onKeyDown={(e) => {
+              // Handle special keys for Bear-style experience
+              if (e.key === 'Enter') {
+                const target = e.target as HTMLDivElement;
+                const text = target.innerText || '';
+                const selection = window.getSelection();
+                const cursorPos = selection?.anchorOffset || 0;
+                
+                // Find current line
+                const lines = text.split('\n');
+                let currentLineIndex = 0;
+                let charCount = 0;
+                
+                for (let i = 0; i < lines.length; i++) {
+                  if (charCount + lines[i].length >= cursorPos) {
+                    currentLineIndex = i;
+                    break;
+                  }
+                  charCount += lines[i].length + 1;
+                }
+                
+                const currentLine = lines[currentLineIndex] || '';
+                
+                // Auto-continue lists
+                if (/^[\s]*[-*+]\s/.test(currentLine)) {
+                  e.preventDefault();
+                  const indent = currentLine.match(/^[\s]*/)?.[0] || '';
+                  const bullet = currentLine.match(/[-*+]/)?.[0] || '-';
+                  document.execCommand('insertText', false, `\n${indent}${bullet} `);
+                }
+              }
+            }}
+            dangerouslySetInnerHTML={{
+              __html: editingContent ? 
+                processLiveMarkdown(editingContent, cursorPosition).html : 
+                '<p class="text-muted-foreground italic">Start writing... Try typing # Hello or **bold text**</p>'
+            }}
+          />
         </div>
         
         {/* Bear-style bottom stats */}
