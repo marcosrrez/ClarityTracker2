@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { useInsightCards } from "@/hooks/use-firestore";
+import { marked } from "marked";
 import { createInsightCard, deleteInsightCard, updateInsightCard } from "@/lib/firestore";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -49,6 +50,7 @@ export const InsightsResourcesTab = () => {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [autoSaveTimer, setAutoSaveTimer] = useState<NodeJS.Timeout | null>(null);
+  const [showPreview, setShowPreview] = useState(true);
 
   const {
     register,
@@ -168,32 +170,22 @@ export const InsightsResourcesTab = () => {
     return firstLine.length > 50 ? firstLine.substring(0, 47) + "..." : firstLine;
   };
 
-  // Simple markdown formatter for Bear-style preview
+  // Convert markdown to HTML using marked library
   const formatMarkdown = (content: string): string => {
-    if (!content) return '<p class="text-muted-foreground">Start writing...</p>';
+    if (!content) return '<p class="text-muted-foreground italic">Start writing...</p>';
     
-    return content
-      // Headers
-      .replace(/^### (.*$)/gm, '<h3 class="text-xl font-semibold mt-6 mb-3">$1</h3>')
-      .replace(/^## (.*$)/gm, '<h2 class="text-2xl font-bold mt-8 mb-4">$1</h2>')
-      .replace(/^# (.*$)/gm, '<h1 class="text-3xl font-bold mt-8 mb-6">$1</h1>')
-      // Bold
-      .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
-      .replace(/__(.*?)__/g, '<strong class="font-semibold">$1</strong>')
-      // Italic
-      .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
-      .replace(/_(.*?)_/g, '<em class="italic">$1</em>')
-      // Code
-      .replace(/`(.*?)`/g, '<code class="bg-muted px-1 py-0.5 rounded text-sm font-mono">$1</code>')
-      // Blockquotes
-      .replace(/^> (.*$)/gm, '<blockquote class="border-l-4 border-primary pl-4 italic text-muted-foreground">$1</blockquote>')
-      // Lists
-      .replace(/^- (.*$)/gm, '<li class="ml-4">• $1</li>')
-      .replace(/^\d+\. (.*$)/gm, '<li class="ml-4 list-decimal">$1</li>')
-      // Line breaks
-      .replace(/\n/g, '<br>')
-      // Wrap in paragraph if no other formatting
-      .replace(/^(?!<[h|l|b])(.*$)/gm, '<p class="mb-3">$1</p>');
+    try {
+      // Configure marked for safe rendering
+      marked.setOptions({
+        breaks: true,
+        gfm: true,
+      });
+      
+      return marked(content) as string;
+    } catch (error) {
+      console.error('Markdown parsing error:', error);
+      return content.replace(/\n/g, '<br>');
+    }
   };
 
   const handleEditCard = (card: InsightCard) => {
@@ -351,6 +343,14 @@ export const InsightsResourcesTab = () => {
             </div>
           </div>
           <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowPreview(!showPreview)}
+            >
+              {showPreview ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
+              {showPreview ? "Hide Preview" : "Show Preview"}
+            </Button>
             <Button variant="outline" size="sm" onClick={handleCancelEdit}>
               Cancel
             </Button>
@@ -361,11 +361,13 @@ export const InsightsResourcesTab = () => {
         </div>
 
         {/* Full-screen editor content */}
-        <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full p-6">
-          <Textarea
-            value={editingContent}
-            onChange={(e) => setEditingContent(e.target.value)}
-            placeholder="Start writing your reflection...
+        <div className={`flex-1 flex ${showPreview ? 'max-w-7xl' : 'max-w-4xl'} mx-auto w-full p-6 ${showPreview ? 'space-x-6' : ''}`}>
+          {/* Editor side */}
+          <div className={`${showPreview ? 'flex-1' : 'w-full'} flex flex-col`}>
+            <Textarea
+              value={editingContent}
+              onChange={(e) => setEditingContent(e.target.value)}
+              placeholder="Start writing your reflection...
 
 # Use markdown formatting:
 **bold text** *italic text*
@@ -373,17 +375,36 @@ export const InsightsResourcesTab = () => {
 - Bullet points  
 > Blockquotes
 `code snippets`"
-            className="flex-1 resize-none border-0 text-lg leading-relaxed focus:ring-0 shadow-none bg-transparent font-mono"
-            style={{ 
-              minHeight: "calc(100vh - 200px)",
-              lineHeight: "1.6",
-              fontFamily: "ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace"
-            }}
-            autoFocus
-          />
+              className="flex-1 resize-none border-0 text-lg leading-relaxed focus:ring-0 shadow-none bg-transparent font-mono"
+              style={{ 
+                minHeight: "calc(100vh - 200px)",
+                lineHeight: "1.6",
+                fontFamily: "ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace"
+              }}
+              autoFocus
+            />
+          </div>
           
-          {/* Bear-style bottom stats */}
-          <div className="flex items-center justify-between pt-4 border-t text-xs text-muted-foreground">
+          {/* Live preview side */}
+          {showPreview && (
+            <div className="flex-1 flex flex-col border-l pl-6">
+              <div className="text-sm text-muted-foreground mb-4 font-medium">Live Preview</div>
+              <div 
+                className="flex-1 prose prose-lg max-w-none text-foreground overflow-y-auto"
+                dangerouslySetInnerHTML={{
+                  __html: formatMarkdown(editingContent)
+                }}
+                style={{ 
+                  minHeight: "calc(100vh - 240px)",
+                  lineHeight: "1.6"
+                }}
+              />
+            </div>
+          )}
+        </div>
+        
+        {/* Bear-style bottom stats */}
+        <div className="flex items-center justify-between pt-4 border-t text-xs text-muted-foreground max-w-7xl mx-auto px-6">
             <div className="flex items-center space-x-4">
               <span>{editingContent.length} characters</span>
               <span>{editingContent.split(/\s+/).filter(word => word.length > 0).length} words</span>
