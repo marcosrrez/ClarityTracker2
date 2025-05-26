@@ -49,38 +49,24 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
             <Sprout className="h-6 w-6 text-primary" />
             <h1 className="text-xl font-semibold text-foreground tracking-tight">ClarityLog</h1>
           </div>
-          <div className="flex items-center space-x-2">
-            <NotificationCenter />
-            <div className="flex items-center bg-muted/40 rounded-full p-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleTheme}
-                className="ive-button h-8 w-8 rounded-full p-0 hover:bg-background/60"
-              >
-                {theme === 'dark' ? (
-                  <Sun className="h-4 w-4" />
-                ) : (
-                  <Moon className="h-4 w-4" />
-                )}
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setFocusMode(true)}
-                className="ive-button h-8 w-8 rounded-full p-0 hover:bg-background/60"
-              >
-                <Eye className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSidebarOpen(true)}
-                className="ive-button h-8 w-8 rounded-full p-0 hover:bg-background/60"
-              >
-                <Menu className="h-4 w-4" />
-              </Button>
-            </div>
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setFocusMode(true)}
+              className="ive-button text-muted-foreground hover:text-foreground"
+            >
+              <Eye className="h-4 w-4 mr-2" />
+              Focus
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSidebarOpen(true)}
+              className="ive-button text-muted-foreground hover:text-foreground"
+            >
+              <Menu className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </header>

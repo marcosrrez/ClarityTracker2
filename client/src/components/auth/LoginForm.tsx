@@ -64,15 +64,16 @@ export const LoginForm = ({ onSwitchToSignUp }: LoginFormProps) => {
   };
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
-        <CardDescription>
-          Sign in to your ClarityLog account to continue tracking your professional development.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <div className="ive-card w-full max-w-md">
+      <div className="p-8 space-y-6">
+        <div className="text-center space-y-2">
+          <h2 className="text-2xl font-bold text-foreground">Welcome back</h2>
+          <p className="text-muted-foreground/80 leading-relaxed">
+            Sign in to continue tracking your professional development journey.
+          </p>
+        </div>
+        
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {error && (
             <Alert variant="destructive">
               <AlertDescription>{error}</AlertDescription>
@@ -141,7 +142,7 @@ export const LoginForm = ({ onSwitchToSignUp }: LoginFormProps) => {
             </div>
           </div>
         </form>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
