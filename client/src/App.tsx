@@ -19,6 +19,7 @@ import AiAnalysisPage from "@/pages/ai-analysis";
 import RequirementsPage from "@/pages/requirements";
 import SettingsPage from "@/pages/settings";
 import FeedbackPage from "@/pages/feedback";
+import AdminPage from "@/pages/admin";
 import HelpPage from "@/pages/help";
 import SummaryPage from "@/pages/summary";
 import NotFound from "@/pages/not-found";

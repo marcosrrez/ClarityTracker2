@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import express from "express";
 import { sendFeedbackNotification } from "./email";
+import { storage } from "./storage";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Health check endpoint
@@ -97,6 +98,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         error: "Internal server error" 
       });
+    }
+  });
+
+  // Admin endpoints for feedback management
+  app.get("/api/admin/feedback", async (req, res) => {
+    try {
+      const feedback = await storage.getFeedback();
+      res.json(feedback);
+    } catch (error) {
+      console.error("Failed to fetch feedback:", error);
+      res.status(500).json({ error: "Failed to fetch feedback" });
+    }
+  });
+
+  app.patch("/api/admin/feedback/:id/status", express.json(), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      await storage.updateFeedbackStatus(id, status);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Failed to update feedback status:", error);
+      res.status(500).json({ error: "Failed to update status" });
     }
   });
 
