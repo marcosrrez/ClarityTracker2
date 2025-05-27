@@ -410,7 +410,7 @@ export const SettingsView = () => {
                     <span className="text-sm">Off</span>
                     <input
                       type="checkbox"
-                      defaultChecked={true}
+                      defaultChecked={localStorage.getItem('smartFeaturesEnabled') !== 'false'}
                       onChange={(e) => {
                         localStorage.setItem('smartFeaturesEnabled', e.target.checked.toString());
                         window.location.reload(); // Simple refresh to apply changes
