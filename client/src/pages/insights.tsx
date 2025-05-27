@@ -2,8 +2,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InsightsResourcesTab } from "@/components/insights/InsightsResourcesTab";
 import { GalleryView } from "@/components/insights/GalleryView";
 import { CrossSessionAnalysisView } from "@/components/insights/CrossSessionAnalysisView";
+import { useAnalytics, usePageTimeTracking } from "@/hooks/use-analytics";
+import { useEffect } from "react";
 
 export default function InsightsPage() {
+  const { trackPageView } = useAnalytics();
+  usePageTimeTracking('insights');
+
+  useEffect(() => {
+    trackPageView('insights');
+  }, [trackPageView]);
   return (
     <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
       <div className="mb-8">

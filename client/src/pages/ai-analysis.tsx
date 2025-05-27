@@ -1,6 +1,15 @@
 import { AiInsightsView } from "@/components/insights/AiInsightsView";
+import { useAnalytics, usePageTimeTracking } from "@/hooks/use-analytics";
+import { useEffect } from "react";
 
 export default function AiAnalysisPage() {
+  const { trackPageView } = useAnalytics();
+  usePageTimeTracking('ai-analysis');
+
+  useEffect(() => {
+    trackPageView('ai-analysis');
+  }, [trackPageView]);
+
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       <div className="text-center space-y-3">
