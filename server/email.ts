@@ -97,8 +97,8 @@ export async function sendFeedbackNotification(feedbackData: FeedbackEmailData):
     `;
 
     const result = await resend.emails.send({
-      from: 'ClarityLog <feedback@your-domain.com>', // You'll need to replace this with your verified domain
-      to: ['your-email@example.com'], // Replace with your email address
+      from: 'ClarityLog <onboarding@resend.dev>', // Using Resend's test domain for now
+      to: ['marcos@claritylog.com'], // Replace with your actual email address
       subject: `${info.emoji} ${info.label}: ${subject}`,
       html: htmlContent,
       text: `
