@@ -97,7 +97,7 @@ export async function sendFeedbackNotification(feedbackData: FeedbackEmailData):
     `;
 
     const result = await resend.emails.send({
-      from: 'ClarityLog <onboarding@resend.dev>', // Using Resend's test domain for now
+      from: 'ClarityLog <feedback@claritylog.net>',
       to: ['leadershipcoachmarcos@gmail.com'],
       subject: `${info.emoji} ${info.label}: ${subject}`,
       html: htmlContent,
