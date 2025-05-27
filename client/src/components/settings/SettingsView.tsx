@@ -65,6 +65,21 @@ export const SettingsView = () => {
         userDefinedGrowthAreas: [],
         favoriteTherapeuticModalities: [],
       },
+      interfacePreferences: {
+        smartFeaturesEnabled: true,
+        enabledCards: {
+          personalizedAICoaching: true,
+          competencyTracker: true,
+          achievementCelebration: true,
+          crossSessionAnalysis: true,
+          aiInsights: true,
+          milestoneTracking: true,
+          progressVisualization: true,
+          quickStats: true,
+          recentEntries: true,
+        },
+        dashboardTemplate: 'full_ai',
+      },
     },
   });
 
