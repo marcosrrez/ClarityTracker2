@@ -96,17 +96,17 @@ export const PersonalizedAICoaching = () => {
   }
 
   return (
-    <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm relative overflow-hidden">
+    <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden">
 
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-purple-50 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
               <Sparkles className="h-4 w-4 text-purple-500" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-gray-900">AI Coaching</h3>
-              <p className="text-sm text-gray-500 font-medium">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">AI Coaching</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
                 {insights ? 'Smart insights ready' : 'Personalized insights from your sessions'}
               </p>
             </div>

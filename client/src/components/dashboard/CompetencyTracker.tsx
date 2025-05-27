@@ -173,7 +173,7 @@ export const CompetencyTracker = () => {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm">
+      <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 border border-gray-200 dark:border-gray-700 shadow-sm">
         <div className="space-y-4">
           <div className="h-4 bg-gray-100 rounded animate-pulse"></div>
           <div className="h-4 bg-gray-100 rounded animate-pulse w-3/4"></div>
@@ -185,7 +185,7 @@ export const CompetencyTracker = () => {
 
   if (!logEntries.length) {
     return (
-      <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm relative overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden">
         <div className="text-center py-6">
           <div className="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center mx-auto mb-4">
             <Target className="h-6 w-6 text-green-500" />
@@ -204,16 +204,16 @@ export const CompetencyTracker = () => {
     : 0;
 
   return (
-    <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm relative overflow-hidden">
+    <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden">
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-green-50 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
               <Target className="h-4 w-4 text-green-500" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Competency Tracking</h3>
-              <p className="text-sm text-gray-500 font-medium">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Competency Tracking</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
                 {overallProgress}% overall progress across core competencies
               </p>
             </div>
