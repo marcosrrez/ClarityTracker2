@@ -11,6 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle, AlertCircle, MessageSquare, Bug, Lightbulb } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
+import { createFeedback } from "@/lib/firestore";
+import { insertFeedbackSchema } from "@shared/schema";
 
 const feedbackSchema = z.object({
   type: z.enum(["bug", "feature", "general"]),
@@ -25,6 +28,7 @@ export default function FeedbackPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const {
     register,
@@ -43,10 +47,29 @@ export default function FeedbackPage() {
     setIsSubmitting(true);
     
     try {
-      // Simulate API call for feedback submission
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Store feedback in Firebase
+      const feedbackData = {
+        ...data,
+        userId: user?.uid,
+      };
       
-      console.log("Feedback submitted:", data);
+      await createFeedback(feedbackData);
+      
+      // Send email notification to you
+      const response = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...data,
+          userId: user?.uid,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send notification');
+      }
       
       setSubmitted(true);
       reset();
@@ -56,6 +79,7 @@ export default function FeedbackPage() {
         description: "Thank you for your feedback! We'll review it and get back to you if needed.",
       });
     } catch (error) {
+      console.error('Feedback submission error:', error);
       toast({
         title: "Error",
         description: "Failed to submit feedback. Please try again.",

@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import express from "express";
 import { sendFeedbackNotification } from "./email";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -45,6 +46,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Extension download error:', error);
       res.status(500).json({ error: 'Failed to create extension download' });
+    }
+  });
+
+  // Feedback submission endpoint
+  app.post("/api/feedback", express.json(), async (req, res) => {
+    try {
+      const { type, subject, description, email, userId } = req.body;
+      
+      // Validate required fields
+      if (!type || !subject || !description) {
+        return res.status(400).json({ 
+          error: "Missing required fields: type, subject, description" 
+        });
+      }
+
+      // Send email notification
+      const emailSent = await sendFeedbackNotification({
+        type,
+        subject,
+        description,
+        userEmail: email,
+        userId,
+        timestamp: new Date()
+      });
+
+      if (emailSent) {
+        res.json({ 
+          success: true, 
+          message: "Feedback submitted successfully" 
+        });
+      } else {
+        res.status(500).json({ 
+          error: "Failed to send feedback notification" 
+        });
+      }
+
+    } catch (error) {
+      console.error("Feedback submission error:", error);
+      res.status(500).json({ 
+        error: "Internal server error" 
+      });
     }
   });
 
