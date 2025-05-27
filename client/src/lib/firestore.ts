@@ -24,6 +24,8 @@ import type {
   AiAnalysis,
   InsertAiAnalysis,
   Milestone,
+  Feedback,
+  InsertFeedback,
 } from "@shared/schema";
 
 // Helper function to convert Firestore timestamps to dates
@@ -288,6 +290,43 @@ export const updateMilestone = async (userId: string, milestoneType: string, ach
     }, { merge: true });
   } catch (error) {
     console.error("Error updating milestone:", error);
+    throw error;
+  }
+};
+
+// Feedback functions
+export const createFeedback = async (feedback: InsertFeedback): Promise<string> => {
+  try {
+    const feedbackData = {
+      ...feedback,
+      status: "new",
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    };
+
+    const docRef = await addDoc(collection(db, "feedback"), feedbackData);
+    return docRef.id;
+  } catch (error) {
+    console.error("Error creating feedback:", error);
+    throw error;
+  }
+};
+
+export const getFeedback = async (): Promise<Feedback[]> => {
+  try {
+    const q = query(
+      collection(db, "feedback"),
+      orderBy("createdAt", "desc")
+    );
+    
+    const querySnapshot = await getDocs(q);
+    
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...convertTimestamps(doc.data())
+    } as Feedback));
+  } catch (error) {
+    console.error("Error getting feedback:", error);
     throw error;
   }
 };

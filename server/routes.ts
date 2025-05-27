@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { sendFeedbackNotification } from "./email";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Health check endpoint

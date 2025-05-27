@@ -133,3 +133,26 @@ export const milestoneSchema = z.object({
 });
 
 export type Milestone = z.infer<typeof milestoneSchema>;
+
+// Feedback Schema
+export const feedbackSchema = z.object({
+  id: z.string(),
+  userId: z.string().optional(),
+  type: z.enum(["bug", "feature", "general"]),
+  subject: z.string().min(1),
+  description: z.string().min(1),
+  email: z.string().email().optional(),
+  status: z.enum(["new", "in_progress", "resolved"]).default("new"),
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date()),
+});
+
+export const insertFeedbackSchema = feedbackSchema.omit({
+  id: true,
+  status: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type Feedback = z.infer<typeof feedbackSchema>;
+export type InsertFeedback = z.infer<typeof insertFeedbackSchema>;
