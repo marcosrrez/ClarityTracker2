@@ -380,7 +380,7 @@ export const SettingsView = () => {
           </CardContent>
         </Card>
 
-        {/* Interface Preferences - Simplified */}
+        {/* Interface Preferences - Working Version */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
@@ -388,14 +388,14 @@ export const SettingsView = () => {
               <span>Interface Preferences</span>
             </CardTitle>
             <CardDescription>
-              Customize your ClarityLog experience - toggle between simplified and advanced features.
+              Control your ClarityLog experience complexity
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label className="text-base font-medium">Experience Mode</Label>
               <p className="text-sm text-muted-foreground mb-4">
-                Choose between a simplified tracking experience or the full AI-powered professional development platform.
+                Toggle between simplified tracking and full AI-powered features
               </p>
               
               <div className="space-y-3">
@@ -403,19 +403,26 @@ export const SettingsView = () => {
                   <div>
                     <div className="font-medium">Smart Features & AI Insights</div>
                     <div className="text-sm text-muted-foreground">
-                      Enable personalized coaching, milestone celebrations, and intelligent analysis
+                      Personalized coaching, milestone celebrations, intelligent analysis
                     </div>
                   </div>
-                  <input
-                    type="checkbox"
-                    {...register("interfacePreferences.smartFeaturesEnabled")}
-                    defaultChecked={true}
-                    className="h-4 w-4"
-                  />
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm">Off</span>
+                    <input
+                      type="checkbox"
+                      defaultChecked={true}
+                      onChange={(e) => {
+                        localStorage.setItem('smartFeaturesEnabled', e.target.checked.toString());
+                        window.location.reload(); // Simple refresh to apply changes
+                      }}
+                      className="h-4 w-4"
+                    />
+                    <span className="text-sm">On</span>
+                  </div>
                 </div>
                 
                 <div className="text-xs text-muted-foreground bg-blue-50 p-3 rounded-lg">
-                  💡 <strong>Tip:</strong> New users can start with Smart Features off for a simpler experience, then enable them later as you become more comfortable with the platform.
+                  💡 <strong>Tip:</strong> Changes take effect immediately. Toggle off for simplified tracking, on for full AI experience.
                 </div>
               </div>
             </div>

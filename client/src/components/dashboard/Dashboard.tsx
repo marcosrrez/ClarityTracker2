@@ -13,8 +13,8 @@ export const Dashboard = () => {
   const { showCelebration, celebrationData, closeCelebration } = useMilestoneDetection();
   const { settings } = useAppSettings();
 
-  // Get user preferences - simplified Smart Features toggle
-  const smartFeaturesEnabled = settings?.interfacePreferences?.smartFeaturesEnabled ?? true;
+  // Get user preferences - use localStorage for immediate toggle without Firebase dependency
+  const smartFeaturesEnabled = localStorage.getItem('smartFeaturesEnabled') !== 'false';
 
   return (
     <div className="space-y-8">
