@@ -16,14 +16,6 @@ export const Dashboard = () => {
   // Get user preferences - simplified Smart Features toggle
   const smartFeaturesEnabled = settings?.interfacePreferences?.smartFeaturesEnabled ?? true;
 
-  // Simple logic: if Smart Features is disabled, only show core tracking components
-  const shouldShowSmartFeature = (featureName: string) => {
-    if (!smartFeaturesEnabled) {
-      return false; // Hide all smart features when toggle is off
-    }
-    return true; // Show all smart features when toggle is on
-  };
-
   return (
     <div className="space-y-8">
       {/* Milestone Celebration Modal - only if smart features are enabled */}
