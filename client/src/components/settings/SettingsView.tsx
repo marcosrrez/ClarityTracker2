@@ -94,7 +94,17 @@ export const SettingsView = () => {
 
     setIsSaving(true);
     try {
-      await updateAppSettings(user.uid, data);
+      // Clean the data to ensure proper format for Firestore
+      const cleanData = {
+        ...data,
+        interfacePreferences: {
+          smartFeaturesEnabled: Boolean(data.interfacePreferences?.smartFeaturesEnabled),
+          enabledCards: data.interfacePreferences?.enabledCards || {},
+          dashboardTemplate: data.interfacePreferences?.dashboardTemplate || 'full_ai',
+        }
+      };
+      
+      await updateAppSettings(user.uid, cleanData);
       await refetch();
       toast({
         title: "Settings saved successfully",
