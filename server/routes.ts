@@ -61,6 +61,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Store feedback in database for future reference
+      const savedFeedback = await storage.createFeedback({
+        type,
+        subject,
+        description,
+        email,
+        userId
+      });
+
       // Send email notification
       const emailSent = await sendFeedbackNotification({
         type,
@@ -71,14 +80,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         timestamp: new Date()
       });
 
-      if (emailSent) {
+      if (emailSent && savedFeedback) {
         res.json({ 
           success: true, 
-          message: "Feedback submitted successfully" 
+          message: "Feedback submitted successfully",
+          feedbackId: savedFeedback.id
         });
       } else {
         res.status(500).json({ 
-          error: "Failed to send feedback notification" 
+          error: "Failed to process feedback submission" 
         });
       }
 
