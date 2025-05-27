@@ -68,6 +68,21 @@ export const appSettingsSchema = z.object({
     userDefinedGrowthAreas: z.array(z.string()).default([]),
     favoriteTherapeuticModalities: z.array(z.string()).default([]),
   }),
+  interfacePreferences: z.object({
+    smartFeaturesEnabled: z.boolean().default(true),
+    enabledCards: z.object({
+      personalizedAICoaching: z.boolean().default(true),
+      competencyTracker: z.boolean().default(true),
+      achievementCelebration: z.boolean().default(true),
+      crossSessionAnalysis: z.boolean().default(true),
+      aiInsights: z.boolean().default(true),
+      milestoneTracking: z.boolean().default(true),
+      progressVisualization: z.boolean().default(true),
+      quickStats: z.boolean().default(true),
+      recentEntries: z.boolean().default(true),
+    }).default({}),
+    dashboardTemplate: z.enum(['essentials', 'professional', 'full_ai']).default('full_ai'),
+  }).default({}),
   updatedAt: z.date().default(() => new Date()),
 });
 

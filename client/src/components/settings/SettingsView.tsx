@@ -12,7 +12,9 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { Calendar as CalendarIcon, Save, AlertTriangle, Shield, Download, Upload, FileSpreadsheet, Target, User, Palette } from "lucide-react";
+import { Calendar as CalendarIcon, Save, AlertTriangle, Shield, Download, Upload, FileSpreadsheet, Target, User, Palette, Settings } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
 import { useAppSettings, useLogEntries } from "@/hooks/use-firestore";
 import { updateAppSettings, createLogEntry } from "@/lib/firestore";
@@ -349,6 +351,48 @@ export const SettingsView = () => {
               <p className="text-xs text-muted-foreground">
                 Define specific areas where you want to focus your professional development.
               </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Interface Preferences - Simplified */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Palette className="h-5 w-5" />
+              <span>Interface Preferences</span>
+            </CardTitle>
+            <CardDescription>
+              Customize your ClarityLog experience - toggle between simplified and advanced features.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-base font-medium">Experience Mode</Label>
+              <p className="text-sm text-muted-foreground mb-4">
+                Choose between a simplified tracking experience or the full AI-powered professional development platform.
+              </p>
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div>
+                    <div className="font-medium">Smart Features & AI Insights</div>
+                    <div className="text-sm text-muted-foreground">
+                      Enable personalized coaching, milestone celebrations, and intelligent analysis
+                    </div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    {...register("interfacePreferences.smartFeaturesEnabled")}
+                    defaultChecked={true}
+                    className="h-4 w-4"
+                  />
+                </div>
+                
+                <div className="text-xs text-muted-foreground bg-blue-50 p-3 rounded-lg">
+                  💡 <strong>Tip:</strong> New users can start with Smart Features off for a simpler experience, then enable them later as you become more comfortable with the platform.
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
