@@ -258,17 +258,17 @@ export const CompetencyTracker = () => {
           <>
             {/* Progress Overview */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="text-center p-4 bg-gray-50 rounded-2xl">
-                <div className="text-2xl font-bold text-gray-900">{overallProgress}%</div>
-                <div className="text-sm text-gray-500">Overall Progress</div>
+              <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl">
+                <div className="text-2xl font-bold text-gray-900 dark:text-white">{overallProgress}%</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">Overall Progress</div>
               </div>
-              <div className="text-center p-4 bg-gray-50 rounded-2xl">
-                <div className="text-2xl font-bold text-gray-900">{competencies.filter(c => c.progress >= 70).length}</div>
-                <div className="text-sm text-gray-500">Advanced Areas</div>
+              <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl">
+                <div className="text-2xl font-bold text-gray-900 dark:text-white">{competencies.filter(c => c.progress >= 70).length}</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">Advanced Areas</div>
               </div>
-              <div className="text-center p-4 bg-gray-50 rounded-2xl">
-                <div className="text-2xl font-bold text-gray-900">{logEntries.length}</div>
-                <div className="text-sm text-gray-500">Evidence Points</div>
+              <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl">
+                <div className="text-2xl font-bold text-gray-900 dark:text-white">{logEntries.length}</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">Evidence Points</div>
               </div>
             </div>
 
