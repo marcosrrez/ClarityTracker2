@@ -34,6 +34,187 @@ export const SettingsView = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
 
+  // Advanced Import Functions
+  const handleImportFromExcel = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().includes('.csv') && !file.name.toLowerCase().includes('.xlsx')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a CSV or Excel file.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsImporting(true);
+      const text = await file.text();
+      
+      // Handle different delimiters
+      let delimiter = ',';
+      if (text.includes(';') && text.split(';').length > text.split(',').length) {
+        delimiter = ';';
+      } else if (text.includes('\t')) {
+        delimiter = '\t';
+      }
+      
+      const lines = text.split('\n').filter(line => line.trim());
+      
+      if (lines.length < 2) {
+        throw new Error("File appears to be empty or has no data rows");
+      }
+
+      // Parse headers and create intelligent mapping
+      const headers = lines[0].split(delimiter).map(h => h.trim().replace(/^"|"$/g, ''));
+      const columnMapping = intelligentColumnMapper(headers);
+      
+      if (Object.keys(columnMapping).length === 0) {
+        toast({
+          title: "No recognizable columns found",
+          description: "Could not identify date or hours columns. Please check your file format.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Process data rows
+      const dataLines = lines.slice(1);
+      let importedCount = 0;
+      let errorCount = 0;
+
+      for (const line of dataLines) {
+        try {
+          const columns = line.split(delimiter).map(col => col.trim().replace(/^"|"$/g, ''));
+          
+          if (columns.length < 2) continue;
+
+          const entry = {
+            dateOfContact: parseFlexibleDate(columns[columnMapping.date] || ''),
+            clientContactHours: parseFlexibleNumber(columns[columnMapping.clientHours] || '0'),
+            supervisionHours: parseFlexibleNumber(columns[columnMapping.supervisionHours] || '0'),
+            supervisionType: mapSupervisionType(columns[columnMapping.supervisionType] || 'none'),
+            indirectHours: columnMapping.indirectHours !== undefined,
+            technologyAssisted: parseFlexibleBoolean(columns[columnMapping.techAssisted] || ''),
+            notes: parseFlexibleString(columns[columnMapping.notes] || ''),
+          };
+
+          if (entry.clientContactHours > 0 || entry.supervisionHours > 0) {
+            await createLogEntry(user!.uid, entry);
+            importedCount++;
+          }
+        } catch (error) {
+          console.error('Error processing row:', error);
+          errorCount++;
+        }
+      }
+
+      toast({
+        title: "Import completed!",
+        description: `Successfully imported ${importedCount} entries. ${errorCount > 0 ? `${errorCount} errors occurred.` : ''}`,
+      });
+
+    } catch (error) {
+      console.error('Import error:', error);
+      toast({
+        title: "Import failed",
+        description: error instanceof Error ? error.message : "Please check your file format and try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsImporting(false);
+      event.target.value = '';
+    }
+  };
+
+  const intelligentColumnMapper = (headers: string[]) => {
+    const mapping: { [key: string]: number } = {};
+    
+    headers.forEach((header, index) => {
+      const cleanHeader = header.toLowerCase().trim();
+      
+      if (cleanHeader.includes('date') || cleanHeader.includes('session') || cleanHeader.includes('contact')) {
+        mapping.date = index;
+      }
+      
+      if ((cleanHeader.includes('client') && cleanHeader.includes('hour')) || 
+          (cleanHeader.includes('direct') && cleanHeader.includes('hour')) ||
+          cleanHeader.includes('cch') || cleanHeader.includes('contact hour')) {
+        mapping.clientHours = index;
+      }
+      
+      if (cleanHeader.includes('supervision') && cleanHeader.includes('hour')) {
+        mapping.supervisionHours = index;
+      }
+      
+      if (cleanHeader.includes('supervision') && cleanHeader.includes('type')) {
+        mapping.supervisionType = index;
+      }
+      
+      if (cleanHeader.includes('tech') || cleanHeader.includes('video') || cleanHeader.includes('remote')) {
+        mapping.techAssisted = index;
+      }
+      
+      if (cleanHeader.includes('note') || cleanHeader.includes('comment') || cleanHeader.includes('description')) {
+        mapping.notes = index;
+      }
+    });
+    
+    return mapping;
+  };
+
+  const parseFlexibleDate = (value: string): Date => {
+    if (!value || value.trim() === '') return new Date();
+    
+    const dateFormats = [
+      value,
+      value.replace(/[-\/]/g, '/'),
+      value.replace(/(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/, '$3/$1/$2'),
+      value.replace(/(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/, '$1/$2/$3'),
+    ];
+    
+    for (const format of dateFormats) {
+      const date = new Date(format);
+      if (!isNaN(date.getTime())) {
+        return date;
+      }
+    }
+    return new Date();
+  };
+
+  const parseFlexibleNumber = (value: string): number => {
+    if (!value || value.trim() === '') return 0;
+    const num = parseFloat(value.replace(/[^\d.-]/g, ''));
+    return isNaN(num) ? 0 : Math.max(0, num);
+  };
+
+  const parseFlexibleString = (value: string): string => {
+    return value ? value.trim() : '';
+  };
+
+  const parseFlexibleBoolean = (value: string): boolean => {
+    if (!value) return false;
+    const clean = value.toLowerCase().trim();
+    return clean === 'true' || clean === 'yes' || clean === '1' || clean === 'y';
+  };
+
+  const mapSupervisionType = (value: string): "individual" | "dyadic" | "group" | "none" => {
+    if (!value) return "none";
+    const clean = value.toLowerCase().trim();
+    
+    if (clean.includes('individual') || clean.includes('one-on-one') || clean === 'ind') {
+      return "individual";
+    }
+    if (clean.includes('dyadic') || clean.includes('pair') || clean === 'dyad') {
+      return "dyadic";
+    }
+    if (clean.includes('group') || clean.includes('team') || clean === 'grp') {
+      return "group";
+    }
+    return "none";
+  };
+
   const {
     register,
     handleSubmit,

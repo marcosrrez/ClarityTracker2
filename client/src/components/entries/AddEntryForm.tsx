@@ -131,8 +131,8 @@ export const AddEntryForm = () => {
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal rounded-xl border-gray-200 hover:border-gray-300",
-                      !watchedDateOfContact && "text-gray-500"
+                      "w-full justify-start text-left font-normal rounded-xl border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500 dark:bg-gray-800",
+                      !watchedDateOfContact && "text-gray-500 dark:text-gray-400"
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
