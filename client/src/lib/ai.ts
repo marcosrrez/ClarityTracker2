@@ -14,9 +14,16 @@ export interface AiAnalysisResult {
 
 export const analyzeSessionNotes = async (notes: string, userProfile?: any): Promise<AiAnalysisResult> => {
   try {
-    // Get user's therapeutic modalities and growth areas for personalized analysis
-    const therapeuticModalities = userProfile?.personalPreferences?.favoriteTherapeuticModalities || [];
-    const growthAreas = userProfile?.personalPreferences?.userDefinedGrowthAreas || [];
+    // Get user's therapeutic modalities and growth areas from localStorage for personalized analysis
+    const therapeuticModalitiesText = localStorage.getItem('therapeuticModalities') || '';
+    const growthAreasText = localStorage.getItem('growthAreas') || '';
+    
+    const therapeuticModalities = therapeuticModalitiesText 
+      ? therapeuticModalitiesText.split('\n').filter(line => line.trim() !== '')
+      : [];
+    const growthAreas = growthAreasText
+      ? growthAreasText.split('\n').filter(line => line.trim() !== '')
+      : [];
     
     const personalizationContext = therapeuticModalities.length > 0 || growthAreas.length > 0 
       ? `
@@ -95,9 +102,16 @@ export const generateCrossSessionAnalysis = async (entries: any[], userProfile?:
   }
 
   try {
-    // Get user's therapeutic preferences for deeply personalized analysis
-    const therapeuticModalities = userProfile?.personalPreferences?.favoriteTherapeuticModalities || [];
-    const growthAreas = userProfile?.personalPreferences?.userDefinedGrowthAreas || [];
+    // Get user's therapeutic preferences from localStorage for deeply personalized analysis
+    const therapeuticModalitiesText = localStorage.getItem('therapeuticModalities') || '';
+    const growthAreasText = localStorage.getItem('growthAreas') || '';
+    
+    const therapeuticModalities = therapeuticModalitiesText 
+      ? therapeuticModalitiesText.split('\n').filter(line => line.trim() !== '')
+      : [];
+    const growthAreas = growthAreasText
+      ? growthAreasText.split('\n').filter(line => line.trim() !== '')
+      : [];
     const licensureStage = userProfile?.currentStage || 'pre_licensure';
     const currentGoals = userProfile?.currentGoals || [];
 

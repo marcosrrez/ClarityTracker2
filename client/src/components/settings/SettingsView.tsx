@@ -93,7 +93,7 @@ export const SettingsView = () => {
 
     setIsSaving(true);
     try {
-      // Create clean data object that matches Firebase schema
+      // Only save core settings to Firebase (therapeutic approaches are saved in localStorage)
       const cleanData = {
         goals: data.goals,
         importedHours: data.importedHours,
@@ -104,27 +104,11 @@ export const SettingsView = () => {
         }
       };
 
-      // Process therapeutic modalities
-      if (data.personalPreferences?.favoriteTherapeuticModalities) {
-        const modalities = typeof data.personalPreferences.favoriteTherapeuticModalities === 'string'
-          ? data.personalPreferences.favoriteTherapeuticModalities.split('\n').filter((line: string) => line.trim() !== '')
-          : [];
-        cleanData.personalPreferences.favoriteTherapeuticModalities = modalities;
-      }
-
-      // Process growth areas  
-      if (data.personalPreferences?.userDefinedGrowthAreas) {
-        const growthAreas = typeof data.personalPreferences.userDefinedGrowthAreas === 'string'
-          ? data.personalPreferences.userDefinedGrowthAreas.split('\n').filter((line: string) => line.trim() !== '')
-          : [];
-        cleanData.personalPreferences.userDefinedGrowthAreas = growthAreas;
-      }
-
       await updateAppSettings(user.uid, cleanData);
       await refetch();
       toast({
         title: "Settings saved successfully",
-        description: "Your therapeutic approaches and preferences have been saved.",
+        description: "Your goals and license information have been saved. Therapeutic approaches auto-save as you type.",
       });
     } catch (error) {
       console.error("Error saving settings:", error);
@@ -370,12 +354,13 @@ export const SettingsView = () => {
                 id="therapeuticModalities"
                 placeholder="Enter your preferred therapeutic approaches, one per line:&#10;&#10;Cognitive Behavioral Therapy (CBT)&#10;Dialectical Behavior Therapy (DBT)&#10;Eye Movement Desensitization and Reprocessing (EMDR)&#10;Solution-Focused Brief Therapy&#10;Acceptance and Commitment Therapy (ACT)"
                 className="min-h-[120px]"
-                {...register("personalPreferences.favoriteTherapeuticModalities", {
-                  setValueAs: (value: string) => typeof value === 'string' ? value.split('\n').filter(line => line.trim() !== '') : []
-                })}
+                defaultValue={localStorage.getItem('therapeuticModalities') || ''}
+                onChange={(e) => {
+                  localStorage.setItem('therapeuticModalities', e.target.value);
+                }}
               />
               <p className="text-xs text-muted-foreground">
-                Enter each therapeutic modality on a new line to track your preferred approaches.
+                Enter each therapeutic modality on a new line. Changes save automatically for personalized AI analysis.
               </p>
             </div>
             
@@ -385,12 +370,13 @@ export const SettingsView = () => {
                 id="growthAreas"
                 placeholder="Enter areas for professional development, one per line:&#10;&#10;Trauma-informed care&#10;Cultural competency&#10;Group therapy facilitation&#10;Assessment skills"
                 className="min-h-[100px]"
-                {...register("personalPreferences.userDefinedGrowthAreas", {
-                  setValueAs: (value: string) => typeof value === 'string' ? value.split('\n').filter(line => line.trim() !== '') : []
-                })}
+                defaultValue={localStorage.getItem('growthAreas') || ''}
+                onChange={(e) => {
+                  localStorage.setItem('growthAreas', e.target.value);
+                }}
               />
               <p className="text-xs text-muted-foreground">
-                Define specific areas where you want to focus your professional development.
+                Define specific areas for professional development. Changes save automatically for personalized insights.
               </p>
             </div>
           </CardContent>
