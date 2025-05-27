@@ -36,6 +36,7 @@ function Router() {
       <Route path="/requirements" component={RequirementsPage} />
       <Route path="/settings" component={SettingsPage} />
       <Route path="/feedback" component={FeedbackPage} />
+      <Route path="/admin" component={AdminPage} />
       <Route path="/help" component={HelpPage} />
       <Route path="/summary" component={SummaryPage} />
       
