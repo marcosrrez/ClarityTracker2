@@ -14,14 +14,32 @@ export interface AiAnalysisResult {
 
 export const analyzeSessionNotes = async (notes: string, userProfile?: any): Promise<AiAnalysisResult> => {
   try {
-    const prompt = `As a professional development AI assistant for Licensed Associate Counselors, analyze the following session notes and provide insights for professional growth.
+    // Get user's therapeutic modalities and growth areas for personalized analysis
+    const therapeuticModalities = userProfile?.personalPreferences?.favoriteTherapeuticModalities || [];
+    const growthAreas = userProfile?.personalPreferences?.userDefinedGrowthAreas || [];
+    
+    const personalizationContext = therapeuticModalities.length > 0 || growthAreas.length > 0 
+      ? `
+
+USER'S PERSONALIZATION CONTEXT:
+- Preferred therapeutic modalities: ${therapeuticModalities.join(', ')}
+- Identified growth areas: ${growthAreas.join(', ')}
+
+Please analyze this session specifically through the lens of their therapeutic preferences and growth goals. Highlight:
+- How they applied or could apply their preferred modalities
+- Progress or opportunities in their identified growth areas
+- Specific feedback related to their therapeutic approach preferences`
+      : '';
+
+    const prompt = `As a professional development AI assistant for Licensed Associate Counselors, analyze the following session notes and provide personalized insights for professional growth.
 
 Session Notes:
 ${notes}
+${personalizationContext}
 
 Please provide a JSON response with the following structure:
 {
-  "summary": "Brief summary of the session",
+  "summary": "Brief summary of the session with personalized observations",
   "themes": ["theme1", "theme2", "theme3"],
   "potentialBlindSpots": ["potential area for growth 1", "potential area for growth 2"],
   "reflectivePrompts": ["reflection question 1", "reflection question 2", "reflection question 3"],
@@ -30,13 +48,14 @@ Please provide a JSON response with the following structure:
 }
 
 Focus on:
-- Professional development opportunities
-- Clinical skills demonstrated
-- Areas for continued learning
+- Professional development opportunities (especially in their preferred modalities)
+- Clinical skills demonstrated (relating to their therapeutic approaches when possible)
+- Areas for continued learning (connecting to their identified growth areas)
 - Supervision discussion points
 - Ethical considerations if relevant
+- Personalized feedback based on their therapeutic preferences and goals
 
-Keep responses professional, constructive, and supportive of growth.`;
+Keep responses professional, constructive, and supportive of growth. Make the analysis feel personally relevant to their professional development journey.`;
 
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const result = await model.generateContent(prompt);
