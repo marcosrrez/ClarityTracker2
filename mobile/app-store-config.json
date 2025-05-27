@@ -1,0 +1,84 @@
+{
+  "app_info": {
+    "name": "ClarityLog - LPC Hour Tracker",
+    "bundle_id": "com.claritylog.mobile",
+    "version": "1.0.0",
+    "build_number": "1",
+    "category": "Medical",
+    "content_rating": "4+",
+    "pricing": "Free"
+  },
+  "description": {
+    "short": "Smart hour tracking and AI insights for Licensed Associate Counselors pursuing LPC licensure.",
+    "full": "Transform your path to Licensed Professional Counselor (LPC) licensure with ClarityLog Mobile - the intelligent companion for Licensed Associate Counselors.\n\n🎯 SMART HOUR TRACKING\n• Voice-to-text session logging for hands-free entry\n• Quick hour selection with one-tap shortcuts\n• Automatic milestone celebrations at key achievements\n• Weekly and daily progress tracking\n\n🧠 AI-POWERED INSIGHTS\n• Intelligent analysis of your session notes\n• Pattern recognition across multiple sessions\n• Personalized growth recommendations\n• Reflective prompts for professional development\n\n📱 MOBILE-OPTIMIZED FEATURES\n• Offline note-taking capability\n• Push notifications for goals and milestones\n• Swipeable insight cards with smooth animations\n• Dark mode support\n\n🏆 MILESTONE CELEBRATIONS\n• Achievements at 25, 50, 100, 250, 500+ hours\n• Streak tracking for consistent logging\n• Motivational messages and reminders\n• Progress visualization toward LPC goal\n\nPerfect for LACs in supervision working toward their 4,000-hour licensure requirement. Sync seamlessly with the ClarityLog web platform for comprehensive progress tracking.\n\nPrivacy-focused with secure Firebase authentication and encrypted data storage."
+  },
+  "keywords": [
+    "LPC",
+    "Licensed Professional Counselor", 
+    "LAC",
+    "supervision hours",
+    "therapy",
+    "counseling",
+    "licensure",
+    "clinical hours",
+    "mental health",
+    "professional development",
+    "hour tracking",
+    "AI insights",
+    "milestone tracking"
+  ],
+  "screenshots": {
+    "required_sizes": {
+      "ios": [
+        "6.7_inch_display",
+        "6.5_inch_display", 
+        "5.5_inch_display",
+        "12.9_inch_ipad_display"
+      ],
+      "android": [
+        "phone_portrait",
+        "tablet_landscape"
+      ]
+    },
+    "content": [
+      {
+        "filename": "01_dashboard.png",
+        "title": "Progress Dashboard",
+        "description": "Beautiful visualization of your LPC journey with milestone celebrations"
+      },
+      {
+        "filename": "02_voice_entry.png", 
+        "title": "Voice-to-Text Logging",
+        "description": "Hands-free session note entry with intelligent voice recognition"
+      },
+      {
+        "filename": "03_ai_insights.png",
+        "title": "AI-Powered Insights", 
+        "description": "Swipeable insight cards with personalized growth recommendations"
+      },
+      {
+        "filename": "04_milestones.png",
+        "title": "Milestone Celebrations",
+        "description": "Achievement notifications that motivate your progress"
+      },
+      {
+        "filename": "05_settings.png",
+        "title": "Goal Management",
+        "description": "Customize your licensure goals and notification preferences"
+      }
+    ]
+  },
+  "privacy_policy": {
+    "url": "https://claritylog.net/privacy",
+    "data_collection": {
+      "authentication": "Firebase secure authentication",
+      "session_notes": "Encrypted and anonymized for AI analysis", 
+      "usage_analytics": "Optional, can be disabled in settings",
+      "notifications": "Local device notifications only"
+    }
+  },
+  "support": {
+    "url": "https://claritylog.net/support",
+    "email": "support@claritylog.net"
+  }
+}
