@@ -36,19 +36,28 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (isAdmin) {
-      fetchFeedback();
+      fetchData();
     }
   }, [isAdmin]);
 
-  const fetchFeedback = async () => {
+  const fetchData = async () => {
     try {
-      const response = await fetch('/api/admin/feedback');
-      if (response.ok) {
-        const data = await response.json();
-        setFeedback(data);
+      const [feedbackResponse, analyticsResponse] = await Promise.all([
+        fetch('/api/admin/feedback'),
+        fetch('/api/admin/analytics')
+      ]);
+      
+      if (feedbackResponse.ok) {
+        const feedbackData = await feedbackResponse.json();
+        setFeedback(feedbackData);
+      }
+      
+      if (analyticsResponse.ok) {
+        const analyticsData = await analyticsResponse.json();
+        setAnalytics(analyticsData);
       }
     } catch (error) {
-      console.error('Failed to fetch feedback:', error);
+      console.error('Failed to fetch data:', error);
     } finally {
       setLoading(false);
     }
@@ -146,10 +155,11 @@ export default function AdminPage() {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="feedback">Feedback Management</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="analytics">User Analytics</TabsTrigger>
+          <TabsTrigger value="insights">Feature Insights</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -338,10 +348,173 @@ export default function AdminPage() {
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-6">
+          {/* User Analytics Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Active Users</p>
+                    <p className="text-3xl font-bold text-foreground">
+                      {analytics?.summary?.totalUsers || 0}
+                    </p>
+                  </div>
+                  <Users className="h-8 w-8 text-blue-500" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Total Sessions</p>
+                    <p className="text-3xl font-bold text-foreground">
+                      {analytics?.summary?.totalSessions || 0}
+                    </p>
+                  </div>
+                  <Activity className="h-8 w-8 text-green-500" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Page Views</p>
+                    <p className="text-3xl font-bold text-foreground">
+                      {analytics?.summary?.totalPageViews || 0}
+                    </p>
+                  </div>
+                  <Eye className="h-8 w-8 text-purple-500" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Total Events</p>
+                    <p className="text-3xl font-bold text-foreground">
+                      {analytics?.summary?.totalEvents || 0}
+                    </p>
+                  </div>
+                  <MousePointer className="h-8 w-8 text-orange-500" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Feature Usage Analytics */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Most Used Pages</CardTitle>
+                <CardDescription>Which features counselors use most</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {analytics?.topPages?.map((page: any, index: number) => (
+                    <div key={page.page} className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium">
+                          {index + 1}
+                        </div>
+                        <span className="font-medium capitalize">
+                          {page.page?.replace('-', ' ') || 'Dashboard'}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-20 bg-muted rounded-full h-2">
+                          <div 
+                            className="bg-primary h-2 rounded-full" 
+                            style={{ 
+                              width: `${analytics?.topPages?.[0]?.visits ? (page.visits / analytics.topPages[0].visits) * 100 : 0}%` 
+                            }}
+                          />
+                        </div>
+                        <span className="text-sm text-muted-foreground w-8">{page.visits}</span>
+                      </div>
+                    </div>
+                  )) || (
+                    <p className="text-muted-foreground text-center py-4">No page data available yet</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>User Activity Types</CardTitle>
+                <CardDescription>How counselors interact with ClarityLog</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {analytics?.userActivity?.map((activity: any, index: number) => (
+                    <div key={activity.event} className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-6 h-6 rounded-full bg-secondary/10 flex items-center justify-center text-xs font-medium">
+                          {index + 1}
+                        </div>
+                        <span className="font-medium capitalize">
+                          {activity.event.replace('_', ' ')}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-20 bg-muted rounded-full h-2">
+                          <div 
+                            className="bg-secondary h-2 rounded-full" 
+                            style={{ 
+                              width: `${analytics?.userActivity?.[0]?.count ? (activity.count / analytics.userActivity[0].count) * 100 : 0}%` 
+                            }}
+                          />
+                        </div>
+                        <span className="text-sm text-muted-foreground w-8">{activity.count}</span>
+                      </div>
+                    </div>
+                  )) || (
+                    <p className="text-muted-foreground text-center py-4">No activity data available yet</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Daily Activity Chart */}
           <Card>
             <CardHeader>
-              <CardTitle>Feedback Analytics</CardTitle>
-              <CardDescription>Insights into user feedback patterns and trends</CardDescription>
+              <CardTitle>Daily User Activity (Last 30 Days)</CardTitle>
+              <CardDescription>Track user engagement trends over time</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {analytics?.dailyActivity?.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-7 gap-2">
+                    {analytics.dailyActivity.slice(0, 7).map((day: any) => (
+                      <div key={day.date} className="p-3 border rounded-lg text-center">
+                        <p className="text-xs text-muted-foreground">
+                          {format(new Date(day.date), 'MMM d')}
+                        </p>
+                        <p className="text-lg font-bold text-foreground">{day.events}</p>
+                        <p className="text-xs text-muted-foreground">{day.users} users</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-center py-8">No daily activity data available yet</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="insights" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Feature Insights</CardTitle>
+              <CardDescription>Deep insights into how counselors use ClarityLog features</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -373,29 +546,29 @@ export default function AdminPage() {
                 </div>
 
                 <div>
-                  <h4 className="font-semibold mb-4">Feedback by Status</h4>
+                  <h4 className="font-semibold mb-4">Key Usage Metrics</h4>
                   <div className="space-y-3">
-                    {['new', 'in_progress', 'resolved'].map(status => {
-                      const count = feedback.filter(f => f.status === status).length;
-                      const percentage = totalFeedback > 0 ? (count / totalFeedback) * 100 : 0;
-                      return (
-                        <div key={status} className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            {getStatusIcon(status)}
-                            <span className="capitalize">{status.replace('_', ' ')}</span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <div className="w-24 bg-muted rounded-full h-2">
-                              <div 
-                                className="bg-primary h-2 rounded-full" 
-                                style={{ width: `${percentage}%` }}
-                              />
-                            </div>
-                            <span className="text-sm text-muted-foreground w-12">{count}</span>
-                          </div>
-                        </div>
-                      );
-                    })}
+                    <div className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <Timer className="h-4 w-4" />
+                        <span>Avg. Session Time</span>
+                      </div>
+                      <span className="font-medium">Coming Soon</span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <Activity className="h-4 w-4" />
+                        <span>Most Active Time</span>
+                      </div>
+                      <span className="font-medium">Coming Soon</span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <BarChart3 className="h-4 w-4" />
+                        <span>Feature Adoption</span>
+                      </div>
+                      <span className="font-medium">Coming Soon</span>
+                    </div>
                   </div>
                 </div>
               </div>
