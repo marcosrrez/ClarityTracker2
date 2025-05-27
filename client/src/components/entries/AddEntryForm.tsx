@@ -189,12 +189,12 @@ export const AddEntryForm = () => {
             </div>
 
             {/* Supervision Section */}
-            <div className="space-y-4 p-4 bg-gray-50 rounded-2xl">
-              <h3 className="font-semibold text-gray-900">Supervision Details</h3>
+            <div className="space-y-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-2xl">
+              <h3 className="font-semibold text-gray-900 dark:text-white">Supervision Details</h3>
               
               {/* Supervision Hours */}
               <div className="space-y-2">
-                <Label htmlFor="supervisionHours" className="text-gray-700 font-medium">Supervision Hours</Label>
+                <Label htmlFor="supervisionHours" className="text-gray-700 dark:text-gray-300 font-medium">Supervision Hours</Label>
                 <Input
                   {...register("supervisionHours", { valueAsNumber: true })}
                   type="number"

@@ -92,14 +92,14 @@ export const WelcomeSection = () => {
   return (
     <section className="space-y-6">
       {/* Welcome Card - Notion-style clean white */}
-      <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm relative overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden">
         <div className="relative z-10">
           <div className="flex items-start justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold mb-1 text-gray-900">
+              <h1 className="text-2xl font-bold mb-1 text-gray-900 dark:text-white">
                 {getIntelligentGreeting()}
               </h1>
-              <p className="text-gray-500 text-sm font-medium">
+              <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
                 {new Date().toLocaleDateString('en-US', { 
                   weekday: 'long', 
                   month: 'long', 
@@ -108,14 +108,14 @@ export const WelcomeSection = () => {
               </p>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">
                 {entries?.length || 0}
               </div>
-              <div className="text-gray-500 text-xs font-medium">Sessions logged</div>
+              <div className="text-gray-500 dark:text-gray-400 text-xs font-medium">Sessions logged</div>
             </div>
           </div>
           
-          <p className="text-gray-700 text-base mb-6 max-w-md font-medium">
+          <p className="text-gray-700 dark:text-gray-300 text-base mb-6 max-w-md font-medium">
             {personalizedMessage}
           </p>
           

@@ -153,7 +153,7 @@ export const ProgressSection = () => {
 
   return (
     <section className="mb-8">
-      <h3 className="text-xl font-bold text-gray-900 mb-6">Licensure Progress</h3>
+      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Licensure Progress</h3>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Progress Cards - Notion Style */}
         <div className="space-y-6">
