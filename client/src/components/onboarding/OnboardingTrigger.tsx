@@ -1,33 +1,32 @@
 import { useState, useEffect } from "react";
-import { useAuth } from "@/hooks/use-auth";
-import { useLogEntries } from "@/hooks/use-firestore";
-import { OnboardingFlow } from "./OnboardingFlow";
+import { OnboardingModal } from "./OnboardingModal";
 
 export const OnboardingTrigger = () => {
-  const { user, userProfile } = useAuth();
-  const { entries: logEntries = [], loading } = useLogEntries();
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
-    // Show onboarding for authenticated users who haven't completed it
-    if (user && userProfile && !loading) {
-      const hasCompletedOnboarding = userProfile.hasCompletedOnboarding;
-      
-      // Show onboarding for users who haven't completed it (regardless of log entries)
-      if (!hasCompletedOnboarding) {
+    // Check if user has seen onboarding before
+    const hasSeenOnboarding = localStorage.getItem('claritylog-onboarding-completed');
+    
+    if (!hasSeenOnboarding) {
+      // Show onboarding after a brief delay for better UX
+      const timer = setTimeout(() => {
         setShowOnboarding(true);
-      }
+      }, 1000);
+      
+      return () => clearTimeout(timer);
     }
-  }, [user, userProfile, loading]);
+  }, []);
 
   const handleCloseOnboarding = () => {
     setShowOnboarding(false);
+    localStorage.setItem('claritylog-onboarding-completed', 'true');
   };
 
   return (
-    <OnboardingFlow 
-      isOpen={showOnboarding} 
-      onClose={handleCloseOnboarding} 
+    <OnboardingModal
+      open={showOnboarding}
+      onClose={handleCloseOnboarding}
     />
   );
 };

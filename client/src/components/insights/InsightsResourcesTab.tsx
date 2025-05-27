@@ -648,7 +648,7 @@ Use the toolbar above to format your text with headings, bold, italic, lists, an
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center space-x-2 mb-3">
-                          <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${card.type === "note" ? "bg-blue-50" : "bg-green-50"}`}>
+                          <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${card.type === "note" ? "bg-blue-50 dark:bg-blue-950/20" : "bg-green-50 dark:bg-green-950/20"}`}>
                             {card.type === "note" ? (
                               <FileText className="h-3 w-3 text-blue-500" />
                             ) : (

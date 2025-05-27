@@ -310,9 +310,9 @@ export const SettingsView = () => {
         </Card>
 
         {/* Personal Preferences */}
-        <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-950/20 dark:to-violet-950/20">
+        <Card>
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2 text-purple-700 dark:text-purple-300">
+            <CardTitle className="flex items-center space-x-2">
               <Palette className="h-5 w-5" />
               <span>Personal Preferences</span>
             </CardTitle>
@@ -322,9 +322,32 @@ export const SettingsView = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label className="font-medium">Therapeutic Modalities</Label>
-              <p className="text-sm text-muted-foreground">
-                Your preferred therapeutic approaches (managed in your profile settings).
+              <Label htmlFor="therapeuticModalities">Therapeutic Modalities</Label>
+              <Textarea
+                id="therapeuticModalities"
+                placeholder="Enter your preferred therapeutic approaches, one per line:&#10;&#10;Cognitive Behavioral Therapy (CBT)&#10;Dialectical Behavior Therapy (DBT)&#10;Eye Movement Desensitization and Reprocessing (EMDR)&#10;Solution-Focused Brief Therapy&#10;Acceptance and Commitment Therapy (ACT)"
+                className="min-h-[120px]"
+                {...register("personalPreferences.favoriteTherapeuticModalities", {
+                  setValueAs: (value: string) => typeof value === 'string' ? value.split('\n').filter(line => line.trim() !== '') : []
+                })}
+              />
+              <p className="text-xs text-muted-foreground">
+                Enter each therapeutic modality on a new line to track your preferred approaches.
+              </p>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="growthAreas">Personal Growth Areas</Label>
+              <Textarea
+                id="growthAreas"
+                placeholder="Enter areas for professional development, one per line:&#10;&#10;Trauma-informed care&#10;Cultural competency&#10;Group therapy facilitation&#10;Assessment skills"
+                className="min-h-[100px]"
+                {...register("personalPreferences.userDefinedGrowthAreas", {
+                  setValueAs: (value: string) => typeof value === 'string' ? value.split('\n').filter(line => line.trim() !== '') : []
+                })}
+              />
+              <p className="text-xs text-muted-foreground">
+                Define specific areas where you want to focus your professional development.
               </p>
             </div>
           </CardContent>
