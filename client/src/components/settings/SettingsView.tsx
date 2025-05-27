@@ -96,7 +96,7 @@ export const SettingsView = () => {
             supervisionHours: parseFlexibleNumber(columns[columnMapping.supervisionHours] || '0'),
             supervisionType: mapSupervisionType(columns[columnMapping.supervisionType] || 'none'),
             indirectHours: columnMapping.indirectHours !== undefined,
-            technologyAssisted: parseFlexibleBoolean(columns[columnMapping.techAssisted] || ''),
+            techAssistedSupervision: parseFlexibleBoolean(columns[columnMapping.techAssisted] || ''),
             notes: parseFlexibleString(columns[columnMapping.notes] || ''),
           };
 
@@ -619,6 +619,61 @@ export const SettingsView = () => {
           </Button>
         </div>
       </form>
+
+      {/* Advanced Import Section */}
+      <Card className="border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 dark:border-green-800">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2 text-green-700 dark:text-green-300">
+            <FileSpreadsheet className="h-5 w-5" />
+            <span>Advanced Import System</span>
+          </CardTitle>
+          <CardDescription className="dark:text-gray-300">
+            Upload your existing tracking data in any CSV format. Our intelligent analyzer automatically detects and maps your columns.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="import-file" className="cursor-pointer">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isImporting}
+                  className="w-full sm:w-auto dark:border-green-600 dark:hover:bg-green-900/20"
+                >
+                  {isImporting ? (
+                    <>
+                      <LoadingSpinner size="sm" className="mr-2" />
+                      Analyzing & Importing...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Choose File to Analyze
+                    </>
+                  )}
+                </Button>
+              </label>
+              <input
+                id="import-file"
+                type="file"
+                accept=".csv,.xlsx"
+                onChange={handleImportFromExcel}
+                disabled={isImporting}
+                className="hidden"
+              />
+              <div className="text-xs text-muted-foreground dark:text-gray-400 space-y-1">
+                <p><strong>✨ Intelligent Detection:</strong></p>
+                <p>• Recognizes any column names (dates, hours, supervision, notes, etc.)</p>
+                <p>• Handles multiple date formats (MM/DD/YYYY, YYYY-MM-DD, etc.)</p>
+                <p>• Converts minutes to hours automatically when detected</p>
+                <p>• Supports comma, semicolon, or tab delimiters</p>
+                <p>• Maps supervision types and tech-assisted sessions flexibly</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Account Security */}
       <Card>
