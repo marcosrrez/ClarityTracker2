@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertCircle, CheckCircle, Clock, MessageSquare, Bug, Lightbulb, Search, Filter, Download, TrendingUp, Users, Calendar, BarChart3 } from "lucide-react";
+import { AlertCircle, CheckCircle, Clock, MessageSquare, Bug, Lightbulb, Search, Filter, Download, TrendingUp, Users, Calendar, BarChart3, Activity, Eye, MousePointer, Timer } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { format } from "date-fns";
 
@@ -24,6 +24,7 @@ interface FeedbackItem {
 export default function AdminPage() {
   const { user } = useAuth();
   const [feedback, setFeedback] = useState<FeedbackItem[]>([]);
+  const [analytics, setAnalytics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");

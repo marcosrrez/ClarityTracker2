@@ -125,6 +125,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Analytics endpoints
+  app.get("/api/admin/analytics", async (req, res) => {
+    try {
+      const analytics = await storage.getAnalytics();
+      res.json(analytics);
+    } catch (error) {
+      console.error("Failed to fetch analytics:", error);
+      res.status(500).json({ error: "Failed to fetch analytics" });
+    }
+  });
+
+  app.post("/api/analytics/track", express.json(), async (req, res) => {
+    try {
+      const { userId, sessionId, event, page, metadata } = req.body;
+      
+      await storage.trackUserEvent({
+        userId,
+        sessionId,
+        event,
+        page,
+        metadata: metadata ? JSON.stringify(metadata) : undefined,
+      });
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Failed to track event:", error);
+      res.status(500).json({ error: "Failed to track event" });
+    }
+  });
+
   // Since we're using Firebase for all data operations,
   // the main API routes are handled client-side with Firebase SDK
   // This server primarily serves the frontend and provides health checks

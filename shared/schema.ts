@@ -149,6 +149,17 @@ export const feedbackTable = pgTable('feedback', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+// Database table for user analytics tracking
+export const userAnalyticsTable = pgTable('user_analytics', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  sessionId: varchar('session_id', { length: 255 }).notNull(),
+  event: varchar('event', { length: 100 }).notNull(), // page_view, entry_added, ai_analysis, etc.
+  page: varchar('page', { length: 100 }), // dashboard, add-entry, insights, etc.
+  metadata: text('metadata'), // JSON string for additional data
+  timestamp: timestamp('timestamp').defaultNow().notNull(),
+});
+
 export const feedbackSchema = z.object({
   id: z.string(),
   userId: z.string().optional(),
@@ -170,3 +181,22 @@ export const insertFeedbackSchema = feedbackSchema.omit({
 
 export type Feedback = z.infer<typeof feedbackSchema>;
 export type InsertFeedback = z.infer<typeof insertFeedbackSchema>;
+
+// User Analytics Schema
+export const userAnalyticsSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  sessionId: z.string(),
+  event: z.string(),
+  page: z.string().optional(),
+  metadata: z.string().optional(),
+  timestamp: z.date(),
+});
+
+export const insertUserAnalyticsSchema = userAnalyticsSchema.omit({
+  id: true,
+  timestamp: true,
+});
+
+export type UserAnalytics = z.infer<typeof userAnalyticsSchema>;
+export type InsertUserAnalytics = z.infer<typeof insertUserAnalyticsSchema>;
