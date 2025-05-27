@@ -130,8 +130,8 @@ export const WelcomeSection = () => {
         </div>
         
         {/* Subtle decorative elements */}
-        <div className="absolute right-4 top-4 w-24 h-24 bg-gray-50 rounded-full"></div>
-        <div className="absolute right-8 bottom-8 w-16 h-16 bg-gray-100 rounded-full"></div>
+        <div className="absolute right-4 top-4 w-24 h-24 bg-gray-50 dark:bg-gray-700 rounded-full"></div>
+        <div className="absolute right-8 bottom-8 w-16 h-16 bg-gray-100 dark:bg-gray-600 rounded-full"></div>
       </div>
 
       {/* Dashboard Widgets - Slightly Smaller */}
