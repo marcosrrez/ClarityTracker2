@@ -47,14 +47,6 @@ export default function FeedbackPage() {
     setIsSubmitting(true);
     
     try {
-      // Store feedback in Firebase
-      const feedbackData = {
-        ...data,
-        userId: user?.uid,
-      };
-      
-      await createFeedback(feedbackData);
-      
       // Send email notification to you
       const response = await fetch('/api/feedback', {
         method: 'POST',
