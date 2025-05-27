@@ -158,15 +158,15 @@ export const ProgressSection = () => {
         {/* Progress Cards - Notion Style */}
         <div className="space-y-6">
           {progressCards.map((card, index) => (
-            <div key={index} className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm relative overflow-hidden">
+            <div key={index} className="bg-white dark:bg-gray-800 rounded-3xl p-8 border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden">
               <div className="flex items-center justify-between mb-4">
-                <h4 className="text-lg font-bold text-gray-900">{card.title}</h4>
-                <span className="text-2xl font-bold text-gray-900">
+                <h4 className="text-lg font-bold text-gray-900 dark:text-white">{card.title}</h4>
+                <span className="text-2xl font-bold text-gray-900 dark:text-white">
                   {Math.round(card.progress)}%
                 </span>
               </div>
               <div className="mb-4">
-                <div className="flex justify-between text-sm text-gray-600 mb-2 font-medium">
+                <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2 font-medium">
                   <span>{card.current.toFixed(1)} hours</span>
                   <span>Goal: {card.goal}</span>
                 </div>
