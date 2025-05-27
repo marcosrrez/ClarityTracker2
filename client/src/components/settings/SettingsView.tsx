@@ -65,21 +65,7 @@ export const SettingsView = () => {
         userDefinedGrowthAreas: [],
         favoriteTherapeuticModalities: [],
       },
-      interfacePreferences: {
-        smartFeaturesEnabled: true,
-        enabledCards: {
-          personalizedAICoaching: true,
-          competencyTracker: true,
-          achievementCelebration: true,
-          crossSessionAnalysis: true,
-          aiInsights: true,
-          milestoneTracking: true,
-          progressVisualization: true,
-          quickStats: true,
-          recentEntries: true,
-        },
-        dashboardTemplate: 'full_ai',
-      },
+
     },
   });
 
@@ -94,17 +80,7 @@ export const SettingsView = () => {
 
     setIsSaving(true);
     try {
-      // Clean the data to ensure proper format for Firestore
-      const cleanData = {
-        ...data,
-        interfacePreferences: {
-          smartFeaturesEnabled: Boolean(data.interfacePreferences?.smartFeaturesEnabled),
-          enabledCards: data.interfacePreferences?.enabledCards || {},
-          dashboardTemplate: data.interfacePreferences?.dashboardTemplate || 'full_ai',
-        }
-      };
-      
-      await updateAppSettings(user.uid, cleanData);
+      await updateAppSettings(user.uid, data);
       await refetch();
       toast({
         title: "Settings saved successfully",
