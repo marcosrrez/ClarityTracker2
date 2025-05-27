@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { pgTable, text, timestamp, varchar } from 'drizzle-orm/pg-core';
 
 // User Profile Schema
 export const userProfileSchema = z.object({
@@ -135,6 +136,19 @@ export const milestoneSchema = z.object({
 export type Milestone = z.infer<typeof milestoneSchema>;
 
 // Feedback Schema
+// Database table for feedback
+export const feedbackTable = pgTable('feedback', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }),
+  type: varchar('type', { length: 20 }).notNull(),
+  subject: text('subject').notNull(),
+  description: text('description').notNull(),
+  email: varchar('email', { length: 255 }),
+  status: varchar('status', { length: 20 }).notNull().default('new'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 export const feedbackSchema = z.object({
   id: z.string(),
   userId: z.string().optional(),

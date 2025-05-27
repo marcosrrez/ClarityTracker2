@@ -1,20 +1,39 @@
-// Since we're using Firebase for authentication and data storage,
-// we don't need a local storage implementation for users.
-// This file is kept for potential future backend-specific operations.
+import { feedbackTable, type Feedback, type InsertFeedback } from "@shared/schema";
 
 export interface IStorage {
-  // Future backend operations can be defined here
   healthCheck(): Promise<boolean>;
+  createFeedback(feedback: InsertFeedback): Promise<Feedback>;
+  getFeedback(): Promise<Feedback[]>;
 }
 
-export class MemStorage implements IStorage {
+export class DatabaseStorage implements IStorage {
   constructor() {
-    // Initialize any future storage needs here
+    // Database will be initialized through db.ts
   }
 
   async healthCheck(): Promise<boolean> {
     return true;
   }
+
+  async createFeedback(feedback: InsertFeedback): Promise<Feedback> {
+    const { db } = await import("./db");
+    const id = crypto.randomUUID();
+    
+    const [newFeedback] = await db
+      .insert(feedbackTable)
+      .values({
+        id,
+        ...feedback,
+      })
+      .returning();
+    
+    return newFeedback;
+  }
+
+  async getFeedback(): Promise<Feedback[]> {
+    const { db } = await import("./db");
+    return await db.select().from(feedbackTable).orderBy(feedbackTable.createdAt);
+  }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
