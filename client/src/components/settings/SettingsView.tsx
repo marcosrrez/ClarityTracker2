@@ -215,6 +215,67 @@ export const SettingsView = () => {
     return "none";
   };
 
+  const handleExportToCSV = async () => {
+    try {
+      setIsExporting(true);
+      
+      if (entries.length === 0) {
+        toast({
+          title: "No data to export",
+          description: "Add some entries first to export your data.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const headers = [
+        'Date of Contact',
+        'Client Contact Hours', 
+        'Supervision Hours',
+        'Supervision Type',
+        'Indirect Hours',
+        'Tech Assisted',
+        'Notes'
+      ];
+
+      const csvData = entries.map(entry => [
+        new Date(entry.dateOfContact).toLocaleDateString(),
+        entry.clientContactHours,
+        entry.supervisionHours,
+        entry.supervisionType,
+        entry.indirectHours ? 'Yes' : 'No',
+        entry.techAssistedSupervision ? 'Yes' : 'No',
+        `"${entry.notes.replace(/"/g, '""')}"`
+      ]);
+
+      const csvContent = [headers, ...csvData]
+        .map(row => row.join(','))
+        .join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `claritylog-entries-${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: "Export completed!",
+        description: `Downloaded ${entries.length} entries to CSV file.`,
+      });
+    } catch (error) {
+      console.error('Export error:', error);
+      toast({
+        title: "Export failed",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const {
     register,
     handleSubmit,
@@ -620,56 +681,91 @@ export const SettingsView = () => {
         </div>
       </form>
 
-      {/* Advanced Import Section */}
+      {/* Data Import & Export */}
       <Card className="border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 dark:border-green-800">
         <CardHeader>
           <CardTitle className="flex items-center space-x-2 text-green-700 dark:text-green-300">
             <FileSpreadsheet className="h-5 w-5" />
-            <span>Advanced Import System</span>
+            <span>Data Import & Export</span>
           </CardTitle>
           <CardDescription className="dark:text-gray-300">
-            Upload your existing tracking data in any CSV format. Our intelligent analyzer automatically detects and maps your columns.
+            Import existing tracking data or export your current entries for backup and analysis.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="import-file" className="cursor-pointer">
-                <Button
-                  type="button"
-                  variant="outline"
+          <div className="space-y-6">
+            {/* Import Section */}
+            <div className="space-y-4">
+              <h4 className="font-medium text-green-700 dark:text-green-300">Smart Import from Any Format</h4>
+              <p className="text-sm text-muted-foreground dark:text-gray-400">
+                Upload your existing tracking data in any CSV format. Our intelligent analyzer automatically detects and maps your columns.
+              </p>
+              <div className="space-y-2">
+                <label htmlFor="import-file" className="cursor-pointer">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={isImporting}
+                    className="w-full sm:w-auto dark:border-green-600 dark:hover:bg-green-900/20"
+                  >
+                    {isImporting ? (
+                      <>
+                        <LoadingSpinner size="sm" className="mr-2" />
+                        Analyzing & Importing...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4 mr-2" />
+                        Choose File to Analyze
+                      </>
+                    )}
+                  </Button>
+                </label>
+                <input
+                  id="import-file"
+                  type="file"
+                  accept=".csv,.xlsx"
+                  onChange={handleImportFromExcel}
                   disabled={isImporting}
-                  className="w-full sm:w-auto dark:border-green-600 dark:hover:bg-green-900/20"
-                >
-                  {isImporting ? (
-                    <>
-                      <LoadingSpinner size="sm" className="mr-2" />
-                      Analyzing & Importing...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="h-4 w-4 mr-2" />
-                      Choose File to Analyze
-                    </>
-                  )}
-                </Button>
-              </label>
-              <input
-                id="import-file"
-                type="file"
-                accept=".csv,.xlsx"
-                onChange={handleImportFromExcel}
-                disabled={isImporting}
-                className="hidden"
-              />
-              <div className="text-xs text-muted-foreground dark:text-gray-400 space-y-1">
-                <p><strong>✨ Intelligent Detection:</strong></p>
-                <p>• Recognizes any column names (dates, hours, supervision, notes, etc.)</p>
-                <p>• Handles multiple date formats (MM/DD/YYYY, YYYY-MM-DD, etc.)</p>
-                <p>• Converts minutes to hours automatically when detected</p>
-                <p>• Supports comma, semicolon, or tab delimiters</p>
-                <p>• Maps supervision types and tech-assisted sessions flexibly</p>
+                  className="hidden"
+                />
+                <div className="text-xs text-muted-foreground dark:text-gray-400 space-y-1">
+                  <p><strong>✨ Intelligent Detection:</strong></p>
+                  <p>• Recognizes any column names (dates, hours, supervision, notes, etc.)</p>
+                  <p>• Handles multiple date formats (MM/DD/YYYY, YYYY-MM-DD, etc.)</p>
+                  <p>• Converts minutes to hours automatically when detected</p>
+                  <p>• Supports comma, semicolon, or tab delimiters</p>
+                  <p>• Maps supervision types and tech-assisted sessions flexibly</p>
+                </div>
               </div>
+            </div>
+
+            <Separator className="dark:bg-green-800/30" />
+
+            {/* Export Section */}
+            <div className="space-y-4">
+              <h4 className="font-medium text-green-700 dark:text-green-300">Export Your Data</h4>
+              <p className="text-sm text-muted-foreground dark:text-gray-400">
+                Download your entries for backup, sharing with supervisors, or external analysis.
+              </p>
+              <Button
+                variant="outline"
+                onClick={handleExportToCSV}
+                disabled={isExporting}
+                className="w-full sm:w-auto dark:border-green-600 dark:hover:bg-green-900/20"
+              >
+                {isExporting ? (
+                  <>
+                    <LoadingSpinner size="sm" className="mr-2" />
+                    Generating Export...
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-4 w-4 mr-2" />
+                    Export to CSV
+                  </>
+                )}
+              </Button>
             </div>
           </div>
         </CardContent>

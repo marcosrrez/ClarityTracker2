@@ -49,7 +49,7 @@ export const QuickStatsGrid = () => {
       change: `+${weeklyClientHours.toFixed(1)} this week`,
       icon: Clock,
       iconColor: "text-primary",
-      iconBg: "bg-primary/10",
+      iconBg: "bg-primary/10 dark:bg-primary/20",
     },
     {
       title: "Supervision Hours",
@@ -58,7 +58,7 @@ export const QuickStatsGrid = () => {
       change: `+${weeklySupervisionHours.toFixed(1)} this week`,
       icon: Users,
       iconColor: "text-accent",
-      iconBg: "bg-accent/10",
+      iconBg: "bg-accent/10 dark:bg-accent/20",
     },
     {
       title: "Days to Check-in",
@@ -78,7 +78,7 @@ export const QuickStatsGrid = () => {
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <div key={index} className="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200">
+            <div key={index} className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-200">
               <div className="flex items-center justify-between mb-4">
                 <div className={`p-3 rounded-lg ${stat.iconBg}`}>
                   <Icon className={`h-5 w-5 ${stat.iconColor}`} />
