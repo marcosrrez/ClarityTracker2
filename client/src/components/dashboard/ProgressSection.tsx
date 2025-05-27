@@ -236,7 +236,7 @@ export const ProgressSection = () => {
             <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Renewal Requirements</h4>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="ethicsHours" className="text-sm font-semibold text-gray-700 mb-2 block">
+                <Label htmlFor="ethicsHours" className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 block">
                   Ethics Hours
                 </Label>
                 <div className="flex space-x-3 mt-2">
@@ -260,7 +260,7 @@ export const ProgressSection = () => {
                 </div>
               </div>
               <div>
-                <div className="flex justify-between text-sm text-gray-600 mb-2 font-medium">
+                <div className="flex justify-between text-sm text-gray-600 dark:text-gray-300 mb-2 font-medium">
                   <span>Progress</span>
                   <span>{finalEthicsHours}/{goalEthicsHours} hours</span>
                 </div>
