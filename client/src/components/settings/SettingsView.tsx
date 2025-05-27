@@ -71,20 +71,60 @@ export const SettingsView = () => {
 
   useEffect(() => {
     if (settings) {
-      reset(settings);
+      // Convert arrays back to strings for display in textareas
+      const formattedSettings = {
+        ...settings,
+        personalPreferences: {
+          ...settings.personalPreferences,
+          favoriteTherapeuticModalities: Array.isArray(settings.personalPreferences?.favoriteTherapeuticModalities) 
+            ? settings.personalPreferences.favoriteTherapeuticModalities.join('\n')
+            : settings.personalPreferences?.favoriteTherapeuticModalities || '',
+          userDefinedGrowthAreas: Array.isArray(settings.personalPreferences?.userDefinedGrowthAreas)
+            ? settings.personalPreferences.userDefinedGrowthAreas.join('\n') 
+            : settings.personalPreferences?.userDefinedGrowthAreas || ''
+        }
+      };
+      reset(formattedSettings);
     }
   }, [settings, reset]);
 
-  const onSubmit = async (data: InsertAppSettings) => {
+  const onSubmit = async (data: any) => {
     if (!user?.uid) return;
 
     setIsSaving(true);
     try {
-      await updateAppSettings(user.uid, data);
+      // Create clean data object that matches Firebase schema
+      const cleanData = {
+        goals: data.goals,
+        importedHours: data.importedHours,
+        licenseInfo: data.licenseInfo,
+        personalPreferences: {
+          userDefinedGrowthAreas: [],
+          favoriteTherapeuticModalities: []
+        }
+      };
+
+      // Process therapeutic modalities
+      if (data.personalPreferences?.favoriteTherapeuticModalities) {
+        const modalities = typeof data.personalPreferences.favoriteTherapeuticModalities === 'string'
+          ? data.personalPreferences.favoriteTherapeuticModalities.split('\n').filter((line: string) => line.trim() !== '')
+          : [];
+        cleanData.personalPreferences.favoriteTherapeuticModalities = modalities;
+      }
+
+      // Process growth areas  
+      if (data.personalPreferences?.userDefinedGrowthAreas) {
+        const growthAreas = typeof data.personalPreferences.userDefinedGrowthAreas === 'string'
+          ? data.personalPreferences.userDefinedGrowthAreas.split('\n').filter((line: string) => line.trim() !== '')
+          : [];
+        cleanData.personalPreferences.userDefinedGrowthAreas = growthAreas;
+      }
+
+      await updateAppSettings(user.uid, cleanData);
       await refetch();
       toast({
         title: "Settings saved successfully",
-        description: "Your preferences have been updated and saved.",
+        description: "Your therapeutic approaches and preferences have been saved.",
       });
     } catch (error) {
       console.error("Error saving settings:", error);
