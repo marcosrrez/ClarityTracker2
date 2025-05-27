@@ -3,11 +3,11 @@ export const siteConfig = {
   description: "Professional development tracking for Licensed Associate Counselors",
   version: "1.0.0",
   author: "ClarityLog Team",
-  url: "https://claritylog.com",
+  url: "https://claritylog.net",
   links: {
     github: "https://github.com/claritylog/claritylog",
-    documentation: "https://docs.claritylog.com",
-    support: "mailto:support@claritylog.com",
+    documentation: "https://docs.claritylog.net",
+    support: "mailto:support@claritylog.net",
   },
 };
 
