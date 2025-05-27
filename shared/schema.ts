@@ -64,10 +64,7 @@ export const appSettingsSchema = z.object({
     lacLicenseDate: z.date().optional(),
     supervisionCheckInInterval: z.number().min(1).default(30),
   }),
-  personalPreferences: z.object({
-    userDefinedGrowthAreas: z.array(z.string()).default([]),
-    favoriteTherapeuticModalities: z.array(z.string()).default([]),
-  }),
+
   updatedAt: z.date().default(() => new Date()),
 });
 

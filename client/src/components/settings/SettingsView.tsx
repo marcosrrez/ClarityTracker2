@@ -61,30 +61,20 @@ export const SettingsView = () => {
         lacLicenseDate: undefined,
         supervisionCheckInInterval: 30,
       },
-      personalPreferences: {
-        userDefinedGrowthAreas: [],
-        favoriteTherapeuticModalities: [],
-      },
+
 
     },
   });
 
   useEffect(() => {
     if (settings) {
-      // Convert arrays back to strings for display in textareas
-      const formattedSettings = {
-        ...settings,
-        personalPreferences: {
-          ...settings.personalPreferences,
-          favoriteTherapeuticModalities: Array.isArray(settings.personalPreferences?.favoriteTherapeuticModalities) 
-            ? settings.personalPreferences.favoriteTherapeuticModalities.join('\n')
-            : settings.personalPreferences?.favoriteTherapeuticModalities || '',
-          userDefinedGrowthAreas: Array.isArray(settings.personalPreferences?.userDefinedGrowthAreas)
-            ? settings.personalPreferences.userDefinedGrowthAreas.join('\n') 
-            : settings.personalPreferences?.userDefinedGrowthAreas || ''
-        }
+      // Only load core settings, skip personalPreferences
+      const coreSettings = {
+        goals: settings.goals,
+        importedHours: settings.importedHours,
+        licenseInfo: settings.licenseInfo
       };
-      reset(formattedSettings);
+      reset(coreSettings);
     }
   }, [settings, reset]);
 
@@ -93,27 +83,23 @@ export const SettingsView = () => {
 
     setIsSaving(true);
     try {
-      // Only save core settings to Firebase (therapeutic approaches are saved in localStorage)
+      // Only save core settings - skip personalPreferences entirely
       const cleanData = {
         goals: data.goals,
         importedHours: data.importedHours,
-        licenseInfo: data.licenseInfo,
-        personalPreferences: {
-          userDefinedGrowthAreas: [],
-          favoriteTherapeuticModalities: []
-        }
+        licenseInfo: data.licenseInfo
       };
 
       await updateAppSettings(user.uid, cleanData);
       await refetch();
       toast({
         title: "Settings saved successfully",
-        description: "Your goals and license information have been saved. Therapeutic approaches auto-save as you type.",
+        description: "Your hour goals and license information have been saved.",
       });
     } catch (error) {
       console.error("Error saving settings:", error);
       toast({
-        title: "Error saving settings",
+        title: "Error saving settings", 
         description: "There was a problem updating your settings. Please try again.",
         variant: "destructive",
       });
