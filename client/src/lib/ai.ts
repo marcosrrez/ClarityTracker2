@@ -95,6 +95,26 @@ export const generateCrossSessionAnalysis = async (entries: any[], userProfile?:
   }
 
   try {
+    // Get user's therapeutic preferences for deeply personalized analysis
+    const therapeuticModalities = userProfile?.personalPreferences?.favoriteTherapeuticModalities || [];
+    const growthAreas = userProfile?.personalPreferences?.userDefinedGrowthAreas || [];
+    const licensureStage = userProfile?.currentStage || 'pre_licensure';
+    const currentGoals = userProfile?.currentGoals || [];
+
+    const personalizationContext = `
+PERSONALIZED ANALYSIS CONTEXT:
+- User's Preferred Therapeutic Modalities: ${therapeuticModalities.join(', ') || 'Not specified'}
+- Identified Professional Growth Areas: ${growthAreas.join(', ') || 'Not specified'}
+- Current Licensure Stage: ${licensureStage}
+- Personal Goals: ${currentGoals.join(', ') || 'Not specified'}
+
+Please analyze these sessions through the lens of their specific therapeutic preferences and growth objectives. Focus particularly on:
+- Evidence of growth in their preferred therapeutic approaches
+- Opportunities to apply their chosen modalities more effectively
+- Progress in their identified growth areas
+- Professional development aligned with their licensure stage
+- Patterns that support or challenge their therapeutic identity`;
+
     const sessionsData = entries.map((entry, index) => `
 Session ${index + 1} (${new Date(entry.dateOfContact).toLocaleDateString()}):
 Type: ${entry.contactType || 'Individual'}
@@ -130,6 +150,8 @@ Counselor Profile:
 
     const prompt = `As an expert clinical supervisor and professional development coach, analyze this counselor's complete professional development journey across ${entries.length} sessions spanning ${timeSpan} days with ${totalHours} total client contact hours.
 
+${personalizationContext}
+
 ${userContext}
 
 Session Data:
@@ -137,7 +159,7 @@ ${sessionsData}
 
 ${insightCardsData}
 
-Provide a comprehensive cross-session analysis in JSON format, integrating ALL data sources (session notes, previous AI analyses, and personal reflections/resources):
+Provide a comprehensive cross-session analysis in JSON format, integrating ALL data sources (session notes, previous AI analyses, and personal reflections/resources). Pay special attention to how their therapeutic preferences and growth goals are reflected in their practice:
 
 {
   "overallGrowthTrajectory": "Narrative of professional growth journey and development arc",
