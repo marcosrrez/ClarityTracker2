@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import express from "express";
 import { sendFeedbackNotification } from "./email";
 import { storage } from "./storage";
+import { handleTwilioWebhook } from "./sms-service";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Health check endpoint
