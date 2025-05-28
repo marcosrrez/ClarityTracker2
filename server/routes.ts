@@ -126,6 +126,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // SMS webhook endpoint for text-to-entry feature
+  app.post('/api/sms/webhook', express.urlencoded({ extended: false }), handleTwilioWebhook);
+
   // Analytics endpoints
   app.get("/api/admin/analytics", async (req, res) => {
     try {

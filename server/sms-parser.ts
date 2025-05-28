@@ -206,7 +206,6 @@ export class SMSEntryParser {
       supervisionType: "none",
       techAssistedSupervision: false,
       notes: parsed.notes || 'Session logged via SMS',
-      createdAt: new Date(),
     };
 
     // Adjust based on session type
