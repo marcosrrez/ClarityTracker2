@@ -5,6 +5,9 @@ import { pgTable, text, timestamp, varchar } from 'drizzle-orm/pg-core';
 export const userProfileSchema = z.object({
   preferredName: z.string().min(1, "Preferred name is required"),
   focus: z.enum(["licensure", "renewal"]),
+  accountType: z.enum(["individual", "supervisor", "enterprise"]).default("individual"),
+  organizationName: z.string().optional(),
+  supervisorId: z.string().optional(),
   stateRegion: z.string().min(1, "State/region is required"),
   licenseStage: z.string().optional(),
   specialties: z.array(z.string()).default([]),
@@ -13,6 +16,7 @@ export const userProfileSchema = z.object({
   hasCompletedOnboarding: z.boolean().default(false),
   mainOnboardingCompleted: z.boolean().default(false),
   highlightOnboardingCompleted: z.boolean().default(false),
+  subscriptionTier: z.enum(["free", "individual", "supervisor", "enterprise"]).default("free"),
   createdAt: z.date().default(() => new Date()),
   updatedAt: z.date().default(() => new Date()),
 });

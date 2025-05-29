@@ -8,6 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/use-auth";
+import { useAccountType } from "@/hooks/use-account-type";
 import { useTheme } from "@/contexts/ThemeContext";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import {
@@ -26,6 +27,10 @@ import {
   LogOut,
   Sprout,
   MessageSquare,
+  Users,
+  Building2,
+  Shield,
+  FileText,
 } from "lucide-react";
 
 const navigationItems = [
