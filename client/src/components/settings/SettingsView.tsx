@@ -54,6 +54,7 @@ export const SettingsView = () => {
       setIsImporting(true);
       
       // Show initial processing message
+      console.log('Starting import for file:', file.name, 'Type:', file.type);
       toast({
         title: "Processing file...",
         description: `Reading ${file.name}...`,
@@ -108,16 +109,35 @@ export const SettingsView = () => {
       }
 
       // Show what was detected
+      console.log('Headers found:', headers);
+      console.log('Column mapping:', columnMapping);
+      
+      // Check if we found the essential columns
+      if (!columnMapping.date) {
+        toast({
+          title: "Date column not found",
+          description: `Headers: ${headers.join(', ')}. Please ensure you have a date column.`,
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (!columnMapping.clientHours && !columnMapping.supervisionHours) {
+        toast({
+          title: "No hours columns found",
+          description: `Headers: ${headers.join(', ')}. Please ensure you have hours columns.`,
+          variant: "destructive",
+        });
+        return;
+      }
+      
       const detectedColumns = Object.entries(columnMapping)
         .map(([key, index]) => `${key}: "${headers[index]}"`)
         .join(', ');
       
-      console.log('Headers found:', headers);
-      console.log('Column mapping:', columnMapping);
-      
       toast({
         title: "Columns detected!",
-        description: `Detected: ${detectedColumns}`,
+        description: `Found: ${detectedColumns}`,
       });
 
       // Process data rows
@@ -216,7 +236,8 @@ export const SettingsView = () => {
         mapping.date = index;
       }
       
-      if ((cleanHeader.includes('client') && cleanHeader.includes('hour')) || 
+      if ((cleanHeader.includes('direct') && cleanHeader.includes('client') && cleanHeader.includes('hour')) ||
+          (cleanHeader.includes('client') && cleanHeader.includes('hour')) || 
           (cleanHeader.includes('direct') && cleanHeader.includes('hour')) ||
           cleanHeader.includes('cch') || cleanHeader.includes('contact hour')) {
         mapping.clientHours = index;
