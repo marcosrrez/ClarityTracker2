@@ -245,11 +245,19 @@ export const SettingsView = () => {
   const parseFlexibleDate = (value: string): Date => {
     if (!value || value.trim() === '') return new Date();
     
+    // Handle Excel timestamp format like "2025-01-05 00:00:00"
+    let cleanValue = value.toString().trim();
+    
+    // Remove time portion if present
+    if (cleanValue.includes(' ')) {
+      cleanValue = cleanValue.split(' ')[0];
+    }
+    
     const dateFormats = [
-      value,
-      value.replace(/[-\/]/g, '/'),
-      value.replace(/(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/, '$3/$1/$2'),
-      value.replace(/(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/, '$1/$2/$3'),
+      cleanValue, // Original format
+      cleanValue.replace(/[-\/]/g, '/'), // Convert dashes to slashes
+      cleanValue.replace(/(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/, '$3/$1/$2'), // MM/DD/YYYY to YYYY/MM/DD
+      cleanValue.replace(/(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/, '$1/$2/$3'), // YYYY-MM-DD to YYYY/MM/DD
     ];
     
     for (const format of dateFormats) {
@@ -258,7 +266,10 @@ export const SettingsView = () => {
         return date;
       }
     }
-    return new Date();
+    
+    // If all else fails, try direct parsing
+    const fallbackDate = new Date(value);
+    return !isNaN(fallbackDate.getTime()) ? fallbackDate : new Date();
   };
 
   const parseFlexibleNumber = (value: string): number => {
