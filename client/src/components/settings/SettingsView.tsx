@@ -266,8 +266,16 @@ export const SettingsView = () => {
   const parseFlexibleDate = (value: string): Date => {
     if (!value || value.trim() === '') return new Date();
     
-    // Handle Excel timestamp format like "2025-01-05 00:00:00"
     let cleanValue = value.toString().trim();
+    
+    // Handle Excel serial number dates (like 45746)
+    const numValue = parseFloat(cleanValue);
+    if (!isNaN(numValue) && numValue > 40000 && numValue < 50000) {
+      // Excel serial date: days since January 1, 1900
+      const excelEpoch = new Date(1900, 0, 1);
+      const date = new Date(excelEpoch.getTime() + (numValue - 1) * 24 * 60 * 60 * 1000);
+      return date;
+    }
     
     // Remove time portion if present
     if (cleanValue.includes(' ')) {
@@ -283,7 +291,7 @@ export const SettingsView = () => {
     
     for (const format of dateFormats) {
       const date = new Date(format);
-      if (!isNaN(date.getTime())) {
+      if (!isNaN(date.getTime()) && date.getFullYear() > 1900 && date.getFullYear() < 2100) {
         return date;
       }
     }
