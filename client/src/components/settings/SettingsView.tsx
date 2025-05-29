@@ -113,7 +113,7 @@ export const SettingsView = () => {
       console.log('Column mapping:', columnMapping);
       
       // Check if we found the essential columns
-      if (!columnMapping.date) {
+      if (columnMapping.date === undefined) {
         toast({
           title: "Date column not found",
           description: `Headers: ${headers.join(', ')}. Please ensure you have a date column.`,
@@ -122,7 +122,7 @@ export const SettingsView = () => {
         return;
       }
       
-      if (!columnMapping.clientHours && !columnMapping.supervisionHours) {
+      if (columnMapping.clientHours === undefined && columnMapping.supervisionHours === undefined) {
         toast({
           title: "No hours columns found",
           description: `Headers: ${headers.join(', ')}. Please ensure you have hours columns.`,
