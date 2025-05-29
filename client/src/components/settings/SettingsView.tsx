@@ -150,12 +150,18 @@ export const SettingsView = () => {
             clientContactHours: clientHours,
             supervisionHours: supervisionHours,
             supervisionType: mapSupervisionType(columns[columnMapping.supervisionType] || 'none'),
-            indirectHours: false, // Set to false instead of boolean check
+            indirectHours: false,
             techAssistedSupervision: parseFlexibleBoolean(columns[columnMapping.techAssisted] || 'false'),
             notes: parseFlexibleString(columns[columnMapping.notes] || 'Imported from Excel'),
           };
 
-          console.log('Attempting to create entry:', entry); // Debug log
+          console.log('Raw row data:', columns);
+          console.log('Parsed entry:', entry);
+          console.log('Date validation:', {
+            original: columns[columnMapping.date],
+            parsed: parsedDate,
+            isValid: !isNaN(parsedDate.getTime())
+          }); // Debug log
           
           try {
             await createLogEntry(user!.uid, entry);
