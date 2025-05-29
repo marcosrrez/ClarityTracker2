@@ -204,14 +204,14 @@ export const SettingsView = () => {
         }
       }
 
-      // Final success message
+      // Final success message with manual dismissal required
       toast({
         title: "Import completed successfully!",
-        description: `✅ Imported: ${importedCount} entries${skippedCount > 0 ? ` | Skipped: ${skippedCount}` : ''}${errorCount > 0 ? ` | Errors: ${errorCount}` : ''}`,
+        description: `✅ Imported: ${importedCount} entries${skippedCount > 0 ? ` | Skipped: ${skippedCount}` : ''}${errorCount > 0 ? ` | Errors: ${errorCount}` : ''}. Navigate to dashboard to view your entries.`,
+        duration: 10000, // Stays visible longer for user to acknowledge
       });
 
-      // Refresh data to show new entries
-      window.location.reload();
+      // Don't auto-navigate, let user dismiss and navigate manually
 
     } catch (error) {
       console.error('Import error:', error);
@@ -268,10 +268,10 @@ export const SettingsView = () => {
     
     let cleanValue = value.toString().trim();
     
-    // Handle Excel serial number dates (like 45746)
+    // Handle Excel serial number dates (like 45746) and other numeric formats
     const numValue = parseFloat(cleanValue);
-    if (!isNaN(numValue) && numValue > 40000 && numValue < 50000) {
-      // Excel serial date: days since January 1, 1900
+    if (!isNaN(numValue) && numValue > 25000 && numValue < 70000) {
+      // Excel serial date: days since January 1, 1900 (extended range for compatibility)
       const excelEpoch = new Date(1900, 0, 1);
       const date = new Date(excelEpoch.getTime() + (numValue - 1) * 24 * 60 * 60 * 1000);
       return date;
