@@ -236,9 +236,9 @@ export const SettingsView = () => {
         mapping.date = index;
       }
       
-      if ((cleanHeader.includes('direct') && cleanHeader.includes('client') && cleanHeader.includes('hour')) ||
-          (cleanHeader.includes('client') && cleanHeader.includes('hour')) || 
-          (cleanHeader.includes('direct') && cleanHeader.includes('hour')) ||
+      if (cleanHeader === 'direct client hours' ||
+          (cleanHeader.includes('direct') && cleanHeader.includes('client') && cleanHeader.includes('hour')) ||
+          (cleanHeader.includes('client') && cleanHeader.includes('hour') && !cleanHeader.includes('indirect')) || 
           cleanHeader.includes('cch') || cleanHeader.includes('contact hour')) {
         mapping.clientHours = index;
       }
