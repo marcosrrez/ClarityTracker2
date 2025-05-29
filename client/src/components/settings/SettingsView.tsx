@@ -40,7 +40,8 @@ export const SettingsView = () => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (!file.name.toLowerCase().includes('.csv') && !file.name.toLowerCase().includes('.xlsx')) {
+    const fileName = file.name.toLowerCase();
+    if (!fileName.includes('.csv') && !fileName.includes('.xlsx') && !fileName.includes('.xls')) {
       toast({
         title: "Invalid file type",
         description: "Please upload a CSV or Excel file.",
@@ -51,24 +52,38 @@ export const SettingsView = () => {
 
     try {
       setIsImporting(true);
-      const text = await file.text();
-      
-      // Handle different delimiters
-      let delimiter = ',';
-      if (text.includes(';') && text.split(';').length > text.split(',').length) {
-        delimiter = ';';
-      } else if (text.includes('\t')) {
-        delimiter = '\t';
+      let data: any[][] = [];
+
+      if (fileName.includes('.csv')) {
+        // Handle CSV files
+        const text = await file.text();
+        const lines = text.split('\n').filter(line => line.trim());
+        data = lines.map(line => {
+          // Handle different delimiters
+          let delimiter = ',';
+          if (line.includes(';') && line.split(';').length > line.split(',').length) {
+            delimiter = ';';
+          } else if (line.includes('\t')) {
+            delimiter = '\t';
+          }
+          return line.split(delimiter).map(col => col.trim().replace(/^"|"$/g, ''));
+        });
+      } else {
+        // Handle Excel files
+        const { utils, read } = await import('xlsx');
+        const arrayBuffer = await file.arrayBuffer();
+        const workbook = read(arrayBuffer, { type: 'array' });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        data = utils.sheet_to_json(worksheet, { header: 1 });
       }
       
-      const lines = text.split('\n').filter(line => line.trim());
-      
-      if (lines.length < 2) {
+      if (data.length < 2) {
         throw new Error("File appears to be empty or has no data rows");
       }
 
       // Parse headers and create intelligent mapping
-      const headers = lines[0].split(delimiter).map(h => h.trim().replace(/^"|"$/g, ''));
+      const headers = data[0].map(h => String(h || '').trim());
       const columnMapping = intelligentColumnMapper(headers);
       
       if (Object.keys(columnMapping).length === 0) {
@@ -81,13 +96,13 @@ export const SettingsView = () => {
       }
 
       // Process data rows
-      const dataLines = lines.slice(1);
+      const dataRows = data.slice(1);
       let importedCount = 0;
       let errorCount = 0;
 
-      for (const line of dataLines) {
+      for (const row of dataRows) {
         try {
-          const columns = line.split(delimiter).map(col => col.trim().replace(/^"|"$/g, ''));
+          const columns = row.map((col: any) => String(col || '').trim());
           
           if (columns.length < 2) continue;
 
