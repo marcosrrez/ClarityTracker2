@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { PlanSelection } from "./PlanSelection";
 import { 
   CheckCircle2, 
   ArrowRight, 
@@ -37,6 +38,13 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
     description: "Your AI-powered professional development companion",
     icon: Heart,
     color: "text-red-500"
+  },
+  {
+    id: "account-type",
+    title: "Choose Your Account Type",
+    description: "Select the plan that fits your professional needs",
+    icon: Users,
+    color: "text-blue-500"
   },
   {
     id: "profile",
@@ -88,7 +96,8 @@ export const OnboardingFlow = ({ isOpen, onClose }: OnboardingFlowProps) => {
     licenseStage: userProfile?.licenseStage || "",
     specialties: userProfile?.specialties || [],
     professionalGoals: userProfile?.professionalGoals || "",
-    yearsOfExperience: userProfile?.yearsOfExperience || ""
+    yearsOfExperience: userProfile?.yearsOfExperience || "",
+    accountType: userProfile?.accountType || ""
   });
 
   const currentStepData = ONBOARDING_STEPS[currentStep];
@@ -96,8 +105,15 @@ export const OnboardingFlow = ({ isOpen, onClose }: OnboardingFlowProps) => {
 
   const handleNext = async () => {
     if (currentStep === 1) {
-      // Save profile data
-      await updateUserProfile(profileData);
+      // Save account type selection
+      await updateUserProfile({ 
+        accountType: profileData.accountType as "individual" | "supervisor" | "enterprise" 
+      });
+    }
+    if (currentStep === 2) {
+      // Save profile data (excluding accountType which was already saved)
+      const { accountType, ...profile } = profileData;
+      await updateUserProfile(profile);
     }
     
     if (currentStep < ONBOARDING_STEPS.length - 1) {
@@ -161,6 +177,26 @@ export const OnboardingFlow = ({ isOpen, onClose }: OnboardingFlowProps) => {
                 <p className="text-sm font-medium text-foreground">Professional Growth</p>
               </div>
             </div>
+          </div>
+        );
+
+      case "account-type":
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-6">
+              <Users className="h-12 w-12 text-blue-500 mx-auto mb-4" />
+              <h3 className="text-xl font-bold">Choose Your Account Type</h3>
+              <p className="text-muted-foreground">
+                Select the plan that best fits your professional needs and responsibilities.
+              </p>
+            </div>
+            
+            <PlanSelection 
+              onPlanSelect={(accountType) => {
+                setProfileData({...profileData, accountType});
+              }}
+              selectedPlan={profileData.accountType}
+            />
           </div>
         );
 
