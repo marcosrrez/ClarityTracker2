@@ -717,30 +717,29 @@ export const SettingsView = () => {
                 Upload your existing tracking data in any CSV format. Our intelligent analyzer automatically detects and maps your columns.
               </p>
               <div className="space-y-2">
-                <label htmlFor="import-file" className="cursor-pointer">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={isImporting}
-                    className="w-full sm:w-auto dark:border-green-600 dark:hover:bg-green-900/20"
-                  >
-                    {isImporting ? (
-                      <>
-                        <LoadingSpinner size="sm" className="mr-2" />
-                        Analyzing & Importing...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="h-4 w-4 mr-2" />
-                        Choose File to Analyze
-                      </>
-                    )}
-                  </Button>
-                </label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isImporting}
+                  className="w-full sm:w-auto dark:border-green-600 dark:hover:bg-green-900/20"
+                  onClick={() => document.getElementById('import-file')?.click()}
+                >
+                  {isImporting ? (
+                    <>
+                      <LoadingSpinner size="sm" className="mr-2" />
+                      Analyzing & Importing...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Choose File to Analyze
+                    </>
+                  )}
+                </Button>
                 <input
                   id="import-file"
                   type="file"
-                  accept=".csv,.xlsx"
+                  accept=".csv,.xlsx,.xls"
                   onChange={handleImportFromExcel}
                   disabled={isImporting}
                   className="hidden"
