@@ -45,6 +45,20 @@ export interface IStorage {
   
   getSuperviseeProgress(superviseeId: string): Promise<any>;
   getSupervisionCompliance(supervisorId: string): Promise<any>;
+  
+  // Enhanced supervision features
+  createComplianceAlert(alert: InsertComplianceAlert): Promise<ComplianceAlert>;
+  getComplianceAlerts(supervisorId: string, unreadOnly?: boolean): Promise<ComplianceAlert[]>;
+  updateComplianceAlert(id: string, updates: Partial<ComplianceAlert>): Promise<void>;
+  resolveComplianceAlert(id: string, resolvedBy: string): Promise<void>;
+  generateAutomatedAlerts(supervisorId: string): Promise<ComplianceAlert[]>;
+  
+  createCompetencyFramework(framework: InsertCompetencyFramework): Promise<CompetencyFramework>;
+  getCompetencyFrameworks(category?: string): Promise<CompetencyFramework[]>;
+  updateCompetencyFramework(id: string, updates: Partial<CompetencyFramework>): Promise<void>;
+  
+  generateCompetencyReport(superviseeId: string): Promise<any>;
+  getSupervisionTrends(supervisorId: string, timeframe?: string): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -397,6 +411,322 @@ export class DatabaseStorage implements IStorage {
       complianceRate: compliance.length > 0 ? compliance.filter(c => c.status === 'completed' || c.status === 'on-track').length / compliance.length : 0,
       atRiskCount: compliance.filter(c => c.status === 'at-risk').length,
       compliance,
+    };
+  }
+
+  // Enhanced supervision features implementation
+  async createComplianceAlert(alert: InsertComplianceAlert): Promise<ComplianceAlert> {
+    const { db } = await import("./db");
+    const id = crypto.randomUUID();
+    
+    const [result] = await db.insert(complianceAlertTable)
+      .values({
+        ...alert,
+        id,
+        triggerData: alert.triggerData ? JSON.stringify(alert.triggerData) : undefined,
+        isRead: alert.isRead.toString(),
+        isResolved: alert.isResolved.toString(),
+      })
+      .returning();
+
+    return {
+      ...result,
+      triggerData: result.triggerData ? JSON.parse(result.triggerData) : undefined,
+      isRead: result.isRead === 'true',
+      isResolved: result.isResolved === 'true',
+    };
+  }
+
+  async getComplianceAlerts(supervisorId: string, unreadOnly?: boolean): Promise<ComplianceAlert[]> {
+    const { db } = await import("./db");
+    const { eq, desc, and } = await import("drizzle-orm");
+    
+    let whereCondition = eq(complianceAlertTable.supervisorId, supervisorId);
+    if (unreadOnly) {
+      whereCondition = and(
+        eq(complianceAlertTable.supervisorId, supervisorId),
+        eq(complianceAlertTable.isRead, 'false')
+      );
+    }
+
+    const results = await db.select()
+      .from(complianceAlertTable)
+      .where(whereCondition)
+      .orderBy(desc(complianceAlertTable.createdAt));
+
+    return results.map(result => ({
+      ...result,
+      triggerData: result.triggerData ? JSON.parse(result.triggerData) : undefined,
+      isRead: result.isRead === 'true',
+      isResolved: result.isResolved === 'true',
+    }));
+  }
+
+  async updateComplianceAlert(id: string, updates: Partial<ComplianceAlert>): Promise<void> {
+    const { db } = await import("./db");
+    const { eq } = await import("drizzle-orm");
+    
+    const updateData: any = { ...updates };
+    if (updates.triggerData !== undefined) updateData.triggerData = JSON.stringify(updates.triggerData);
+    if (updates.isRead !== undefined) updateData.isRead = updates.isRead.toString();
+    if (updates.isResolved !== undefined) updateData.isResolved = updates.isResolved.toString();
+
+    await db.update(complianceAlertTable)
+      .set(updateData)
+      .where(eq(complianceAlertTable.id, id));
+  }
+
+  async resolveComplianceAlert(id: string, resolvedBy: string): Promise<void> {
+    await this.updateComplianceAlert(id, {
+      isResolved: true,
+      resolvedAt: new Date(),
+      resolvedBy,
+    });
+  }
+
+  async generateAutomatedAlerts(supervisorId: string): Promise<ComplianceAlert[]> {
+    const relationships = await this.getSuperviseeRelationships(supervisorId);
+    const sessions = await this.getSupervisionSessions(supervisorId);
+    const alerts: InsertComplianceAlert[] = [];
+
+    for (const relationship of relationships) {
+      const superviseesSessions = sessions.filter(s => s.superviseeId === relationship.superviseeId);
+      const totalHours = superviseesSessions.reduce((sum, session) => sum + session.durationMinutes, 0) / 60;
+      const progressPercentage = (totalHours / relationship.requiredHours) * 100;
+
+      // Check for hours behind schedule
+      const expectedProgress = this.calculateExpectedProgress(relationship);
+      if (progressPercentage < expectedProgress - 20) {
+        alerts.push({
+          supervisorId,
+          superviseeId: relationship.superviseeId,
+          alertType: 'hours_behind',
+          severity: progressPercentage < expectedProgress - 40 ? 'critical' : 'high',
+          title: 'Supervisee Behind on Hours',
+          description: `Supervisee is ${Math.round(expectedProgress - progressPercentage)}% behind expected supervision hour progress.`,
+          triggerData: {
+            expectedProgress,
+            actualProgress: progressPercentage,
+            hoursDeficit: (expectedProgress - progressPercentage) * relationship.requiredHours / 100,
+          },
+          dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 1 week
+        });
+      }
+
+      // Check for missed sessions
+      const lastSession = superviseesSessions[0];
+      const daysSinceLastSession = lastSession ? 
+        Math.floor((Date.now() - lastSession.sessionDate.getTime()) / (1000 * 60 * 60 * 24)) : 999;
+      
+      const expectedFrequency = this.getFrequencyDays(relationship.frequency);
+      if (daysSinceLastSession > expectedFrequency + 7) {
+        alerts.push({
+          supervisorId,
+          superviseeId: relationship.superviseeId,
+          alertType: 'missed_session',
+          severity: daysSinceLastSession > expectedFrequency + 14 ? 'critical' : 'high',
+          title: 'Missed Supervision Session',
+          description: `No supervision session recorded for ${daysSinceLastSession} days. Expected frequency: ${relationship.frequency}.`,
+          triggerData: {
+            daysSinceLastSession,
+            expectedFrequency,
+            lastSessionDate: lastSession?.sessionDate,
+          },
+          dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days
+        });
+      }
+
+      // Check for documentation overdue
+      if (!relationship.contractSigned || !relationship.backgroundCheckCompleted || !relationship.licenseVerified) {
+        alerts.push({
+          supervisorId,
+          superviseeId: relationship.superviseeId,
+          alertType: 'documentation_overdue',
+          severity: 'medium',
+          title: 'Missing Documentation',
+          description: 'Required documentation is incomplete for this supervisee.',
+          triggerData: {
+            contractSigned: relationship.contractSigned,
+            backgroundCheckCompleted: relationship.backgroundCheckCompleted,
+            licenseVerified: relationship.licenseVerified,
+          },
+          dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 2 weeks
+        });
+      }
+    }
+
+    // Create alerts in database
+    const createdAlerts: ComplianceAlert[] = [];
+    for (const alert of alerts) {
+      try {
+        const created = await this.createComplianceAlert(alert);
+        createdAlerts.push(created);
+      } catch (error) {
+        // Skip duplicate alerts
+        console.log('Skipping duplicate alert:', error);
+      }
+    }
+
+    return createdAlerts;
+  }
+
+  private calculateExpectedProgress(relationship: SuperviseeRelationship): number {
+    const startDate = new Date(relationship.startDate);
+    const now = new Date();
+    const totalDays = 365; // Assume 1 year supervision period
+    const daysPassed = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    return Math.min((daysPassed / totalDays) * 100, 100);
+  }
+
+  private getFrequencyDays(frequency: string): number {
+    switch (frequency) {
+      case 'weekly': return 7;
+      case 'biweekly': return 14;
+      case 'monthly': return 30;
+      default: return 7;
+    }
+  }
+
+  async createCompetencyFramework(framework: InsertCompetencyFramework): Promise<CompetencyFramework> {
+    const { db } = await import("./db");
+    const id = crypto.randomUUID();
+    
+    const [result] = await db.insert(competencyFrameworkTable)
+      .values({
+        ...framework,
+        id,
+        developmentalMilestones: framework.developmentalMilestones ? JSON.stringify(framework.developmentalMilestones) : undefined,
+        assessmentCriteria: framework.assessmentCriteria ? JSON.stringify(framework.assessmentCriteria) : undefined,
+        isStandard: framework.isStandard.toString(),
+      })
+      .returning();
+
+    return {
+      ...result,
+      developmentalMilestones: result.developmentalMilestones ? JSON.parse(result.developmentalMilestones) : undefined,
+      assessmentCriteria: result.assessmentCriteria ? JSON.parse(result.assessmentCriteria) : undefined,
+      isStandard: result.isStandard === 'true',
+    };
+  }
+
+  async getCompetencyFrameworks(category?: string): Promise<CompetencyFramework[]> {
+    const { db } = await import("./db");
+    const { eq } = await import("drizzle-orm");
+    
+    let query = db.select().from(competencyFrameworkTable);
+    if (category) {
+      query = query.where(eq(competencyFrameworkTable.category, category));
+    }
+
+    const results = await query;
+
+    return results.map(result => ({
+      ...result,
+      developmentalMilestones: result.developmentalMilestones ? JSON.parse(result.developmentalMilestones) : undefined,
+      assessmentCriteria: result.assessmentCriteria ? JSON.parse(result.assessmentCriteria) : undefined,
+      isStandard: result.isStandard === 'true',
+    }));
+  }
+
+  async updateCompetencyFramework(id: string, updates: Partial<CompetencyFramework>): Promise<void> {
+    const { db } = await import("./db");
+    const { eq } = await import("drizzle-orm");
+    
+    const updateData: any = { ...updates };
+    if (updates.developmentalMilestones !== undefined) updateData.developmentalMilestones = JSON.stringify(updates.developmentalMilestones);
+    if (updates.assessmentCriteria !== undefined) updateData.assessmentCriteria = JSON.stringify(updates.assessmentCriteria);
+    if (updates.isStandard !== undefined) updateData.isStandard = updates.isStandard.toString();
+
+    await db.update(competencyFrameworkTable)
+      .set(updateData)
+      .where(eq(competencyFrameworkTable.id, id));
+  }
+
+  async generateCompetencyReport(superviseeId: string): Promise<any> {
+    const assessments = await this.getCompetencyAssessments('', superviseeId);
+    const frameworks = await this.getCompetencyFrameworks();
+    
+    // Group assessments by competency area
+    const assessmentsByArea = assessments.reduce((acc, assessment) => {
+      if (!acc[assessment.competencyArea]) {
+        acc[assessment.competencyArea] = [];
+      }
+      acc[assessment.competencyArea].push(assessment);
+      return acc;
+    }, {} as Record<string, CompetencyAssessment[]>);
+
+    // Calculate progress for each area
+    const competencyProgress = Object.entries(assessmentsByArea).map(([area, areaAssessments]) => {
+      const latestAssessment = areaAssessments[0]; // Assuming sorted by date
+      const progressHistory = areaAssessments.reverse(); // Chronological order
+      
+      const levelMap = { novice: 1, advanced_beginner: 2, competent: 3, proficient: 4, expert: 5 };
+      const currentLevel = levelMap[latestAssessment.currentLevel as keyof typeof levelMap] || 1;
+      const targetLevel = levelMap[latestAssessment.targetLevel as keyof typeof levelMap] || 5;
+      
+      return {
+        competencyArea: area,
+        currentLevel: latestAssessment.currentLevel,
+        targetLevel: latestAssessment.targetLevel,
+        progressPercentage: (currentLevel / targetLevel) * 100,
+        progressHistory,
+        strengths: latestAssessment.strengths,
+        areasForGrowth: latestAssessment.areasForGrowth,
+        actionPlan: latestAssessment.actionPlan,
+      };
+    });
+
+    return {
+      superviseeId,
+      totalAssessments: assessments.length,
+      competencyAreas: competencyProgress.length,
+      averageProgress: competencyProgress.reduce((sum, comp) => sum + comp.progressPercentage, 0) / competencyProgress.length,
+      competencyProgress,
+      lastAssessmentDate: assessments[0]?.assessmentDate,
+      frameworks,
+    };
+  }
+
+  async getSupervisionTrends(supervisorId: string, timeframe = '6months'): Promise<any> {
+    const { db } = await import("./db");
+    const { sql, gte } = await import("drizzle-orm");
+    
+    const months = timeframe === '1year' ? 12 : 6;
+    const startDate = new Date();
+    startDate.setMonth(startDate.getMonth() - months);
+
+    // Get session trends
+    const sessionTrends = await db.select({
+      month: sql`DATE_TRUNC('month', session_date)`,
+      sessionCount: sql`COUNT(*)`,
+      totalHours: sql`SUM(CAST(duration_minutes AS INTEGER)) / 60.0`,
+      avgSessionLength: sql`AVG(CAST(duration_minutes AS INTEGER))`,
+    })
+    .from(supervisionSessionTable)
+    .where(sql`supervisor_id = ${supervisorId} AND session_date >= ${startDate}`)
+    .groupBy(sql`DATE_TRUNC('month', session_date)`)
+    .orderBy(sql`DATE_TRUNC('month', session_date)`);
+
+    // Get compliance trends
+    const relationships = await this.getSuperviseeRelationships(supervisorId);
+    const complianceData = await Promise.all(
+      relationships.map(async (rel) => {
+        const sessions = await this.getSupervisionSessions(supervisorId, rel.superviseeId);
+        const totalHours = sessions.reduce((sum, s) => sum + s.durationMinutes, 0) / 60;
+        return {
+          superviseeId: rel.superviseeId,
+          progressPercentage: (totalHours / rel.requiredHours) * 100,
+        };
+      })
+    );
+
+    return {
+      timeframe,
+      sessionTrends,
+      averageComplianceRate: complianceData.reduce((sum, c) => sum + c.progressPercentage, 0) / complianceData.length,
+      superviseeCount: relationships.length,
+      totalSessions: sessionTrends.reduce((sum, trend) => sum + parseInt(trend.sessionCount), 0),
+      totalHours: sessionTrends.reduce((sum, trend) => sum + parseFloat(trend.totalHours), 0),
     };
   }
 }

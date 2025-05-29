@@ -268,6 +268,111 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Enhanced supervision endpoints
+  
+  // Compliance alerts
+  app.post("/api/supervision/alerts", express.json(), async (req, res) => {
+    try {
+      const alert = await storage.createComplianceAlert(req.body);
+      res.json(alert);
+    } catch (error) {
+      console.error("Error creating compliance alert:", error);
+      res.status(500).json({ error: "Failed to create compliance alert" });
+    }
+  });
+
+  app.get("/api/supervision/alerts/:supervisorId", async (req, res) => {
+    try {
+      const { unreadOnly } = req.query;
+      const alerts = await storage.getComplianceAlerts(
+        req.params.supervisorId,
+        unreadOnly === 'true'
+      );
+      res.json(alerts);
+    } catch (error) {
+      console.error("Error fetching compliance alerts:", error);
+      res.status(500).json({ error: "Failed to fetch compliance alerts" });
+    }
+  });
+
+  app.patch("/api/supervision/alerts/:id", express.json(), async (req, res) => {
+    try {
+      await storage.updateComplianceAlert(req.params.id, req.body);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating compliance alert:", error);
+      res.status(500).json({ error: "Failed to update compliance alert" });
+    }
+  });
+
+  app.post("/api/supervision/alerts/:id/resolve", express.json(), async (req, res) => {
+    try {
+      const { resolvedBy } = req.body;
+      await storage.resolveComplianceAlert(req.params.id, resolvedBy);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error resolving compliance alert:", error);
+      res.status(500).json({ error: "Failed to resolve compliance alert" });
+    }
+  });
+
+  app.post("/api/supervision/alerts/generate/:supervisorId", async (req, res) => {
+    try {
+      const alerts = await storage.generateAutomatedAlerts(req.params.supervisorId);
+      res.json(alerts);
+    } catch (error) {
+      console.error("Error generating automated alerts:", error);
+      res.status(500).json({ error: "Failed to generate automated alerts" });
+    }
+  });
+
+  // Competency frameworks
+  app.post("/api/supervision/frameworks", express.json(), async (req, res) => {
+    try {
+      const framework = await storage.createCompetencyFramework(req.body);
+      res.json(framework);
+    } catch (error) {
+      console.error("Error creating competency framework:", error);
+      res.status(500).json({ error: "Failed to create competency framework" });
+    }
+  });
+
+  app.get("/api/supervision/frameworks", async (req, res) => {
+    try {
+      const { category } = req.query;
+      const frameworks = await storage.getCompetencyFrameworks(category as string);
+      res.json(frameworks);
+    } catch (error) {
+      console.error("Error fetching competency frameworks:", error);
+      res.status(500).json({ error: "Failed to fetch competency frameworks" });
+    }
+  });
+
+  // Enhanced reporting
+  app.get("/api/supervision/competency-report/:superviseeId", async (req, res) => {
+    try {
+      const report = await storage.generateCompetencyReport(req.params.superviseeId);
+      res.json(report);
+    } catch (error) {
+      console.error("Error generating competency report:", error);
+      res.status(500).json({ error: "Failed to generate competency report" });
+    }
+  });
+
+  app.get("/api/supervision/trends/:supervisorId", async (req, res) => {
+    try {
+      const { timeframe } = req.query;
+      const trends = await storage.getSupervisionTrends(
+        req.params.supervisorId,
+        timeframe as string
+      );
+      res.json(trends);
+    } catch (error) {
+      console.error("Error fetching supervision trends:", error);
+      res.status(500).json({ error: "Failed to fetch supervision trends" });
+    }
+  });
+
   // Since we're using Firebase for all data operations,
   // the main API routes are handled client-side with Firebase SDK
   // This server primarily serves the frontend and provides health checks
