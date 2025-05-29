@@ -88,13 +88,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         url: referer
       };
 
-      // Send to Replit for automated processing (prioritize bugs)
+      // Send to Replit for automated processing AND email for all feedback types
       if (type === 'bug') {
         const issueId = await createReplitIssue(feedbackData);
         console.log(`Bug report ${issueId} sent to Replit for automated fix`);
         
-        // Also send to Replit's monitoring system
+        // Send to Replit's monitoring system for automated fixes
         await sendFeedbackToReplit(feedbackData);
+        
+        // ALSO send email so you can thank the user and follow up
+        await sendFeedbackNotification(feedbackData);
         
         res.json({ 
           success: true, 
@@ -103,10 +106,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           issueId: issueId
         });
       } else {
-        // For feature requests and general feedback, send to Replit
+        // For feature requests and general feedback, send to Replit AND email
         await sendFeedbackToReplit(feedbackData);
-        
-        // Also send email for non-bug feedback
         await sendFeedbackNotification(feedbackData);
         
         res.json({ 

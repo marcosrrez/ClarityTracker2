@@ -45,6 +45,7 @@ export async function sendFeedbackNotification(feedbackData: FeedbackEmailData):
             .field { margin-bottom: 15px; }
             .label { font-weight: 600; color: #374151; }
             .value { background: white; padding: 10px; border: 1px solid #d1d5db; border-radius: 4px; margin-top: 5px; }
+            .automation-note { background: #e0f2fe; padding: 12px; border-left: 4px solid #0277bd; margin: 15px 0; border-radius: 4px; }
           </style>
         </head>
         <body>
@@ -55,6 +56,12 @@ export async function sendFeedbackNotification(feedbackData: FeedbackEmailData):
             </div>
             
             <div class="content">
+              ${type === 'bug' ? `
+                <div class="automation-note">
+                  <strong>🤖 Automated Processing:</strong> This bug report has been automatically sent to Replit for immediate analysis and automated fixing. You may still want to follow up personally with the user.
+                </div>
+              ` : ''}
+              
               <div class="field">
                 <div class="label">Type:</div>
                 <div><span class="badge">${info.label}</span></div>
