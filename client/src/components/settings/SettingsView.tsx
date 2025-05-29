@@ -52,6 +52,13 @@ export const SettingsView = () => {
 
     try {
       setIsImporting(true);
+      
+      // Show initial processing message
+      toast({
+        title: "Processing file...",
+        description: `Reading ${file.name}...`,
+      });
+
       let data: any[][] = [];
 
       if (fileName.includes('.csv')) {
@@ -86,6 +93,11 @@ export const SettingsView = () => {
       const headers = data[0].map(h => String(h || '').trim());
       const columnMapping = intelligentColumnMapper(headers);
       
+      toast({
+        title: "Analyzing columns...",
+        description: `Found ${data.length - 1} data rows. Mapping columns...`,
+      });
+
       if (Object.keys(columnMapping).length === 0) {
         toast({
           title: "No recognizable columns found",
@@ -95,16 +107,30 @@ export const SettingsView = () => {
         return;
       }
 
+      // Show what was detected
+      const detectedColumns = Object.entries(columnMapping)
+        .map(([key, index]) => `${key}: "${headers[index]}"`)
+        .join(', ');
+      
+      toast({
+        title: "Columns detected!",
+        description: `Detected: ${detectedColumns}`,
+      });
+
       // Process data rows
       const dataRows = data.slice(1);
       let importedCount = 0;
       let errorCount = 0;
+      let skippedCount = 0;
 
       for (const row of dataRows) {
         try {
           const columns = row.map((col: any) => String(col || '').trim());
           
-          if (columns.length < 2) continue;
+          if (columns.length < 2) {
+            skippedCount++;
+            continue;
+          }
 
           const entry = {
             dateOfContact: parseFlexibleDate(columns[columnMapping.date] || ''),
@@ -119,6 +145,16 @@ export const SettingsView = () => {
           if (entry.clientContactHours > 0 || entry.supervisionHours > 0) {
             await createLogEntry(user!.uid, entry);
             importedCount++;
+            
+            // Show progress for every 10 entries
+            if (importedCount % 10 === 0) {
+              toast({
+                title: "Import in progress...",
+                description: `${importedCount} entries imported so far...`,
+              });
+            }
+          } else {
+            skippedCount++;
           }
         } catch (error) {
           console.error('Error processing row:', error);
@@ -126,10 +162,14 @@ export const SettingsView = () => {
         }
       }
 
+      // Final success message
       toast({
-        title: "Import completed!",
-        description: `Successfully imported ${importedCount} entries. ${errorCount > 0 ? `${errorCount} errors occurred.` : ''}`,
+        title: "Import completed successfully!",
+        description: `✅ Imported: ${importedCount} entries${skippedCount > 0 ? ` | Skipped: ${skippedCount}` : ''}${errorCount > 0 ? ` | Errors: ${errorCount}` : ''}`,
       });
+
+      // Refresh data to show new entries
+      window.location.reload();
 
     } catch (error) {
       console.error('Import error:', error);
