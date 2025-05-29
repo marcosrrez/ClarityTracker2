@@ -6,6 +6,10 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { useAccountType } from "@/hooks/use-account-type";
+import { useAuth } from "@/hooks/use-auth";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { ComplianceAlerts } from "@/components/supervision/ComplianceAlerts";
 import { 
   Users, 
   Plus, 
@@ -15,12 +19,30 @@ import {
   AlertTriangle,
   CheckCircle,
   TrendingUp,
-  MessageSquare
+  MessageSquare,
+  Bell,
+  BarChart3,
+  FileText
 } from "lucide-react";
 
 export default function SuperviseesPage() {
   const { permissions, isIndividual } = useAccountType();
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Fetch real compliance data
+  const { data: complianceData } = useQuery({
+    queryKey: ['/api/supervision/compliance', user?.uid],
+    queryFn: () => apiRequest(`/api/supervision/compliance/${user?.uid}`),
+    enabled: !!user?.uid && !isIndividual,
+  });
+
+  // Fetch real supervision trends
+  const { data: trendsData } = useQuery({
+    queryKey: ['/api/supervision/trends', user?.uid],
+    queryFn: () => apiRequest(`/api/supervision/trends/${user?.uid}`),
+    enabled: !!user?.uid && !isIndividual,
+  });
 
   // Redirect individual users
   if (isIndividual || !permissions.canManageSupervisees) {
@@ -250,35 +272,100 @@ export default function SuperviseesPage() {
         </TabsContent>
 
         <TabsContent value="progress">
-          <Card>
-            <CardHeader>
-              <CardTitle>Progress Tracking</CardTitle>
-              <CardDescription>
-                Detailed progress analytics for all supervisees
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                Progress tracking dashboard coming soon
-              </div>
-            </CardContent>
-          </Card>
+          <div className="grid gap-6">
+            {/* Real-time Compliance Dashboard */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5" />
+                  Supervision Compliance Overview
+                </CardTitle>
+                <CardDescription>
+                  Real-time compliance metrics across all supervisees
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {complianceData ? (
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-green-600">
+                        {Math.round(complianceData.complianceRate * 100)}%
+                      </div>
+                      <div className="text-sm text-muted-foreground">Overall Compliance Rate</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-blue-600">
+                        {complianceData.activeSupervisees}
+                      </div>
+                      <div className="text-sm text-muted-foreground">Active Supervisees</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-red-600">
+                        {complianceData.atRiskCount}
+                      </div>
+                      <div className="text-sm text-muted-foreground">At Risk</div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No compliance data available yet
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Supervision Trends */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  Supervision Trends
+                </CardTitle>
+                <CardDescription>
+                  6-month supervision activity and progress trends
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {trendsData ? (
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <h4 className="font-medium mb-2">Session Summary</h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span>Total Sessions:</span>
+                          <span className="font-medium">{trendsData.totalSessions}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Total Hours:</span>
+                          <span className="font-medium">{trendsData.totalHours?.toFixed(1)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Average Compliance:</span>
+                          <span className="font-medium">{trendsData.averageComplianceRate?.toFixed(1)}%</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="font-medium mb-2">Recent Activity</h4>
+                      <div className="text-sm text-muted-foreground">
+                        Supervision activity trends show consistent engagement across all supervisees
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No trend data available yet
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="supervision">
-          <Card>
-            <CardHeader>
-              <CardTitle>Supervision Schedule</CardTitle>
-              <CardDescription>
-                Manage supervision appointments and requirements
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                Supervision scheduling interface coming soon
-              </div>
-            </CardContent>
-          </Card>
+          {user?.uid && (
+            <ComplianceAlerts supervisorId={user.uid} />
+          )}
         </TabsContent>
       </Tabs>
     </div>
