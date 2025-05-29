@@ -112,6 +112,9 @@ export const SettingsView = () => {
         .map(([key, index]) => `${key}: "${headers[index]}"`)
         .join(', ');
       
+      console.log('Headers found:', headers);
+      console.log('Column mapping:', columnMapping);
+      
       toast({
         title: "Columns detected!",
         description: `Detected: ${detectedColumns}`,
