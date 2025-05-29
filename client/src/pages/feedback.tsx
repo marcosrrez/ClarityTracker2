@@ -60,16 +60,25 @@ export default function FeedbackPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to send notification');
+        throw new Error('Failed to send feedback');
       }
-      
+
+      const result = await response.json();
       setSubmitted(true);
       reset();
       
-      toast({
-        title: "Feedback Submitted",
-        description: "Thank you for your feedback! We'll review it and get back to you if needed.",
-      });
+      // Show different messages based on feedback type
+      if (data.type === 'bug') {
+        toast({
+          title: "Bug Report Submitted",
+          description: "Your bug report has been sent directly to Replit for automated analysis and fixing. Issue ID: " + (result.issueId || 'Generated'),
+        });
+      } else {
+        toast({
+          title: "Feedback Submitted",
+          description: "Thank you for your feedback! We'll review it and get back to you if needed.",
+        });
+      }
     } catch (error) {
       console.error('Feedback submission error:', error);
       toast({

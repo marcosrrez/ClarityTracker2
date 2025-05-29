@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import express from "express";
 import { sendFeedbackNotification } from "./email";
+import { sendFeedbackToReplit, createReplitIssue } from "./replit-feedback";
 import { storage } from "./storage";
 import { handleTwilioWebhook } from "./sms-service";
 
@@ -55,6 +56,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/feedback", express.json(), async (req, res) => {
     try {
       const { type, subject, description, email, userId } = req.body;
+      const userAgent = req.get('User-Agent');
+      const referer = req.get('Referer');
       
       // Validate required fields
       if (!type || !subject || !description) {
@@ -72,25 +75,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId
       });
 
-      // Send email notification
-      const emailSent = await sendFeedbackNotification({
+      // Prepare enhanced feedback data for Replit
+      const feedbackData = {
         type,
         subject,
         description,
         userEmail: email,
         userId,
-        timestamp: new Date()
-      });
+        timestamp: new Date(),
+        appVersion: '1.0.0',
+        userAgent,
+        url: referer
+      };
 
-      if (emailSent && savedFeedback) {
+      // Send to Replit for automated processing (prioritize bugs)
+      if (type === 'bug') {
+        const issueId = await createReplitIssue(feedbackData);
+        console.log(`Bug report ${issueId} sent to Replit for automated fix`);
+        
+        // Also send to Replit's monitoring system
+        await sendFeedbackToReplit(feedbackData);
+        
+        res.json({ 
+          success: true, 
+          message: "Bug report submitted to Replit for automated fix",
+          feedbackId: savedFeedback.id,
+          issueId: issueId
+        });
+      } else {
+        // For feature requests and general feedback, send to Replit
+        await sendFeedbackToReplit(feedbackData);
+        
+        // Also send email for non-bug feedback
+        await sendFeedbackNotification(feedbackData);
+        
         res.json({ 
           success: true, 
           message: "Feedback submitted successfully",
           feedbackId: savedFeedback.id
-        });
-      } else {
-        res.status(500).json({ 
-          error: "Failed to process feedback submission" 
         });
       }
 
@@ -99,6 +121,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         error: "Internal server error" 
       });
+    }
+  });
+
+  // Replit automated feedback monitoring endpoint
+  app.get("/api/replit/feedback", async (req, res) => {
+    try {
+      const feedback = await storage.getFeedback();
+      
+      // Filter and format for Replit's automated processing
+      const replitFeedback = feedback.map(item => ({
+        id: item.id,
+        type: item.type,
+        subject: item.subject,
+        description: item.description,
+        status: item.status,
+        priority: item.type === 'bug' ? 'high' : 'medium',
+        createdAt: item.createdAt,
+        automated: true,
+        source: 'claritylog',
+        requiresFix: item.type === 'bug' && item.status === 'new'
+      }));
+
+      res.json({
+        total: replitFeedback.length,
+        openBugs: replitFeedback.filter(f => f.type === 'bug' && f.requiresFix).length,
+        feedback: replitFeedback
+      });
+    } catch (error) {
+      console.error("Failed to fetch Replit feedback:", error);
+      res.status(500).json({ error: "Failed to fetch feedback for automated processing" });
     }
   });
 
