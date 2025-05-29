@@ -48,14 +48,14 @@ export const useAccountType = () => {
       primaryCards: ['organization-metrics', 'user-management', 'compliance-dashboard'],
       secondaryCards: ['usage-analytics', 'system-health'],
     },
-  };
+  } as const;
 
   return {
     accountType,
     subscriptionTier,
     permissions,
     navigation,
-    dashboardLayout: dashboardLayout[accountType],
+    dashboardLayout: dashboardLayout[accountType as keyof typeof dashboardLayout],
     isIndividual: accountType === 'individual',
     isSupervisor: accountType === 'supervisor',
     isEnterprise: accountType === 'enterprise',

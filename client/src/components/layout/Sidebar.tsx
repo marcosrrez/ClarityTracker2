@@ -33,18 +33,51 @@ import {
   FileText,
 } from "lucide-react";
 
-const navigationItems = [
-  { href: "/dashboard", label: "Dashboard", icon: ChartLine },
-  { href: "/add-entry", label: "Add Entry", icon: Plus },
-  { href: "/insights", label: "Insights & Resources", icon: Lightbulb },
-  { href: "/summary", label: "Summary", icon: BarChart3 },
-  { href: "/gallery", label: "Gallery", icon: Images },
-  { href: "/ai-analysis", label: "AI Analysis", icon: Bot },
-  { href: "/requirements", label: "Requirements", icon: ClipboardList },
-  { href: "/settings", label: "Settings", icon: Settings },
-  { href: "/feedback", label: "Feedback", icon: MessageSquare },
-  { href: "/help", label: "Help", icon: HelpCircle },
-];
+const getNavigationItems = (accountType: string, permissions: any) => {
+  const baseItems = [
+    { href: "/dashboard", label: "Dashboard", icon: ChartLine },
+    { href: "/add-entry", label: "Add Entry", icon: Plus },
+  ];
+
+  const individualItems = [
+    { href: "/insights", label: "Insights & Resources", icon: Lightbulb },
+    { href: "/summary", label: "Summary", icon: BarChart3 },
+    { href: "/gallery", label: "Gallery", icon: Images },
+    { href: "/ai-analysis", label: "AI Analysis", icon: Bot },
+    { href: "/requirements", label: "Requirements", icon: ClipboardList },
+  ];
+
+  const supervisorItems = [
+    { href: "/supervisees", label: "Supervisees", icon: Users },
+    { href: "/compliance", label: "Compliance", icon: Shield },
+    { href: "/reports", label: "Reports", icon: FileText },
+    ...individualItems,
+  ];
+
+  const enterpriseItems = [
+    { href: "/organization", label: "Organization", icon: Building2 },
+    { href: "/user-management", label: "User Management", icon: Users },
+    ...supervisorItems,
+  ];
+
+  const commonItems = [
+    { href: "/settings", label: "Settings", icon: Settings },
+    { href: "/feedback", label: "Feedback", icon: MessageSquare },
+    { href: "/help", label: "Help", icon: HelpCircle },
+  ];
+
+  let items = [...baseItems];
+
+  if (accountType === 'enterprise') {
+    items = [...items, ...enterpriseItems];
+  } else if (accountType === 'supervisor') {
+    items = [...items, ...supervisorItems];
+  } else {
+    items = [...items, ...individualItems];
+  }
+
+  return [...items, ...commonItems];
+};
 
 interface SidebarProps {
   open: boolean;
@@ -55,6 +88,9 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
   const [location] = useLocation();
   const { logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { accountType, permissions } = useAccountType();
+  
+  const navigationItems = getNavigationItems(accountType, permissions);
 
   const handleLogout = async () => {
     try {
