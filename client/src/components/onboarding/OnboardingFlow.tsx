@@ -111,9 +111,14 @@ export const OnboardingFlow = ({ isOpen, onClose }: OnboardingFlowProps) => {
       });
     }
     if (currentStep === 2) {
-      // Save profile data (excluding accountType which was already saved)
-      const { accountType, ...profile } = profileData;
-      await updateUserProfile(profile);
+      // Save profile data
+      await updateUserProfile({
+        preferredName: profileData.preferredName,
+        licenseStage: profileData.licenseStage,
+        specialties: profileData.specialties,
+        professionalGoals: profileData.professionalGoals,
+        yearsOfExperience: profileData.yearsOfExperience
+      });
     }
     
     if (currentStep < ONBOARDING_STEPS.length - 1) {
