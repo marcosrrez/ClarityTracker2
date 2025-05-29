@@ -204,3 +204,145 @@ export const insertUserAnalyticsSchema = userAnalyticsSchema.omit({
 
 export type UserAnalytics = z.infer<typeof userAnalyticsSchema>;
 export type InsertUserAnalytics = z.infer<typeof insertUserAnalyticsSchema>;
+
+// Supervision Session Schema - for tracking supervision meetings
+export const supervisionSessionTable = pgTable('supervision_sessions', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  supervisorId: varchar('supervisor_id', { length: 255 }).notNull(),
+  superviseeId: varchar('supervisee_id', { length: 255 }).notNull(),
+  sessionDate: timestamp('session_date').notNull(),
+  durationMinutes: varchar('duration_minutes', { length: 10 }).notNull(),
+  sessionType: varchar('session_type', { length: 50 }).notNull(), // individual, group, case_consultation
+  topics: text('topics'), // JSON array of discussion topics
+  notes: text('notes'),
+  competencyAreas: text('competency_areas'), // JSON array of competency areas addressed
+  actionItems: text('action_items'), // JSON array of follow-up items
+  superviseeGoals: text('supervisee_goals'), // JSON array of goals discussed
+  riskAssessment: varchar('risk_assessment', { length: 20 }).default('low'), // low, medium, high
+  nextSessionDate: timestamp('next_session_date'),
+  isCompleted: varchar('is_completed', { length: 10 }).default('false'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const supervisionSessionSchema = z.object({
+  id: z.string(),
+  supervisorId: z.string(),
+  superviseeId: z.string(),
+  sessionDate: z.date(),
+  durationMinutes: z.number().min(1).max(480), // 1-8 hours max
+  sessionType: z.enum(['individual', 'group', 'case_consultation']),
+  topics: z.array(z.string()).default([]),
+  notes: z.string().optional(),
+  competencyAreas: z.array(z.string()).default([]),
+  actionItems: z.array(z.string()).default([]),
+  superviseeGoals: z.array(z.string()).default([]),
+  riskAssessment: z.enum(['low', 'medium', 'high']).default('low'),
+  nextSessionDate: z.date().optional(),
+  isCompleted: z.boolean().default(false),
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date()),
+});
+
+export const insertSupervisionSessionSchema = supervisionSessionSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type SupervisionSession = z.infer<typeof supervisionSessionSchema>;
+export type InsertSupervisionSession = z.infer<typeof insertSupervisionSessionSchema>;
+
+// Supervisee Relationship Schema - for tracking supervisor-supervisee relationships
+export const superviseeRelationshipTable = pgTable('supervisee_relationships', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  supervisorId: varchar('supervisor_id', { length: 255 }).notNull(),
+  superviseeId: varchar('supervisee_id', { length: 255 }).notNull(),
+  startDate: timestamp('start_date').notNull(),
+  endDate: timestamp('end_date'),
+  status: varchar('status', { length: 20 }).notNull().default('active'), // active, inactive, completed
+  supervisionType: varchar('supervision_type', { length: 50 }).notNull(), // direct, indirect, consultation
+  requiredHours: varchar('required_hours', { length: 10 }).notNull().default('100'),
+  completedHours: varchar('completed_hours', { length: 10 }).notNull().default('0'),
+  frequency: varchar('frequency', { length: 20 }).notNull().default('weekly'), // weekly, biweekly, monthly
+  contractSigned: varchar('contract_signed', { length: 10 }).default('false'),
+  backgroundCheckCompleted: varchar('background_check_completed', { length: 10 }).default('false'),
+  licenseVerified: varchar('license_verified', { length: 10 }).default('false'),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const superviseeRelationshipSchema = z.object({
+  id: z.string(),
+  supervisorId: z.string(),
+  superviseeId: z.string(),
+  startDate: z.date(),
+  endDate: z.date().optional(),
+  status: z.enum(['active', 'inactive', 'completed']).default('active'),
+  supervisionType: z.enum(['direct', 'indirect', 'consultation']),
+  requiredHours: z.number().min(1).default(100),
+  completedHours: z.number().min(0).default(0),
+  frequency: z.enum(['weekly', 'biweekly', 'monthly']).default('weekly'),
+  contractSigned: z.boolean().default(false),
+  backgroundCheckCompleted: z.boolean().default(false),
+  licenseVerified: z.boolean().default(false),
+  notes: z.string().optional(),
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date()),
+});
+
+export const insertSuperviseeRelationshipSchema = superviseeRelationshipSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type SuperviseeRelationship = z.infer<typeof superviseeRelationshipSchema>;
+export type InsertSuperviseeRelationship = z.infer<typeof insertSuperviseeRelationshipSchema>;
+
+// Competency Assessment Schema - for tracking supervisee development
+export const competencyAssessmentTable = pgTable('competency_assessments', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  supervisorId: varchar('supervisor_id', { length: 255 }).notNull(),
+  superviseeId: varchar('supervisee_id', { length: 255 }).notNull(),
+  assessmentDate: timestamp('assessment_date').notNull(),
+  competencyArea: varchar('competency_area', { length: 100 }).notNull(),
+  currentLevel: varchar('current_level', { length: 20 }).notNull(), // novice, advanced_beginner, competent, proficient, expert
+  targetLevel: varchar('target_level', { length: 20 }).notNull(),
+  strengths: text('strengths'),
+  areasForGrowth: text('areas_for_growth'),
+  actionPlan: text('action_plan'),
+  timeframe: varchar('timeframe', { length: 50 }),
+  progressNotes: text('progress_notes'),
+  isCompleted: varchar('is_completed', { length: 10 }).default('false'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const competencyAssessmentSchema = z.object({
+  id: z.string(),
+  supervisorId: z.string(),
+  superviseeId: z.string(),
+  assessmentDate: z.date(),
+  competencyArea: z.string(),
+  currentLevel: z.enum(['novice', 'advanced_beginner', 'competent', 'proficient', 'expert']),
+  targetLevel: z.enum(['novice', 'advanced_beginner', 'competent', 'proficient', 'expert']),
+  strengths: z.string().optional(),
+  areasForGrowth: z.string().optional(),
+  actionPlan: z.string().optional(),
+  timeframe: z.string().optional(),
+  progressNotes: z.string().optional(),
+  isCompleted: z.boolean().default(false),
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date()),
+});
+
+export const insertCompetencyAssessmentSchema = competencyAssessmentSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type CompetencyAssessment = z.infer<typeof competencyAssessmentSchema>;
+export type InsertCompetencyAssessment = z.infer<typeof insertCompetencyAssessmentSchema>;

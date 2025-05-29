@@ -159,6 +159,115 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Supervision API endpoints
+  app.post("/api/supervision/relationships", express.json(), async (req, res) => {
+    try {
+      const relationship = await storage.createSuperviseeRelationship(req.body);
+      res.json(relationship);
+    } catch (error) {
+      console.error("Error creating supervisee relationship:", error);
+      res.status(500).json({ error: "Failed to create supervisee relationship" });
+    }
+  });
+
+  app.get("/api/supervision/relationships/:supervisorId", async (req, res) => {
+    try {
+      const relationships = await storage.getSuperviseeRelationships(req.params.supervisorId);
+      res.json(relationships);
+    } catch (error) {
+      console.error("Error fetching supervisee relationships:", error);
+      res.status(500).json({ error: "Failed to fetch supervisee relationships" });
+    }
+  });
+
+  app.patch("/api/supervision/relationships/:id", express.json(), async (req, res) => {
+    try {
+      await storage.updateSuperviseeRelationship(req.params.id, req.body);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating supervisee relationship:", error);
+      res.status(500).json({ error: "Failed to update supervisee relationship" });
+    }
+  });
+
+  app.post("/api/supervision/sessions", express.json(), async (req, res) => {
+    try {
+      const session = await storage.createSupervisionSession(req.body);
+      res.json(session);
+    } catch (error) {
+      console.error("Error creating supervision session:", error);
+      res.status(500).json({ error: "Failed to create supervision session" });
+    }
+  });
+
+  app.get("/api/supervision/sessions/:supervisorId", async (req, res) => {
+    try {
+      const { superviseeId } = req.query;
+      const sessions = await storage.getSupervisionSessions(
+        req.params.supervisorId, 
+        superviseeId as string
+      );
+      res.json(sessions);
+    } catch (error) {
+      console.error("Error fetching supervision sessions:", error);
+      res.status(500).json({ error: "Failed to fetch supervision sessions" });
+    }
+  });
+
+  app.patch("/api/supervision/sessions/:id", express.json(), async (req, res) => {
+    try {
+      await storage.updateSupervisionSession(req.params.id, req.body);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating supervision session:", error);
+      res.status(500).json({ error: "Failed to update supervision session" });
+    }
+  });
+
+  app.post("/api/supervision/assessments", express.json(), async (req, res) => {
+    try {
+      const assessment = await storage.createCompetencyAssessment(req.body);
+      res.json(assessment);
+    } catch (error) {
+      console.error("Error creating competency assessment:", error);
+      res.status(500).json({ error: "Failed to create competency assessment" });
+    }
+  });
+
+  app.get("/api/supervision/assessments/:supervisorId", async (req, res) => {
+    try {
+      const { superviseeId } = req.query;
+      const assessments = await storage.getCompetencyAssessments(
+        req.params.supervisorId,
+        superviseeId as string
+      );
+      res.json(assessments);
+    } catch (error) {
+      console.error("Error fetching competency assessments:", error);
+      res.status(500).json({ error: "Failed to fetch competency assessments" });
+    }
+  });
+
+  app.get("/api/supervision/compliance/:supervisorId", async (req, res) => {
+    try {
+      const compliance = await storage.getSupervisionCompliance(req.params.supervisorId);
+      res.json(compliance);
+    } catch (error) {
+      console.error("Error fetching supervision compliance:", error);
+      res.status(500).json({ error: "Failed to fetch supervision compliance" });
+    }
+  });
+
+  app.get("/api/supervision/progress/:superviseeId", async (req, res) => {
+    try {
+      const progress = await storage.getSuperviseeProgress(req.params.superviseeId);
+      res.json(progress);
+    } catch (error) {
+      console.error("Error fetching supervisee progress:", error);
+      res.status(500).json({ error: "Failed to fetch supervisee progress" });
+    }
+  });
+
   // Since we're using Firebase for all data operations,
   // the main API routes are handled client-side with Firebase SDK
   // This server primarily serves the frontend and provides health checks
