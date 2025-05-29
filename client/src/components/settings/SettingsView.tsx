@@ -132,17 +132,29 @@ export const SettingsView = () => {
             continue;
           }
 
+          const parsedDate = parseFlexibleDate(columns[columnMapping.date] || '');
+          const clientHours = parseFlexibleNumber(columns[columnMapping.clientHours] || '0');
+          const supervisionHours = parseFlexibleNumber(columns[columnMapping.supervisionHours] || '0');
+          
+          // Skip if no valid date or hours
+          if (!parsedDate || (clientHours === 0 && supervisionHours === 0)) {
+            skippedCount++;
+            continue;
+          }
+
           const entry = {
-            dateOfContact: parseFlexibleDate(columns[columnMapping.date] || ''),
-            clientContactHours: parseFlexibleNumber(columns[columnMapping.clientHours] || '0'),
-            supervisionHours: parseFlexibleNumber(columns[columnMapping.supervisionHours] || '0'),
+            dateOfContact: parsedDate,
+            clientContactHours: clientHours,
+            supervisionHours: supervisionHours,
             supervisionType: mapSupervisionType(columns[columnMapping.supervisionType] || 'none'),
-            indirectHours: columnMapping.indirectHours !== undefined,
-            techAssistedSupervision: parseFlexibleBoolean(columns[columnMapping.techAssisted] || ''),
-            notes: parseFlexibleString(columns[columnMapping.notes] || ''),
+            indirectHours: false, // Set to false instead of boolean check
+            techAssistedSupervision: parseFlexibleBoolean(columns[columnMapping.techAssisted] || 'false'),
+            notes: parseFlexibleString(columns[columnMapping.notes] || 'Imported from Excel'),
           };
 
-          if (entry.clientContactHours > 0 || entry.supervisionHours > 0) {
+          console.log('Attempting to create entry:', entry); // Debug log
+          
+          try {
             await createLogEntry(user!.uid, entry);
             importedCount++;
             
@@ -153,8 +165,9 @@ export const SettingsView = () => {
                 description: `${importedCount} entries imported so far...`,
               });
             }
-          } else {
-            skippedCount++;
+          } catch (entryError) {
+            console.error('Failed to create specific entry:', entry, entryError);
+            errorCount++;
           }
         } catch (error) {
           console.error('Error processing row:', error);
