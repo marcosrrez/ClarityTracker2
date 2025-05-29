@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { SMSSettings } from "./SMSSettings";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -818,6 +819,16 @@ export const SettingsView = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* SMS Entry Settings */}
+      <SMSSettings 
+        phoneNumber={""} 
+        smsEnabled={false}
+        onUpdate={async (phoneNumber: string, smsEnabled: boolean) => {
+          // Save SMS settings to user profile
+          console.log('SMS settings updated:', { phoneNumber, smsEnabled });
+        }}
+      />
 
       {/* Data Management */}
       <Card>

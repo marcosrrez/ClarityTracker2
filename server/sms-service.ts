@@ -1,6 +1,5 @@
 import { SMSEntryParser } from './sms-parser';
 import { storage } from './storage';
-import { createLogEntry } from '../shared/schema';
 
 interface PendingEntry {
   userId: string;
@@ -169,13 +168,39 @@ Supported types:
 Need help? Visit claritylog.net or email support@claritylog.net`;
   }
   
-  // Send SMS (using Twilio)
+  // Send SMS using Twilio
   static async sendSMS(phoneNumber: string, message: string): Promise<boolean> {
     try {
-      // This would use Twilio to send SMS
-      // You'll need TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER
-      console.log(`Would send SMS to ${phoneNumber}: ${message}`);
-      return true;
+      const accountSid = process.env.TWILIO_ACCOUNT_SID;
+      const authToken = process.env.TWILIO_AUTH_TOKEN;
+      const fromNumber = process.env.TWILIO_PHONE_NUMBER;
+
+      if (!accountSid || !authToken || !fromNumber) {
+        console.error('Missing Twilio credentials');
+        return false;
+      }
+
+      const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString('base64')}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          From: fromNumber,
+          To: phoneNumber,
+          Body: message,
+        }),
+      });
+
+      if (response.ok) {
+        console.log(`SMS sent successfully to ${phoneNumber}`);
+        return true;
+      } else {
+        const error = await response.text();
+        console.error('Twilio API error:', error);
+        return false;
+      }
     } catch (error) {
       console.error('SMS send error:', error);
       return false;
