@@ -4,6 +4,8 @@ import {
   supervisionSessionTable,
   superviseeRelationshipTable,
   competencyAssessmentTable,
+  complianceAlertTable,
+  competencyFrameworkTable,
   type Feedback, 
   type InsertFeedback, 
   type UserAnalytics, 
@@ -13,7 +15,11 @@ import {
   type SuperviseeRelationship,
   type InsertSuperviseeRelationship,
   type CompetencyAssessment,
-  type InsertCompetencyAssessment
+  type InsertCompetencyAssessment,
+  type ComplianceAlert,
+  type InsertComplianceAlert,
+  type CompetencyFramework,
+  type InsertCompetencyFramework
 } from "@shared/schema";
 
 export interface IStorage {

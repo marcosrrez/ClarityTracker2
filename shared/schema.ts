@@ -346,3 +346,85 @@ export const insertCompetencyAssessmentSchema = competencyAssessmentSchema.omit(
 
 export type CompetencyAssessment = z.infer<typeof competencyAssessmentSchema>;
 export type InsertCompetencyAssessment = z.infer<typeof insertCompetencyAssessmentSchema>;
+
+// Compliance Alert Schema - for automated supervision alerts
+export const complianceAlertTable = pgTable('compliance_alerts', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  supervisorId: varchar('supervisor_id', { length: 255 }).notNull(),
+  superviseeId: varchar('supervisee_id', { length: 255 }).notNull(),
+  alertType: varchar('alert_type', { length: 50 }).notNull(), // missed_session, hours_behind, documentation_overdue, risk_escalation
+  severity: varchar('severity', { length: 20 }).notNull(), // low, medium, high, critical
+  title: text('title').notNull(),
+  description: text('description').notNull(),
+  triggerData: text('trigger_data'), // JSON data about what triggered the alert
+  isRead: varchar('is_read', { length: 10 }).default('false'),
+  isResolved: varchar('is_resolved', { length: 10 }).default('false'),
+  resolvedAt: timestamp('resolved_at'),
+  resolvedBy: varchar('resolved_by', { length: 255 }),
+  dueDate: timestamp('due_date'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const complianceAlertSchema = z.object({
+  id: z.string(),
+  supervisorId: z.string(),
+  superviseeId: z.string(),
+  alertType: z.enum(['missed_session', 'hours_behind', 'documentation_overdue', 'risk_escalation', 'contract_expiring', 'competency_concern']),
+  severity: z.enum(['low', 'medium', 'high', 'critical']),
+  title: z.string(),
+  description: z.string(),
+  triggerData: z.record(z.any()).optional(),
+  isRead: z.boolean().default(false),
+  isResolved: z.boolean().default(false),
+  resolvedAt: z.date().optional(),
+  resolvedBy: z.string().optional(),
+  dueDate: z.date().optional(),
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date()),
+});
+
+export const insertComplianceAlertSchema = complianceAlertSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type ComplianceAlert = z.infer<typeof complianceAlertSchema>;
+export type InsertComplianceAlert = z.infer<typeof insertComplianceAlertSchema>;
+
+// Competency Framework Schema - standardized competency areas
+export const competencyFrameworkTable = pgTable('competency_frameworks', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  name: text('name').notNull(),
+  category: varchar('category', { length: 100 }).notNull(), // clinical, ethical, professional, cultural
+  description: text('description'),
+  developmentalMilestones: text('developmental_milestones'), // JSON array of milestones for each level
+  assessmentCriteria: text('assessment_criteria'), // JSON object with criteria for each level
+  isStandard: varchar('is_standard', { length: 10 }).default('true'), // standard vs custom competencies
+  createdBy: varchar('created_by', { length: 255 }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const competencyFrameworkSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  category: z.enum(['clinical', 'ethical', 'professional', 'cultural', 'administrative']),
+  description: z.string().optional(),
+  developmentalMilestones: z.record(z.array(z.string())).optional(), // keyed by proficiency level
+  assessmentCriteria: z.record(z.array(z.string())).optional(), // keyed by proficiency level
+  isStandard: z.boolean().default(true),
+  createdBy: z.string().optional(),
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date()),
+});
+
+export const insertCompetencyFrameworkSchema = competencyFrameworkSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type CompetencyFramework = z.infer<typeof competencyFrameworkSchema>;
+export type InsertCompetencyFramework = z.infer<typeof insertCompetencyFrameworkSchema>;
