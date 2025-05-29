@@ -15,9 +15,9 @@ export const PlanSelection = ({ onPlanSelect, selectedPlan }: PlanSelectionProps
   const plans = [
     {
       id: "individual",
-      name: "Individual",
-      price: "$10",
-      period: "/month",
+      name: "Individual Counselor",
+      price: "Free Trial",
+      period: "",
       description: "Perfect for counselors tracking their own licensure progress",
       icon: <User className="h-6 w-6" />,
       features: [
@@ -32,9 +32,9 @@ export const PlanSelection = ({ onPlanSelect, selectedPlan }: PlanSelectionProps
     },
     {
       id: "supervisor",
-      name: "Supervisor",
-      price: "$50",
-      period: "/month",
+      name: "Clinical Supervisor",
+      price: "Early Access",
+      period: "",
       description: "For clinical supervisors managing multiple supervisees",
       icon: <Users className="h-6 w-6" />,
       features: [
@@ -50,9 +50,9 @@ export const PlanSelection = ({ onPlanSelect, selectedPlan }: PlanSelectionProps
     },
     {
       id: "enterprise",
-      name: "Enterprise",
-      price: "$200",
-      period: "/month",
+      name: "Training Program",
+      price: "Early Access",
+      period: "",
       description: "For training programs and large organizations",
       icon: <Building2 className="h-6 w-6" />,
       features: [
@@ -138,10 +138,10 @@ export const PlanSelection = ({ onPlanSelect, selectedPlan }: PlanSelectionProps
 
       <div className="text-center space-y-2">
         <p className="text-sm text-muted-foreground">
-          Start with a 14-day free trial. No credit card required.
+          All features available during early access. No payment required.
         </p>
         <p className="text-xs text-muted-foreground">
-          Cancel anytime. Upgrade or downgrade as your needs change.
+          Help us improve ClarityLog by sharing your feedback and suggestions.
         </p>
       </div>
     </div>

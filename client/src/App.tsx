@@ -24,6 +24,7 @@ import HelpPage from "@/pages/help";
 import SummaryPage from "@/pages/summary";
 import QuickEntryPage from "@/pages/quick-entry";
 import SuperviseesPage from "@/pages/supervisees";
+import AccountSetupPage from "@/pages/account-setup";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -43,6 +44,7 @@ function Router() {
       <Route path="/summary" component={SummaryPage} />
       <Route path="/quick-entry" component={QuickEntryPage} />
       <Route path="/supervisees" component={SuperviseesPage} />
+      <Route path="/account-setup" component={AccountSetupPage} />
       
       {/* Default route - redirect to dashboard */}
       <Route path="/" component={DashboardPage} />
