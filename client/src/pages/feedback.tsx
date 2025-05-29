@@ -240,14 +240,24 @@ export default function FeedbackPage() {
         </CardContent>
       </Card>
 
-      {/* Additional Info */}
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          Your feedback helps us make ClarityLog better for all Licensed Associate Counselors. 
-          We review all submissions and prioritize improvements based on user needs.
-        </AlertDescription>
-      </Alert>
+      {/* Enhanced Feedback Info */}
+      {feedbackType === 'bug' ? (
+        <Alert className="border-red-200 bg-red-50 dark:bg-red-950/20">
+          <Bug className="h-4 w-4 text-red-600" />
+          <AlertDescription>
+            <strong>Automated Bug Fixing:</strong> Bug reports are sent directly to Replit for automated analysis and fixing. 
+            This enables much faster resolution times compared to traditional manual review processes.
+          </AlertDescription>
+        </Alert>
+      ) : (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Your feedback helps us make ClarityLog better for all Licensed Associate Counselors. 
+            We review all submissions and prioritize improvements based on user needs.
+          </AlertDescription>
+        </Alert>
+      )}
     </div>
   );
 }
