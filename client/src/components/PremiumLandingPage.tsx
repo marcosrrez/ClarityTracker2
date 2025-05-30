@@ -37,43 +37,29 @@ export const PremiumLandingPage = () => {
   const [displayName, setDisplayName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showWelcomeOverlay, setShowWelcomeOverlay] = useState(true);
-  const [currentFeature, setCurrentFeature] = useState(0);
-
-  // Premium features showcase
+  // Premium features showcase - static display
   const features = [
+    {
+      icon: Clock,
+      title: "Effortless Hour Tracking",
+      description: "Log your supervision and client contact hours with intuitive, streamlined entry forms"
+    },
     {
       icon: Brain,
       title: "AI-Powered Insights",
-      description: "Get personalized recommendations and growth patterns from your session notes",
-      gradient: "from-purple-500 to-pink-500"
-    },
-    {
-      icon: Target,
-      title: "Smart Goal Tracking",
-      description: "Intelligent progress monitoring with predictive analytics for your licensure journey",
-      gradient: "from-blue-500 to-cyan-500"
+      description: "Get personalized recommendations and growth patterns from your session notes"
     },
     {
       icon: Users,
-      title: "Supervision Excellence",
-      description: "Streamlined supervisor-supervisee collaboration with automated compliance tracking",
-      gradient: "from-emerald-500 to-teal-500"
+      title: "Supervision Support",
+      description: "Seamless collaboration between supervisors and supervisees with progress monitoring"
     },
     {
       icon: BarChart3,
-      title: "Advanced Analytics",
-      description: "Professional-grade reporting and insights that adapt to your unique practice",
-      gradient: "from-orange-500 to-red-500"
+      title: "Progress Analytics",
+      description: "Clear reporting and insights that help you stay on track toward your LPC goals"
     }
   ];
-
-  // Auto-advance features
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentFeature((prev) => (prev + 1) % features.length);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [features.length]);
 
   // Pre-fill email if stored
   useEffect(() => {
@@ -198,7 +184,7 @@ export const PremiumLandingPage = () => {
                   ease: "easeInOut"
                 }}
               >
-                <Sparkles className="w-16 h-16 text-white" />
+                <Sprout className="w-16 h-16 text-white" />
               </motion.div>
               
               <motion.h1 
@@ -216,8 +202,8 @@ export const PremiumLandingPage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
               >
-                The most sophisticated platform for Licensed Associate Counselors pursuing their LPC licensure. 
-                Track hours, gain AI-powered insights, and achieve your goals with unparalleled elegance.
+                The simplest way for Licensed Associate Counselors to track their path to LPC licensure. 
+                Effortlessly log hours, gain insights, and achieve your professional goals.
               </motion.p>
               
               <motion.div
@@ -252,70 +238,66 @@ export const PremiumLandingPage = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
-          <div className="max-w-lg">
+          <div className="max-w-2xl">
             <motion.div
-              key={currentFeature}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.6 }}
-              className="text-center"
+              className="text-center mb-16"
             >
-              <motion.div
-                className={`w-24 h-24 bg-gradient-to-br ${features[currentFeature].gradient} rounded-3xl mx-auto mb-8 flex items-center justify-center shadow-xl`}
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                transition={{ type: "spring", stiffness: 400 }}
-              >
-                {currentFeature === 0 && <Brain className="w-12 h-12 text-white" />}
-                {currentFeature === 1 && <Target className="w-12 h-12 text-white" />}
-                {currentFeature === 2 && <Users className="w-12 h-12 text-white" />}
-                {currentFeature === 3 && <BarChart3 className="w-12 h-12 text-white" />}
-              </motion.div>
-
               <h2 className="text-4xl font-bold text-gray-900 mb-6 tracking-tight">
-                {features[currentFeature].title}
+                Everything you need to succeed
               </h2>
-              <p className="text-xl text-gray-600 leading-relaxed mb-8">
-                {features[currentFeature].description}
+              <p className="text-xl text-gray-600 leading-relaxed">
+                A thoughtfully designed platform that grows with you from LAC to LPC
               </p>
-
-              {/* Feature indicators */}
-              <div className="flex justify-center gap-3">
-                {features.map((_, index) => (
-                  <motion.button
-                    key={index}
-                    className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                      index === currentFeature 
-                        ? 'bg-emerald-500 scale-125' 
-                        : 'bg-gray-300 hover:bg-gray-400'
-                    }`}
-                    onClick={() => setCurrentFeature(index)}
-                    whileHover={{ scale: 1.2 }}
-                    whileTap={{ scale: 0.9 }}
-                  />
-                ))}
-              </div>
             </motion.div>
+
+            {/* Features grid - calm and static */}
+            <div className="grid grid-cols-2 gap-8">
+              {features.map((feature, index) => (
+                <motion.div
+                  key={feature.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.1 * index }}
+                  className="text-center"
+                >
+                  <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg">
+                    {feature.icon === Clock && <Clock className="w-8 h-8 text-white" />}
+                    {feature.icon === Brain && <Brain className="w-8 h-8 text-white" />}
+                    {feature.icon === Users && <Users className="w-8 h-8 text-white" />}
+                    {feature.icon === BarChart3 && <BarChart3 className="w-8 h-8 text-white" />}
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2 tracking-tight">
+                    {feature.title}
+                  </h3>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    {feature.description}
+                  </p>
+                </motion.div>
+              ))}
+            </div>
 
             {/* Trust indicators */}
             <motion.div
-              className="mt-16 space-y-4"
+              className="mt-16 text-center"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1 }}
             >
-              <div className="flex items-center justify-center gap-6 text-sm text-gray-500">
+              <div className="flex items-center justify-center gap-8 text-sm text-gray-500">
                 <div className="flex items-center gap-2">
                   <Shield className="w-4 h-4 text-emerald-500" />
-                  <span>HIPAA Compliant</span>
+                  <span>Secure & Private</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Lock className="w-4 h-4 text-emerald-500" />
-                  <span>Bank-level Security</span>
+                  <CheckCircle className="w-4 h-4 text-emerald-500" />
+                  <span>Professional Grade</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Award className="w-4 h-4 text-emerald-500" />
-                  <span>State Board Approved</span>
+                  <span>Trusted by LACs</span>
                 </div>
               </div>
             </motion.div>
