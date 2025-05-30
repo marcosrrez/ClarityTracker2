@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { useLogEntries } from '@/hooks/use-log-entries';
-import { useAppSettings } from '@/hooks/use-app-settings';
+import { useLogEntries } from '@/hooks/use-firestore';
+import { useAppSettings } from '@/hooks/use-firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
