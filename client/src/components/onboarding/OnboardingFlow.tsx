@@ -20,6 +20,15 @@ interface OnboardingData {
   professionalGoals?: string;
 }
 
+interface OnboardingStep {
+  title: string;
+  subtitle?: string;
+  canContinue: boolean;
+  showAccountSelection?: boolean;
+  showForm?: boolean;
+  showDemo?: 'quick-log' | 'ai-insights' | 'progress-tracking' | 'supervisor-dashboard' | 'compliance-alerts' | 'enterprise-analytics';
+}
+
 export const OnboardingFlow = () => {
   const { updateUserProfile } = useAuth();
   const { toast } = useToast();
@@ -110,50 +119,88 @@ export const OnboardingFlow = () => {
     }
   };
 
-  const getFeatureTitle = () => {
+  const getSteps = (): OnboardingStep[] => {
+    const baseSteps: OnboardingStep[] = [
+      // Step 1: Problem identification
+      {
+        title: "Tracking hours shouldn't feel like another burden",
+        subtitle: "But how do you stay organized while focusing on your clients?",
+        canContinue: true
+      },
+
+      // Step 2: Account type selection
+      {
+        title: "Which path describes you?",
+        showAccountSelection: true,
+        canContinue: data.accountType !== undefined
+      },
+
+      // Step 3: Personalization
+      {
+        title: "Let's personalize your experience",
+        showForm: true,
+        canContinue: data.preferredName.trim().length > 0 && data.stateRegion.trim().length > 0
+      }
+    ];
+
+    // Add tailored feature demonstrations based on account type
     if (data.accountType === 'individual') {
-      return "Track your journey to LPC licensure";
+      baseSteps.push(
+        {
+          title: "Just tap to log a session",
+          subtitle: "Quick entry keeps you focused on what matters.",
+          showDemo: 'quick-log' as const,
+          canContinue: true
+        } as OnboardingStep,
+        {
+          title: "Get insights from your notes",
+          subtitle: "AI analysis helps you spot patterns and growth.",
+          showDemo: 'ai-insights' as const,
+          canContinue: true
+        } as OnboardingStep,
+        {
+          title: "Stay on track for licensure",
+          subtitle: "See your progress at a glance.",
+          showDemo: 'progress-tracking' as const,
+          canContinue: true
+        } as OnboardingStep
+      );
     } else if (data.accountType === 'supervisor') {
-      return "Manage supervisees with confidence";
+      baseSteps.push(
+        {
+          title: "See all supervisees at once",
+          subtitle: "Monitor progress and compliance effortlessly.",
+          showDemo: 'supervisor-dashboard' as const,
+          canContinue: true
+        } as OnboardingStep,
+        {
+          title: "Automated compliance alerts",
+          subtitle: "Never miss important deadlines or requirements.",
+          showDemo: 'compliance-alerts' as const,
+          canContinue: true
+        } as OnboardingStep
+      );
     } else if (data.accountType === 'enterprise') {
-      return "Scale your training programs";
+      baseSteps.push(
+        {
+          title: "Manage programs at scale",
+          subtitle: "Organization-wide insights and reporting.",
+          showDemo: 'enterprise-analytics' as const,
+          canContinue: true
+        } as OnboardingStep
+      );
     }
-    return "Your professional growth platform";
+
+    baseSteps.push({
+      title: `Welcome to ClarityLog, ${data.preferredName}!`,
+      subtitle: "Your personalized experience is ready.",
+      canContinue: true
+    });
+
+    return baseSteps;
   };
 
-  const steps = [
-    // Step 1: Welcome to ClarityLog
-    {
-      title: "Welcome to ClarityLog",
-      canContinue: true
-    },
-
-    // Step 2: Account type selection
-    {
-      title: "Which path describes you?",
-      showAccountSelection: true,
-      canContinue: data.accountType !== undefined
-    },
-
-    // Step 3: Personalization
-    {
-      title: "Let's personalize your experience",
-      showForm: true,
-      canContinue: data.preferredName.trim().length > 0 && data.stateRegion.trim().length > 0
-    },
-
-    // Step 4: Tailored features based on account type
-    {
-      title: getFeatureTitle(),
-      canContinue: true
-    },
-
-    // Step 5: Ready to start
-    {
-      title: "You're all set!",
-      canContinue: true
-    }
-  ];
+  const steps = getSteps();
 
   const currentStepData = steps[currentStep];
 
@@ -187,50 +234,126 @@ export const OnboardingFlow = () => {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.6, ease: "easeOut" }}
             >
-              {/* Welcome step (0) and feature showcase (3) and completion (4) */}
-              {(currentStep === 0 || currentStep === 3 || currentStep === 4) && (
+              {/* Problem identification, feature demos, and completion */}
+              {!currentStepData.showAccountSelection && !currentStepData.showForm && (
                 <div className="space-y-12">
-                  <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
-                    {currentStepData.title}
-                  </h1>
+                  <div className="space-y-4">
+                    <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
+                      {currentStepData.title}
+                    </h1>
+                    {currentStepData.subtitle && (
+                      <p className="text-xl text-gray-600">
+                        {currentStepData.subtitle}
+                      </p>
+                    )}
+                  </div>
                   
-                  {/* Add feature details for step 3 based on account type */}
-                  {currentStep === 3 && (
-                    <div className="space-y-6 text-lg text-gray-600">
-                      {data.accountType === 'individual' && (
-                        <div className="space-y-4">
-                          <p>• Track client contact hours and supervision sessions</p>
-                          <p>• Get AI insights from your session notes</p>
-                          <p>• Monitor progress toward licensure requirements</p>
-                          <p>• Collaborate seamlessly with your supervisor</p>
+                  {/* Interactive demos based on step type */}
+                  {currentStepData.showDemo && (
+                    <div className="mt-16">
+                      {currentStepData.showDemo === 'quick-log' && (
+                        <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-8 border border-white/40">
+                          <div className="space-y-4">
+                            <div className="flex items-center gap-3 text-sm text-gray-600 mb-6">
+                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                              Tap anywhere to start logging
+                            </div>
+                            <div className="bg-blue-500 text-white rounded-xl p-4 text-center font-medium">
+                              + Log Session
+                            </div>
+                            <div className="text-center text-sm text-gray-500">
+                              Session logged in seconds, not minutes
+                            </div>
+                          </div>
                         </div>
                       )}
-                      
-                      {data.accountType === 'supervisor' && (
-                        <div className="space-y-4">
-                          <p>• Manage multiple supervisees efficiently</p>
-                          <p>• Track compliance and progress automatically</p>
-                          <p>• Access comprehensive assessment tools</p>
-                          <p>• Generate detailed supervision reports</p>
+
+                      {currentStepData.showDemo === 'ai-insights' && (
+                        <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-8 border border-white/40">
+                          <div className="space-y-4">
+                            <div className="text-sm text-gray-600 mb-4">Session notes:</div>
+                            <div className="bg-gray-50 rounded-lg p-4 text-sm">
+                              "Client showed significant progress with anxiety management techniques..."
+                            </div>
+                            <div className="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-4">
+                              <div className="text-sm font-medium text-blue-900">AI Insight</div>
+                              <div className="text-sm text-blue-700 mt-1">Client demonstrates improved coping strategies. Consider reinforcing CBT techniques in next session.</div>
+                            </div>
+                          </div>
                         </div>
                       )}
-                      
-                      {data.accountType === 'enterprise' && (
-                        <div className="space-y-4">
-                          <p>• Manage organization-wide training programs</p>
-                          <p>• Advanced analytics and reporting</p>
-                          <p>• Custom workflows for your processes</p>
-                          <p>• Integration support with existing systems</p>
+
+                      {currentStepData.showDemo === 'progress-tracking' && (
+                        <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-8 border border-white/40">
+                          <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm font-medium">Licensure Progress</span>
+                              <span className="text-sm text-blue-600">75% Complete</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-3">
+                              <div className="bg-blue-500 h-3 rounded-full" style={{ width: '75%' }}></div>
+                            </div>
+                            <div className="text-xs text-gray-600">
+                              1,875 / 2,500 client contact hours completed
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {currentStepData.showDemo === 'supervisor-dashboard' && (
+                        <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-8 border border-white/40">
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="bg-white rounded-lg p-4 border">
+                                <div className="text-sm font-medium">Sarah M.</div>
+                                <div className="text-xs text-green-600">On track</div>
+                                <div className="text-xs text-gray-500">68% complete</div>
+                              </div>
+                              <div className="bg-white rounded-lg p-4 border">
+                                <div className="text-sm font-medium">James K.</div>
+                                <div className="text-xs text-yellow-600">Needs attention</div>
+                                <div className="text-xs text-gray-500">45% complete</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {currentStepData.showDemo === 'compliance-alerts' && (
+                        <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-8 border border-white/40">
+                          <div className="space-y-4">
+                            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                                <span className="text-sm font-medium text-yellow-800">Supervision Due</span>
+                              </div>
+                              <div className="text-xs text-yellow-700 mt-1">Sarah M. needs supervision session within 3 days</div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {currentStepData.showDemo === 'enterprise-analytics' && (
+                        <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-8 border border-white/40">
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-3 gap-4 text-center">
+                              <div>
+                                <div className="text-2xl font-bold text-blue-600">156</div>
+                                <div className="text-xs text-gray-600">Active Trainees</div>
+                              </div>
+                              <div>
+                                <div className="text-2xl font-bold text-green-600">89%</div>
+                                <div className="text-xs text-gray-600">On Track</div>
+                              </div>
+                              <div>
+                                <div className="text-2xl font-bold text-purple-600">23</div>
+                                <div className="text-xs text-gray-600">Programs</div>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>
-                  )}
-
-                  {/* Completion message for step 4 */}
-                  {currentStep === 4 && (
-                    <p className="text-xl text-gray-600">
-                      Welcome to ClarityLog, {data.preferredName}! Your personalized experience is ready.
-                    </p>
                   )}
                 </div>
               )}
