@@ -60,22 +60,11 @@ export const OnboardingFlow = () => {
     },
     {
       id: 'enterprise' as const,
-      title: 'Enterprise/Training',
-      description: 'Organization-wide training program management',
+      title: 'Enterprise',
+      description: 'Scale training programs across your organization',
       icon: Building2,
-      features: ['Multi-user management', 'Advanced analytics', 'Custom workflows', 'Integration support']
+      features: ['Multi-program management', 'Advanced analytics', 'Custom workflows', 'Integration support']
     }
-  ];
-
-  const commonChallenges = [
-    { id: 'time-management', label: 'Time Management', icon: '⏰' },
-    { id: 'documentation', label: 'Documentation & Record Keeping', icon: '📝' },
-    { id: 'clinical-skills', label: 'Developing Clinical Skills', icon: '🎯' },
-    { id: 'supervision-relationship', label: 'Supervision Relationship', icon: '🤝' },
-    { id: 'work-life-balance', label: 'Work-Life Balance', icon: '⚖️' },
-    { id: 'ethical-decisions', label: 'Ethical Decision Making', icon: '🤔' },
-    { id: 'client-progress', label: 'Tracking Client Progress', icon: '📊' },
-    { id: 'professional-development', label: 'Continuing Education', icon: '📚' }
   ];
 
   const handleNext = () => {
@@ -84,13 +73,15 @@ export const OnboardingFlow = () => {
     }
   };
 
-  const handlePrevious = () => {
+  const handleBack = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
   };
 
   const handleComplete = async () => {
+    if (!data.preferredName || !data.accountType) return;
+    
     setIsLoading(true);
     try {
       await updateUserProfile({
@@ -100,19 +91,18 @@ export const OnboardingFlow = () => {
         trackingChallenge: data.trackingChallenge,
         organizationName: data.organizationName,
         professionalGoals: data.professionalGoals,
-        focus: 'licensure',
-        hasCompletedOnboarding: true
+        onboardingCompleted: true
       });
 
       toast({
         title: "Welcome to ClarityLog!",
         description: "Your account has been set up successfully.",
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
-        title: "Setup Failed",
-        description: error.message || "Please try again.",
-        variant: "destructive",
+        title: "Setup Error", 
+        description: "There was a problem setting up your account.",
+        variant: "destructive"
       });
     } finally {
       setIsLoading(false);
@@ -234,31 +224,37 @@ export const OnboardingFlow = () => {
   };
 
   const steps = getSteps();
-
   const currentStepData = steps[currentStep];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 relative overflow-hidden">
-      {/* Skip button */}
-      <button
-        onClick={handleComplete}
-        className="absolute top-8 right-8 text-blue-500 hover:text-blue-700 transition-colors z-10"
-      >
-        Skip
-      </button>
-
-      {/* Back button (only show after first step) */}
-      {currentStep > 0 && (
-        <button
-          onClick={handlePrevious}
-          className="absolute top-8 left-8 text-blue-500 hover:text-blue-700 transition-colors z-10"
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex flex-col">
+      {/* Navigation */}
+      <div className="flex justify-between items-center p-8">
+        <Button 
+          variant="ghost" 
+          onClick={handleBack}
+          disabled={currentStep === 0}
+          className="text-gray-500 hover:text-gray-700 font-light"
         >
-          <ArrowLeft className="w-6 h-6" />
-        </button>
-      )}
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back
+        </Button>
+        
+        <div className="text-sm font-light text-gray-400">
+          {currentStep + 1} / {steps.length}
+        </div>
+        
+        <Button 
+          variant="ghost"
+          className="text-gray-500 hover:text-gray-700 font-light"
+        >
+          Skip
+        </Button>
+      </div>
 
-      <div className="flex items-center justify-center min-h-screen px-8">
-        <div className="w-full max-w-md text-center">
+      {/* Main Content */}
+      <div className="flex-1 flex items-center justify-center px-8 pb-32">
+        <div className="w-full max-w-4xl">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentStep}
@@ -269,32 +265,45 @@ export const OnboardingFlow = () => {
             >
               {/* Problem identification, feature demos, and completion */}
               {!currentStepData.showAccountSelection && !currentStepData.showForm && (
-                <div className="space-y-12">
-                  <div className="space-y-4">
-                    <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
+                <div className="space-y-16">
+                  <div className="space-y-6 text-center max-w-2xl mx-auto">
+                    <h1 className="text-5xl md:text-6xl font-light text-gray-900 leading-[1.1] tracking-tight">
                       {currentStepData.title}
                     </h1>
                     {currentStepData.subtitle && (
-                      <p className="text-xl text-gray-600">
+                      <p className="text-2xl text-gray-500 font-light leading-relaxed">
                         {currentStepData.subtitle}
                       </p>
                     )}
                   </div>
                   
-                  {/* Interactive demos based on step type */}
+                  {/* Interactive demos */}
                   {currentStepData.showDemo && (
-                    <div className="mt-16">
+                    <motion.div 
+                      className="max-w-lg mx-auto"
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.3, duration: 0.5 }}
+                    >
                       {currentStepData.showDemo === 'quick-log' && (
-                        <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-8 border border-white/40">
-                          <div className="space-y-4">
-                            <div className="flex items-center gap-3 text-sm text-gray-600 mb-6">
-                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-10 shadow-2xl border border-white/50">
+                          <div className="space-y-8">
+                            <div className="flex items-center justify-center gap-3 text-base text-gray-500 font-light">
+                              <motion.div 
+                                className="w-3 h-3 bg-emerald-400 rounded-full"
+                                animate={{ scale: [1, 1.2, 1] }}
+                                transition={{ repeat: Infinity, duration: 2 }}
+                              />
                               Tap anywhere to start logging
                             </div>
-                            <div className="bg-blue-500 text-white rounded-xl p-4 text-center font-medium">
+                            <motion.div 
+                              className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-2xl p-6 text-center font-medium text-lg tracking-wide cursor-pointer hover:shadow-lg transition-all duration-200"
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                            >
                               + Log Session
-                            </div>
-                            <div className="text-center text-sm text-gray-500">
+                            </motion.div>
+                            <div className="text-center text-gray-400 font-light">
                               Session logged in seconds, not minutes
                             </div>
                           </div>
@@ -302,31 +311,41 @@ export const OnboardingFlow = () => {
                       )}
 
                       {currentStepData.showDemo === 'ai-insights' && (
-                        <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-8 border border-white/40">
-                          <div className="space-y-4">
-                            <div className="text-sm text-gray-600 mb-4">Session notes:</div>
-                            <div className="bg-gray-50 rounded-lg p-4 text-sm">
+                        <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-10 shadow-2xl border border-white/50">
+                          <div className="space-y-8">
+                            <div className="text-base text-gray-500 font-light mb-6">Session notes:</div>
+                            <div className="bg-gray-50/80 rounded-2xl p-6 text-base font-light leading-relaxed">
                               "Client showed significant progress with anxiety management techniques..."
                             </div>
-                            <div className="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-4">
-                              <div className="text-sm font-medium text-blue-900">AI Insight</div>
-                              <div className="text-sm text-blue-700 mt-1">Client demonstrates improved coping strategies. Consider reinforcing CBT techniques in next session.</div>
-                            </div>
+                            <motion.div 
+                              className="bg-gradient-to-br from-blue-50 to-indigo-50 border-l-4 border-blue-500 rounded-2xl p-6"
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: 0.5 }}
+                            >
+                              <div className="text-base font-medium text-blue-900 mb-2">AI Insight</div>
+                              <div className="text-base text-blue-700 font-light leading-relaxed">Client demonstrates improved coping strategies. Consider reinforcing CBT techniques in next session.</div>
+                            </motion.div>
                           </div>
                         </div>
                       )}
 
                       {currentStepData.showDemo === 'progress-tracking' && (
-                        <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-8 border border-white/40">
-                          <div className="space-y-4">
+                        <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-10 shadow-2xl border border-white/50">
+                          <div className="space-y-8">
                             <div className="flex justify-between items-center">
-                              <span className="text-sm font-medium">Licensure Progress</span>
-                              <span className="text-sm text-blue-600">75% Complete</span>
+                              <span className="text-lg font-medium text-gray-700">Licensure Progress</span>
+                              <span className="text-lg text-blue-600 font-medium">75% Complete</span>
                             </div>
-                            <div className="w-full bg-gray-200 rounded-full h-3">
-                              <div className="bg-blue-500 h-3 rounded-full" style={{ width: '75%' }}></div>
+                            <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+                              <motion.div 
+                                className="bg-gradient-to-r from-blue-500 to-blue-600 h-4 rounded-full"
+                                initial={{ width: 0 }}
+                                animate={{ width: '75%' }}
+                                transition={{ delay: 0.3, duration: 1.2, ease: "easeOut" }}
+                              />
                             </div>
-                            <div className="text-xs text-gray-600">
+                            <div className="text-gray-500 font-light">
                               1,875 / 2,500 client contact hours completed
                             </div>
                           </div>
@@ -334,173 +353,208 @@ export const OnboardingFlow = () => {
                       )}
 
                       {currentStepData.showDemo === 'supervisor-dashboard' && (
-                        <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-8 border border-white/40">
-                          <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                              <div className="bg-white rounded-lg p-4 border">
-                                <div className="text-sm font-medium">Sarah M.</div>
-                                <div className="text-xs text-green-600">On track</div>
-                                <div className="text-xs text-gray-500">68% complete</div>
-                              </div>
-                              <div className="bg-white rounded-lg p-4 border">
-                                <div className="text-sm font-medium">James K.</div>
-                                <div className="text-xs text-yellow-600">Needs attention</div>
-                                <div className="text-xs text-gray-500">45% complete</div>
-                              </div>
+                        <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-10 shadow-2xl border border-white/50">
+                          <div className="space-y-6">
+                            <div className="grid grid-cols-2 gap-6">
+                              <motion.div 
+                                className="bg-white/80 rounded-2xl p-6 border border-gray-100 shadow-sm"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.2 }}
+                              >
+                                <div className="text-base font-medium text-gray-800">Sarah M.</div>
+                                <div className="text-sm text-emerald-600 font-medium mt-1">On track</div>
+                                <div className="text-sm text-gray-500 font-light">68% complete</div>
+                              </motion.div>
+                              <motion.div 
+                                className="bg-white/80 rounded-2xl p-6 border border-gray-100 shadow-sm"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.4 }}
+                              >
+                                <div className="text-base font-medium text-gray-800">James K.</div>
+                                <div className="text-sm text-amber-600 font-medium mt-1">Needs attention</div>
+                                <div className="text-sm text-gray-500 font-light">45% complete</div>
+                              </motion.div>
                             </div>
                           </div>
                         </div>
                       )}
 
                       {currentStepData.showDemo === 'compliance-alerts' && (
-                        <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-8 border border-white/40">
-                          <div className="space-y-4">
-                            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                              <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                                <span className="text-sm font-medium text-yellow-800">Supervision Due</span>
-                              </div>
-                              <div className="text-xs text-yellow-700 mt-1">Sarah M. needs supervision session within 3 days</div>
+                        <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-10 shadow-2xl border border-white/50">
+                          <motion.div 
+                            className="bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-200 rounded-2xl p-6"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.3 }}
+                          >
+                            <div className="flex items-center gap-3 mb-3">
+                              <motion.div 
+                                className="w-3 h-3 bg-amber-400 rounded-full"
+                                animate={{ scale: [1, 1.3, 1] }}
+                                transition={{ repeat: Infinity, duration: 2 }}
+                              />
+                              <span className="text-base font-medium text-amber-800">Supervision Due</span>
                             </div>
-                          </div>
+                            <div className="text-base text-amber-700 font-light">Sarah M. needs supervision session within 3 days</div>
+                          </motion.div>
                         </div>
                       )}
 
                       {currentStepData.showDemo === 'enterprise-analytics' && (
-                        <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-8 border border-white/40">
-                          <div className="space-y-4">
-                            <div className="grid grid-cols-3 gap-4 text-center">
-                              <div>
-                                <div className="text-2xl font-bold text-blue-600">156</div>
-                                <div className="text-xs text-gray-600">Active Trainees</div>
-                              </div>
-                              <div>
-                                <div className="text-2xl font-bold text-green-600">89%</div>
-                                <div className="text-xs text-gray-600">On Track</div>
-                              </div>
-                              <div>
-                                <div className="text-2xl font-bold text-purple-600">23</div>
-                                <div className="text-xs text-gray-600">Programs</div>
-                              </div>
-                            </div>
+                        <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-10 shadow-2xl border border-white/50">
+                          <div className="grid grid-cols-3 gap-8 text-center">
+                            <motion.div
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.2 }}
+                            >
+                              <div className="text-4xl font-light text-blue-600 mb-2">156</div>
+                              <div className="text-sm text-gray-500 font-light">Active Trainees</div>
+                            </motion.div>
+                            <motion.div
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.4 }}
+                            >
+                              <div className="text-4xl font-light text-emerald-600 mb-2">89%</div>
+                              <div className="text-sm text-gray-500 font-light">On Track</div>
+                            </motion.div>
+                            <motion.div
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.6 }}
+                            >
+                              <div className="text-4xl font-light text-purple-600 mb-2">23</div>
+                              <div className="text-sm text-gray-500 font-light">Programs</div>
+                            </motion.div>
                           </div>
                         </div>
                       )}
-                    </div>
+                    </motion.div>
                   )}
                 </div>
               )}
 
               {/* Account selection step */}
               {currentStepData.showAccountSelection && (
-                <div className="space-y-8">
-                  <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-12">
-                    {currentStepData.title}
-                  </h1>
+                <div className="space-y-12">
+                  <div className="text-center space-y-6">
+                    <h1 className="text-5xl md:text-6xl font-light text-gray-900 leading-[1.1] tracking-tight">
+                      {currentStepData.title}
+                    </h1>
+                  </div>
                   
-                  <div className="space-y-4">
-                    {accountTypes.map((type) => (
-                      <button
-                        key={type.id}
-                        onClick={() => setData(prev => ({ ...prev, accountType: type.id }))}
-                        className={`w-full p-6 rounded-2xl border-2 transition-all ${
-                          data.accountType === type.id
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        <div className="flex items-center space-x-4">
-                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                            data.accountType === type.id ? 'bg-blue-500 text-white' : 'bg-gray-100'
-                          }`}>
-                            <type.icon className="w-5 h-5" />
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                    {accountTypes.map((type) => {
+                      const Icon = type.icon;
+                      return (
+                        <motion.div
+                          key={type.id}
+                          className={`p-8 rounded-3xl border-2 cursor-pointer transition-all duration-300 ${
+                            data.accountType === type.id
+                              ? 'border-blue-500 bg-blue-50/50 shadow-lg scale-105'
+                              : 'border-gray-200 bg-white/60 hover:border-gray-300 hover:shadow-md'
+                          }`}
+                          onClick={() => setData({ ...data, accountType: type.id })}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <div className="space-y-6">
+                            <Icon className={`w-12 h-12 ${data.accountType === type.id ? 'text-blue-600' : 'text-gray-400'}`} />
+                            <div>
+                              <h3 className="text-xl font-semibold text-gray-900 mb-2">{type.title}</h3>
+                              <p className="text-gray-600 font-light leading-relaxed">{type.description}</p>
+                            </div>
+                            <div className="space-y-2">
+                              {type.features.map((feature, index) => (
+                                <div key={index} className="text-sm text-gray-500 font-light">
+                                  • {feature}
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                          <div className="text-left">
-                            <h3 className="font-semibold text-gray-900">{type.title}</h3>
-                            <p className="text-sm text-gray-600">{type.description}</p>
-                          </div>
-                        </div>
-                      </button>
-                    ))}
+                        </motion.div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
 
               {/* Form step */}
               {currentStepData.showForm && (
-                <div className="space-y-8">
-                  <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-12">
-                    {currentStepData.title}
-                  </h1>
+                <div className="space-y-12">
+                  <div className="text-center space-y-6">
+                    <h1 className="text-5xl md:text-6xl font-light text-gray-900 leading-[1.1] tracking-tight">
+                      {currentStepData.title}
+                    </h1>
+                  </div>
                   
-                  <div className="space-y-6 text-left">
+                  <div className="max-w-md mx-auto space-y-8">
                     <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-3">
+                        What should we call you?
+                      </label>
                       <Input
-                        type="text"
-                        placeholder="Your preferred name"
                         value={data.preferredName}
-                        onChange={(e) => setData(prev => ({ ...prev, preferredName: e.target.value }))}
-                        className="w-full p-4 text-lg border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0"
+                        onChange={(e) => setData({ ...data, preferredName: e.target.value })}
+                        placeholder="Your preferred name"
+                        className="w-full p-4 text-lg font-light border-gray-200 rounded-2xl focus:border-blue-500"
                       />
                     </div>
                     
                     <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-3">
+                        State/Region
+                      </label>
                       <Input
-                        type="text"
-                        placeholder="State/Region (e.g., Texas, California)"
                         value={data.stateRegion}
-                        onChange={(e) => setData(prev => ({ ...prev, stateRegion: e.target.value }))}
-                        className="w-full p-4 text-lg border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0"
+                        onChange={(e) => setData({ ...data, stateRegion: e.target.value })}
+                        placeholder="e.g., California, Ontario"
+                        className="w-full p-4 text-lg font-light border-gray-200 rounded-2xl focus:border-blue-500"
                       />
                     </div>
-
+                    
                     <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-3">
+                        Biggest tracking challenge?
+                      </label>
                       <Input
-                        type="text"
-                        placeholder="Main challenge (e.g., Time management)"
                         value={data.trackingChallenge}
-                        onChange={(e) => setData(prev => ({ ...prev, trackingChallenge: e.target.value }))}
-                        className="w-full p-4 text-lg border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0"
+                        onChange={(e) => setData({ ...data, trackingChallenge: e.target.value })}
+                        placeholder="e.g., remembering to log hours"
+                        className="w-full p-4 text-lg font-light border-gray-200 rounded-2xl focus:border-blue-500"
                       />
                     </div>
-
-                    {data.accountType === 'enterprise' && (
-                      <div>
-                        <Input
-                          type="text"
-                          placeholder="Organization name"
-                          value={data.organizationName}
-                          onChange={(e) => setData(prev => ({ ...prev, organizationName: e.target.value }))}
-                          className="w-full p-4 text-lg border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0"
-                        />
-                      </div>
-                    )}
                   </div>
                 </div>
               )}
             </motion.div>
           </AnimatePresence>
+        </div>
+      </div>
 
-          {/* Next button */}
-          <div className="mt-16">
-            {currentStep === steps.length - 1 ? (
-              <Button
-                onClick={handleComplete}
-                disabled={!currentStepData.canContinue || isLoading}
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white py-4 text-lg rounded-xl font-medium"
-              >
-                {isLoading ? 'Setting up...' : 'Get Started'}
-              </Button>
-            ) : (
-              <Button
-                onClick={handleNext}
-                disabled={!currentStepData.canContinue}
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white py-4 text-lg rounded-xl font-medium"
-              >
-                Next
-              </Button>
-            )}
-          </div>
+      {/* Bottom Navigation */}
+      <div className="fixed bottom-8 left-8 right-8">
+        <div className="flex justify-center">
+          {currentStep === steps.length - 1 ? (
+            <Button
+              onClick={handleComplete}
+              disabled={!currentStepData.canContinue || isLoading}
+              className="px-12 py-4 text-lg font-medium bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200"
+            >
+              {isLoading ? "Setting up..." : "Get Started"}
+            </Button>
+          ) : (
+            <Button
+              onClick={handleNext}
+              disabled={!currentStepData.canContinue}
+              className="px-12 py-4 text-lg font-medium bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200"
+            >
+              Next
+            </Button>
+          )}
         </div>
       </div>
     </div>
