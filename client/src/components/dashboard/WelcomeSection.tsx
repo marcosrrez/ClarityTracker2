@@ -117,15 +117,18 @@ export const WelcomeSection = () => {
 
   return (
     <section className="space-y-6">
-      {/* Welcome Card - Notion-style clean white */}
-      <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden">
+      {/* Welcome Card - Premium glassmorphic design */}
+      <div className="backdrop-blur-sm bg-white/80 dark:bg-gray-800/80 rounded-3xl p-8 border border-white/20 shadow-xl relative overflow-hidden">
+        {/* Subtle gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/20 via-transparent to-indigo-50/20 pointer-events-none" />
+        
         <div className="relative z-10">
           <div className="flex items-start justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold mb-1 text-gray-900 dark:text-white">
+              <h1 className="text-4xl font-light mb-2 text-gray-900 dark:text-white tracking-tight">
                 {getIntelligentGreeting()}
               </h1>
-              <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
+              <p className="text-gray-600 dark:text-gray-400 text-lg font-light">
                 {new Date().toLocaleDateString('en-US', { 
                   weekday: 'long', 
                   month: 'long', 
@@ -133,11 +136,11 @@ export const WelcomeSection = () => {
                 })}
               </p>
             </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-gray-900 dark:text-white">
+            <div className="text-right bg-white/50 dark:bg-gray-700/50 rounded-2xl p-4 backdrop-blur-sm">
+              <div className="text-3xl font-light text-gray-900 dark:text-white">
                 {entries?.length || 0}
               </div>
-              <div className="text-gray-500 dark:text-gray-400 text-xs font-medium">Sessions logged</div>
+              <div className="text-gray-600 dark:text-gray-400 text-sm font-medium">Sessions logged</div>
             </div>
           </div>
           

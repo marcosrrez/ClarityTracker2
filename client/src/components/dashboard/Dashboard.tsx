@@ -63,42 +63,44 @@ export const Dashboard = () => {
 
   // Show regular dashboard for individual counselors
   return (
-    <div className="space-y-8 ive-spacing">
-      {/* Milestone Celebration Modal - only if smart features are enabled */}
-      {smartFeaturesEnabled && showCelebration && celebrationData && (
-        <MilestoneCelebration
-          open={showCelebration}
-          onClose={closeCelebration}
-          milestone={celebrationData}
-        />
-      )}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
+      <div className="space-y-8 p-6 max-w-7xl mx-auto">
+        {/* Milestone Celebration Modal - only if smart features are enabled */}
+        {smartFeaturesEnabled && showCelebration && celebrationData && (
+          <MilestoneCelebration
+            open={showCelebration}
+            onClose={closeCelebration}
+            milestone={celebrationData}
+          />
+        )}
 
-      {/* Welcome section - always shown */}
-      <div>
-        <WelcomeSection />
-      </div>
-      
-      {/* Quick Stats - always shown */}
-      <div>
-        <QuickStatsGrid />
-      </div>
-      
-      {/* Smart Features Section - only if enabled */}
-      {smartFeaturesEnabled && (
-        <div className="space-y-6">
-          <PersonalizedAICoaching />
-          <CompetencyTracker />
+        {/* Welcome section - always shown */}
+        <div className="backdrop-blur-sm">
+          <WelcomeSection />
         </div>
-      )}
       
-      {/* Progress tracking - always shown */}
-      <div>
-        <ProgressSection />
-      </div>
-      
-      {/* Recent entries - always shown */}
-      <div>
-        <LogTableSection />
+        {/* Quick Stats - always shown */}
+        <div>
+          <QuickStatsGrid />
+        </div>
+        
+        {/* Smart Features Section - only if enabled */}
+        {smartFeaturesEnabled && (
+          <div className="space-y-6">
+            <PersonalizedAICoaching />
+            <CompetencyTracker />
+          </div>
+        )}
+        
+        {/* Progress tracking - always shown */}
+        <div>
+          <ProgressSection />
+        </div>
+        
+        {/* Recent entries - always shown */}
+        <div>
+          <LogTableSection />
+        </div>
       </div>
     </div>
   );

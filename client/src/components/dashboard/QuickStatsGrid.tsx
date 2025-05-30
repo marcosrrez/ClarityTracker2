@@ -72,23 +72,28 @@ export const QuickStatsGrid = () => {
   ];
 
   return (
-    <section className="mb-8 ive-fade-in">
-      <h3 className="text-lg font-semibold text-foreground mb-6 tracking-tight">Quick Overview</h3>
+    <section className="mb-8">
+      <h3 className="text-2xl font-light mb-6 text-gray-900 dark:text-white tracking-tight">Quick Overview</h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <div key={index} className="ive-card ive-hover-lift ive-rounded-xl bg-white dark:bg-gray-800 p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300">
-              <div className="flex items-center justify-between mb-4">
-                <div className={`p-3 ive-rounded ${stat.iconBg}`}>
-                  <Icon className={`h-5 w-5 ${stat.iconColor}`} />
+            <div key={index} className="backdrop-blur-sm bg-white/70 dark:bg-gray-800/70 rounded-3xl p-8 border border-white/20 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-105 relative overflow-hidden">
+              {/* Subtle gradient background */}
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-transparent to-indigo-50/30 pointer-events-none" />
+              
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="p-3 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 rounded-2xl backdrop-blur-sm">
+                    <Icon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">{stat.subtitle}</span>
                 </div>
-                <span className="text-sm text-muted-foreground font-medium">{stat.subtitle}</span>
-              </div>
-              <h4 className="text-2xl font-bold text-foreground mb-1 tracking-tight">{stat.value}</h4>
-              <p className="text-sm text-muted-foreground">{stat.title}</p>
-              <div className="mt-3 flex items-center text-sm">
-                <span className="text-accent font-medium">{stat.change}</span>
+                <h4 className="text-3xl font-light text-gray-900 dark:text-white mb-2 tracking-tight">{stat.value}</h4>
+                <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">{stat.title}</p>
+                <div className="mt-4 flex items-center text-sm">
+                  <span className="text-blue-600 dark:text-blue-400 font-medium">{stat.change}</span>
+                </div>
               </div>
             </div>
           );
