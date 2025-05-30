@@ -92,7 +92,7 @@ export const SuperhumanLandingPage = () => {
         {/* Logo */}
         <div className="absolute top-6 sm:top-8 left-6 sm:left-8 z-10">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <Sprout className="w-5 h-5 text-white" />
             </div>
             <span className="text-white text-lg font-semibold tracking-tight">ClarityLog</span>
@@ -114,10 +114,10 @@ export const SuperhumanLandingPage = () => {
                 </h1>
               </div>
 
-              <div className="space-y-4 mb-8">
+              <div className="mb-8">
                 <Button
                   onClick={handleGoogleSignup}
-                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-4 rounded-2xl font-medium transition-all duration-300 text-lg"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-medium transition-all duration-300 text-lg"
                 >
                   <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
                     <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -126,16 +126,6 @@ export const SuperhumanLandingPage = () => {
                     <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                   </svg>
                   Sign up with Google
-                </Button>
-
-                <Button
-                  onClick={handleMicrosoftSignup}
-                  className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white py-4 rounded-2xl font-medium transition-all duration-300 text-lg"
-                >
-                  <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
-                    <path fill="currentColor" d="M11.4 24H0V12.6h11.4V24zM24 24H12.6V12.6H24V24zM11.4 11.4H0V0h11.4v11.4zM24 11.4H12.6V0H24v11.4z"/>
-                  </svg>
-                  Sign up with Microsoft
                 </Button>
               </div>
 
@@ -232,7 +222,7 @@ export const SuperhumanLandingPage = () => {
       {/* Navigation */}
       <nav className="relative z-20 flex items-center justify-between p-8 border-b border-gray-100">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <Sprout className="w-5 h-5 text-white" />
           </div>
           <span className="text-gray-900 text-lg font-semibold tracking-tight">ClarityLog</span>
@@ -240,7 +230,7 @@ export const SuperhumanLandingPage = () => {
         
         <Button 
           onClick={() => setShowSignupForm(true)}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-medium"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium"
         >
           Start Now
         </Button>
@@ -274,7 +264,7 @@ export const SuperhumanLandingPage = () => {
           >
             <Button 
               onClick={() => setShowSignupForm(true)}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5"
             >
               Start Now
               <ArrowRight className="w-4 sm:w-5 h-4 sm:h-5 ml-2" />
@@ -328,7 +318,7 @@ export const SuperhumanLandingPage = () => {
                 transition={{ duration: 0.6, delay: 1 + 0.1 * index }}
                 className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
               >
-                <div className="w-14 h-14 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+                <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
                   <feature.icon className="w-7 h-7 text-white" />
                 </div>
                 <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 leading-tight">{feature.title}</h3>
