@@ -19,9 +19,19 @@ export const AuthGuard = ({ children, fallback, requireAccountSetup = true }: Au
       const needsAccountSetup = !userProfile?.accountType;
       const isOnAccountSetupPage = location === '/account-setup';
       
+      console.log("AuthGuard check:", { 
+        loading, 
+        userProfile, 
+        needsAccountSetup, 
+        isOnAccountSetupPage, 
+        location 
+      });
+      
       if (needsAccountSetup && !isOnAccountSetupPage) {
+        console.log("Redirecting to account setup");
         setLocation('/account-setup');
       } else if (!needsAccountSetup && isOnAccountSetupPage) {
+        console.log("Redirecting to dashboard");
         setLocation('/dashboard');
       }
     }
