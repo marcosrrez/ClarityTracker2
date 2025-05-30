@@ -49,7 +49,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       if (user) {
         // Load user profile from Firestore
         try {
+          console.log("Loading profile for user:", user.uid);
           const profile = await getUserProfile(user.uid);
+          console.log("Loaded profile:", profile);
           setUserProfile(profile);
         } catch (error) {
           console.error("Error loading user profile:", error);
