@@ -17,12 +17,13 @@ import {
   Users,
   BarChart3,
   Eye,
-  EyeOff
+  EyeOff,
+  Sprout
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const EnhancedLandingPage = () => {
-  const { signInWithGoogle, signUpWithEmail, signInWithEmail } = useAuth();
+  const { signIn, signUp } = useAuth();
   const [, setLocation] = useLocation();
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -56,7 +57,8 @@ export const EnhancedLandingPage = () => {
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
-      await signInWithGoogle();
+      // Google sign-in would need to be implemented in AuthContext
+      console.log('Google sign-in not yet implemented');
     } catch (error) {
       console.error('Google sign in error:', error);
     } finally {
@@ -77,9 +79,9 @@ export const EnhancedLandingPage = () => {
         if (password !== confirmPassword) {
           throw new Error("Passwords don't match");
         }
-        await signUpWithEmail(email, password, displayName);
+        await signUp(email, password, displayName);
       } else {
-        await signInWithEmail(email, password);
+        await signIn(email, password);
       }
     } catch (error) {
       console.error('Email auth error:', error);
@@ -107,11 +109,12 @@ export const EnhancedLandingPage = () => {
       >
         <div className="flex items-center gap-2">
           <motion.div
-            className="w-8 h-8 bg-gradient-to-r from-green-400 to-green-600 rounded-full"
             animate={{ rotate: [0, 5, 0] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <span className="text-xl font-bold text-gray-900">ClarityLog</span>
+          >
+            <Sprout className="w-8 h-8 text-green-500" />
+          </motion.div>
+          <span className="text-xl font-bold text-gray-900 tracking-tight">ClarityLog</span>
         </div>
       </motion.div>
 
