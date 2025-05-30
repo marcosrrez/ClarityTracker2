@@ -1,17 +1,8 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Trophy, AlertTriangle } from "lucide-react";
-import { useLogEntries, useAppSettings } from "@/hooks/use-firestore";
-import { updateAppSettings } from "@/lib/firestore";
-import { useAuth } from "@/hooks/use-auth";
-import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { EnhancedProgressSection } from "./EnhancedProgressSection";
 
 export const ProgressSection = () => {
+  return <EnhancedProgressSection />;
+};
   const { user } = useAuth();
   const { entries, loading: entriesLoading } = useLogEntries();
   const { settings, loading: settingsLoading, refetch: refetchSettings } = useAppSettings();
