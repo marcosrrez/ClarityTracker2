@@ -6,16 +6,25 @@ import { PersonalizedAICoaching } from "./PersonalizedAICoaching";
 import { CompetencyTracker } from "./CompetencyTracker";
 import { AchievementCelebration } from "./AchievementCelebration";
 import { MilestoneCelebration } from "./MilestoneCelebration";
+import { SupervisorDashboard } from "./SupervisorDashboard";
 import { useMilestoneDetection } from "@/hooks/use-milestone-detection";
 import { useAppSettings } from "@/hooks/use-firestore";
+import { useAccountType } from "@/hooks/use-account-type";
 
 export const Dashboard = () => {
   const { showCelebration, celebrationData, closeCelebration } = useMilestoneDetection();
   const { settings } = useAppSettings();
+  const { isSupervisor } = useAccountType();
 
   // Get user preferences - use localStorage for immediate toggle without Firebase dependency
   const smartFeaturesEnabled = localStorage.getItem('smartFeaturesEnabled') !== 'false';
 
+  // Show supervisor-specific dashboard for supervisors
+  if (isSupervisor) {
+    return <SupervisorDashboard />;
+  }
+
+  // Show regular dashboard for individual counselors
   return (
     <div className="space-y-8">
       {/* Milestone Celebration Modal - only if smart features are enabled */}
