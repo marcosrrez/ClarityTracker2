@@ -88,14 +88,14 @@ export const SuperhumanLandingPage = () => {
 
   if (showSignupForm) {
     return (
-      <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-emerald-900/20 to-green-900/30">
+      <div className="min-h-screen bg-white">
         {/* Logo */}
         <div className="absolute top-8 left-8 z-10">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <Sprout className="w-5 h-5 text-white" />
             </div>
-            <span className="text-white text-lg font-semibold tracking-tight">CLARITYLOG</span>
+            <span className="text-gray-900 text-lg font-semibold tracking-tight">CLARITYLOG</span>
           </div>
         </div>
 
@@ -107,9 +107,9 @@ export const SuperhumanLandingPage = () => {
             transition={{ duration: 0.6 }}
             className="w-full max-w-sm"
           >
-            <div className="bg-slate-800/90 backdrop-blur-xl rounded-2xl p-8 border border-slate-700/50">
+            <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-xl">
               <div className="text-center mb-8">
-                <h1 className="text-2xl font-semibold text-white mb-2">
+                <h1 className="text-2xl font-semibold text-gray-900 mb-2">
                   Start your journey to LPC licensure
                 </h1>
               </div>
@@ -117,7 +117,7 @@ export const SuperhumanLandingPage = () => {
               <div className="space-y-3 mb-6">
                 <Button
                   onClick={handleGoogleSignup}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-medium transition-colors"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-medium transition-colors"
                 >
                   <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                     <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -130,7 +130,7 @@ export const SuperhumanLandingPage = () => {
 
                 <Button
                   onClick={handleMicrosoftSignup}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-medium transition-colors"
+                  className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-medium transition-colors"
                 >
                   <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                     <path fill="currentColor" d="M11.4 24H0V12.6h11.4V24zM24 24H12.6V12.6H24V24zM11.4 11.4H0V0h11.4v11.4zM24 11.4H12.6V0H24v11.4z"/>
@@ -141,10 +141,10 @@ export const SuperhumanLandingPage = () => {
 
               <div className="relative mb-6">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-600" />
+                  <div className="w-full border-t border-gray-300" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-3 bg-slate-800 text-slate-400">or</span>
+                  <span className="px-3 bg-white text-gray-500">or</span>
                 </div>
               </div>
 
@@ -155,7 +155,7 @@ export const SuperhumanLandingPage = () => {
                     placeholder="Full name"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 rounded-xl py-3"
+                    className="border-gray-300 rounded-xl py-3"
                   />
                 )}
                 
@@ -164,7 +164,7 @@ export const SuperhumanLandingPage = () => {
                   placeholder="Enter email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 rounded-xl py-3"
+                  className="border-gray-300 rounded-xl py-3"
                 />
 
                 <Input
@@ -172,7 +172,7 @@ export const SuperhumanLandingPage = () => {
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 rounded-xl py-3"
+                  className="border-gray-300 rounded-xl py-3"
                 />
 
                 {isSignUp && (
@@ -181,14 +181,14 @@ export const SuperhumanLandingPage = () => {
                     placeholder="Confirm password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 rounded-xl py-3"
+                    className="border-gray-300 rounded-xl py-3"
                   />
                 )}
 
                 <Button
                   onClick={handleEmailAuth}
                   disabled={isLoading}
-                  className="w-full bg-slate-600 hover:bg-slate-700 text-white py-3 rounded-xl font-medium transition-colors"
+                  className="w-full bg-gray-800 hover:bg-gray-900 text-white py-3 rounded-xl font-medium transition-colors"
                 >
                   {isLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin mr-2" />
@@ -200,7 +200,7 @@ export const SuperhumanLandingPage = () => {
               <div className="text-center mt-6">
                 <button
                   onClick={() => setIsSignUp(!isSignUp)}
-                  className="text-slate-400 hover:text-white text-sm transition-colors"
+                  className="text-gray-500 hover:text-gray-700 text-sm transition-colors"
                 >
                   {isSignUp 
                     ? "Already have an account? Sign in" 
@@ -216,88 +216,67 @@ export const SuperhumanLandingPage = () => {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-emerald-900/20 to-green-900/30">
+    <div className="min-h-screen bg-white">
       {/* Navigation */}
-      <nav className="relative z-20 flex items-center justify-between p-8">
+      <nav className="relative z-20 flex items-center justify-between p-8 border-b border-gray-100">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
+          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <Sprout className="w-5 h-5 text-white" />
           </div>
-          <span className="text-white text-lg font-semibold tracking-tight">CLARITYLOG</span>
+          <span className="text-gray-900 text-lg font-semibold tracking-tight">CLARITYLOG</span>
         </div>
         
         <Button 
           onClick={() => setShowSignupForm(true)}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg font-medium"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium"
         >
           Start Now
         </Button>
       </nav>
 
       {/* Hero section */}
-      <div className="relative z-10 container mx-auto px-8 pt-16 pb-32">
-        <div className="flex items-center justify-between">
-          {/* Left side - Hero content */}
-          <div className="max-w-xl">
-            <motion.h1 
-              className="text-6xl font-bold text-white mb-6 leading-tight"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              The simplest way to track your LPC journey
-            </motion.h1>
-            
-            <motion.p 
-              className="text-xl text-gray-300 mb-8 leading-relaxed"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              Effortlessly log your supervision hours and gain insights that help you become a Licensed Professional Counselor.
-            </motion.p>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
-              <Button 
-                onClick={() => setShowSignupForm(true)}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-xl font-semibold text-lg"
-              >
-                Start Now
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </motion.div>
-          </div>
-
-          {/* Right side - Feature preview */}
-          <motion.div 
-            className="max-w-md"
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
+      <div className="relative z-10 container mx-auto px-8 pt-20 pb-32">
+        <div className="max-w-4xl mx-auto text-center">
+          <motion.h1 
+            className="text-6xl font-bold text-gray-900 mb-6 leading-tight"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
           >
-            <div className="bg-slate-800/60 backdrop-blur-xl rounded-2xl p-6 border border-slate-700/50">
-              <img 
-                src="https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" 
-                alt="Professional development dashboard"
-                className="w-full h-48 object-cover rounded-xl mb-4"
-              />
-              <h3 className="text-white font-semibold mb-2">Track Your Progress</h3>
-              <p className="text-gray-400 text-sm">Monitor your supervision hours and professional development with intelligent insights.</p>
-            </div>
+            The simplest way to track your LPC journey
+          </motion.h1>
+          
+          <motion.p 
+            className="text-xl text-gray-600 mb-12 leading-relaxed max-w-2xl mx-auto"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            Effortlessly log your supervision hours and gain insights that help you become a Licensed Professional Counselor.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+          >
+            <Button 
+              onClick={() => setShowSignupForm(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg"
+            >
+              Start Now
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
           </motion.div>
         </div>
       </div>
 
-      {/* Partner logos */}
-      <div className="relative z-10 border-t border-slate-700/50 py-12">
+      {/* Partner section */}
+      <div className="relative z-10 border-t border-gray-100 py-12 bg-gray-50">
         <div className="container mx-auto px-8">
-          <div className="flex items-center justify-center gap-12 opacity-60">
-            <span className="text-white font-medium">Trusted by counselors at</span>
-            <div className="flex items-center gap-8 text-slate-400">
+          <div className="text-center">
+            <span className="text-gray-500 font-medium mb-6 block">Trusted by counselors at</span>
+            <div className="flex items-center justify-center gap-8 text-gray-400">
               <span>Leading Training Programs</span>
               <span>•</span>
               <span>Clinical Supervisors</span>
@@ -309,32 +288,32 @@ export const SuperhumanLandingPage = () => {
       </div>
 
       {/* Stats section */}
-      <div className="relative z-10 py-16">
+      <div className="relative z-10 py-20">
         <div className="container mx-auto px-8">
           <motion.div 
-            className="grid grid-cols-3 gap-12 text-center"
+            className="grid grid-cols-3 gap-12 text-center max-w-3xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.6 }}
           >
             <div>
-              <div className="text-4xl font-bold text-emerald-400 mb-2">4+ hours</div>
-              <div className="text-gray-400">Saved per week</div>
+              <div className="text-4xl font-bold text-blue-600 mb-2">4+ hours</div>
+              <div className="text-gray-600">Saved per week</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-emerald-400 mb-2">2 minutes</div>
-              <div className="text-gray-400">Average entry time</div>
+              <div className="text-4xl font-bold text-blue-600 mb-2">2 minutes</div>
+              <div className="text-gray-600">Average entry time</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-emerald-400 mb-2">100%</div>
-              <div className="text-gray-400">Compliance tracking</div>
+              <div className="text-4xl font-bold text-blue-600 mb-2">100%</div>
+              <div className="text-gray-600">Compliance tracking</div>
             </div>
           </motion.div>
         </div>
       </div>
 
       {/* Features section */}
-      <div className="relative z-10 py-24">
+      <div className="relative z-10 py-24 bg-gray-50">
         <div className="container mx-auto px-8">
           <motion.div 
             className="text-center mb-16"
@@ -342,8 +321,8 @@ export const SuperhumanLandingPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.8 }}
           >
-            <h2 className="text-4xl font-bold text-white mb-4">Everything you need to succeed</h2>
-            <p className="text-xl text-gray-300">Professional tools designed for your licensure journey</p>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Everything you need to succeed</h2>
+            <p className="text-xl text-gray-600">Professional tools designed for your licensure journey</p>
           </motion.div>
 
           <div className="grid grid-cols-2 gap-8 max-w-4xl mx-auto">
@@ -374,13 +353,13 @@ export const SuperhumanLandingPage = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 1 + 0.1 * index }}
-                className="bg-slate-800/40 backdrop-blur-xl rounded-2xl p-8 border border-slate-700/50"
+                className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
               >
-                <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center mb-4">
+                <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mb-4">
                   <feature.icon className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-3">{feature.title}</h3>
-                <p className="text-gray-400 leading-relaxed">{feature.description}</p>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">{feature.title}</h3>
+                <p className="text-gray-600 leading-relaxed">{feature.description}</p>
               </motion.div>
             ))}
           </div>
