@@ -44,7 +44,11 @@ function Router() {
       <Route path="/summary" component={SummaryPage} />
       <Route path="/quick-entry" component={QuickEntryPage} />
       <Route path="/supervisees" component={SuperviseesPage} />
-      <Route path="/account-setup" component={AccountSetupPage} />
+      <Route path="/account-setup">
+        <AuthGuard requireAccountSetup={false}>
+          <AccountSetupPage />
+        </AuthGuard>
+      </Route>
       
       {/* Default route - redirect to dashboard */}
       <Route path="/" component={DashboardPage} />
