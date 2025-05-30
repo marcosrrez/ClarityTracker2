@@ -1,481 +1,444 @@
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { PlanSelection } from "./PlanSelection";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
-  CheckCircle2, 
-  ArrowRight, 
-  ArrowLeft,
-  Sparkles,
+  Shield, 
+  Lock, 
+  CheckCircle, 
+  Calendar as CalendarIcon,
+  Star,
+  Users,
   Target,
+  TrendingUp,
   BookOpen,
   BarChart3,
-  FileText,
-  Users,
-  Trophy,
-  Heart
+  X,
+  ChevronRight
 } from "lucide-react";
-
-interface OnboardingStep {
-  id: string;
-  title: string;
-  description: string;
-  icon: any;
-  color: string;
-}
-
-const ONBOARDING_STEPS: OnboardingStep[] = [
-  {
-    id: "welcome",
-    title: "Welcome to ClarityLog",
-    description: "Your AI-powered professional development companion",
-    icon: Heart,
-    color: "text-red-500"
-  },
-  {
-    id: "account-type",
-    title: "Choose Your Account Type",
-    description: "Select the plan that fits your professional needs",
-    icon: Users,
-    color: "text-blue-500"
-  },
-  {
-    id: "profile",
-    title: "Set Up Your Profile", 
-    description: "Tell us about your professional journey",
-    icon: Users,
-    color: "text-blue-500"
-  },
-  {
-    id: "features",
-    title: "Discover Key Features",
-    description: "Learn how ClarityLog supports your growth",
-    icon: Sparkles,
-    color: "text-purple-500"
-  },
-  {
-    id: "first-entry",
-    title: "Log Your First Session",
-    description: "Start tracking your professional development",
-    icon: FileText,
-    color: "text-green-500"
-  },
-  {
-    id: "ai-insights",
-    title: "AI-Powered Insights",
-    description: "Discover how AI enhances your practice",
-    icon: BarChart3,
-    color: "text-amber-500"
-  },
-  {
-    id: "complete",
-    title: "You're All Set!",
-    description: "Ready to accelerate your professional growth",
-    icon: Trophy,
-    color: "text-primary"
-  }
-];
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface OnboardingFlowProps {
-  isOpen: boolean;
-  onClose: () => void;
+  onComplete: (data: OnboardingData) => void;
 }
 
-export const OnboardingFlow = ({ isOpen, onClose }: OnboardingFlowProps) => {
-  const { userProfile, updateUserProfile } = useAuth();
-  const [currentStep, setCurrentStep] = useState(0);
-  const [profileData, setProfileData] = useState({
-    preferredName: userProfile?.preferredName || "",
-    licenseStage: userProfile?.licenseStage || "",
-    specialties: userProfile?.specialties || [],
-    professionalGoals: userProfile?.professionalGoals || "",
-    yearsOfExperience: userProfile?.yearsOfExperience || "",
-    accountType: userProfile?.accountType || ""
+interface OnboardingData {
+  accountType: 'individual' | 'supervisor' | 'enterprise';
+  licensureGoalDate?: Date;
+  trackingChallenge?: string;
+  displayName?: string;
+}
+
+export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
+  const { user } = useAuth();
+  const [step, setStep] = useState(1);
+  const [onboardingData, setOnboardingData] = useState<OnboardingData>({
+    accountType: 'individual'
   });
+  const [showGuidedOverlay, setShowGuidedOverlay] = useState(false);
+  const [licensureDate, setLicensureDate] = useState<Date>();
 
-  const currentStepData = ONBOARDING_STEPS[currentStep];
-  const progress = ((currentStep + 1) / ONBOARDING_STEPS.length) * 100;
+  // Anticipatory features
+  useEffect(() => {
+    if (user?.email) {
+      // Auto-detect organization type from email domain
+      const domain = user.email.split('@')[1];
+      const isUniversity = domain?.includes('edu') || domain?.includes('university');
+      const isClinic = domain?.includes('clinic') || domain?.includes('health');
+      
+      if (isUniversity) {
+        setOnboardingData(prev => ({ ...prev, accountType: 'enterprise' }));
+      } else if (isClinic) {
+        setOnboardingData(prev => ({ ...prev, accountType: 'supervisor' }));
+      }
 
-  const handleNext = async () => {
-    if (currentStep === 1) {
-      // Save account type selection
-      await updateUserProfile({ 
-        accountType: profileData.accountType as "individual" | "supervisor" | "enterprise" 
-      });
+      // Pre-fill display name from email
+      const emailName = user.email.split('@')[0];
+      const formattedName = emailName
+        .split('.')
+        .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ');
+      setOnboardingData(prev => ({ ...prev, displayName: formattedName }));
     }
-    if (currentStep === 2) {
-      // Save profile data
-      await updateUserProfile({
-        preferredName: profileData.preferredName,
-        licenseStage: profileData.licenseStage,
-        specialties: profileData.specialties,
-        professionalGoals: profileData.professionalGoals,
-        yearsOfExperience: profileData.yearsOfExperience
-      });
-    }
-    
-    if (currentStep < ONBOARDING_STEPS.length - 1) {
-      setCurrentStep(currentStep + 1);
+
+    // Set default licensure date (May 2027)
+    const defaultDate = new Date(2027, 4, 1); // May 1, 2027
+    setLicensureDate(defaultDate);
+    setOnboardingData(prev => ({ ...prev, licensureGoalDate: defaultDate }));
+  }, [user]);
+
+  const handleStepComplete = () => {
+    if (step < 3) {
+      setStep(step + 1);
     } else {
-      // Mark onboarding as complete
-      await updateUserProfile({ hasCompletedOnboarding: true });
-      onClose();
+      setShowGuidedOverlay(true);
     }
   };
 
-  const handlePrevious = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    }
+  const handleCompleteOnboarding = () => {
+    onComplete({
+      ...onboardingData,
+      licensureGoalDate: licensureDate,
+      trackingChallenge: onboardingData.trackingChallenge || 'Forgetting to log'
+    });
   };
 
-  const handleSkip = async () => {
-    await updateUserProfile({ hasCompletedOnboarding: true });
-    onClose();
-  };
-
-  const renderStepContent = () => {
-    switch (currentStepData.id) {
-      case "welcome":
-        return (
-          <div className="text-center space-y-8 ive-fade-in">
-            <div className="mx-auto w-28 h-28 bg-gradient-to-br from-primary/15 to-accent/10 rounded-3xl flex items-center justify-center shadow-lg hover:scale-105 transition-transform duration-300">
-              <Heart className="h-14 w-14 text-primary" />
-            </div>
-            <div className="space-y-4">
-              <h3 className="text-3xl font-bold text-foreground">Welcome to ClarityLog!</h3>
-              <p className="text-muted-foreground/80 text-lg leading-relaxed max-w-2xl mx-auto">
-                Your intelligent companion for professional counseling development. 
-                Let's get you set up to track your progress toward licensure with AI-powered insights.
-              </p>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-10">
-              <div className="ive-fade-in text-center group">
-                <div className="w-16 h-16 bg-primary/10 ive-rounded-lg mx-auto mb-3 flex items-center justify-center group-hover:bg-primary/15 transition-colors duration-300">
-                  <FileText className="h-8 w-8 text-primary" />
-                </div>
-                <p className="text-sm font-medium text-foreground">Session Tracking</p>
-              </div>
-              <div className="ive-fade-in text-center group">
-                <div className="w-16 h-16 bg-accent/10 ive-rounded-lg mx-auto mb-3 flex items-center justify-center group-hover:bg-accent/15 transition-colors duration-300">
-                  <BarChart3 className="h-8 w-8 text-accent" />
-                </div>
-                <p className="text-sm font-medium text-foreground">AI Analysis</p>
-              </div>
-              <div className="ive-fade-in text-center group">
-                <div className="w-16 h-16 bg-primary/8 ive-rounded-lg mx-auto mb-3 flex items-center justify-center group-hover:bg-primary/12 transition-colors duration-300">
-                  <Target className="h-8 w-8 text-primary" />
-                </div>
-                <p className="text-sm font-medium text-foreground">Competency Tracking</p>
-              </div>
-              <div className="ive-fade-in text-center group">
-                <div className="w-16 h-16 bg-accent/8 ive-rounded-lg mx-auto mb-3 flex items-center justify-center group-hover:bg-accent/12 transition-colors duration-300">
-                  <BookOpen className="h-8 w-8 text-accent" />
-                </div>
-                <p className="text-sm font-medium text-foreground">Professional Growth</p>
-              </div>
-            </div>
-          </div>
-        );
-
-      case "account-type":
-        return (
-          <div className="space-y-6">
-            <div className="text-center mb-6">
-              <Users className="h-12 w-12 text-blue-500 mx-auto mb-4" />
-              <h3 className="text-xl font-bold">Choose Your Account Type</h3>
-              <p className="text-muted-foreground">
-                Select the plan that best fits your professional needs and responsibilities.
-              </p>
-            </div>
-            
-            <PlanSelection 
-              onPlanSelect={(accountType) => {
-                setProfileData({...profileData, accountType});
-              }}
-              selectedPlan={profileData.accountType}
-            />
-          </div>
-        );
-
-      case "profile":
-        return (
-          <div className="space-y-6">
-            <div className="text-center mb-6">
-              <Users className="h-12 w-12 text-blue-500 mx-auto mb-4" />
-              <h3 className="text-xl font-bold">Tell us about yourself</h3>
-              <p className="text-muted-foreground">
-                This helps us personalize your experience and provide better AI insights.
-              </p>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="preferredName">Preferred Name</Label>
-                <Input
-                  id="preferredName"
-                  placeholder="What should we call you?"
-                  value={profileData.preferredName}
-                  onChange={(e) => setProfileData({...profileData, preferredName: e.target.value})}
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="licenseStage">License Stage</Label>
-                <select
-                  id="licenseStage"
-                  className="w-full p-2 border rounded-md"
-                  value={profileData.licenseStage}
-                  onChange={(e) => setProfileData({...profileData, licenseStage: e.target.value})}
-                >
-                  <option value="">Select your current stage</option>
-                  <option value="Student">Graduate Student</option>
-                  <option value="LAC">Licensed Associate Counselor (LAC)</option>
-                  <option value="LPC">Licensed Professional Counselor (LPC)</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-              
-              <div>
-                <Label htmlFor="experience">Years of Experience</Label>
-                <select
-                  id="experience"
-                  className="w-full p-2 border rounded-md"
-                  value={profileData.yearsOfExperience}
-                  onChange={(e) => setProfileData({...profileData, yearsOfExperience: e.target.value})}
-                >
-                  <option value="">Select experience level</option>
-                  <option value="New">New to the field</option>
-                  <option value="1-2 years">1-2 years</option>
-                  <option value="3-5 years">3-5 years</option>
-                  <option value="5+ years">5+ years</option>
-                </select>
-              </div>
-              
-              <div>
-                <Label htmlFor="goals">Professional Goals (Optional)</Label>
-                <Textarea
-                  id="goals"
-                  placeholder="What are your main professional development goals?"
-                  value={profileData.professionalGoals}
-                  onChange={(e) => setProfileData({...profileData, professionalGoals: e.target.value})}
-                  rows={3}
-                />
-              </div>
-            </div>
-          </div>
-        );
-
-      case "features":
-        return (
-          <div className="space-y-6">
-            <div className="text-center mb-6">
-              <Sparkles className="h-12 w-12 text-purple-500 mx-auto mb-4" />
-              <h3 className="text-xl font-bold">Powerful Features for Your Growth</h3>
-              <p className="text-muted-foreground">
-                Discover how ClarityLog supports your professional development journey.
-              </p>
-            </div>
-            
-            <div className="space-y-4">
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center space-x-2 text-lg">
-                    <FileText className="h-5 w-5 text-blue-500" />
-                    <span>Smart Session Logging</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    Track client contact hours, supervision, and notes with our intuitive markdown editor. 
-                    Your data automatically syncs and calculates progress toward licensure requirements.
-                  </p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center space-x-2 text-lg">
-                    <BarChart3 className="h-5 w-5 text-green-500" />
-                    <span>AI-Powered Analysis</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    Get personalized insights, identify patterns across sessions, and receive 
-                    tailored recommendations for professional growth and supervision discussions.
-                  </p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center space-x-2 text-lg">
-                    <Target className="h-5 w-5 text-purple-500" />
-                    <span>Competency Tracking</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    Monitor your development across core counseling competencies with evidence-based 
-                    progress tracking and personalized milestone recommendations.
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        );
-
-      case "first-entry":
-        return (
-          <div className="text-center space-y-6">
-            <FileText className="h-12 w-12 text-green-500 mx-auto" />
-            <div>
-              <h3 className="text-xl font-bold mb-2">Ready to Log Your First Session?</h3>
-              <p className="text-muted-foreground">
-                After completing onboarding, you'll be guided to create your first session entry. 
-                This is where your professional development tracking begins!
-              </p>
-            </div>
-            <div className="bg-muted/50 p-4 rounded-lg">
-              <h4 className="font-semibold mb-2">What to Include:</h4>
-              <ul className="text-sm text-muted-foreground space-y-1 text-left">
-                <li>• Session date and duration</li>
-                <li>• Client contact hours</li>
-                <li>• Session notes and reflections</li>
-                <li>• Supervision details (if applicable)</li>
-                <li>• Therapeutic approaches used</li>
-              </ul>
-            </div>
-          </div>
-        );
-
-      case "ai-insights":
-        return (
-          <div className="text-center space-y-6">
-            <BarChart3 className="h-12 w-12 text-amber-500 mx-auto" />
-            <div>
-              <h3 className="text-xl font-bold mb-2">Unlock AI-Powered Insights</h3>
-              <p className="text-muted-foreground">
-                Once you've logged sessions, our AI will analyze your notes to provide 
-                personalized insights, identify patterns, and suggest areas for growth.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg">
-                <h4 className="font-semibold text-blue-700 dark:text-blue-300 mb-1">Weekly Coaching</h4>
-                <p className="text-xs text-blue-600 dark:text-blue-200">
-                  Personalized focus areas and development tips
-                </p>
-              </div>
-              <div className="bg-purple-50 dark:bg-purple-950/20 p-4 rounded-lg">
-                <h4 className="font-semibold text-purple-700 dark:text-purple-300 mb-1">Pattern Analysis</h4>
-                <p className="text-xs text-purple-600 dark:text-purple-200">
-                  Cross-session insights and growth trajectories
-                </p>
-              </div>
-              <div className="bg-green-50 dark:bg-green-950/20 p-4 rounded-lg">
-                <h4 className="font-semibold text-green-700 dark:text-green-300 mb-1">Competency Mapping</h4>
-                <p className="text-xs text-green-600 dark:text-green-200">
-                  Track progress across counseling skills
-                </p>
-              </div>
-              <div className="bg-amber-50 dark:bg-amber-950/20 p-4 rounded-lg">
-                <h4 className="font-semibold text-amber-700 dark:text-amber-300 mb-1">Supervision Prep</h4>
-                <p className="text-xs text-amber-600 dark:text-amber-200">
-                  AI-generated discussion topics and insights
-                </p>
-              </div>
-            </div>
-          </div>
-        );
-
-      case "complete":
-        return (
-          <div className="text-center space-y-6">
-            <div className="mx-auto w-24 h-24 bg-gradient-to-r from-primary/20 to-accent/20 rounded-full flex items-center justify-center">
-              <Trophy className="h-12 w-12 text-primary" />
-            </div>
-            <div>
-              <h3 className="text-2xl font-bold mb-2">You're All Set!</h3>
-              <p className="text-muted-foreground text-lg">
-                Welcome to your professional development journey with ClarityLog. 
-                You're ready to start tracking, analyzing, and accelerating your growth.
-              </p>
-            </div>
-            <div className="bg-gradient-to-r from-primary/10 to-accent/10 p-6 rounded-lg">
-              <h4 className="font-bold mb-2">🎉 Congratulations on taking this step!</h4>
-              <p className="text-sm text-muted-foreground">
-                Your dedication to professional growth and intentional practice will 
-                serve you well on your journey to becoming an exceptional counselor.
-              </p>
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
+  const TrustSignal = () => (
+    <div className="flex items-center justify-center gap-2 text-gray-500 text-sm">
+      <Lock className="w-4 h-4" />
+      <span>HIPAA-compliant & Encrypted</span>
+    </div>
+  );
 
   return (
-    <Dialog open={isOpen} onOpenChange={() => {}}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle className="flex items-center space-x-2">
-              <currentStepData.icon className={`h-5 w-5 ${currentStepData.color}`} />
-              <span>Step {currentStep + 1} of {ONBOARDING_STEPS.length}</span>
-            </DialogTitle>
-            <Badge variant="outline">
-              {Math.round(progress)}%
-            </Badge>
-          </div>
-          <Progress value={progress} className="w-full" />
-        </DialogHeader>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <AnimatePresence mode="wait">
+        {step === 1 && (
+          <AccountTypeSelection
+            selectedType={onboardingData.accountType}
+            onSelect={(type) => setOnboardingData(prev => ({ ...prev, accountType: type }))}
+            onNext={handleStepComplete}
+          />
+        )}
+        
+        {step === 2 && (
+          <PersonalizationStep
+            licensureDate={licensureDate}
+            onDateChange={setLicensureDate}
+            challenge={onboardingData.trackingChallenge}
+            onChallengeChange={(challenge) => 
+              setOnboardingData(prev => ({ ...prev, trackingChallenge: challenge }))
+            }
+            onNext={handleStepComplete}
+          />
+        )}
 
-        <div className="py-6">
-          {renderStepContent()}
-        </div>
+        {step === 3 && (
+          <WelcomeStep
+            accountType={onboardingData.accountType}
+            onComplete={handleCompleteOnboarding}
+          />
+        )}
+      </AnimatePresence>
 
-        <div className="flex items-center justify-between pt-6 border-t">
-          <div className="flex space-x-2">
-            {currentStep > 0 && (
-              <Button variant="outline" onClick={handlePrevious}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Previous
-              </Button>
-            )}
-            
-            {currentStep < ONBOARDING_STEPS.length - 1 && (
-              <Button variant="ghost" onClick={handleSkip}>
-                Skip for now
-              </Button>
-            )}
-          </div>
-
-          <Button onClick={handleNext}>
-            {currentStep === ONBOARDING_STEPS.length - 1 ? (
-              <>
-                <CheckCircle2 className="h-4 w-4 mr-2" />
-                Get Started
-              </>
-            ) : (
-              <>
-                Next
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </>
-            )}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+      {showGuidedOverlay && (
+        <GuidedOverlay onComplete={handleCompleteOnboarding} />
+      )}
+    </div>
   );
 };
+
+const AccountTypeSelection = ({ selectedType, onSelect, onNext }: {
+  selectedType: string;
+  onSelect: (type: 'individual' | 'supervisor' | 'enterprise') => void;
+  onNext: () => void;
+}) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -20 }}
+    className="flex flex-col items-center justify-center min-h-screen p-6"
+  >
+    <div className="w-full max-w-4xl">
+      <div className="text-center mb-8">
+        <p className="text-sm text-gray-500 mb-4">Step 2 of 3: Choose Your Plan</p>
+        <h1 className="text-3xl font-bold text-black mb-2">Complete Your Account Setup</h1>
+        <p className="text-gray-600">What's your role? Let's find the perfect plan</p>
+        <div className="flex items-center justify-center gap-2 mt-4">
+          <CheckCircle className="w-5 h-5 text-green-500" />
+          <span className="text-sm text-gray-600">Account Created! Let's set up your role</span>
+        </div>
+      </div>
+
+      <div className="grid md:grid-cols-3 gap-6 mb-8">
+        <PlanCard
+          title="Individual Counselor"
+          features={["Hour Tracking", "AI Insights", "Mobile Logging"]}
+          recommended={selectedType === 'individual'}
+          selected={selectedType === 'individual'}
+          onClick={() => onSelect('individual')}
+        />
+        
+        <PlanCard
+          title="Clinical Supervisor"
+          badge="Most Popular"
+          features={["Multi-Supervisee Dashboard", "Compliance Tracking", "Group Tools"]}
+          selected={selectedType === 'supervisor'}
+          onClick={() => onSelect('supervisor')}
+        />
+        
+        <PlanCard
+          title="Training Program"
+          features={["Unlimited Supervisees", "Custom Reporting", "API Access"]}
+          selected={selectedType === 'enterprise'}
+          onClick={() => onSelect('enterprise')}
+        />
+      </div>
+
+      <div className="text-center space-y-4">
+        <Button 
+          onClick={onNext}
+          className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 transition-all duration-300"
+        >
+          Choose Plan
+          <ChevronRight className="w-4 h-4 ml-2" />
+        </Button>
+        
+        <div className="mt-6">
+          <TrustSignal />
+        </div>
+      </div>
+    </div>
+  </motion.div>
+);
+
+const PlanCard = ({ title, badge, features, recommended, selected, onClick }: {
+  title: string;
+  badge?: string;
+  features: string[];
+  recommended?: boolean;
+  selected: boolean;
+  onClick: () => void;
+}) => (
+  <motion.div
+    whileHover={{ scale: 1.02, y: -4 }}
+    whileTap={{ scale: 0.98 }}
+    className={cn(
+      "relative p-6 rounded-xl backdrop-blur-sm bg-white/70 border-2 cursor-pointer transition-all duration-300",
+      selected ? "border-blue-500 shadow-lg" : "border-gray-200 hover:border-gray-300"
+    )}
+    onClick={onClick}
+  >
+    {badge && (
+      <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-orange-500 to-pink-500 text-white">
+        {badge}
+      </Badge>
+    )}
+    
+    {recommended && (
+      <Badge variant="secondary" className="absolute -top-2 right-4">
+        Recommended
+      </Badge>
+    )}
+
+    <h3 className="text-lg font-semibold mb-4">{title}</h3>
+    <ul className="space-y-2">
+      {features.map((feature, index) => (
+        <li key={index} className="flex items-center gap-2 text-sm text-gray-600">
+          <CheckCircle className="w-4 h-4 text-green-500" />
+          {feature}
+        </li>
+      ))}
+    </ul>
+  </motion.div>
+);
+
+const PersonalizationStep = ({ licensureDate, onDateChange, challenge, onChallengeChange, onNext }: {
+  licensureDate?: Date;
+  onDateChange: (date?: Date) => void;
+  challenge?: string;
+  onChallengeChange: (challenge: string) => void;
+  onNext: () => void;
+}) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -20 }}
+    className="flex flex-col items-center justify-center min-h-screen p-6"
+  >
+    <div className="w-full max-w-2xl">
+      <div className="text-center mb-8">
+        <p className="text-sm text-gray-500 mb-4">Step 3 of 3: Personalization</p>
+        <h1 className="text-3xl font-bold text-black mb-2">Let's Personalize Your Experience</h1>
+        <p className="text-gray-600">Help us tailor ClarityLog to your goals</p>
+      </div>
+
+      <div className="space-y-8">
+        <Card className="backdrop-blur-sm bg-white/70">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CalendarIcon className="w-5 h-5" />
+              When do you hope to become licensed?
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-start text-left">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {licensureDate ? format(licensureDate, "PPP") : "Select date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={licensureDate}
+                  onSelect={onDateChange}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            <p className="text-sm text-gray-500 mt-2">This helps us set your progress goals</p>
+          </CardContent>
+        </Card>
+
+        <Card className="backdrop-blur-sm bg-white/70">
+          <CardHeader>
+            <CardTitle>What's your biggest challenge with tracking hours?</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <RadioGroup 
+              value={challenge || 'Forgetting to log'} 
+              onValueChange={onChallengeChange}
+              className="space-y-3"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="Time-consuming" id="time" />
+                <Label htmlFor="time">Time-consuming</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="Forgetting to log" id="forgetting" />
+                <Label htmlFor="forgetting">Forgetting to log</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="Compliance confusion" id="compliance" />
+                <Label htmlFor="compliance">Compliance confusion</Label>
+              </div>
+            </RadioGroup>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="text-center mt-8 space-y-4">
+        <Button 
+          onClick={onNext}
+          className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 transition-all duration-300"
+        >
+          Continue to ClarityLog
+          <ChevronRight className="w-4 h-4 ml-2" />
+        </Button>
+        
+        <TrustSignal />
+      </div>
+    </div>
+  </motion.div>
+);
+
+const WelcomeStep = ({ accountType, onComplete }: {
+  accountType: string;
+  onComplete: () => void;
+}) => (
+  <motion.div
+    initial={{ opacity: 0, scale: 0.9 }}
+    animate={{ opacity: 1, scale: 1 }}
+    exit={{ opacity: 0, scale: 0.9 }}
+    className="flex flex-col items-center justify-center min-h-screen p-6"
+  >
+    <Card className="w-full max-w-md backdrop-blur-sm bg-white/90 border-0 shadow-xl">
+      <CardContent className="p-8 text-center space-y-6">
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.2, type: "spring", stiffness: 300 }}
+        >
+          <div className="w-16 h-16 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="w-8 h-8 text-white" />
+          </div>
+        </motion.div>
+
+        <div>
+          <h2 className="text-2xl font-bold text-black mb-2">Welcome to Early Access!</h2>
+          <p className="text-gray-600 mb-4">Enjoy all features during early access.</p>
+          <p className="text-lg font-semibold text-black">No payment required.</p>
+        </div>
+
+        <div className="space-y-3">
+          <Button 
+            onClick={onComplete}
+            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 transition-all duration-300"
+          >
+            Continue to ClarityLog
+          </Button>
+          
+          <Button variant="ghost" className="text-sm text-gray-500">
+            Share Feedback
+          </Button>
+        </div>
+
+        <TrustSignal />
+      </CardContent>
+    </Card>
+  </motion.div>
+);
+
+const GuidedOverlay = ({ onComplete }: { onComplete: () => void }) => {
+  const [overlayStep, setOverlayStep] = useState(1);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center"
+    >
+      <Card className="w-full max-w-md mx-4">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Quick Tour</CardTitle>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={onComplete}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {overlayStep === 1 && (
+            <div className="text-center space-y-4">
+              <Target className="w-12 h-12 text-blue-500 mx-auto" />
+              <h3 className="font-semibold">Log Your First Session</h3>
+              <p className="text-sm text-gray-600">Start tracking your hours to monitor progress toward licensure</p>
+              <Button 
+                onClick={() => setOverlayStep(2)}
+                className="w-full"
+              >
+                Next
+              </Button>
+            </div>
+          )}
+          
+          {overlayStep === 2 && (
+            <div className="text-center space-y-4">
+              <BarChart3 className="w-12 h-12 text-green-500 mx-auto" />
+              <h3 className="font-semibold">Track Your Progress</h3>
+              <p className="text-sm text-gray-600">View insights and milestones as you advance toward your LPC</p>
+              <Button 
+                onClick={onComplete}
+                className="w-full"
+              >
+                Get Started
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+};
+
+const TrustSignal = () => (
+  <div className="flex items-center justify-center gap-2 text-gray-500 text-sm">
+    <Lock className="w-4 h-4" />
+    <span>HIPAA-compliant & Encrypted</span>
+  </div>
+);

@@ -4,12 +4,15 @@ import { pgTable, text, timestamp, varchar } from 'drizzle-orm/pg-core';
 // User Profile Schema
 export const userProfileSchema = z.object({
   preferredName: z.string().min(1, "Preferred name is required"),
+  displayName: z.string().optional(),
   focus: z.enum(["licensure", "renewal"]),
   accountType: z.enum(["individual", "supervisor", "enterprise"]).default("individual"),
   organizationName: z.string().optional(),
   supervisorId: z.string().optional(),
   stateRegion: z.string().min(1, "State/region is required"),
   licenseStage: z.string().optional(),
+  licensureGoalDate: z.date().optional(),
+  trackingChallenge: z.string().optional(),
   specialties: z.array(z.string()).default([]),
   professionalGoals: z.string().optional(),
   yearsOfExperience: z.string().optional(),
