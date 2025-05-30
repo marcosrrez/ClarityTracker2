@@ -6,6 +6,46 @@ import { sendFeedbackToReplit, createReplitIssue } from "./replit-feedback";
 import { storage } from "./storage";
 import { handleTwilioWebhook } from "./sms-service";
 
+// Email reminder scheduling function
+async function scheduleSessionReminders(session: any, reminderDays: number) {
+  const sessionDate = new Date(session.sessionDate);
+  const reminderDate = new Date(sessionDate);
+  reminderDate.setDate(reminderDate.getDate() - reminderDays);
+  
+  // For now, send immediate confirmation email
+  // In production, this would integrate with a job scheduler like Bull or Agenda
+  const superviseeInfo = await storage.getSuperviseeRelationships(session.supervisorId);
+  const supervisee = superviseeInfo.find(s => s.id === session.superviseeId);
+  
+  if (supervisee) {
+    const emailData = {
+      type: 'general' as const,
+      subject: `Supervision Session Scheduled - ${sessionDate.toLocaleDateString()}`,
+      description: `
+Supervision Session Confirmation
+
+Session Details:
+- Date: ${sessionDate.toLocaleDateString()} at ${sessionDate.toLocaleTimeString()}
+- Type: ${session.sessionType}
+- Duration: ${session.durationMinutes} minutes
+- Format: ${session.sessionFormat || 'In Person'}
+
+Supervisor: ${session.supervisorId}
+Supervisee: ${supervisee.superviseeName}
+
+${session.notes ? `Agenda: ${session.notes}` : ''}
+
+Reminder: This session is scheduled for ${reminderDays} day(s) from now.
+      `,
+      userEmail: supervisee.superviseeEmail,
+      userId: session.supervisorId,
+      timestamp: new Date(),
+    };
+    
+    await sendFeedbackNotification(emailData);
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Health check endpoint
   app.get("/api/health", (req, res) => {
@@ -245,7 +285,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/supervision/sessions", express.json(), async (req, res) => {
     try {
-      const session = await storage.createSupervisionSession(req.body);
+      const sessionData = req.body;
+      
+      // Create the supervision session
+      const session = await storage.createSupervisionSession({
+        ...sessionData,
+        sessionDate: new Date(sessionData.sessionDate),
+        topics: [],
+        competencyAreas: [],
+        actionItems: [],
+        superviseeGoals: [],
+        notes: sessionData.agenda || null,
+      });
+
+      // Send email reminders if requested
+      if (sessionData.sendReminders) {
+        try {
+          await scheduleSessionReminders(session, sessionData.reminderDays || 1);
+        } catch (emailError) {
+          console.error('Failed to schedule email reminders:', emailError);
+          // Don't fail the session creation if email fails
+        }
+      }
+
       res.json(session);
     } catch (error) {
       console.error("Error creating supervision session:", error);
