@@ -5,6 +5,7 @@ import { sendFeedbackNotification } from "./email";
 import { sendFeedbackToReplit, createReplitIssue } from "./replit-feedback";
 import { storage } from "./storage";
 import { handleTwilioWebhook } from "./sms-service";
+import { sendWelcomeEmail } from "./welcome-email";
 
 // Email reminder scheduling function
 async function scheduleSessionReminders(session: any, reminderDays: number) {
@@ -221,6 +222,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // SMS webhook endpoint for text-to-entry feature
   app.post('/api/sms/webhook', express.urlencoded({ extended: false }), handleTwilioWebhook);
+
+  // Welcome email endpoint
+  app.post("/api/welcome-email", express.json(), async (req, res) => {
+    try {
+      const { userEmail, preferredName, accountType } = req.body;
+      
+      if (!userEmail || !preferredName || !accountType) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      const success = await sendWelcomeEmail({
+        userEmail,
+        preferredName,
+        accountType
+      });
+
+      if (success) {
+        res.json({ success: true, message: "Welcome email sent successfully" });
+      } else {
+        res.status(500).json({ error: "Failed to send welcome email" });
+      }
+    } catch (error) {
+      console.error("Failed to send welcome email:", error);
+      res.status(500).json({ error: "Failed to send welcome email" });
+    }
+  });
 
   // Analytics endpoints
   app.get("/api/admin/analytics", async (req, res) => {

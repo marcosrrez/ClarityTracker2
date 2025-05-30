@@ -30,7 +30,7 @@ interface OnboardingStep {
 }
 
 export const OnboardingFlow = () => {
-  const { updateUserProfile } = useAuth();
+  const { updateUserProfile, user } = useAuth();
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -91,12 +91,34 @@ export const OnboardingFlow = () => {
         trackingChallenge: data.trackingChallenge,
         organizationName: data.organizationName,
         professionalGoals: data.professionalGoals,
-        onboardingCompleted: true
+        hasCompletedOnboarding: true
       });
+
+      // Send welcome email from CEO
+      try {
+        const response = await fetch('/api/welcome-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userEmail: user?.email,
+            preferredName: data.preferredName,
+            accountType: data.accountType
+          }),
+        });
+
+        if (!response.ok) {
+          console.warn('Failed to send welcome email, but continuing with onboarding');
+        }
+      } catch (emailError) {
+        console.warn('Welcome email failed:', emailError);
+        // Don't block onboarding if email fails
+      }
 
       toast({
         title: "Welcome to ClarityLog!",
-        description: "Your account has been set up successfully.",
+        description: "Your account has been set up successfully. Check your email for next steps.",
       });
     } catch (error) {
       toast({
