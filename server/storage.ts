@@ -189,6 +189,8 @@ export class DatabaseStorage implements IStorage {
       .values({
         ...relationship,
         id,
+        startDate: typeof relationship.startDate === 'string' ? new Date(relationship.startDate) : relationship.startDate,
+        endDate: relationship.endDate ? (typeof relationship.endDate === 'string' ? new Date(relationship.endDate) : relationship.endDate) : null,
         requiredHours: (relationship.requiredHours || 0).toString(),
         completedHours: (relationship.completedHours || 0).toString(),
         contractSigned: (relationship.contractSigned || false).toString(),

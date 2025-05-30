@@ -62,7 +62,7 @@ export const AddSuperviseeDialog = ({ onSuperviseeAdded }: AddSuperviseeDialogPr
         superviseeId: data.email, // Use email as supervisee ID for now
         superviseeName: data.name,
         superviseeEmail: data.email,
-        startDate: new Date(data.startDate),
+        startDate: data.startDate, // Send as string, let server handle conversion
         endDate: null,
         supervisionType: 'direct' as const,
         supervisionFrequency: data.supervisionFrequency,
