@@ -18,13 +18,29 @@ import {
   FileText
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useAccountType } from "@/hooks/use-account-type";
 import { useToast } from "@/hooks/use-toast";
 import { format, differenceInDays, addWeeks } from "date-fns";
 
 export default function CompliancePage() {
   const { user } = useAuth();
+  const { permissions, isIndividual } = useAccountType();
   const { toast } = useToast();
   const [refreshing, setRefreshing] = useState(false);
+
+  // Redirect individual users
+  if (isIndividual || !permissions.canTrackCompliance) {
+    return (
+      <div className="text-center py-12">
+        <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+        <h2 className="text-xl font-semibold mb-2">Supervisor Features Required</h2>
+        <p className="text-muted-foreground mb-4">
+          Upgrade to a Supervisor or Enterprise plan to access compliance tracking.
+        </p>
+        <Button>Upgrade Account</Button>
+      </div>
+    );
+  }
 
   // Fetch supervisee relationships and compliance data
   const { data: supervisees = [], isLoading: loadingSupervisees } = useQuery({

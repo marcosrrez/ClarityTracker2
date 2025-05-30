@@ -255,7 +255,10 @@ export const SettingsView = () => {
         mapping.techAssisted = index;
       }
       
-      if (cleanHeader.includes('note') || cleanHeader.includes('comment') || cleanHeader.includes('description')) {
+      if (cleanHeader.includes('note') || cleanHeader.includes('comment') || cleanHeader.includes('description') || 
+          cleanHeader.includes('session note') || cleanHeader.includes('progress note') || cleanHeader.includes('clinical note') ||
+          cleanHeader.includes('details') || cleanHeader.includes('summary') || cleanHeader.includes('observation') ||
+          cleanHeader.includes('reflection') || cleanHeader.includes('content') || cleanHeader.includes('session content')) {
         mapping.notes = index;
       }
     });
