@@ -110,37 +110,48 @@ export const OnboardingFlow = () => {
     }
   };
 
+  const getFeatureTitle = () => {
+    if (data.accountType === 'individual') {
+      return "Track your journey to LPC licensure";
+    } else if (data.accountType === 'supervisor') {
+      return "Manage supervisees with confidence";
+    } else if (data.accountType === 'enterprise') {
+      return "Scale your training programs";
+    }
+    return "Your professional growth platform";
+  };
+
   const steps = [
-    // Step 1: Track your hours with ease
+    // Step 1: Welcome to ClarityLog
     {
-      title: "Track your hours with ease",
+      title: "Welcome to ClarityLog",
       canContinue: true
     },
 
-    // Step 2: Get AI insights from your sessions
-    {
-      title: "Get AI insights from your sessions",
-      canContinue: true
-    },
-
-    // Step 3: Stay on track for licensure
-    {
-      title: "Stay on track for licensure",
-      canContinue: true
-    },
-
-    // Step 4: Account type selection
+    // Step 2: Account type selection
     {
       title: "Which path describes you?",
       showAccountSelection: true,
       canContinue: data.accountType !== undefined
     },
 
-    // Step 5: Basic info
+    // Step 3: Personalization
     {
       title: "Let's personalize your experience",
       showForm: true,
       canContinue: data.preferredName.trim().length > 0 && data.stateRegion.trim().length > 0
+    },
+
+    // Step 4: Tailored features based on account type
+    {
+      title: getFeatureTitle(),
+      canContinue: true
+    },
+
+    // Step 5: Ready to start
+    {
+      title: "You're all set!",
+      canContinue: true
     }
   ];
 
@@ -176,12 +187,51 @@ export const OnboardingFlow = () => {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.6, ease: "easeOut" }}
             >
-              {/* Benefits steps (0-2) */}
-              {currentStep < 3 && (
+              {/* Welcome step (0) and feature showcase (3) and completion (4) */}
+              {(currentStep === 0 || currentStep === 3 || currentStep === 4) && (
                 <div className="space-y-12">
                   <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
                     {currentStepData.title}
                   </h1>
+                  
+                  {/* Add feature details for step 3 based on account type */}
+                  {currentStep === 3 && (
+                    <div className="space-y-6 text-lg text-gray-600">
+                      {data.accountType === 'individual' && (
+                        <div className="space-y-4">
+                          <p>• Track client contact hours and supervision sessions</p>
+                          <p>• Get AI insights from your session notes</p>
+                          <p>• Monitor progress toward licensure requirements</p>
+                          <p>• Collaborate seamlessly with your supervisor</p>
+                        </div>
+                      )}
+                      
+                      {data.accountType === 'supervisor' && (
+                        <div className="space-y-4">
+                          <p>• Manage multiple supervisees efficiently</p>
+                          <p>• Track compliance and progress automatically</p>
+                          <p>• Access comprehensive assessment tools</p>
+                          <p>• Generate detailed supervision reports</p>
+                        </div>
+                      )}
+                      
+                      {data.accountType === 'enterprise' && (
+                        <div className="space-y-4">
+                          <p>• Manage organization-wide training programs</p>
+                          <p>• Advanced analytics and reporting</p>
+                          <p>• Custom workflows for your processes</p>
+                          <p>• Integration support with existing systems</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Completion message for step 4 */}
+                  {currentStep === 4 && (
+                    <p className="text-xl text-gray-600">
+                      Welcome to ClarityLog, {data.preferredName}! Your personalized experience is ready.
+                    </p>
+                  )}
                 </div>
               )}
 
