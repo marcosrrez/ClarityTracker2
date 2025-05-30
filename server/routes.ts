@@ -600,7 +600,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         <p>Best regards,<br>ClarityLog Team</p>
       `;
 
-      const emailSent = await sendEmail(supervisorEmail, subject, emailContent);
+      const emailSent = await sendFeedbackNotification({
+        type: 'general',
+        subject,
+        description: emailContent,
+        userEmail: supervisorEmail,
+        userId: superviseeName,
+        timestamp: new Date()
+      });
       
       if (emailSent) {
         // Store the connection request in a pending state
