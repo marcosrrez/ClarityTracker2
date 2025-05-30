@@ -11,7 +11,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 
 // Pages
 import AuthPage from "@/pages/auth";
-import { EnhancedLandingPage } from "@/components/EnhancedLandingPage";
+import { PremiumLandingPage } from "@/components/PremiumLandingPage";
 import DashboardPage from "@/pages/dashboard";
 import AddEntryPage from "@/pages/add-entry";
 import InsightsPage from "@/pages/insights";
@@ -74,7 +74,7 @@ function App() {
           <TooltipProvider>
             <AuthGuard fallback={
               <div className="min-h-screen">
-                <EnhancedLandingPage />
+                <PremiumLandingPage />
               </div>
             }>
               <AppLayout>
