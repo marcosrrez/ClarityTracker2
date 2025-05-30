@@ -23,7 +23,7 @@ import {
 import { cn } from "@/lib/utils";
 
 export const EnhancedLandingPage = () => {
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, signInWithGoogle } = useAuth();
   const [, setLocation] = useLocation();
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -57,10 +57,14 @@ export const EnhancedLandingPage = () => {
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
-      // Google sign-in would need to be implemented in AuthContext
-      console.log('Google sign-in not yet implemented');
+      await signInWithGoogle();
     } catch (error) {
       console.error('Google sign in error:', error);
+      toast({
+        title: "Sign-in Error",
+        description: "There was a problem signing in with Google. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
