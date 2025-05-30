@@ -210,146 +210,186 @@ export const QuickStatsGrid = () => {
         </div>
       </div>
 
-      {/* Secondary Metrics - Enhanced Apple Complications */}
+      {/* Essential LAC Metrics Grid */}
       <div className="grid grid-cols-2 gap-4">
-        {/* Supervision - Enhanced with progress arc */}
+        {/* Direct vs Indirect Hours Breakdown */}
+        <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-xl rounded-xl p-4 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-blue-50/30 to-transparent rounded-full -translate-y-8 translate-x-8" />
+          
+          <div className="relative">
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-2 bg-blue-500/10 rounded-lg">
+                <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              </div>
+              <span className="text-xs text-blue-600 dark:text-blue-400 font-semibold">
+                {Math.round((totalClientHours / 80) * 100)}% of 80 req.
+              </span>
+            </div>
+            
+            <div className="space-y-2 mb-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Direct</span>
+                <span className="text-sm font-bold text-black dark:text-white">
+                  {(totalClientHours * 0.7).toFixed(1)}h
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Indirect</span>
+                <span className="text-sm font-bold text-black dark:text-white">
+                  {(totalClientHours * 0.3).toFixed(1)}h
+                </span>
+              </div>
+            </div>
+            
+            <div className="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2">
+              Hour Distribution
+            </div>
+            
+            {/* Stacked progress bar */}
+            <div className="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
+              <div className="h-full flex">
+                <div 
+                  className="bg-blue-500 transition-all duration-1000"
+                  style={{ width: `${(totalClientHours * 0.7 / 80) * 100}%` }}
+                />
+                <div 
+                  className="bg-blue-300 transition-all duration-1000"
+                  style={{ width: `${(totalClientHours * 0.3 / 80) * 100}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Exam Eligibility Status */}
+        <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-xl rounded-xl p-4 relative overflow-hidden">
+          <div className={`absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl to-transparent rounded-full -translate-y-8 translate-x-8 ${
+            totalClientHours >= 80 && totalSupervisionHours >= 40 
+              ? 'from-green-50/30' 
+              : 'from-yellow-50/30'
+          }`} />
+          
+          <div className="relative">
+            <div className="flex items-center justify-between mb-3">
+              <div className={`p-2 rounded-lg ${
+                totalClientHours >= 80 && totalSupervisionHours >= 40 
+                  ? 'bg-green-500/10' 
+                  : 'bg-yellow-500/10'
+              }`}>
+                <Users className={`h-4 w-4 ${
+                  totalClientHours >= 80 && totalSupervisionHours >= 40 
+                    ? 'text-green-600 dark:text-green-400' 
+                    : 'text-yellow-600 dark:text-yellow-400'
+                }`} />
+              </div>
+              
+              <div className={`w-1.5 h-1.5 rounded-full ${
+                totalClientHours >= 80 && totalSupervisionHours >= 40 
+                  ? 'bg-green-500' 
+                  : 'bg-yellow-500 animate-pulse'
+              }`} />
+            </div>
+            
+            <div className="text-xl font-bold text-black dark:text-white mb-1">
+              {totalClientHours >= 80 && totalSupervisionHours >= 40 ? 'Ready' : 'In Progress'}
+            </div>
+            
+            <div className="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2">
+              Exam Eligibility
+            </div>
+            
+            {/* Requirements checklist */}
+            <div className="space-y-1">
+              <div className="flex items-center space-x-2">
+                <div className={`w-1 h-1 rounded-full ${
+                  totalClientHours >= 80 ? 'bg-green-500' : 'bg-gray-300'
+                }`} />
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  80+ Client Hours
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className={`w-1 h-1 rounded-full ${
+                  totalSupervisionHours >= 40 ? 'bg-green-500' : 'bg-gray-300'
+                }`} />
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  40+ Supervision Hours
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Supervision Compliance */}
         <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-xl rounded-xl p-4 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-purple-50/30 to-transparent rounded-full -translate-y-8 translate-x-8" />
           
           <div className="relative">
             <div className="flex items-center justify-between mb-3">
               <div className="p-2 bg-purple-500/10 rounded-lg">
-                <Users className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                <Calendar className="h-4 w-4 text-purple-600 dark:text-purple-400" />
               </div>
-              
-              {/* Circular progress indicator */}
-              <div className="relative w-8 h-8">
-                <svg className="w-8 h-8 transform -rotate-90" viewBox="0 0 24 24">
-                  <circle
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeDasharray="63"
-                    strokeDashoffset="63"
-                    className="text-gray-200 dark:text-gray-600"
-                  />
-                  <circle
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    fill="none"
-                    stroke="#8B5CF6"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeDasharray="63"
-                    strokeDashoffset={63 - (totalSupervisionHours / 50) * 63}
-                    className="transition-all duration-1500 ease-out"
-                  />
-                </svg>
-              </div>
-            </div>
-            
-            <div className="flex items-baseline space-x-1 mb-1">
-              <div className="text-xl font-bold text-black dark:text-white">
-                {totalSupervisionHours.toFixed(1)}
-              </div>
-              <span className="text-xs text-gray-500 dark:text-gray-400">
-                / 50
+              <span className="text-xs text-purple-600 dark:text-purple-400 font-semibold">
+                Weekly tracking
               </span>
             </div>
             
-            <div className="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2">
-              Supervision Hours
+            <div className="text-xl font-bold text-black dark:text-white mb-1">
+              {totalSupervisionHours.toFixed(1)}
             </div>
             
-            {/* Progress indicator */}
-            <div className="flex items-center space-x-1">
-              <div className="flex space-x-0.5">
-                {[12.5, 25, 37.5, 50].map((milestone, index) => (
-                  <div 
-                    key={milestone}
-                    className={`w-1 h-1 rounded-full transition-colors duration-500 ${
-                      totalSupervisionHours >= milestone 
-                        ? 'bg-purple-500' 
-                        : 'bg-gray-300 dark:bg-gray-600'
-                    }`}
-                  />
-                ))}
+            <div className="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2">
+              Total Supervision
+            </div>
+            
+            {/* Progress with next milestone */}
+            <div className="flex items-center justify-between">
+              <div className="w-16 h-1 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-purple-500 rounded-full transition-all duration-1000"
+                  style={{ width: `${Math.min((totalSupervisionHours / 50) * 100, 100)}%` }}
+                />
               </div>
-              <span className="text-xs text-gray-400 dark:text-gray-500">
-                {Math.round((totalSupervisionHours / 50) * 100)}%
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                {50 - totalSupervisionHours > 0 ? `${(50 - totalSupervisionHours).toFixed(1)}h to go` : 'Complete!'}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Next Check-in - Enhanced with urgency indicators */}
+        {/* Time to Licensure */}
         <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-xl rounded-xl p-4 relative overflow-hidden">
           <div className={`absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl to-transparent rounded-full -translate-y-8 translate-x-8 ${
-            daysToCheckIn && daysToCheckIn <= 7 
-              ? 'from-orange-50/30' 
-              : 'from-blue-50/30'
+            totalClientHours >= 100 ? 'from-green-50/30' : 'from-blue-50/30'
           }`} />
           
           <div className="relative">
             <div className="flex items-center justify-between mb-3">
               <div className={`p-2 rounded-lg ${
-                daysToCheckIn && daysToCheckIn <= 7 
-                  ? 'bg-orange-500/10' 
-                  : 'bg-blue-500/10'
+                totalClientHours >= 100 ? 'bg-green-500/10' : 'bg-blue-500/10'
               }`}>
-                <Calendar className={`h-4 w-4 ${
-                  daysToCheckIn && daysToCheckIn <= 7 
-                    ? 'text-orange-600 dark:text-orange-400' 
+                <Clock className={`h-4 w-4 ${
+                  totalClientHours >= 100 
+                    ? 'text-green-600 dark:text-green-400' 
                     : 'text-blue-600 dark:text-blue-400'
                 }`} />
-              </div>
-              
-              {/* Status indicator */}
-              <div className="flex items-center space-x-1">
-                <div className={`w-1.5 h-1.5 rounded-full ${
-                  daysToCheckIn && daysToCheckIn <= 7 
-                    ? 'bg-orange-500 animate-pulse' 
-                    : daysToCheckIn && daysToCheckIn <= 14
-                    ? 'bg-yellow-500'
-                    : 'bg-blue-500'
-                }`} />
-                {daysToCheckIn && daysToCheckIn <= 7 && (
-                  <span className="text-xs text-orange-600 dark:text-orange-400 font-semibold">
-                    Due soon
-                  </span>
-                )}
               </div>
             </div>
             
             <div className="text-xl font-bold text-black dark:text-white mb-1">
-              {daysToCheckIn?.toString() || "—"}
+              {totalClientHours >= 100 ? 'Ready' : `${Math.ceil((100 - totalClientHours) / Math.max(thisWeekClientHours, 1))}w`}
             </div>
             
             <div className="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2">
-              {daysToCheckIn ? "Days to check-in" : "Not scheduled"}
+              {totalClientHours >= 100 ? 'For Application' : 'Est. Completion'}
             </div>
             
-            {/* Urgency bar */}
-            {daysToCheckIn && (
-              <div className="w-full h-1 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
-                <div 
-                  className={`h-full rounded-full transition-all duration-1000 ${
-                    daysToCheckIn <= 7 
-                      ? 'bg-orange-500' 
-                      : daysToCheckIn <= 14 
-                      ? 'bg-yellow-500' 
-                      : 'bg-blue-500'
-                  }`}
-                  style={{ 
-                    width: `${Math.max(10, Math.min(100 - (daysToCheckIn / 30) * 100, 100))}%` 
-                  }}
-                />
-              </div>
-            )}
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              {totalClientHours >= 100 
+                ? 'All hour requirements met' 
+                : `At current pace: ${thisWeekClientHours.toFixed(1)}h/week`
+              }
+            </div>
           </div>
         </div>
       </div>
