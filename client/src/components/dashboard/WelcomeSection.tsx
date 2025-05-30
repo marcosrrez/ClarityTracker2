@@ -117,135 +117,75 @@ export const WelcomeSection = () => {
 
   return (
     <section className="space-y-6">
-      {/* Welcome Card - Balanced design with progress psychology */}
-      <div className="backdrop-blur-sm bg-white/80 dark:bg-gray-800/80 rounded-3xl p-6 border border-white/20 shadow-xl relative overflow-hidden">
-        {/* Subtle gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/20 via-transparent to-indigo-50/20 pointer-events-none" />
-        
-        <div className="relative z-10">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex-1">
-              <h1 className="text-4xl md:text-5xl font-bold mb-2 text-black dark:text-white tracking-tight leading-tight">
-                {getIntelligentGreeting()}
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400 text-lg font-light">
-                {new Date().toLocaleDateString('en-US', { 
-                  weekday: 'long', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })}
-              </p>
-            </div>
-            
-            {/* Progress Momentum Indicator */}
-            <div className="flex items-center space-x-4">
-              <div className="text-center">
-                <div className="relative w-16 h-16">
-                  <svg className="w-16 h-16 transform -rotate-90" viewBox="0 0 36 36">
-                    <path
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeDasharray="100, 100"
-                      className="text-gray-200 dark:text-gray-700"
-                    />
-                    <path
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeDasharray={`${Math.min((entries?.length || 0) * 2, 100)}, 100`}
-                      className="text-blue-600 dark:text-blue-400 transition-all duration-1000 ease-out"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-xl font-bold text-gray-900 dark:text-white">
-                      {entries?.length || 0}
-                    </span>
-                  </div>
-                </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400 font-medium mt-1">Sessions</div>
+      {/* Apple-inspired Welcome Section - Clean & Focused */}
+      <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-2xl p-8 relative overflow-hidden">
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <h1 className="text-4xl font-bold mb-2 text-black dark:text-white tracking-tight">
+              {getIntelligentGreeting()}
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 text-base font-medium leading-relaxed max-w-lg">
+              {personalizedMessage}
+            </p>
+          </div>
+          
+          {/* Primary Progress Ring - Apple Watch Style */}
+          <div className="relative">
+            <div className="w-24 h-24 relative">
+              <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 36 36">
+                {/* Background ring */}
+                <path
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeDasharray="100, 100"
+                  className="text-gray-200 dark:text-gray-700"
+                />
+                {/* Progress ring */}
+                <path
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  fill="none"
+                  stroke="#007AFF"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeDasharray={`${Math.min((entries?.length || 0) * 1.5, 100)}, 100`}
+                  className="transition-all duration-1500 ease-out"
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-2xl font-bold text-black dark:text-white">
+                  {entries?.length || 0}
+                </span>
+                <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                  sessions
+                </span>
               </div>
             </div>
           </div>
-          
-          <p className="text-lg font-light mb-4 max-w-2xl text-gray-600 dark:text-gray-400 leading-relaxed">
-            {personalizedMessage}
-          </p>
-          
-          <div className="flex items-center justify-between">
-            <Link href="/add-entry">
-              <Button 
-                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white border-0 rounded-2xl px-6 py-2.5 text-sm font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Continue Your Journey
-              </Button>
-            </Link>
-            
-            {/* Streak indicator for momentum psychology */}
-            {entries && entries.length > 0 && (
-              <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
-                Building momentum
-              </div>
-            )}
-          </div>
         </div>
         
-        {/* Subtle decorative elements */}
-        <div className="absolute right-4 top-4 w-24 h-24 bg-gray-50 dark:bg-gray-700 rounded-full"></div>
-        <div className="absolute right-8 bottom-8 w-16 h-16 bg-gray-100 dark:bg-gray-600 rounded-full"></div>
-      </div>
-
-      {/* Dashboard Widgets - Slightly Smaller */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {/* Hours Progress - Notion Blue */}
-        <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden">
-
-          <div className="text-3xl font-bold mb-2 text-gray-900 dark:text-white">
-            {Math.round(entries?.reduce((sum: number, entry: any) => sum + (entry.clientContactHours || 0), 0) || 0)}
-          </div>
-          <div className="text-gray-600 dark:text-gray-300 text-sm font-medium mb-1">Total Hours</div>
-          <div className="text-gray-400 dark:text-gray-400 text-xs">Client Contact Sessions</div>
-        </div>
-
-        {/* Supervision - Notion Purple */}
-        <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden">
-
-          <div className="text-3xl font-bold mb-2 text-gray-900 dark:text-white">
-            {Math.round(entries?.reduce((sum: number, entry: any) => sum + (entry.supervisionHours || 0), 0) || 0)}
-          </div>
-          <div className="text-gray-600 dark:text-gray-300 text-sm font-medium mb-1">Supervision</div>
-          <div className="text-gray-400 dark:text-gray-400 text-xs">Hours Completed</div>
-        </div>
-
-        {/* This Week - Notion Green */}
-        <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden">
-
-          <div className="text-3xl font-bold mb-2 text-gray-900 dark:text-white">
-            {entries?.filter((entry: any) => {
-              const entryDate = new Date(entry.dateOfContact);
-              const weekAgo = new Date();
-              weekAgo.setDate(weekAgo.getDate() - 7);
-              return entryDate >= weekAgo;
-            }).length || 0}
-          </div>
-          <div className="text-gray-600 dark:text-gray-300 text-sm font-medium mb-1">This Week</div>
-          <div className="text-gray-400 dark:text-gray-400 text-xs">Recent Sessions</div>
-        </div>
-
-        {/* Progress Summary */}
-        <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden">
-
-          <div className="text-3xl font-bold mb-2 text-gray-900 dark:text-white">
-            {Math.round(((entries?.reduce((sum: number, entry: any) => sum + (entry.clientContactHours || 0), 0) || 0) / 4000) * 100)}%
-          </div>
-          <div className="text-gray-600 dark:text-gray-300 text-sm font-medium mb-1">Progress</div>
-          <div className="text-gray-400 dark:text-gray-400 text-xs">Toward Licensure Goal</div>
+        {/* Action Area */}
+        <div className="mt-6 flex items-center justify-between">
+          <Link href="/add-entry">
+            <Button 
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-8 py-3 text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Log Session
+            </Button>
+          </Link>
+          
+          {/* Contextual Status - Only show when meaningful */}
+          {entries && entries.length > 2 && (
+            <div className="text-sm text-green-600 dark:text-green-400 font-medium">
+              On track this week
+            </div>
+          )}
         </div>
       </div>
+
+
     </section>
   );
 };
