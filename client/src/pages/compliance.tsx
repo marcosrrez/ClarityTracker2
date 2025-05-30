@@ -328,10 +328,12 @@ export default function CompliancePage() {
                       key={alert.id} 
                       variant={alert.severity === 'high' ? 'destructive' : 'default'}
                       className="cursor-pointer hover:bg-muted/50 transition-colors"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                         toast({
-                          title: `${alert.type.replace('_', ' ').toUpperCase()} Alert`,
-                          description: `${alert.message}\n\nDetails: ${alert.details || 'No additional details available.'}\n\nCreated: ${format(new Date(alert.createdAt), 'MMM d, yyyy h:mm a')}`,
+                          title: `${(alert.alertType || alert.type || 'Alert').replace('_', ' ').toUpperCase()}`,
+                          description: `${alert.description || alert.message}\n\nCreated: ${format(new Date(alert.createdAt), 'MMM d, yyyy h:mm a')}`,
                         });
                       }}
                     >
@@ -376,8 +378,8 @@ export default function CompliancePage() {
                   <div key={supervisee.id} className="border rounded-lg p-4">
                     <div className="flex justify-between items-start mb-2">
                       <div>
-                        <h4 className="font-medium">{supervisee.name}</h4>
-                        <p className="text-sm text-muted-foreground">{supervisee.email}</p>
+                        <h4 className="font-medium">{supervisee.superviseeName || supervisee.name}</h4>
+                        <p className="text-sm text-muted-foreground">{supervisee.superviseeEmail || supervisee.email}</p>
                       </div>
                       <Badge variant={
                         supervisee.complianceStatus === 'good' ? 'default' :
