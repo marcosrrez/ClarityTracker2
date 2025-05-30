@@ -136,7 +136,7 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
           <NotificationCenter />
         </div>
 
-        <nav className="flex-1 p-6 space-y-2">
+        <nav className="flex-1 p-6 space-y-1">
           {navigationItems.map((item) => {
             const Icon = item.icon;
             const isActive = location === item.href;
@@ -144,16 +144,16 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
             return (
               <Link key={item.href} href={item.href}>
                 <Button
-                  variant={isActive ? "secondary" : "ghost"}
-                  className={`w-full justify-start space-x-3 ${
+                  variant="ghost"
+                  className={`w-full justify-start space-x-3 h-12 rounded-2xl transition-all duration-300 ${
                     isActive 
-                      ? "bg-primary/10 text-primary hover:bg-primary/20" 
-                      : "text-muted-foreground hover:text-foreground"
+                      ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-700 dark:text-blue-300 shadow-sm border border-blue-200/50 dark:border-blue-700/50" 
+                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white/50 dark:hover:bg-gray-800/50"
                   }`}
                   onClick={() => onOpenChange(false)}
                 >
                   <Icon className="h-5 w-5" />
-                  <span>{item.label}</span>
+                  <span className="font-medium">{item.label}</span>
                 </Button>
               </Link>
             );

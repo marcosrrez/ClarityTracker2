@@ -127,7 +127,7 @@ export const AddEntryForm = () => {
         </p>
       </div>
       
-      <Card className="border border-border shadow-sm">
+      <Card className="backdrop-blur-sm bg-white/80 dark:bg-gray-800/80 border border-white/20 shadow-xl rounded-3xl">
         <CardContent className="p-8">
           
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
