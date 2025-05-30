@@ -95,7 +95,7 @@ export const SuperhumanLandingPage = () => {
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <Sprout className="w-5 h-5 text-white" />
             </div>
-            <span className="text-gray-900 text-lg font-semibold tracking-tight">CLARITYLOG</span>
+            <span className="text-gray-900 text-lg font-semibold tracking-tight">ClarityLog</span>
           </div>
         </div>
 
@@ -117,7 +117,7 @@ export const SuperhumanLandingPage = () => {
               <div className="space-y-3 mb-6">
                 <Button
                   onClick={handleGoogleSignup}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-medium transition-colors"
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-medium transition-colors"
                 >
                   <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                     <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -130,7 +130,7 @@ export const SuperhumanLandingPage = () => {
 
                 <Button
                   onClick={handleMicrosoftSignup}
-                  className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-medium transition-colors"
+                  className="w-full bg-violet-600 hover:bg-violet-700 text-white py-3 rounded-xl font-medium transition-colors"
                 >
                   <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                     <path fill="currentColor" d="M11.4 24H0V12.6h11.4V24zM24 24H12.6V12.6H24V24zM11.4 11.4H0V0h11.4v11.4zM24 11.4H12.6V0H24v11.4z"/>
@@ -220,25 +220,25 @@ export const SuperhumanLandingPage = () => {
       {/* Navigation */}
       <nav className="relative z-20 flex items-center justify-between p-8 border-b border-gray-100">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+          <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
             <Sprout className="w-5 h-5 text-white" />
           </div>
-          <span className="text-gray-900 text-lg font-semibold tracking-tight">CLARITYLOG</span>
+          <span className="text-gray-900 text-lg font-semibold tracking-tight">ClarityLog</span>
         </div>
         
         <Button 
           onClick={() => setShowSignupForm(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium"
+          className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-medium"
         >
           Start Now
         </Button>
       </nav>
 
       {/* Hero section */}
-      <div className="relative z-10 container mx-auto px-8 pt-20 pb-32">
+      <div className="relative z-10 container mx-auto px-4 sm:px-8 pt-16 sm:pt-20 pb-24 sm:pb-32">
         <div className="max-w-4xl mx-auto text-center">
           <motion.h1 
-            className="text-6xl font-bold text-gray-900 mb-6 leading-tight"
+            className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
@@ -247,7 +247,7 @@ export const SuperhumanLandingPage = () => {
           </motion.h1>
           
           <motion.p 
-            className="text-xl text-gray-600 mb-12 leading-relaxed max-w-2xl mx-auto"
+            className="text-lg sm:text-xl text-gray-600 mb-10 sm:mb-12 leading-relaxed max-w-2xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
@@ -262,70 +262,31 @@ export const SuperhumanLandingPage = () => {
           >
             <Button 
               onClick={() => setShowSignupForm(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5"
             >
               Start Now
-              <ArrowRight className="w-5 h-5 ml-2" />
+              <ArrowRight className="w-4 sm:w-5 h-4 sm:h-5 ml-2" />
             </Button>
           </motion.div>
         </div>
       </div>
 
-      {/* Partner section */}
-      <div className="relative z-10 border-t border-gray-100 py-12 bg-gray-50">
-        <div className="container mx-auto px-8">
-          <div className="text-center">
-            <span className="text-gray-500 font-medium mb-6 block">Trusted by counselors at</span>
-            <div className="flex items-center justify-center gap-8 text-gray-400">
-              <span>Leading Training Programs</span>
-              <span>•</span>
-              <span>Clinical Supervisors</span>
-              <span>•</span>
-              <span>Healthcare Organizations</span>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Stats section */}
-      <div className="relative z-10 py-20">
-        <div className="container mx-auto px-8">
-          <motion.div 
-            className="grid grid-cols-3 gap-12 text-center max-w-3xl mx-auto"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-          >
-            <div>
-              <div className="text-4xl font-bold text-blue-600 mb-2">4+ hours</div>
-              <div className="text-gray-600">Saved per week</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-blue-600 mb-2">2 minutes</div>
-              <div className="text-gray-600">Average entry time</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-blue-600 mb-2">100%</div>
-              <div className="text-gray-600">Compliance tracking</div>
-            </div>
-          </motion.div>
-        </div>
-      </div>
 
       {/* Features section */}
       <div className="relative z-10 py-24 bg-gray-50">
-        <div className="container mx-auto px-8">
+        <div className="container mx-auto px-4 sm:px-8">
           <motion.div 
             className="text-center mb-16"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.8 }}
           >
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Everything you need to succeed</h2>
-            <p className="text-xl text-gray-600">Professional tools designed for your licensure journey</p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Everything you need to succeed</h2>
+            <p className="text-lg sm:text-xl text-gray-600">Professional tools designed for your licensure journey</p>
           </motion.div>
 
-          <div className="grid grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto">
             {[
               {
                 icon: Clock,
@@ -353,13 +314,13 @@ export const SuperhumanLandingPage = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 1 + 0.1 * index }}
-                className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+                className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
               >
-                <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mb-4">
-                  <feature.icon className="w-6 h-6 text-white" />
+                <div className="w-14 h-14 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+                  <feature.icon className="w-7 h-7 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">{feature.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 leading-tight">{feature.title}</h3>
+                <p className="text-gray-600 leading-relaxed text-base">{feature.description}</p>
               </motion.div>
             ))}
           </div>
