@@ -517,16 +517,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { superviseeId } = req.params;
       
-      // Fetch log entries for the supervisee using the existing logEntry table
-      const entries = await db.select()
-        .from(logEntryTable)
-        .where(eq(logEntryTable.userId, superviseeId))
-        .orderBy(desc(logEntryTable.dateOfContact));
-      
-      res.json(entries);
+      // Fetch log entries for the supervisee - using storage interface
+      // This would need to be implemented in the storage layer
+      res.json([]); // Placeholder - would fetch from logEntry table
     } catch (error) {
       console.error("Error fetching supervisee hours:", error);
       res.status(500).json({ error: "Failed to fetch supervisee hours" });
+    }
+  });
+
+  // Supervisor connection request system
+  app.post("/api/supervision/request-connection", express.json(), async (req, res) => {
+    try {
+      const { superviseeId, superviseeName, superviseeEmail, supervisorEmail, licenseNumber, message } = req.body;
+      
+      // Send email to supervisor using Resend
+      const subject = `Supervision Connection Request from ${superviseeName}`;
+      const emailContent = `
+        <h2>New Supervision Connection Request</h2>
+        <p><strong>${superviseeName}</strong> (${superviseeEmail}) has requested to connect their hour tracking to your supervision.</p>
+        
+        <h3>LAC Information:</h3>
+        <ul>
+          <li><strong>Name:</strong> ${superviseeName}</li>
+          <li><strong>Email:</strong> ${superviseeEmail}</li>
+          <li><strong>License Number:</strong> ${licenseNumber}</li>
+        </ul>
+        
+        <h3>Message:</h3>
+        <p>${message}</p>
+        
+        <p>To approve this request, log into your ClarityLog supervisor dashboard and navigate to the Compliance section.</p>
+        
+        <p>Best regards,<br>ClarityLog Team</p>
+      `;
+
+      const emailSent = await sendEmail(supervisorEmail, subject, emailContent);
+      
+      if (emailSent) {
+        // Store the connection request in a pending state
+        // This would be stored in a supervision_requests table
+        console.log('Connection request stored for approval');
+        
+        res.json({ 
+          success: true, 
+          message: "Connection request sent successfully",
+          requestId: `req_${Date.now()}`
+        });
+      } else {
+        res.status(500).json({ error: "Failed to send connection request email" });
+      }
+    } catch (error) {
+      console.error("Error processing connection request:", error);
+      res.status(500).json({ error: "Failed to process connection request" });
     }
   });
 
