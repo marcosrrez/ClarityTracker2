@@ -20,13 +20,12 @@ import {
 } from "lucide-react";
 
 interface OnboardingData {
-  fullName: string;
+  preferredName: string;
   accountType: 'individual' | 'supervisor' | 'enterprise' | undefined;
-  licenseDate: string;
-  challenges: string[];
+  stateRegion: string;
+  trackingChallenge: string;
   organizationName?: string;
-  licenseNumber?: string;
-  supervisionGoals?: string;
+  professionalGoals?: string;
 }
 
 export const OnboardingFlow = () => {
@@ -35,13 +34,12 @@ export const OnboardingFlow = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [data, setData] = useState<OnboardingData>({
-    fullName: '',
-    accountType: null,
-    licenseDate: '',
-    challenges: [],
+    preferredName: '',
+    accountType: undefined,
+    stateRegion: '',
+    trackingChallenge: '',
     organizationName: '',
-    licenseNumber: '',
-    supervisionGoals: ''
+    professionalGoals: ''
   });
 
   const accountTypes = [
@@ -91,27 +89,18 @@ export const OnboardingFlow = () => {
     }
   };
 
-  const handleChallengeToggle = (challengeId: string) => {
-    setData(prev => ({
-      ...prev,
-      challenges: prev.challenges.includes(challengeId)
-        ? prev.challenges.filter(id => id !== challengeId)
-        : [...prev.challenges, challengeId]
-    }));
-  };
-
   const handleComplete = async () => {
     setIsLoading(true);
     try {
       await updateUserProfile({
-        displayName: data.fullName,
+        preferredName: data.preferredName,
         accountType: data.accountType,
-        expectedLicenseDate: data.licenseDate,
-        challenges: data.challenges,
+        stateRegion: data.stateRegion,
+        trackingChallenge: data.trackingChallenge,
         organizationName: data.organizationName,
-        licenseNumber: data.licenseNumber,
-        supervisionGoals: data.supervisionGoals,
-        onboardingCompleted: true
+        professionalGoals: data.professionalGoals,
+        focus: 'licensure',
+        hasCompletedOnboarding: true
       });
 
       toast({
@@ -147,19 +136,19 @@ export const OnboardingFlow = () => {
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              What's your full name?
+              What's your preferred name?
             </label>
             <Input
               type="text"
-              placeholder="Enter your full name"
-              value={data.fullName}
-              onChange={(e) => setData(prev => ({ ...prev, fullName: e.target.value }))}
+              placeholder="Enter your preferred name"
+              value={data.preferredName}
+              onChange={(e) => setData(prev => ({ ...prev, preferredName: e.target.value }))}
               className="text-lg py-3"
             />
           </div>
         </div>
       ),
-      canContinue: data.fullName.trim().length > 0
+      canContinue: data.preferredName.trim().length > 0
     },
 
     // Step 2: Account Type Selection
@@ -212,125 +201,79 @@ export const OnboardingFlow = () => {
           ))}
         </div>
       ),
-      canContinue: data.accountType !== null
+      canContinue: data.accountType !== undefined
     },
 
-    // Step 3: Professional Information (varies by account type)
+    // Step 3: Location & Goals
     {
-      title: data.accountType === 'individual' ? "Your Licensure Journey" : 
-             data.accountType === 'supervisor' ? "Supervisor Information" : 
-             "Organization Details",
-      subtitle: data.accountType === 'individual' ? "Tell us about your path to LPC licensure" :
-                data.accountType === 'supervisor' ? "Help us understand your supervision practice" :
-                "Set up your organization account",
+      title: "Tell us about your location and goals",
+      subtitle: "This helps us provide relevant resources and compliance information",
       content: (
         <div className="space-y-6">
-          {data.accountType === 'individual' && (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Expected LPC License Date
-                </label>
-                <Input
-                  type="date"
-                  value={data.licenseDate}
-                  onChange={(e) => setData(prev => ({ ...prev, licenseDate: e.target.value }))}
-                  className="text-lg py-3"
-                />
-                <p className="text-sm text-gray-500 mt-1">
-                  When do you expect to complete your supervision requirements?
-                </p>
-              </div>
-            </>
-          )}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              State/Region
+            </label>
+            <Input
+              type="text"
+              placeholder="e.g., Texas, California, Ontario"
+              value={data.stateRegion}
+              onChange={(e) => setData(prev => ({ ...prev, stateRegion: e.target.value }))}
+              className="text-lg py-3"
+            />
+            <p className="text-sm text-gray-500 mt-1">
+              This helps us provide state-specific licensing requirements
+            </p>
+          </div>
 
-          {data.accountType === 'supervisor' && (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  License Number (Optional)
-                </label>
-                <Input
-                  type="text"
-                  placeholder="Your LPC license number"
-                  value={data.licenseNumber}
-                  onChange={(e) => setData(prev => ({ ...prev, licenseNumber: e.target.value }))}
-                  className="text-lg py-3"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Supervision Goals
-                </label>
-                <Input
-                  type="text"
-                  placeholder="What are your main supervision objectives?"
-                  value={data.supervisionGoals}
-                  onChange={(e) => setData(prev => ({ ...prev, supervisionGoals: e.target.value }))}
-                  className="text-lg py-3"
-                />
-              </div>
-            </>
-          )}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              What's your biggest challenge right now?
+            </label>
+            <Input
+              type="text"
+              placeholder="e.g., Time management, documentation, clinical skills"
+              value={data.trackingChallenge}
+              onChange={(e) => setData(prev => ({ ...prev, trackingChallenge: e.target.value }))}
+              className="text-lg py-3"
+            />
+          </div>
 
           {data.accountType === 'enterprise' && (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Organization Name
-                </label>
-                <Input
-                  type="text"
-                  placeholder="Your organization or training program name"
-                  value={data.organizationName}
-                  onChange={(e) => setData(prev => ({ ...prev, organizationName: e.target.value }))}
-                  className="text-lg py-3"
-                />
-              </div>
-            </>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Organization Name
+              </label>
+              <Input
+                type="text"
+                placeholder="Your organization or training program name"
+                value={data.organizationName}
+                onChange={(e) => setData(prev => ({ ...prev, organizationName: e.target.value }))}
+                className="text-lg py-3"
+              />
+            </div>
+          )}
+
+          {(data.accountType === 'supervisor' || data.accountType === 'individual') && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Professional Goals (Optional)
+              </label>
+              <Input
+                type="text"
+                placeholder="What do you hope to achieve with ClarityLog?"
+                value={data.professionalGoals}
+                onChange={(e) => setData(prev => ({ ...prev, professionalGoals: e.target.value }))}
+                className="text-lg py-3"
+              />
+            </div>
           )}
         </div>
       ),
-      canContinue: data.accountType === 'individual' ? data.licenseDate !== '' :
-                   data.accountType === 'supervisor' ? true :
-                   data.organizationName !== ''
+      canContinue: data.stateRegion.trim().length > 0 && data.trackingChallenge.trim().length > 0
     },
 
-    // Step 4: Challenges & Goals
-    {
-      title: "What challenges would you like help with?",
-      subtitle: "Select all that apply - we'll personalize your experience accordingly",
-      content: (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {commonChallenges.map((challenge) => (
-            <Card
-              key={challenge.id}
-              className={`cursor-pointer transition-all duration-300 ${
-                data.challenges.includes(challenge.id)
-                  ? 'ring-2 ring-blue-600 bg-blue-50'
-                  : 'hover:bg-gray-50'
-              }`}
-              onClick={() => handleChallengeToggle(challenge.id)}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <span className="text-2xl">{challenge.icon}</span>
-                  <span className="text-sm font-medium text-gray-700">
-                    {challenge.label}
-                  </span>
-                  {data.challenges.includes(challenge.id) && (
-                    <CheckCircle className="w-5 h-5 text-blue-600 ml-auto" />
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ),
-      canContinue: true
-    },
-
-    // Step 5: Completion
+    // Step 4: Completion
     {
       title: "You're all set!",
       subtitle: "Your personalized ClarityLog experience awaits",
@@ -342,7 +285,7 @@ export const OnboardingFlow = () => {
           
           <div className="space-y-4">
             <h3 className="text-xl font-semibold text-gray-900">
-              Welcome, {data.fullName}!
+              Welcome, {data.preferredName}!
             </h3>
             <p className="text-gray-600">
               Based on your selections, we've customized ClarityLog to help you succeed as {
@@ -352,23 +295,16 @@ export const OnboardingFlow = () => {
               }.
             </p>
             
-            {data.challenges.length > 0 && (
-              <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-sm font-medium text-gray-700 mb-2">
-                  We'll help you with:
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {data.challenges.map((challengeId) => {
-                    const challenge = commonChallenges.find(c => c.id === challengeId);
-                    return challenge ? (
-                      <span key={challengeId} className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full">
-                        {challenge.label}
-                      </span>
-                    ) : null;
-                  })}
-                </div>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <p className="text-sm font-medium text-gray-700 mb-2">
+                Your setup:
+              </p>
+              <div className="text-sm text-gray-600 space-y-1">
+                <div>Location: {data.stateRegion}</div>
+                <div>Focus: {data.trackingChallenge}</div>
+                {data.organizationName && <div>Organization: {data.organizationName}</div>}
               </div>
-            )}
+            </div>
           </div>
         </div>
       ),
