@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Avatar, AvatarFallback, AvatarInitials } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Calendar, Clock, Mail, Phone, User, TrendingUp, AlertTriangle, CheckCircle, Star } from 'lucide-react';
 import { format, differenceInDays, addMonths } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
