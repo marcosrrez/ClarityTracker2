@@ -374,48 +374,24 @@ export default function SuperviseesPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {trendsData ? (
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                      <h4 className="font-medium mb-2">Session Summary</h4>
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span>Total Sessions:</span>
-                          <span className="font-medium">{trendsData.totalSessions}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Total Hours:</span>
-                          <span className="font-medium">{trendsData.totalHours?.toFixed(1)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Average Compliance:</span>
-                          <span className="font-medium">{trendsData.averageComplianceRate?.toFixed(1)}%</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="font-medium mb-2">Recent Activity</h4>
-                      <div className="text-sm text-muted-foreground">
-                        Supervision activity trends show consistent engagement across all supervisees
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No trend data available yet
-                  </div>
-                )}
+                <div className="text-center py-8">
+                  <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="font-medium mb-2">Supervision Trends</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Detailed supervision analytics and trends will appear here as you conduct more supervision sessions.
+                  </p>
+                  <Button variant="outline">View Full Analytics</Button>
+                </div>
               </CardContent>
             </Card>
-          </div>
-        </TabsContent>
+          </TabsContent>
 
-        <TabsContent value="supervision">
-          {user?.uid && (
-            <ComplianceAlerts supervisorId={user.uid} />
-          )}
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
-}
+          <TabsContent value="supervision">
+            {user?.uid && (
+              <ComplianceAlerts supervisorId={user.uid} />
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
+    );
+  }
