@@ -179,6 +179,28 @@ export default function QuickEntryPage() {
       }
 
       await createLogEntry(user.uid, entry as any);
+
+      // Update supervisor dashboard if this is a LAC
+      try {
+        const response = await fetch('/api/supervisee-hours/update', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            superviseeId: user.uid,
+            clientHours: entry.clientContactHours,
+            supervisionHours: entry.supervisionHours,
+            entryDate: entry.dateOfContact
+          }),
+        });
+
+        if (!response.ok) {
+          console.log('Hour sharing update failed, continuing without error');
+        }
+      } catch (error) {
+        console.log('Hour sharing not available, continuing without error');
+      }
       
       toast({
         title: "Entry saved!",
@@ -215,20 +237,20 @@ export default function QuickEntryPage() {
   }
 
   return (
-    <div className="max-w-md mx-auto p-4 space-y-6">
+    <div className="max-w-md mx-auto p-4 space-y-6 ive-fade-in">
       {/* Header */}
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold text-primary">Quick Entry</h1>
-        <p className="text-muted-foreground">
+      <div className="text-center space-y-2 ive-spacing">
+        <h1 className="text-3xl font-bold text-primary tracking-tight">Quick Entry</h1>
+        <p className="text-muted-foreground font-medium">
           Log your hours with voice or text
         </p>
       </div>
 
       {/* Voice/Text Input */}
-      <Card>
+      <Card className="ive-card ive-hover-lift ive-rounded">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Describe Your Session</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-lg tracking-tight">Describe Your Session</CardTitle>
+          <CardDescription className="font-medium">
             Say or type something like: "Today, 3 hours, individual therapy CBT session"
           </CardDescription>
         </CardHeader>
@@ -238,12 +260,12 @@ export default function QuickEntryPage() {
               placeholder="Today, 3 hours, individual therapy..."
               value={entryText}
               onChange={(e) => handleTextChange(e.target.value)}
-              className="min-h-[100px] pr-12"
+              className="min-h-[100px] pr-12 ive-rounded resize-none"
             />
             <Button
               variant={isListening ? "destructive" : "outline"}
               size="sm"
-              className="absolute top-2 right-2"
+              className="absolute top-2 right-2 ive-rounded"
               onClick={isListening ? stopListening : startListening}
             >
               {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
@@ -296,7 +318,7 @@ export default function QuickEntryPage() {
       <Button
         onClick={handleSubmit}
         disabled={!parsedEntry?.hours || isSubmitting}
-        className="w-full h-12 text-lg"
+        className="w-full h-12 text-lg ive-rounded ive-hover-lift font-medium"
         size="lg"
       >
         {isSubmitting ? (
