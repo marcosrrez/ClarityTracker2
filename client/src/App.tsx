@@ -44,7 +44,7 @@ function Router() {
       <Route path="/help" component={HelpPage} />
       <Route path="/summary" component={SummaryPage} />
       <Route path="/quick-entry" component={QuickEntryPage} />
-      <Route path="/supervisees" component={SuperviseesPage} />
+      <Route path="/supervisees" component={() => import("@/pages/supervisees-working")} />
       <Route path="/compliance" component={CompliancePage} />
       <Route path="/account-setup">
         <AuthGuard requireAccountSetup={false}>
