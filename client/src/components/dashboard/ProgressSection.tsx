@@ -1,8 +1,17 @@
+import React, { useState } from 'react';
+import { useAuth } from '@/hooks/use-auth';
+import { useLogEntries } from '@/hooks/use-log-entries';
+import { useAppSettings } from '@/hooks/use-app-settings';
+import { useToast } from '@/hooks/use-toast';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Trophy, AlertTriangle } from 'lucide-react';
+import { updateAppSettings } from '@/lib/firestore';
 import { EnhancedProgressSection } from "./EnhancedProgressSection";
 
 export const ProgressSection = () => {
-  return <EnhancedProgressSection />;
-};
   const { user } = useAuth();
   const { entries, loading: entriesLoading } = useLogEntries();
   const { settings, loading: settingsLoading, refetch: refetchSettings } = useAppSettings();
