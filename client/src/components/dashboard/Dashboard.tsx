@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { WelcomeSection } from "./WelcomeSection";
 import { QuickStatsGrid } from "./QuickStatsGrid";
 import { ProgressSection } from "./ProgressSection";
@@ -7,21 +8,57 @@ import { CompetencyTracker } from "./CompetencyTracker";
 import { AchievementCelebration } from "./AchievementCelebration";
 import { MilestoneCelebration } from "./MilestoneCelebration";
 import { SupervisorDashboard } from "./SupervisorDashboard";
+import { WelcomeOverlay } from "./WelcomeOverlay";
 import { useMilestoneDetection } from "@/hooks/use-milestone-detection";
 import { useAppSettings } from "@/hooks/use-firestore";
 import { useAccountType } from "@/hooks/use-account-type";
+import { useLocation } from "wouter";
 
 export const Dashboard = () => {
   const { showCelebration, celebrationData, closeCelebration } = useMilestoneDetection();
   const { settings } = useAppSettings();
   const { isSupervisor } = useAccountType();
+  const [location, setLocation] = useLocation();
+  const [showWelcomeOverlay, setShowWelcomeOverlay] = useState(false);
 
   // Get user preferences - use localStorage for immediate toggle without Firebase dependency
   const smartFeaturesEnabled = localStorage.getItem('smartFeaturesEnabled') !== 'false';
 
+  // Check if we should show welcome overlay for returning users
+  useEffect(() => {
+    const lastWelcomeShown = localStorage.getItem('lastWelcomeShown');
+    const today = new Date().toDateString();
+    
+    // Show welcome overlay if it hasn't been shown today
+    if (lastWelcomeShown !== today && !isSupervisor) {
+      setShowWelcomeOverlay(true);
+    }
+  }, [isSupervisor]);
+
+  const handleStartLogging = () => {
+    setShowWelcomeOverlay(false);
+    localStorage.setItem('lastWelcomeShown', new Date().toDateString());
+    setLocation('/add-entry');
+  };
+
+  const handleCloseWelcome = () => {
+    setShowWelcomeOverlay(false);
+    localStorage.setItem('lastWelcomeShown', new Date().toDateString());
+  };
+
   // Show supervisor-specific dashboard for supervisors
   if (isSupervisor) {
     return <SupervisorDashboard />;
+  }
+
+  // Show welcome overlay for returning users
+  if (showWelcomeOverlay) {
+    return (
+      <WelcomeOverlay 
+        onStartLogging={handleStartLogging}
+        onClose={handleCloseWelcome}
+      />
+    );
   }
 
   // Show regular dashboard for individual counselors
