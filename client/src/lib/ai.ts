@@ -38,7 +38,32 @@ Please analyze this session specifically through the lens of their therapeutic p
 - Specific feedback related to their therapeutic approach preferences`
       : '';
 
-    const prompt = `As a professional development AI assistant for Licensed Associate Counselors, analyze the following session notes and provide personalized insights for professional growth.
+    // Determine user role and adjust prompt accordingly
+    const accountType = userProfile?.accountType || 'individual';
+    const isSupervisor = accountType === 'supervisor' || accountType === 'enterprise';
+    
+    const roleContext = isSupervisor 
+      ? `As a supervision support AI assistant for Licensed Professional Counselors managing supervisees, analyze the following supervision session notes and provide insights for effective supervision practice.`
+      : `As a professional development AI assistant for Licensed Associate Counselors, analyze the following session notes and provide personalized insights for professional growth.`;
+
+    const focusAreas = isSupervisor
+      ? `Focus on:
+- Supervision techniques and effectiveness
+- Supervisee development areas identified
+- Ethical supervision considerations
+- Professional mentoring opportunities
+- Supervisory relationship dynamics
+- Competency assessment insights
+- Training and development recommendations for supervisees`
+      : `Focus on:
+- Professional development opportunities (especially in their preferred modalities)
+- Clinical skills demonstrated (relating to their therapeutic approaches when possible)
+- Areas for continued learning (connecting to their identified growth areas)
+- Supervision discussion points
+- Ethical considerations if relevant
+- Personalized feedback based on their therapeutic preferences and goals`;
+
+    const prompt = `${roleContext}
 
 Session Notes:
 ${notes}
@@ -54,13 +79,7 @@ Please provide a JSON response with the following structure:
   "ccsrCategory": "Most relevant CCSR category for this session"
 }
 
-Focus on:
-- Professional development opportunities (especially in their preferred modalities)
-- Clinical skills demonstrated (relating to their therapeutic approaches when possible)
-- Areas for continued learning (connecting to their identified growth areas)
-- Supervision discussion points
-- Ethical considerations if relevant
-- Personalized feedback based on their therapeutic preferences and goals
+${focusAreas}
 
 Keep responses professional, constructive, and supportive of growth. Make the analysis feel personally relevant to their professional development journey.`;
 
@@ -220,18 +239,46 @@ export const generatePersonalizedDashboardInsights = async (entries: any[], user
   supervisionTopic: string;
   professionalGrowthInsight: string;
 }> => {
+  const accountType = userProfile?.accountType || 'individual';
+  const isSupervisor = accountType === 'supervisor' || accountType === 'enterprise';
+  
   if (!entries.length) {
-    return {
-      weeklyFocus: "Begin your professional journey by documenting your first client session.",
-      skillDevelopmentTip: "Start with reflective note-taking to build self-awareness.",
-      supervisionTopic: "Discuss your initial comfort level with different therapeutic approaches.",
-      professionalGrowthInsight: "Every expert was once a beginner - embrace the learning process."
-    };
+    if (isSupervisor) {
+      return {
+        weeklyFocus: "Begin tracking supervision sessions and supervisee development progress.",
+        skillDevelopmentTip: "Establish clear supervision goals and regular check-in schedules with supervisees.",
+        supervisionTopic: "Review your supervision approach and methods for supporting supervisee growth.",
+        professionalGrowthInsight: "Effective supervision shapes the next generation of counselors - your mentorship matters."
+      };
+    } else {
+      return {
+        weeklyFocus: "Begin your professional journey by documenting your first client session.",
+        skillDevelopmentTip: "Start with reflective note-taking to build self-awareness.",
+        supervisionTopic: "Discuss your initial comfort level with different therapeutic approaches.",
+        professionalGrowthInsight: "Every expert was once a beginner - embrace the learning process."
+      };
+    }
   }
 
   try {
     const recentEntries = entries.slice(-5); // Last 5 sessions
-    const prompt = `Based on these recent counseling sessions, provide personalized weekly insights for professional development:
+    
+    const sessionType = isSupervisor ? "supervision sessions" : "counseling sessions";
+    const focusAreas = isSupervisor 
+      ? {
+          weeklyFocus: "One specific supervision area to focus on this week based on recent supervisee interactions",
+          skillDevelopmentTip: "Actionable supervision technique or mentoring approach to enhance supervisee development",
+          supervisionTopic: "Discussion topic for your own supervision or peer consultation regarding supervisee management",
+          professionalGrowthInsight: "Encouraging insight about your supervision effectiveness and supervisee development progress"
+        }
+      : {
+          weeklyFocus: "One specific area to focus on this week based on recent patterns",
+          skillDevelopmentTip: "Actionable skill-building tip based on recent work",
+          supervisionTopic: "Specific topic to bring to supervision based on patterns",
+          professionalGrowthInsight: "Encouraging insight about professional development progress"
+        };
+
+    const prompt = `Based on these recent ${sessionType}, provide personalized weekly insights for professional development:
 
 ${recentEntries.map((entry, index) => `
 Recent Session ${index + 1}: ${entry.notes.substring(0, 200)}...
@@ -239,10 +286,10 @@ Recent Session ${index + 1}: ${entry.notes.substring(0, 200)}...
 
 Provide JSON response:
 {
-  "weeklyFocus": "One specific area to focus on this week based on recent patterns",
-  "skillDevelopmentTip": "Actionable skill-building tip based on recent work",
-  "supervisionTopic": "Specific topic to bring to supervision based on patterns",
-  "professionalGrowthInsight": "Encouraging insight about professional development progress"
+  "weeklyFocus": "${focusAreas.weeklyFocus}",
+  "skillDevelopmentTip": "${focusAreas.skillDevelopmentTip}",
+  "supervisionTopic": "${focusAreas.supervisionTopic}",
+  "professionalGrowthInsight": "${focusAreas.professionalGrowthInsight}"
 }`;
 
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
