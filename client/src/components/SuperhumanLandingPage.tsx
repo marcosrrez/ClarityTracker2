@@ -88,14 +88,14 @@ export const SuperhumanLandingPage = () => {
 
   if (showSignupForm) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900/30 to-violet-900/40">
+      <div className="min-h-screen bg-white">
         {/* Logo */}
         <div className="absolute top-6 sm:top-8 left-6 sm:left-8 z-10">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <Sprout className="w-5 h-5 text-white" />
             </div>
-            <span className="text-white text-lg font-semibold tracking-tight">ClarityLog</span>
+            <span className="text-gray-900 text-lg font-semibold tracking-tight">ClarityLog</span>
           </div>
         </div>
 
@@ -107,9 +107,9 @@ export const SuperhumanLandingPage = () => {
             transition={{ duration: 0.6 }}
             className="w-full max-w-md mx-4 sm:mx-8"
           >
-            <div className="bg-slate-800/90 backdrop-blur-xl rounded-3xl p-8 sm:p-12 border border-slate-700/50 shadow-2xl">
+            <div className="bg-white rounded-3xl p-8 sm:p-12 border border-gray-200 shadow-2xl">
               <div className="text-center mb-10">
-                <h1 className="text-2xl sm:text-3xl font-bold text-white mb-4 leading-tight">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 leading-tight">
                   Start your journey to LPC licensure
                 </h1>
               </div>
@@ -131,30 +131,20 @@ export const SuperhumanLandingPage = () => {
 
               <div className="relative mb-8">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-600" />
+                  <div className="w-full border-t border-gray-300" />
                 </div>
                 <div className="relative flex justify-center text-base">
-                  <span className="px-4 bg-slate-800 text-slate-300">or</span>
+                  <span className="px-4 bg-white text-gray-500">or</span>
                 </div>
               </div>
 
               <div className="space-y-5">
-                {isSignUp && (
-                  <Input
-                    type="text"
-                    placeholder="Full name"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 rounded-2xl py-4 text-lg"
-                  />
-                )}
-                
                 <Input
                   type="email"
                   placeholder="Enter email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 rounded-2xl py-4 text-lg"
+                  className="border-gray-300 rounded-2xl py-4 text-lg"
                 />
 
                 {isSignUp && (
@@ -164,7 +154,7 @@ export const SuperhumanLandingPage = () => {
                       placeholder="Password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 rounded-2xl py-4 text-lg"
+                      className="border-gray-300 rounded-2xl py-4 text-lg"
                     />
 
                     <Input
@@ -172,7 +162,7 @@ export const SuperhumanLandingPage = () => {
                       placeholder="Confirm password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 rounded-2xl py-4 text-lg"
+                      className="border-gray-300 rounded-2xl py-4 text-lg"
                     />
                   </>
                 )}
@@ -183,14 +173,14 @@ export const SuperhumanLandingPage = () => {
                     placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 rounded-2xl py-4 text-lg"
+                    className="border-gray-300 rounded-2xl py-4 text-lg"
                   />
                 )}
 
                 <Button
                   onClick={handleEmailAuth}
                   disabled={isLoading}
-                  className="w-full bg-slate-600 hover:bg-slate-700 text-white py-4 rounded-2xl font-medium transition-all duration-300 text-lg mt-6"
+                  className="w-full bg-gray-800 hover:bg-gray-900 text-white py-4 rounded-2xl font-medium transition-all duration-300 text-lg mt-6"
                 >
                   {isLoading ? (
                     <Loader2 className="w-5 h-5 animate-spin mr-2" />
@@ -202,7 +192,7 @@ export const SuperhumanLandingPage = () => {
               <div className="text-center mt-8">
                 <button
                   onClick={() => setIsSignUp(!isSignUp)}
-                  className="text-slate-400 hover:text-white text-base transition-colors"
+                  className="text-gray-500 hover:text-gray-700 text-base transition-colors"
                 >
                   {isSignUp 
                     ? "Already have an account? Sign in" 
