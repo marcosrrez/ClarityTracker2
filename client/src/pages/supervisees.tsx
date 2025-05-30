@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -37,6 +38,7 @@ export default function SuperviseesPage() {
   const { permissions, isIndividual } = useAccountType();
   const { user } = useAuth();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -76,48 +78,8 @@ export default function SuperviseesPage() {
     );
   }
 
-  // Use real data from API, fallback to demo data if needed
-  const displaySupervisees = apiSupervisees.length > 0 ? apiSupervisees : [
-    {
-      id: "1",
-      name: "Sarah Johnson",
-      email: "sarah.j@email.com",
-      status: "active",
-      licenseStage: "LAC",
-      totalHours: 850,
-      goalHours: 2000,
-      supervisionHours: 45,
-      lastEntry: new Date("2024-01-15"),
-      riskLevel: "low",
-      nextSupervision: new Date("2024-01-20"),
-    },
-    {
-      id: "2", 
-      name: "Michael Chen",
-      email: "m.chen@email.com",
-      status: "active",
-      licenseStage: "LAC",
-      totalHours: 1650,
-      goalHours: 2000,
-      supervisionHours: 82,
-      lastEntry: new Date("2024-01-14"),
-      riskLevel: "medium",
-      nextSupervision: new Date("2024-01-18"),
-    },
-    {
-      id: "3",
-      name: "Emily Rodriguez", 
-      email: "emily.r@email.com",
-      status: "active",
-      licenseStage: "Student",
-      totalHours: 320,
-      goalHours: 1000,
-      supervisionHours: 18,
-      lastEntry: new Date("2024-01-10"),
-      riskLevel: "high",
-      nextSupervision: new Date("2024-01-16"),
-    },
-  ];
+  // Use only authentic data from API
+  const displaySupervisees = apiSupervisees;
 
   const handleDeleteSupervisee = async (superviseeId: string) => {
     setDeletingId(superviseeId);
@@ -257,66 +219,107 @@ export default function SuperviseesPage() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
-          {filteredSupervisees.map((supervisee) => (
-            <Card key={supervisee.id}>
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div className="space-y-1">
-                    <CardTitle className="text-lg">{supervisee.name}</CardTitle>
-                    <CardDescription>{supervisee.email}</CardDescription>
-                  </div>
-                  <div className="flex gap-2">
-                    <Badge className={getStatusColor(supervisee.status)}>
-                      {supervisee.status}
-                    </Badge>
-                    <Badge variant="outline">{supervisee.licenseStage}</Badge>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid md:grid-cols-3 gap-4">
-                  <div>
-                    <div className="text-sm text-muted-foreground">Progress</div>
-                    <Progress 
-                      value={(supervisee.totalHours / supervisee.goalHours) * 100} 
-                      className="mt-1"
-                    />
-                    <div className="text-sm mt-1">
-                      {supervisee.totalHours} / {supervisee.goalHours} hours
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <div className="text-sm text-muted-foreground">Risk Level</div>
-                    <div className={`text-sm font-medium ${getRiskColor(supervisee.riskLevel)}`}>
-                      {supervisee.riskLevel.toUpperCase()}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <div className="text-sm text-muted-foreground">Next Supervision</div>
-                    <div className="text-sm">
-                      {supervisee.nextSupervision.toLocaleDateString()}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline">
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    Message
-                  </Button>
-                  <Button size="sm" variant="outline">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Schedule
-                  </Button>
-                  <Button size="sm" variant="outline">
-                    View Details
-                  </Button>
-                </div>
+          {displaySupervisees.length === 0 ? (
+            <Card>
+              <CardContent className="text-center py-8">
+                <Users className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No Supervisees Yet</h3>
+                <p className="text-muted-foreground mb-4">Add your first supervisee to start tracking their progress</p>
+                <AddSuperviseeDialog />
               </CardContent>
             </Card>
-          ))}
+          ) : (
+            displaySupervisees.map((supervisee: any) => (
+              <Card 
+                key={supervisee.id} 
+                className="cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => setLocation(`/supervisee/${supervisee.id}`)}
+              >
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-1">
+                      <CardTitle className="text-lg">
+                        {supervisee.superviseeName || supervisee.superviseeId}
+                      </CardTitle>
+                      <CardDescription>
+                        {supervisee.superviseeEmail || 'Email not available'}
+                      </CardDescription>
+                    </div>
+                    <div className="flex gap-2">
+                      <Badge variant={supervisee.status === 'active' ? 'default' : 'secondary'}>
+                        {supervisee.status}
+                      </Badge>
+                      <Badge variant="outline">LAC</Badge>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <div>
+                      <div className="text-sm text-muted-foreground">Required Hours</div>
+                      <div className="text-2xl font-bold">{supervisee.requiredHours || 4000}</div>
+                      <Progress 
+                        value={(supervisee.completedHours || 0) / (supervisee.requiredHours || 4000) * 100} 
+                        className="mt-1"
+                      />
+                      <div className="text-sm mt-1">
+                        {supervisee.completedHours || 0} / {supervisee.requiredHours || 4000} hours
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <div className="text-sm text-muted-foreground">Contract Status</div>
+                      <div className="flex items-center gap-2 mt-1">
+                        {supervisee.contractSigned ? (
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                        )}
+                        <span className="text-sm font-medium">
+                          {supervisee.contractSigned ? 'Signed' : 'Pending'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <div className="text-sm text-muted-foreground">Background Check</div>
+                      <div className="flex items-center gap-2 mt-1">
+                        {supervisee.backgroundCheckCompleted ? (
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                        )}
+                        <span className="text-sm font-medium">
+                          {supervisee.backgroundCheckCompleted ? 'Complete' : 'Pending'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setLocation(`/supervisee/${supervisee.id}`);
+                      }}
+                    >
+                      View Profile
+                    </Button>
+                    <Button size="sm" variant="outline">
+                      <Calendar className="h-4 w-4 mr-2" />
+                      Schedule Session
+                    </Button>
+                    <Button size="sm" variant="outline">
+                      <MessageSquare className="h-4 w-4 mr-2" />
+                      Message
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
         </TabsContent>
 
         <TabsContent value="progress">
