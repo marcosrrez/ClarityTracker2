@@ -189,11 +189,11 @@ export class DatabaseStorage implements IStorage {
       .values({
         ...relationship,
         id,
-        requiredHours: relationship.requiredHours.toString(),
-        completedHours: relationship.completedHours.toString(),
-        contractSigned: relationship.contractSigned.toString(),
-        backgroundCheckCompleted: relationship.backgroundCheckCompleted.toString(),
-        licenseVerified: relationship.licenseVerified.toString(),
+        requiredHours: (relationship.requiredHours || 0).toString(),
+        completedHours: (relationship.completedHours || 0).toString(),
+        contractSigned: (relationship.contractSigned || false).toString(),
+        backgroundCheckCompleted: (relationship.backgroundCheckCompleted || false).toString(),
+        licenseVerified: (relationship.licenseVerified || false).toString(),
       })
       .returning();
     

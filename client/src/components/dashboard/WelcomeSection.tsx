@@ -4,10 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Sparkles } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useAccountType } from "@/hooks/use-account-type";
 import { useLogEntries } from "@/hooks/use-firestore";
 
 export const WelcomeSection = () => {
   const { user, userProfile } = useAuth();
+  const { accountType } = useAccountType();
   const { entries } = useLogEntries();
   const [personalizedMessage, setPersonalizedMessage] = useState("");
 
@@ -49,27 +51,51 @@ export const WelcomeSection = () => {
     if (timeOfDay >= 17 && timeOfDay < 22) greeting = "Good evening";
     if (timeOfDay >= 22 || timeOfDay < 6) greeting = "Working late";
     
-    // Contextual messages based on user activity and time
+    // Contextual messages based on user activity, time, and account type
     let message = "";
     
-    if (sessionCount === 0) {
-      message = `${greeting}! Ready to start your professional journey? Let's log your first session and begin tracking your path to LPC licensure.`;
-    } else if (daysSinceLastSession === 0) {
-      message = `${greeting}! Great to see you back today. You're building excellent momentum in your professional development.`;
-    } else if (daysSinceLastSession === 1) {
-      message = `${greeting}! Welcome back from yesterday. Ready to continue documenting your growth and insights?`;
-    } else if (daysSinceLastSession && daysSinceLastSession <= 3) {
-      message = `${greeting}! Good to have you back. Let's catch up on your recent sessions and keep that progress flowing.`;
-    } else if (daysSinceLastSession && daysSinceLastSession <= 7) {
-      message = `${greeting}! It's been a week since your last entry. Ready to document this week's professional experiences?`;
-    } else if (daysSinceLastSession && daysSinceLastSession > 7) {
-      message = `${greeting}! Welcome back! Let's get your professional development tracking back on track.`;
-    } else if (isWeekend && timeOfDay < 12) {
-      message = `${greeting}! Taking time on the weekend to reflect on your professional growth - that's dedication!`;
-    } else if (timeOfDay >= 22) {
-      message = `${greeting}! Burning the midnight oil? Don't forget to capture today's insights while they're fresh.`;
-    } else if (timeOfDay < 6) {
-      message = `${greeting}, early bird! Starting your day with professional reflection sets a powerful tone.`;
+    if (accountType === 'supervisor' || accountType === 'enterprise') {
+      // Supervisor-specific messaging focused on managing supervisees
+      if (sessionCount === 0) {
+        message = `${greeting}! Ready to start managing your supervisees? Begin tracking supervision sessions and supporting their professional development.`;
+      } else if (daysSinceLastSession === 0) {
+        message = `${greeting}! Great to see you back today. Your continued supervision is helping shape the next generation of counselors.`;
+      } else if (daysSinceLastSession === 1) {
+        message = `${greeting}! Welcome back from yesterday. Ready to continue your important supervision work?`;
+      } else if (daysSinceLastSession && daysSinceLastSession <= 3) {
+        message = `${greeting}! Good to have you back. Let's check on your supervisees' progress and schedule any needed sessions.`;
+      } else if (daysSinceLastSession && daysSinceLastSession <= 7) {
+        message = `${greeting}! It's been a week since your last supervision session. Time to reconnect with your supervisees.`;
+      } else if (daysSinceLastSession && daysSinceLastSession > 7) {
+        message = `${greeting}! Welcome back! Let's get your supervision schedule back on track.`;
+      } else if (isWeekend && timeOfDay < 12) {
+        message = `${greeting}! Taking time on the weekend for supervision planning - your supervisees are fortunate to have you.`;
+      } else if (timeOfDay >= 22) {
+        message = `${greeting}! Working late on supervision? Don't forget to document today's supervisory activities.`;
+      } else if (timeOfDay < 6) {
+        message = `${greeting}, early bird! Early supervision planning sets a strong foundation for the day.`;
+      }
+    } else {
+      // Individual user messaging focused on personal LPC journey
+      if (sessionCount === 0) {
+        message = `${greeting}! Ready to start your professional journey? Let's log your first session and begin tracking your path to LPC licensure.`;
+      } else if (daysSinceLastSession === 0) {
+        message = `${greeting}! Great to see you back today. You're building excellent momentum in your professional development.`;
+      } else if (daysSinceLastSession === 1) {
+        message = `${greeting}! Welcome back from yesterday. Ready to continue documenting your growth and insights?`;
+      } else if (daysSinceLastSession && daysSinceLastSession <= 3) {
+        message = `${greeting}! Good to have you back. Let's catch up on your recent sessions and keep that progress flowing.`;
+      } else if (daysSinceLastSession && daysSinceLastSession <= 7) {
+        message = `${greeting}! It's been a week since your last entry. Ready to document this week's professional experiences?`;
+      } else if (daysSinceLastSession && daysSinceLastSession > 7) {
+        message = `${greeting}! Welcome back! Let's get your professional development tracking back on track.`;
+      } else if (isWeekend && timeOfDay < 12) {
+        message = `${greeting}! Taking time on the weekend to reflect on your professional growth - that's dedication!`;
+      } else if (timeOfDay >= 22) {
+        message = `${greeting}! Burning the midnight oil? Don't forget to capture today's insights while they're fresh.`;
+      } else if (timeOfDay < 6) {
+        message = `${greeting}, early bird! Starting your day with professional reflection sets a powerful tone.`;
+      }
     }
     
     // Add milestone celebrations
