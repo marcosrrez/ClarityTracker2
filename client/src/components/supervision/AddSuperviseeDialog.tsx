@@ -57,20 +57,36 @@ export const AddSuperviseeDialog = ({ onSuperviseeAdded }: AddSuperviseeDialogPr
 
     setIsSubmitting(true);
     try {
+      const superviseeData = {
+        supervisorId: user.uid,
+        superviseeId: data.email, // Use email as supervisee ID for now
+        superviseeName: data.name,
+        superviseeEmail: data.email,
+        startDate: new Date(data.startDate),
+        endDate: null,
+        supervisionType: 'direct' as const,
+        supervisionFrequency: data.supervisionFrequency,
+        requiredHours: 4000, // Default LPC requirement
+        completedHours: 0,
+        status: 'active' as const,
+        contractSigned: false,
+        backgroundCheckCompleted: false,
+        licenseVerified: false,
+        licenseLevel: data.licenseLevel,
+        notes: data.notes || null,
+      };
+
       const response = await fetch('/api/supervisees', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ...data,
-          supervisorId: user.uid,
-          startDate: new Date(data.startDate),
-        }),
+        body: JSON.stringify(superviseeData),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to add supervisee');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to add supervisee');
       }
 
       const newSupervisee = await response.json();
