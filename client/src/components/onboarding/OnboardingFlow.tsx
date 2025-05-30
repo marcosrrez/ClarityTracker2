@@ -119,12 +119,35 @@ export const OnboardingFlow = () => {
     }
   };
 
+  const getPainPoint = () => {
+    if (data.accountType === 'individual') {
+      return {
+        title: "Tracking hours shouldn't feel like another burden",
+        subtitle: "But how do you stay organized while focusing on your clients?"
+      };
+    } else if (data.accountType === 'supervisor') {
+      return {
+        title: "Managing multiple supervisees shouldn't be overwhelming",
+        subtitle: "But how do you ensure compliance while supporting their growth?"
+      };
+    } else if (data.accountType === 'enterprise') {
+      return {
+        title: "Scaling training programs shouldn't sacrifice quality",
+        subtitle: "But how do you maintain oversight across your organization?"
+      };
+    }
+    return {
+      title: "Professional development shouldn't be complicated",
+      subtitle: "But how do you streamline your growth journey?"
+    };
+  };
+
   const getSteps = (): OnboardingStep[] => {
     const baseSteps: OnboardingStep[] = [
-      // Step 1: Problem identification
+      // Step 1: Welcome
       {
-        title: "Tracking hours shouldn't feel like another burden",
-        subtitle: "But how do you stay organized while focusing on your clients?",
+        title: "Welcome to ClarityLog",
+        subtitle: "Your professional development companion",
         canContinue: true
       },
 
@@ -142,6 +165,16 @@ export const OnboardingFlow = () => {
         canContinue: data.preferredName.trim().length > 0 && data.stateRegion.trim().length > 0
       }
     ];
+
+    // Step 4: Add tailored pain point after we know the user
+    if (data.accountType && data.preferredName) {
+      const painPoint = getPainPoint();
+      baseSteps.push({
+        title: painPoint.title,
+        subtitle: painPoint.subtitle,
+        canContinue: true
+      } as OnboardingStep);
+    }
 
     // Add tailored feature demonstrations based on account type
     if (data.accountType === 'individual') {
