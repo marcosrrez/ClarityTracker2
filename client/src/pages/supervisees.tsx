@@ -5,11 +5,15 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAccountType } from "@/hooks/use-account-type";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { ComplianceAlerts } from "@/components/supervision/ComplianceAlerts";
+import { AddSuperviseeDialog } from "@/components/supervision/AddSuperviseeDialog";
+import { MessagingDialog } from "@/components/supervision/MessagingDialog";
 import { 
   Users, 
   Plus, 
@@ -22,25 +26,39 @@ import {
   MessageSquare,
   Bell,
   BarChart3,
-  FileText
+  FileText,
+  Trash2,
+  Mail,
+  Phone,
+  MoreVertical
 } from "lucide-react";
 
 export default function SuperviseesPage() {
   const { permissions, isIndividual } = useAccountType();
   const { user } = useAuth();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Fetch real compliance data
-  const { data: complianceData } = useQuery({
-    queryKey: ['/api/supervision/compliance', user?.uid],
-    queryFn: () => apiRequest(`/api/supervision/compliance/${user?.uid}`),
+  // Fetch supervisees data
+  const { data: supervisees = [], isLoading: loadingSupervisees, refetch: refetchSupervisees } = useQuery({
+    queryKey: ['/api/supervisees', user?.uid],
+    queryFn: async () => {
+      const response = await fetch(`/api/supervisees?supervisorId=${user?.uid}`);
+      if (!response.ok) throw new Error('Failed to fetch supervisees');
+      return response.json();
+    },
     enabled: !!user?.uid && !isIndividual,
   });
 
-  // Fetch real supervision trends
-  const { data: trendsData } = useQuery({
-    queryKey: ['/api/supervision/trends', user?.uid],
-    queryFn: () => apiRequest(`/api/supervision/trends/${user?.uid}`),
+  // Fetch compliance data
+  const { data: complianceData } = useQuery({
+    queryKey: ['/api/supervision/compliance', user?.uid],
+    queryFn: async () => {
+      const response = await fetch(`/api/supervision/compliance/${user?.uid}`);
+      if (!response.ok) throw new Error('Failed to fetch compliance data');
+      return response.json();
+    },
     enabled: !!user?.uid && !isIndividual,
   });
 
@@ -101,9 +119,39 @@ export default function SuperviseesPage() {
     },
   ];
 
-  const filteredSupervisees = supervisees.filter(supervisee =>
-    supervisee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    supervisee.email.toLowerCase().includes(searchTerm.toLowerCase())
+  const handleDeleteSupervisee = async (superviseeId: string) => {
+    setDeletingId(superviseeId);
+    try {
+      const response = await fetch(`/api/supervisees/${superviseeId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to remove supervisee');
+      }
+
+      toast({
+        title: "Supervisee removed",
+        description: "The supervisee has been removed from your roster.",
+      });
+
+      // Refresh the supervisees list
+      queryClient.invalidateQueries({ queryKey: ['/api/supervisees'] });
+      refetchSupervisees();
+    } catch (error) {
+      toast({
+        title: "Error removing supervisee",
+        description: "Please try again or contact support.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const filteredSupervisees = supervisees.filter((supervisee: any) =>
+    supervisee.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    supervisee.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getStatusColor = (status: string) => {

@@ -348,6 +348,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Supervisee management endpoints
+  app.post("/api/supervisees", express.json(), async (req, res) => {
+    try {
+      const supervisee = await storage.createSuperviseeRelationship(req.body);
+      res.json(supervisee);
+    } catch (error) {
+      console.error("Error creating supervisee:", error);
+      res.status(500).json({ error: "Failed to create supervisee" });
+    }
+  });
+
+  app.get("/api/supervisees", async (req, res) => {
+    try {
+      const { supervisorId } = req.query;
+      const supervisees = await storage.getSuperviseeRelationships(supervisorId as string);
+      res.json(supervisees);
+    } catch (error) {
+      console.error("Error fetching supervisees:", error);
+      res.status(500).json({ error: "Failed to fetch supervisees" });
+    }
+  });
+
+  app.delete("/api/supervisees/:id", async (req, res) => {
+    try {
+      // In a real implementation, you'd want to archive rather than delete
+      // and ensure proper authorization
+      await storage.updateSuperviseeRelationship(req.params.id, { 
+        status: 'archived',
+        endDate: new Date() 
+      });
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error removing supervisee:", error);
+      res.status(500).json({ error: "Failed to remove supervisee" });
+    }
+  });
+
+  // Messaging endpoints
+  app.post("/api/messages", express.json(), async (req, res) => {
+    try {
+      // In a production app, you'd store messages in the database
+      // For now, we'll send notifications via email
+      const { recipient, subject, message, senderId, senderName } = req.body;
+      
+      // Find the supervisee to get their email
+      const supervisees = await storage.getSuperviseeRelationships(senderId);
+      const supervisee = supervisees.find(s => s.id === recipient);
+      
+      if (supervisee && supervisee.email) {
+        // Send email notification using the existing email service
+        const emailData = {
+          type: 'general' as const,
+          subject: `Message from ${senderName}: ${subject}`,
+          description: message,
+          userEmail: supervisee.email,
+          userId: senderId,
+          timestamp: new Date(),
+        };
+        
+        // Import and use the email service
+        const { sendFeedbackNotification } = await import("./email");
+        await sendFeedbackNotification(emailData);
+      }
+      
+      res.json({ success: true, messageId: `msg_${Date.now()}` });
+    } catch (error) {
+      console.error("Error sending message:", error);
+      res.status(500).json({ error: "Failed to send message" });
+    }
+  });
+
   app.patch("/api/supervision/alerts/:id", express.json(), async (req, res) => {
     try {
       await storage.updateComplianceAlert(req.params.id, req.body);
