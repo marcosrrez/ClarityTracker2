@@ -112,8 +112,9 @@ export default function SuperviseesPage() {
   };
 
   const filteredSupervisees = displaySupervisees.filter((supervisee: any) =>
-    supervisee.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    supervisee.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    supervisee.superviseeName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    supervisee.superviseeEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    supervisee.superviseeId?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getStatusColor = (status: string) => {
