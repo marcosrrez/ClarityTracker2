@@ -80,6 +80,11 @@ export default function SuperviseesPage() {
 
   // Use only authentic data from API
   const displaySupervisees = apiSupervisees;
+  
+  // Debug logging
+  console.log('API Supervisees:', apiSupervisees);
+  console.log('Display Supervisees:', displaySupervisees);
+  console.log('Filtered Supervisees:', filteredSupervisees);
 
   const handleDeleteSupervisee = async (superviseeId: string) => {
     setDeletingId(superviseeId);
