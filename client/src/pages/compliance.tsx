@@ -109,8 +109,8 @@ export default function CompliancePage() {
       daysSinceLastSession,
       isOverdue,
       totalSupervisionHours: totalHours,
-      sessionCount: superviseeSession.length,
-      complianceStatus: isOverdue ? 'at-risk' : daysSinceLastSession > (maxDaysBetweenSessions * 0.8) ? 'warning' : 'good'
+      sessionCount: superviseeSessions.length,
+      complianceStatus: isOverdue ? 'at-risk' : (daysSinceLastSession && daysSinceLastSession > (maxDaysBetweenSessions * 0.8)) ? 'warning' : 'good'
     };
   });
 
