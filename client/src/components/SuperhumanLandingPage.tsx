@@ -110,7 +110,7 @@ export const SuperhumanLandingPage = () => {
             <div className="bg-slate-800/90 backdrop-blur-xl rounded-3xl p-8 sm:p-12 border border-slate-700/50 shadow-2xl">
               <div className="text-center mb-10">
                 <h1 className="text-2xl sm:text-3xl font-bold text-white mb-4 leading-tight">
-                  Save 4 hours per person every single week
+                  Start your journey to LPC licensure
                 </h1>
               </div>
 
