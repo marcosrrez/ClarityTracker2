@@ -105,7 +105,7 @@ export default function CompliancePage() {
 
   // Calculate compliance metrics
   const complianceMetrics = supervisees.map((supervisee: any) => {
-    const superviseeSessions = sessions.filter((s: any) => s.superviseeId === supervisee.id);
+    const superviseeSessions = sessions.filter((s: any) => s.superviseeId === supervisee.superviseeId);
     const lastSession = superviseeSessions.sort((a: any, b: any) => 
       new Date(b.sessionDate).getTime() - new Date(a.sessionDate).getTime()
     )[0];
@@ -375,7 +375,11 @@ export default function CompliancePage() {
             <CardContent>
               <div className="space-y-4">
                 {complianceMetrics.map((supervisee) => (
-                  <div key={supervisee.id} className="border rounded-lg p-4">
+                  <div 
+                    key={supervisee.id} 
+                    className="border rounded-lg p-4 cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => setLocation(`/supervisee/${supervisee.superviseeId || supervisee.id}`)}
+                  >
                     <div className="flex justify-between items-start mb-2">
                       <div>
                         <h4 className="font-medium">{supervisee.superviseeName || supervisee.name}</h4>

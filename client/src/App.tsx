@@ -25,6 +25,7 @@ import SummaryPage from "@/pages/summary";
 import QuickEntryPage from "@/pages/quick-entry";
 import SuperviseesWorkingPage from "@/pages/supervisees-working";
 import CompliancePage from "@/pages/compliance";
+import SuperviseeProfilePage from "@/pages/supervisee-profile";
 import ReportsPage from "@/pages/reports";
 import AccountSetupPage from "@/pages/account-setup";
 import NotFound from "@/pages/not-found";
@@ -47,6 +48,7 @@ function Router() {
       <Route path="/quick-entry" component={QuickEntryPage} />
       <Route path="/supervisees" component={SuperviseesWorkingPage} />
       <Route path="/compliance" component={CompliancePage} />
+      <Route path="/supervisee/:id" component={SuperviseeProfilePage} />
       <Route path="/reports" component={ReportsPage} />
       <Route path="/account-setup">
         <AuthGuard requireAccountSetup={false}>
