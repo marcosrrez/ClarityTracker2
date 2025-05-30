@@ -21,14 +21,17 @@ import { createLogEntry, createAiAnalysis } from "@/lib/firestore";
 import { analyzeSessionNotes } from "@/lib/ai";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import { useAccountType } from "@/hooks/use-account-type";
 
 export const AddEntryForm = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { isSupervisor, isIndividual } = useAccountType();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dateCalendarOpen, setDateCalendarOpen] = useState(false);
   const [supervisionCalendarOpen, setSupervisionCalendarOpen] = useState(false);
   const [notesContent, setNotesContent] = useState("");
+  const [selectedSupervisee, setSelectedSupervisee] = useState("");
 
   const {
     register,
@@ -113,9 +116,14 @@ export const AddEntryForm = () => {
   return (
     <div className="space-y-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Add New Entry</h1>
+        <h1 className="text-3xl font-bold text-foreground mb-2">
+          {isSupervisor ? "Log Supervision Session" : "Add New Entry"}
+        </h1>
         <p className="text-muted-foreground">
-          Log your client contact hours, supervision, and session notes.
+          {isSupervisor 
+            ? "Track supervision sessions with your supervisees and document progress."
+            : "Log your client contact hours, supervision, and session notes."
+          }
         </p>
       </div>
       
