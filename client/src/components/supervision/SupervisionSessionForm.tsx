@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Users, Clock, Target } from "lucide-react";
+import { Calendar as CalendarIcon, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,10 +13,19 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Textarea } from "@/components/ui/textarea";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { cn } from "@/lib/utils";
-import { insertSupervisionSessionSchema, type InsertSupervisionSession } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
+
+interface SupervisionSessionData {
+  superviseeId: string;
+  sessionDate: Date;
+  durationMinutes: number;
+  sessionType: string;
+  topics: string;
+  notes: string;
+  actionItems: string;
+}
 
 export const SupervisionSessionForm = () => {
   const { user } = useAuth();
@@ -39,27 +47,21 @@ export const SupervisionSessionForm = () => {
     watch,
     setValue,
     reset,
-  } = useForm<InsertSupervisionSession>({
-    resolver: zodResolver(insertSupervisionSessionSchema),
+  } = useForm<SupervisionSessionData>({
     defaultValues: {
       sessionDate: new Date(),
       durationMinutes: 60,
       sessionType: "individual",
-      topics: [],
+      topics: "",
       notes: "",
-      competencyAreas: [],
-      actionItems: [],
-      superviseeGoals: [],
-      riskAssessment: "low",
-      nextSessionDate: undefined,
-      isCompleted: false,
+      actionItems: "",
     },
   });
 
   const watchedDate = watch("sessionDate");
   const watchedSuperviseeId = watch("superviseeId");
 
-  const onSubmit = async (data: InsertSupervisionSession) => {
+  const onSubmit = async (data: SupervisionSessionData) => {
     if (!user) return;
 
     setIsSubmitting(true);
@@ -189,11 +191,11 @@ export const SupervisionSessionForm = () => {
                 <Label>Duration (minutes) *</Label>
                 <Input
                   type="number"
-                  {...register("duration", { valueAsNumber: true })}
+                  {...register("durationMinutes", { valueAsNumber: true })}
                   placeholder="60"
                 />
-                {errors.duration && (
-                  <p className="text-sm text-destructive">{errors.duration.message}</p>
+                {errors.durationMinutes && (
+                  <p className="text-sm text-destructive">{errors.durationMinutes.message}</p>
                 )}
               </div>
 
@@ -216,31 +218,12 @@ export const SupervisionSessionForm = () => {
               </div>
             </div>
 
-            {/* Session Format */}
+            {/* Topics Discussed */}
             <div className="space-y-2">
-              <Label>Session Format *</Label>
-              <Select onValueChange={(value) => setValue("sessionFormat", value as any)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select format" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="in_person">In Person</SelectItem>
-                  <SelectItem value="video_call">Video Call</SelectItem>
-                  <SelectItem value="phone">Phone Call</SelectItem>
-                  <SelectItem value="email">Email</SelectItem>
-                </SelectContent>
-              </Select>
-              {errors.sessionFormat && (
-                <p className="text-sm text-destructive">{errors.sessionFormat.message}</p>
-              )}
-            </div>
-
-            {/* Focus Areas */}
-            <div className="space-y-2">
-              <Label>Focus Areas</Label>
+              <Label>Topics Discussed</Label>
               <Textarea
                 placeholder="Key areas discussed in this session (e.g., case conceptualization, therapeutic techniques, ethical considerations)"
-                {...register("focusAreas")}
+                {...register("topics")}
                 className="min-h-[80px]"
               />
             </div>
