@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { HourSharingWidget } from "@/components/supervision/HourSharingWidget";
 import { 
   AlertTriangle, 
   CheckCircle, 
@@ -215,6 +216,7 @@ export default function CompliancePage() {
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="alerts">Alerts ({alerts.length})</TabsTrigger>
+          <TabsTrigger value="hours">Hour Tracking</TabsTrigger>
           <TabsTrigger value="supervisees">Supervisees</TabsTrigger>
         </TabsList>
 
@@ -233,7 +235,18 @@ export default function CompliancePage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {alerts.slice(0, 3).map((alert: any) => (
-                  <Alert key={alert.id} variant={alert.severity === 'high' ? 'destructive' : 'default'}>
+                  <Alert 
+                    key={alert.id} 
+                    variant={alert.severity === 'high' ? 'destructive' : 'default'}
+                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => {
+                      // Show detailed alert information
+                      toast({
+                        title: `${alert.type.replace('_', ' ').toUpperCase()} Alert`,
+                        description: `${alert.message}\n\nSupervision Details:\n${alert.details || 'Click "View All Alerts" for more information.'}\n\nCreated: ${format(new Date(alert.createdAt), 'MMM d, yyyy h:mm a')}`,
+                      });
+                    }}
+                  >
                     <AlertTriangle className="h-4 w-4" />
                     <AlertDescription>
                       <div className="flex justify-between items-start">
@@ -241,6 +254,7 @@ export default function CompliancePage() {
                           <strong>{alert.type.replace('_', ' ').toUpperCase()}:</strong> {alert.message}
                           <div className="text-sm text-muted-foreground mt-1">
                             Created {format(new Date(alert.createdAt), 'MMM d, yyyy')}
+                            <span className="ml-2 text-xs opacity-75">Click for details</span>
                           </div>
                         </div>
                         <Badge variant={alert.severity === 'high' ? 'destructive' : 'secondary'}>
@@ -310,7 +324,17 @@ export default function CompliancePage() {
               ) : (
                 <div className="space-y-4">
                   {alerts.map((alert: any) => (
-                    <Alert key={alert.id} variant={alert.severity === 'high' ? 'destructive' : 'default'}>
+                    <Alert 
+                      key={alert.id} 
+                      variant={alert.severity === 'high' ? 'destructive' : 'default'}
+                      className="cursor-pointer hover:bg-muted/50 transition-colors"
+                      onClick={() => {
+                        toast({
+                          title: `${alert.type.replace('_', ' ').toUpperCase()} Alert`,
+                          description: `${alert.message}\n\nDetails: ${alert.details || 'No additional details available.'}\n\nCreated: ${format(new Date(alert.createdAt), 'MMM d, yyyy h:mm a')}`,
+                        });
+                      }}
+                    >
                       <AlertTriangle className="h-4 w-4" />
                       <AlertDescription>
                         <div className="flex justify-between items-start">
@@ -318,6 +342,7 @@ export default function CompliancePage() {
                             <strong>{alert.type.replace('_', ' ').toUpperCase()}:</strong> {alert.message}
                             <div className="text-sm text-muted-foreground mt-1">
                               Created {format(new Date(alert.createdAt), 'MMM d, yyyy')}
+                              <span className="ml-2 text-xs opacity-75">Click for details</span>
                             </div>
                           </div>
                           <Badge variant={alert.severity === 'high' ? 'destructive' : 'secondary'}>
@@ -331,6 +356,10 @@ export default function CompliancePage() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="hours">
+          <HourSharingWidget supervisees={supervisees} supervisorId={user?.uid || ''} />
         </TabsContent>
 
         <TabsContent value="supervisees">
