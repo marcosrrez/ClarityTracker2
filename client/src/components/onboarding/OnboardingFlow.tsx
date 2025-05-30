@@ -1,568 +1,475 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Progress } from "@/components/ui/progress";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent } from "@/components/ui/card";
 import { 
-  Shield, 
-  Lock, 
-  CheckCircle, 
-  Calendar as CalendarIcon,
-  Star,
-  Users,
-  Target,
-  TrendingUp,
-  BookOpen,
-  BarChart3,
-  X,
-  ChevronRight
+  User, 
+  Users, 
+  Building2, 
+  Calendar, 
+  Target, 
+  Heart, 
+  Brain,
+  CheckCircle,
+  ArrowRight,
+  ArrowLeft,
+  Sprout
 } from "lucide-react";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
-
-interface OnboardingFlowProps {
-  onComplete: (data: OnboardingData) => void;
-}
 
 interface OnboardingData {
-  accountType: 'individual' | 'supervisor' | 'enterprise';
-  licensureGoalDate?: Date;
-  trackingChallenge?: string;
-  displayName?: string;
+  fullName: string;
+  accountType: 'individual' | 'supervisor' | 'enterprise' | undefined;
+  licenseDate: string;
+  challenges: string[];
+  organizationName?: string;
+  licenseNumber?: string;
+  supervisionGoals?: string;
 }
 
-export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
-  const { user } = useAuth();
-  const [step, setStep] = useState(1);
-  const [onboardingData, setOnboardingData] = useState<OnboardingData>({
-    accountType: 'individual'
+export const OnboardingFlow = () => {
+  const { updateUserProfile } = useAuth();
+  const { toast } = useToast();
+  const [currentStep, setCurrentStep] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [data, setData] = useState<OnboardingData>({
+    fullName: '',
+    accountType: null,
+    licenseDate: '',
+    challenges: [],
+    organizationName: '',
+    licenseNumber: '',
+    supervisionGoals: ''
   });
-  const [showGuidedOverlay, setShowGuidedOverlay] = useState(false);
-  const [licensureDate, setLicensureDate] = useState<Date>();
 
-  // Anticipatory features
-  useEffect(() => {
-    if (user?.email) {
-      // Auto-detect organization type from email domain
-      const domain = user.email.split('@')[1];
-      const isUniversity = domain?.includes('edu') || domain?.includes('university');
-      const isClinic = domain?.includes('clinic') || domain?.includes('health');
-      
-      if (isUniversity) {
-        setOnboardingData(prev => ({ ...prev, accountType: 'enterprise' }));
-      } else if (isClinic) {
-        setOnboardingData(prev => ({ ...prev, accountType: 'supervisor' }));
-      }
-
-      // Pre-fill display name from email
-      const emailName = user.email.split('@')[0];
-      const formattedName = emailName
-        .split('.')
-        .map(part => part.charAt(0).toUpperCase() + part.slice(1))
-        .join(' ');
-      setOnboardingData(prev => ({ ...prev, displayName: formattedName }));
+  const accountTypes = [
+    {
+      id: 'individual' as const,
+      title: 'Individual LAC',
+      description: 'Track your personal journey to LPC licensure',
+      icon: User,
+      features: ['Hour tracking', 'AI insights', 'Progress monitoring', 'Supervisor collaboration']
+    },
+    {
+      id: 'supervisor' as const,
+      title: 'Clinical Supervisor',
+      description: 'Manage and support multiple supervisees',
+      icon: Users,
+      features: ['Supervisee management', 'Compliance tracking', 'Assessment tools', 'Progress reports']
+    },
+    {
+      id: 'enterprise' as const,
+      title: 'Enterprise/Training',
+      description: 'Organization-wide training program management',
+      icon: Building2,
+      features: ['Multi-user management', 'Advanced analytics', 'Custom workflows', 'Integration support']
     }
+  ];
 
-    // Set default licensure date (May 2027)
-    const defaultDate = new Date(2027, 4, 1); // May 1, 2027
-    setLicensureDate(defaultDate);
-    setOnboardingData(prev => ({ ...prev, licensureGoalDate: defaultDate }));
-  }, [user]);
+  const commonChallenges = [
+    { id: 'time-management', label: 'Time Management', icon: '⏰' },
+    { id: 'documentation', label: 'Documentation & Record Keeping', icon: '📝' },
+    { id: 'clinical-skills', label: 'Developing Clinical Skills', icon: '🎯' },
+    { id: 'supervision-relationship', label: 'Supervision Relationship', icon: '🤝' },
+    { id: 'work-life-balance', label: 'Work-Life Balance', icon: '⚖️' },
+    { id: 'ethical-decisions', label: 'Ethical Decision Making', icon: '🤔' },
+    { id: 'client-progress', label: 'Tracking Client Progress', icon: '📊' },
+    { id: 'professional-development', label: 'Continuing Education', icon: '📚' }
+  ];
 
-  const handleStepComplete = () => {
-    if (step < 3) {
-      setStep(step + 1);
-    } else {
-      setShowGuidedOverlay(true);
+  const handleNext = () => {
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(currentStep + 1);
     }
   };
 
-  const handleCompleteOnboarding = () => {
-    onComplete({
-      ...onboardingData,
-      licensureGoalDate: licensureDate,
-      trackingChallenge: onboardingData.trackingChallenge || 'Forgetting to log'
-    });
+  const handlePrevious = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
   };
 
-  const TrustSignal = () => (
-    <div className="flex items-center justify-center gap-2 text-gray-500 text-sm">
-      <Lock className="w-4 h-4" />
-      <span>HIPAA-compliant & Encrypted</span>
-    </div>
-  );
+  const handleChallengeToggle = (challengeId: string) => {
+    setData(prev => ({
+      ...prev,
+      challenges: prev.challenges.includes(challengeId)
+        ? prev.challenges.filter(id => id !== challengeId)
+        : [...prev.challenges, challengeId]
+    }));
+  };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <AnimatePresence mode="wait">
-        {step === 1 && (
-          <AccountTypeSelection
-            selectedType={onboardingData.accountType}
-            onSelect={(type) => setOnboardingData(prev => ({ ...prev, accountType: type }))}
-            onNext={handleStepComplete}
-          />
-        )}
-        
-        {step === 2 && onboardingData.accountType === 'individual' && (
-          <LACPersonalizationStep
-            licensureDate={licensureDate}
-            onDateChange={setLicensureDate}
-            challenge={onboardingData.trackingChallenge}
-            onChallengeChange={(challenge) => 
-              setOnboardingData(prev => ({ ...prev, trackingChallenge: challenge }))
-            }
-            onNext={handleStepComplete}
-          />
-        )}
+  const handleComplete = async () => {
+    setIsLoading(true);
+    try {
+      await updateUserProfile({
+        displayName: data.fullName,
+        accountType: data.accountType,
+        expectedLicenseDate: data.licenseDate,
+        challenges: data.challenges,
+        organizationName: data.organizationName,
+        licenseNumber: data.licenseNumber,
+        supervisionGoals: data.supervisionGoals,
+        onboardingCompleted: true
+      });
 
-        {step === 2 && onboardingData.accountType === 'supervisor' && (
-          <SupervisorPersonalizationStep
-            onNext={handleStepComplete}
-          />
-        )}
+      toast({
+        title: "Welcome to ClarityLog!",
+        description: "Your account has been set up successfully.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Setup Failed",
+        description: error.message || "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-        {step === 2 && onboardingData.accountType === 'enterprise' && (
-          <EnterprisePersonalizationStep
-            onNext={handleStepComplete}
-          />
-        )}
-
-        {step === 3 && (
-          <WelcomeStep
-            accountType={onboardingData.accountType}
-            onComplete={handleCompleteOnboarding}
-          />
-        )}
-      </AnimatePresence>
-
-      {showGuidedOverlay && (
-        <GuidedOverlay onComplete={handleCompleteOnboarding} />
-      )}
-    </div>
-  );
-};
-
-const AccountTypeSelection = ({ selectedType, onSelect, onNext }: {
-  selectedType: string;
-  onSelect: (type: 'individual' | 'supervisor' | 'enterprise') => void;
-  onNext: () => void;
-}) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -20 }}
-    className="flex flex-col items-center justify-center min-h-screen p-6"
-  >
-    <div className="w-full max-w-4xl">
-      <div className="text-center mb-8">
-        <p className="text-sm text-gray-500 mb-4">Step 2 of 3: Choose Your Plan</p>
-        <h1 className="text-3xl font-bold text-black mb-2">Complete Your Account Setup</h1>
-        <p className="text-gray-600">What's your role? Let's find the perfect plan</p>
-        <div className="flex items-center justify-center gap-2 mt-4">
-          <CheckCircle className="w-5 h-5 text-green-500" />
-          <span className="text-sm text-gray-600">Account Created! Let's set up your role</span>
-        </div>
-      </div>
-
-      <div className="grid md:grid-cols-3 gap-6 mb-8">
-        <PlanCard
-          title="Individual Counselor"
-          features={["Hour Tracking", "AI Insights", "Mobile Logging"]}
-          recommended={selectedType === 'individual'}
-          selected={selectedType === 'individual'}
-          onClick={() => onSelect('individual')}
-        />
-        
-        <PlanCard
-          title="Clinical Supervisor"
-          badge="Most Popular"
-          features={["Multi-Supervisee Dashboard", "Compliance Tracking", "Group Tools"]}
-          selected={selectedType === 'supervisor'}
-          onClick={() => onSelect('supervisor')}
-        />
-        
-        <PlanCard
-          title="Training Program"
-          features={["Unlimited Supervisees", "Custom Reporting", "API Access"]}
-          selected={selectedType === 'enterprise'}
-          onClick={() => onSelect('enterprise')}
-        />
-      </div>
-
-      <div className="text-center space-y-4">
-        <Button 
-          onClick={onNext}
-          className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 transition-all duration-300"
-        >
-          Choose Plan
-          <ChevronRight className="w-4 h-4 ml-2" />
-        </Button>
-        
-        <div className="mt-6">
-          <TrustSignal />
-        </div>
-      </div>
-    </div>
-  </motion.div>
-);
-
-const PlanCard = ({ title, badge, features, recommended, selected, onClick }: {
-  title: string;
-  badge?: string;
-  features: string[];
-  recommended?: boolean;
-  selected: boolean;
-  onClick: () => void;
-}) => (
-  <motion.div
-    whileHover={{ scale: 1.02, y: -4 }}
-    whileTap={{ scale: 0.98 }}
-    className={cn(
-      "relative p-6 rounded-xl backdrop-blur-sm bg-white/70 border-2 cursor-pointer transition-all duration-300",
-      selected ? "border-blue-500 shadow-lg" : "border-gray-200 hover:border-gray-300"
-    )}
-    onClick={onClick}
-  >
-    {badge && (
-      <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-orange-500 to-pink-500 text-white">
-        {badge}
-      </Badge>
-    )}
-    
-    {recommended && (
-      <Badge variant="secondary" className="absolute -top-2 right-4">
-        Recommended
-      </Badge>
-    )}
-
-    <h3 className="text-lg font-semibold mb-4">{title}</h3>
-    <ul className="space-y-2">
-      {features.map((feature, index) => (
-        <li key={index} className="flex items-center gap-2 text-sm text-gray-600">
-          <CheckCircle className="w-4 h-4 text-green-500" />
-          {feature}
-        </li>
-      ))}
-    </ul>
-  </motion.div>
-);
-
-const LACPersonalizationStep = ({ licensureDate, onDateChange, challenge, onChallengeChange, onNext }: {
-  licensureDate?: Date;
-  onDateChange: (date?: Date) => void;
-  challenge?: string;
-  onChallengeChange: (challenge: string) => void;
-  onNext: () => void;
-}) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -20 }}
-    className="flex flex-col items-center justify-center min-h-screen p-6"
-  >
-    <div className="w-full max-w-2xl">
-      <div className="text-center mb-8">
-        <p className="text-sm text-gray-500 mb-4">Step 3 of 3: Personalization</p>
-        <h1 className="text-3xl font-bold text-black mb-2">Let's Personalize Your Experience</h1>
-        <p className="text-gray-600">Help us tailor ClarityLog to your goals</p>
-      </div>
-
-      <div className="space-y-8">
-        <Card className="backdrop-blur-sm bg-white/70">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CalendarIcon className="w-5 h-5" />
-              When do you hope to become licensed?
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-start text-left">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {licensureDate ? format(licensureDate, "PPP") : "Select date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={licensureDate}
-                  onSelect={onDateChange}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-            <p className="text-sm text-gray-500 mt-2">This helps us set your progress goals</p>
-          </CardContent>
-        </Card>
-
-        <Card className="backdrop-blur-sm bg-white/70">
-          <CardHeader>
-            <CardTitle>What's your biggest challenge with tracking hours?</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <RadioGroup 
-              value={challenge || 'Forgetting to log'} 
-              onValueChange={onChallengeChange}
-              className="space-y-3"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="Time-consuming" id="time" />
-                <Label htmlFor="time">Time-consuming</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="Forgetting to log" id="forgetting" />
-                <Label htmlFor="forgetting">Forgetting to log</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="Compliance confusion" id="compliance" />
-                <Label htmlFor="compliance">Compliance confusion</Label>
-              </div>
-            </RadioGroup>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="text-center mt-8 space-y-4">
-        <Button 
-          onClick={onNext}
-          className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 transition-all duration-300"
-        >
-          Continue to ClarityLog
-          <ChevronRight className="w-4 h-4 ml-2" />
-        </Button>
-        
-        <TrustSignal />
-      </div>
-    </div>
-  </motion.div>
-);
-
-const WelcomeStep = ({ accountType, onComplete }: {
-  accountType: string;
-  onComplete: () => void;
-}) => (
-  <motion.div
-    initial={{ opacity: 0, scale: 0.9 }}
-    animate={{ opacity: 1, scale: 1 }}
-    exit={{ opacity: 0, scale: 0.9 }}
-    className="flex flex-col items-center justify-center min-h-screen p-6"
-  >
-    <Card className="w-full max-w-md backdrop-blur-sm bg-white/90 border-0 shadow-xl">
-      <CardContent className="p-8 text-center space-y-6">
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.2, type: "spring", stiffness: 300 }}
-        >
-          <div className="w-16 h-16 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="w-8 h-8 text-white" />
+  const steps = [
+    // Step 1: Welcome & Name
+    {
+      title: "Welcome to ClarityLog!",
+      subtitle: "Let's get you set up in just a few steps",
+      content: (
+        <div className="space-y-6">
+          <div className="text-center">
+            <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Sprout className="w-10 h-10 text-white" />
+            </div>
+            <p className="text-gray-600 text-lg">
+              First, let's get to know you better
+            </p>
           </div>
-        </motion.div>
-
-        <div>
-          <h2 className="text-2xl font-bold text-black mb-2">Welcome to Early Access!</h2>
-          <p className="text-gray-600 mb-4">Enjoy all features during early access.</p>
-          <p className="text-lg font-semibold text-black">No payment required.</p>
-        </div>
-
-        <div className="space-y-3">
-          <Button 
-            onClick={onComplete}
-            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 transition-all duration-300"
-          >
-            Continue to ClarityLog
-          </Button>
           
-          <Button variant="ghost" className="text-sm text-gray-500">
-            Share Feedback
-          </Button>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              What's your full name?
+            </label>
+            <Input
+              type="text"
+              placeholder="Enter your full name"
+              value={data.fullName}
+              onChange={(e) => setData(prev => ({ ...prev, fullName: e.target.value }))}
+              className="text-lg py-3"
+            />
+          </div>
         </div>
+      ),
+      canContinue: data.fullName.trim().length > 0
+    },
 
-        <TrustSignal />
-      </CardContent>
-    </Card>
-  </motion.div>
-);
+    // Step 2: Account Type Selection
+    {
+      title: "Choose Your Account Type",
+      subtitle: "Select the option that best describes your role",
+      content: (
+        <div className="grid grid-cols-1 gap-4">
+          {accountTypes.map((type) => (
+            <Card 
+              key={type.id}
+              className={`cursor-pointer transition-all duration-300 hover:shadow-lg ${
+                data.accountType === type.id 
+                  ? 'ring-2 ring-blue-600 bg-blue-50' 
+                  : 'hover:bg-gray-50'
+              }`}
+              onClick={() => setData(prev => ({ ...prev, accountType: type.id }))}
+            >
+              <CardContent className="p-6">
+                <div className="flex items-start space-x-4">
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                    data.accountType === type.id ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    <type.icon className="w-6 h-6" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                      {type.title}
+                    </h3>
+                    <p className="text-gray-600 mb-3">
+                      {type.description}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {type.features.map((feature) => (
+                        <span 
+                          key={feature}
+                          className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full"
+                        >
+                          {feature}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  {data.accountType === type.id && (
+                    <CheckCircle className="w-6 h-6 text-blue-600" />
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ),
+      canContinue: data.accountType !== null
+    },
 
-const GuidedOverlay = ({ onComplete }: { onComplete: () => void }) => {
-  const [overlayStep, setOverlayStep] = useState(1);
+    // Step 3: Professional Information (varies by account type)
+    {
+      title: data.accountType === 'individual' ? "Your Licensure Journey" : 
+             data.accountType === 'supervisor' ? "Supervisor Information" : 
+             "Organization Details",
+      subtitle: data.accountType === 'individual' ? "Tell us about your path to LPC licensure" :
+                data.accountType === 'supervisor' ? "Help us understand your supervision practice" :
+                "Set up your organization account",
+      content: (
+        <div className="space-y-6">
+          {data.accountType === 'individual' && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Expected LPC License Date
+                </label>
+                <Input
+                  type="date"
+                  value={data.licenseDate}
+                  onChange={(e) => setData(prev => ({ ...prev, licenseDate: e.target.value }))}
+                  className="text-lg py-3"
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  When do you expect to complete your supervision requirements?
+                </p>
+              </div>
+            </>
+          )}
+
+          {data.accountType === 'supervisor' && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  License Number (Optional)
+                </label>
+                <Input
+                  type="text"
+                  placeholder="Your LPC license number"
+                  value={data.licenseNumber}
+                  onChange={(e) => setData(prev => ({ ...prev, licenseNumber: e.target.value }))}
+                  className="text-lg py-3"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Supervision Goals
+                </label>
+                <Input
+                  type="text"
+                  placeholder="What are your main supervision objectives?"
+                  value={data.supervisionGoals}
+                  onChange={(e) => setData(prev => ({ ...prev, supervisionGoals: e.target.value }))}
+                  className="text-lg py-3"
+                />
+              </div>
+            </>
+          )}
+
+          {data.accountType === 'enterprise' && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Organization Name
+                </label>
+                <Input
+                  type="text"
+                  placeholder="Your organization or training program name"
+                  value={data.organizationName}
+                  onChange={(e) => setData(prev => ({ ...prev, organizationName: e.target.value }))}
+                  className="text-lg py-3"
+                />
+              </div>
+            </>
+          )}
+        </div>
+      ),
+      canContinue: data.accountType === 'individual' ? data.licenseDate !== '' :
+                   data.accountType === 'supervisor' ? true :
+                   data.organizationName !== ''
+    },
+
+    // Step 4: Challenges & Goals
+    {
+      title: "What challenges would you like help with?",
+      subtitle: "Select all that apply - we'll personalize your experience accordingly",
+      content: (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {commonChallenges.map((challenge) => (
+            <Card
+              key={challenge.id}
+              className={`cursor-pointer transition-all duration-300 ${
+                data.challenges.includes(challenge.id)
+                  ? 'ring-2 ring-blue-600 bg-blue-50'
+                  : 'hover:bg-gray-50'
+              }`}
+              onClick={() => handleChallengeToggle(challenge.id)}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-3">
+                  <span className="text-2xl">{challenge.icon}</span>
+                  <span className="text-sm font-medium text-gray-700">
+                    {challenge.label}
+                  </span>
+                  {data.challenges.includes(challenge.id) && (
+                    <CheckCircle className="w-5 h-5 text-blue-600 ml-auto" />
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ),
+      canContinue: true
+    },
+
+    // Step 5: Completion
+    {
+      title: "You're all set!",
+      subtitle: "Your personalized ClarityLog experience awaits",
+      content: (
+        <div className="text-center space-y-6">
+          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+            <CheckCircle className="w-10 h-10 text-green-600" />
+          </div>
+          
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-gray-900">
+              Welcome, {data.fullName}!
+            </h3>
+            <p className="text-gray-600">
+              Based on your selections, we've customized ClarityLog to help you succeed as {
+                data.accountType === 'individual' ? 'an LAC pursuing LPC licensure' :
+                data.accountType === 'supervisor' ? 'a clinical supervisor' :
+                'an enterprise training program'
+              }.
+            </p>
+            
+            {data.challenges.length > 0 && (
+              <div className="bg-gray-50 rounded-lg p-4">
+                <p className="text-sm font-medium text-gray-700 mb-2">
+                  We'll help you with:
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {data.challenges.map((challengeId) => {
+                    const challenge = commonChallenges.find(c => c.id === challengeId);
+                    return challenge ? (
+                      <span key={challengeId} className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full">
+                        {challenge.label}
+                      </span>
+                    ) : null;
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      ),
+      canContinue: true
+    }
+  ];
+
+  const currentStepData = steps[currentStep];
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center"
-    >
-      <Card className="w-full max-w-md mx-4">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Quick Tour</CardTitle>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={onComplete}
-            className="text-gray-500 hover:text-gray-700"
+    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+      <div className="w-full max-w-2xl">
+        {/* Progress indicator */}
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-4">
+            <span className="text-sm text-gray-500">
+              Step {currentStep + 1} of {steps.length}
+            </span>
+            <span className="text-sm text-gray-500">
+              {Math.round(((currentStep + 1) / steps.length) * 100)}%
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div 
+              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Step content */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentStep}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+            className="bg-white rounded-3xl p-8 shadow-lg border border-gray-200"
           >
-            <X className="w-4 h-4" />
-          </Button>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {overlayStep === 1 && (
-            <div className="text-center space-y-4">
-              <Target className="w-12 h-12 text-blue-500 mx-auto" />
-              <h3 className="font-semibold">Log Your First Session</h3>
-              <p className="text-sm text-gray-600">Start tracking your hours to monitor progress toward licensure</p>
-              <Button 
-                onClick={() => setOverlayStep(2)}
-                className="w-full"
-              >
-                Next
-              </Button>
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                {currentStepData.title}
+              </h1>
+              <p className="text-gray-600 text-lg">
+                {currentStepData.subtitle}
+              </p>
             </div>
-          )}
-          
-          {overlayStep === 2 && (
-            <div className="text-center space-y-4">
-              <BarChart3 className="w-12 h-12 text-green-500 mx-auto" />
-              <h3 className="font-semibold">Track Your Progress</h3>
-              <p className="text-sm text-gray-600">View insights and milestones as you advance toward your LPC</p>
-              <Button 
-                onClick={onComplete}
-                className="w-full"
-              >
-                Get Started
-              </Button>
+
+            <div className="mb-8">
+              {currentStepData.content}
             </div>
-          )}
-        </CardContent>
-      </Card>
-    </motion.div>
+
+            {/* Navigation */}
+            <div className="flex justify-between items-center">
+              <Button
+                variant="outline"
+                onClick={handlePrevious}
+                disabled={currentStep === 0}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Previous
+              </Button>
+
+              {currentStep === steps.length - 1 ? (
+                <Button
+                  onClick={handleComplete}
+                  disabled={isLoading}
+                  className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
+                >
+                  {isLoading ? (
+                    <>
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
+                      />
+                      Setting up...
+                    </>
+                  ) : (
+                    <>
+                      Complete Setup
+                      <CheckCircle className="w-4 h-4" />
+                    </>
+                  )}
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleNext}
+                  disabled={!currentStepData.canContinue}
+                  className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
+                >
+                  Continue
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </div>
   );
 };
-
-const SupervisorPersonalizationStep = ({ onNext }: { onNext: () => void }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -20 }}
-    className="flex flex-col items-center justify-center min-h-screen p-6"
-  >
-    <div className="w-full max-w-2xl">
-      <div className="text-center mb-8">
-        <p className="text-sm text-gray-500 mb-4">Step 2 of 3: Supervisor Setup</p>
-        <h1 className="text-3xl font-bold text-black mb-2">Set Up Your Supervision Practice</h1>
-        <p className="text-gray-600">Configure your supervisee management and compliance tracking</p>
-      </div>
-
-      <div className="space-y-6">
-        <Card className="backdrop-blur-sm bg-white/70">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="w-5 h-5" />
-              Supervision Features
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="flex items-center gap-3">
-                <CheckCircle className="w-5 h-5 text-green-500" />
-                <span className="text-sm">Multi-supervisee dashboard</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <CheckCircle className="w-5 h-5 text-green-500" />
-                <span className="text-sm">Compliance monitoring</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <CheckCircle className="w-5 h-5 text-green-500" />
-                <span className="text-sm">Session scheduling</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <CheckCircle className="w-5 h-5 text-green-500" />
-                <span className="text-sm">Progress reports</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="text-center mt-8">
-        <Button 
-          onClick={onNext}
-          className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 transition-all duration-300"
-        >
-          Set Up Dashboard
-          <ChevronRight className="w-4 h-4 ml-2" />
-        </Button>
-      </div>
-    </div>
-  </motion.div>
-);
-
-const EnterprisePersonalizationStep = ({ onNext }: { onNext: () => void }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -20 }}
-    className="flex flex-col items-center justify-center min-h-screen p-6"
-  >
-    <div className="w-full max-w-2xl">
-      <div className="text-center mb-8">
-        <p className="text-sm text-gray-500 mb-4">Step 2 of 3: Enterprise Setup</p>
-        <h1 className="text-3xl font-bold text-black mb-2">Configure Your Training Program</h1>
-        <p className="text-gray-600">Set up organization-wide supervision and reporting</p>
-      </div>
-
-      <div className="space-y-6">
-        <Card className="backdrop-blur-sm bg-white/70">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Target className="w-5 h-5" />
-              Enterprise Features
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4">
-              <div className="flex items-center gap-3">
-                <CheckCircle className="w-5 h-5 text-green-500" />
-                <span className="text-sm">Unlimited supervisees</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <CheckCircle className="w-5 h-5 text-green-500" />
-                <span className="text-sm">Custom reporting</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <CheckCircle className="w-5 h-5 text-green-500" />
-                <span className="text-sm">API access</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="text-center mt-8">
-        <Button 
-          onClick={onNext}
-          className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 transition-all duration-300"
-        >
-          Set Up Enterprise Dashboard
-          <ChevronRight className="w-4 h-4 ml-2" />
-        </Button>
-      </div>
-    </div>
-  </motion.div>
-);
-
-const TrustSignal = () => (
-  <div className="flex items-center justify-center gap-2 text-gray-500 text-sm">
-    <Lock className="w-4 h-4" />
-    <span>HIPAA-compliant & Encrypted</span>
-  </div>
-);

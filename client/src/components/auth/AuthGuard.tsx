@@ -1,5 +1,6 @@
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/contexts/AuthContext";
+import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { useLocation } from "wouter";
 import { useEffect } from "react";
 

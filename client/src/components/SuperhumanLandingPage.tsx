@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Sprout, Clock, Brain, Users, BarChart3, ArrowRight } from "lucide-react";
 
 export const SuperhumanLandingPage = () => {
-  const { signUp, signIn } = useAuth();
+  const { signUp, signIn, resetPassword } = useAuth();
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,6 +15,7 @@ export const SuperhumanLandingPage = () => {
   const [displayName, setDisplayName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(true);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [showSignupForm, setShowSignupForm] = useState(false);
 
   // Pre-fill email if stored
@@ -78,6 +79,35 @@ export const SuperhumanLandingPage = () => {
     } catch (error: any) {
       toast({
         title: isSignUp ? "Sign Up Failed" : "Sign In Failed",
+        description: error.message || "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast({
+        title: "Email Required",
+        description: "Please enter your email address first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await resetPassword(email);
+      toast({
+        title: "Reset Email Sent",
+        description: "Check your email for password reset instructions.",
+      });
+      setShowForgotPassword(false);
+    } catch (error: any) {
+      toast({
+        title: "Reset Failed",
         description: error.message || "Please try again.",
         variant: "destructive",
       });
@@ -189,7 +219,7 @@ export const SuperhumanLandingPage = () => {
                 </Button>
               </div>
 
-              <div className="text-center mt-8">
+              <div className="text-center mt-8 space-y-4">
                 <button
                   onClick={() => setIsSignUp(!isSignUp)}
                   className="text-gray-500 hover:text-gray-700 text-base transition-colors"
@@ -199,6 +229,18 @@ export const SuperhumanLandingPage = () => {
                     : "Don't have an account? Sign up"
                   }
                 </button>
+
+                {!isSignUp && (
+                  <div>
+                    <button
+                      onClick={handleForgotPassword}
+                      disabled={isLoading}
+                      className="text-blue-600 hover:text-blue-700 text-sm transition-colors"
+                    >
+                      Forgot your password?
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>
