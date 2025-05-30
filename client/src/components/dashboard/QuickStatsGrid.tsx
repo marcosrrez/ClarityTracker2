@@ -72,20 +72,20 @@ export const QuickStatsGrid = () => {
   ];
 
   return (
-    <section className="mb-8">
-      <h3 className="text-lg font-semibold text-foreground mb-4">Quick Overview</h3>
+    <section className="mb-8 ive-fade-in">
+      <h3 className="text-lg font-semibold text-foreground mb-6 tracking-tight">Quick Overview</h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <div key={index} className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-200">
+            <div key={index} className="ive-card ive-hover-lift ive-rounded-xl bg-white dark:bg-gray-800 p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300">
               <div className="flex items-center justify-between mb-4">
-                <div className={`p-3 rounded-lg ${stat.iconBg}`}>
+                <div className={`p-3 ive-rounded ${stat.iconBg}`}>
                   <Icon className={`h-5 w-5 ${stat.iconColor}`} />
                 </div>
-                <span className="text-sm text-muted-foreground">{stat.subtitle}</span>
+                <span className="text-sm text-muted-foreground font-medium">{stat.subtitle}</span>
               </div>
-              <h4 className="text-2xl font-bold text-foreground mb-1">{stat.value}</h4>
+              <h4 className="text-2xl font-bold text-foreground mb-1 tracking-tight">{stat.value}</h4>
               <p className="text-sm text-muted-foreground">{stat.title}</p>
               <div className="mt-3 flex items-center text-sm">
                 <span className="text-accent font-medium">{stat.change}</span>

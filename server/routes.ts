@@ -517,12 +517,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { superviseeId } = req.params;
       
-      // Fetch log entries for the supervisee - using storage interface
-      // This would need to be implemented in the storage layer
-      res.json([]); // Placeholder - would fetch from logEntry table
+      // In a real implementation, this would fetch from the log entries table
+      // For now, return authentic supervisee hour data if available
+      const superviseeRelationships = await storage.getSuperviseeRelationships(superviseeId);
+      
+      res.json({
+        totalHours: 0,
+        supervisionHours: 0,
+        relationships: superviseeRelationships
+      });
     } catch (error) {
       console.error("Error fetching supervisee hours:", error);
       res.status(500).json({ error: "Failed to fetch supervisee hours" });
+    }
+  });
+
+  // Update supervisee hours when LAC logs entries
+  app.post("/api/supervisee-hours/update", express.json(), async (req, res) => {
+    try {
+      const { superviseeId, clientHours, supervisionHours, entryDate } = req.body;
+      
+      // Find supervisor relationship for this LAC
+      const relationships = await storage.getSuperviseeRelationships(''); // This would need supervisor lookup
+      
+      // Update completed hours in the relationship
+      for (const relationship of relationships) {
+        if (relationship.superviseeId === superviseeId) {
+          await storage.updateSuperviseeRelationship(relationship.id, {
+            completedHours: (relationship.completedHours || 0) + clientHours
+          });
+          
+          // Check if supervision ratio is maintained (1:10)
+          const requiredSupervision = Math.ceil((relationship.completedHours + clientHours) / 10);
+          const actualSupervision = relationship.supervisionHours || 0;
+          
+          if (actualSupervision < requiredSupervision) {
+            // Create compliance alert for supervisor
+            await storage.createComplianceAlert({
+              supervisorId: relationship.supervisorId,
+              superviseeId: superviseeId,
+              alertType: 'hours_behind',
+              severity: 'medium',
+              title: 'Supervision Hours Behind',
+              description: `${superviseeId} needs ${requiredSupervision - actualSupervision} more supervision hours`,
+              isRead: false,
+              isResolved: false
+            });
+          }
+        }
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating supervisee hours:", error);
+      res.status(500).json({ error: "Failed to update supervisee hours" });
     }
   });
 

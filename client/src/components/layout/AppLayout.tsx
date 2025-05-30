@@ -43,9 +43,9 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   return (
     <div className="min-h-screen bg-background">
       {/* Rams polish: Refined version of your original header */}
-      <header className="sticky top-0 z-40 bg-background/90 backdrop-blur-sm border-b">
+      <header className="ive-glass sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border/50">
         <div className="flex items-center justify-between px-6 h-16">
-          <div className="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => window.location.href = '/dashboard'}>
+          <div className="flex items-center space-x-3 cursor-pointer ive-hover-lift transition-all duration-200" onClick={() => window.location.href = '/dashboard'}>
             <Sprout className="h-6 w-6 text-primary" />
             <h1 className="text-xl font-semibold text-foreground tracking-tight">ClarityLog</h1>
           </div>
