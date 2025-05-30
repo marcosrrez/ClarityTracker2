@@ -117,18 +117,18 @@ export const WelcomeSection = () => {
 
   return (
     <section className="space-y-6">
-      {/* Welcome Card - Premium glassmorphic design */}
-      <div className="backdrop-blur-sm bg-white/80 dark:bg-gray-800/80 rounded-3xl p-8 border border-white/20 shadow-xl relative overflow-hidden">
+      {/* Welcome Card - Balanced design with progress psychology */}
+      <div className="backdrop-blur-sm bg-white/80 dark:bg-gray-800/80 rounded-3xl p-6 border border-white/20 shadow-xl relative overflow-hidden">
         {/* Subtle gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50/20 via-transparent to-indigo-50/20 pointer-events-none" />
         
         <div className="relative z-10">
-          <div className="flex items-start justify-between mb-6">
-            <div>
-              <h1 className="text-5xl md:text-6xl font-bold mb-4 text-black dark:text-white tracking-tight leading-tight">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex-1">
+              <h1 className="text-4xl md:text-5xl font-bold mb-2 text-black dark:text-white tracking-tight leading-tight">
                 {getIntelligentGreeting()}
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 text-xl font-light">
+              <p className="text-gray-600 dark:text-gray-400 text-lg font-light">
                 {new Date().toLocaleDateString('en-US', { 
                   weekday: 'long', 
                   month: 'long', 
@@ -136,26 +136,62 @@ export const WelcomeSection = () => {
                 })}
               </p>
             </div>
-            <div className="text-right bg-white/50 dark:bg-gray-700/50 rounded-2xl p-4 backdrop-blur-sm">
-              <div className="text-3xl font-bold text-gray-900 dark:text-white">
-                {entries?.length || 0}
+            
+            {/* Progress Momentum Indicator */}
+            <div className="flex items-center space-x-4">
+              <div className="text-center">
+                <div className="relative w-16 h-16">
+                  <svg className="w-16 h-16 transform -rotate-90" viewBox="0 0 36 36">
+                    <path
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeDasharray="100, 100"
+                      className="text-gray-200 dark:text-gray-700"
+                    />
+                    <path
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeDasharray={`${Math.min((entries?.length || 0) * 2, 100)}, 100`}
+                      className="text-blue-600 dark:text-blue-400 transition-all duration-1000 ease-out"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-xl font-bold text-gray-900 dark:text-white">
+                      {entries?.length || 0}
+                    </span>
+                  </div>
+                </div>
+                <div className="text-xs text-gray-600 dark:text-gray-400 font-medium mt-1">Sessions</div>
               </div>
-              <div className="text-gray-600 dark:text-gray-400 text-sm font-medium">Sessions logged</div>
             </div>
           </div>
           
-          <p className="text-2xl md:text-3xl font-light mb-6 max-w-3xl text-gray-600 dark:text-gray-400 leading-relaxed">
+          <p className="text-lg font-light mb-4 max-w-2xl text-gray-600 dark:text-gray-400 leading-relaxed">
             {personalizedMessage}
           </p>
           
-          <Link href="/add-entry">
-            <Button 
-              className="bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-2xl px-6 py-2.5 text-sm font-medium transition-all duration-200"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Log New Session
-            </Button>
-          </Link>
+          <div className="flex items-center justify-between">
+            <Link href="/add-entry">
+              <Button 
+                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white border-0 rounded-2xl px-6 py-2.5 text-sm font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Continue Your Journey
+              </Button>
+            </Link>
+            
+            {/* Streak indicator for momentum psychology */}
+            {entries && entries.length > 0 && (
+              <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
+                Building momentum
+              </div>
+            )}
+          </div>
         </div>
         
         {/* Subtle decorative elements */}
