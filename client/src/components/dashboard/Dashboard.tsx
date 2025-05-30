@@ -26,7 +26,7 @@ export const Dashboard = () => {
 
   // Show regular dashboard for individual counselors
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 ive-spacing">
       {/* Milestone Celebration Modal - only if smart features are enabled */}
       {smartFeaturesEnabled && showCelebration && celebrationData && (
         <MilestoneCelebration

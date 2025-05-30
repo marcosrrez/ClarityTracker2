@@ -111,14 +111,26 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
           />
         )}
         
-        {step === 2 && (
-          <PersonalizationStep
+        {step === 2 && onboardingData.accountType === 'individual' && (
+          <LACPersonalizationStep
             licensureDate={licensureDate}
             onDateChange={setLicensureDate}
             challenge={onboardingData.trackingChallenge}
             onChallengeChange={(challenge) => 
               setOnboardingData(prev => ({ ...prev, trackingChallenge: challenge }))
             }
+            onNext={handleStepComplete}
+          />
+        )}
+
+        {step === 2 && onboardingData.accountType === 'supervisor' && (
+          <SupervisorPersonalizationStep
+            onNext={handleStepComplete}
+          />
+        )}
+
+        {step === 2 && onboardingData.accountType === 'enterprise' && (
+          <EnterprisePersonalizationStep
             onNext={handleStepComplete}
           />
         )}
@@ -243,7 +255,7 @@ const PlanCard = ({ title, badge, features, recommended, selected, onClick }: {
   </motion.div>
 );
 
-const PersonalizationStep = ({ licensureDate, onDateChange, challenge, onChallengeChange, onNext }: {
+const LACPersonalizationStep = ({ licensureDate, onDateChange, challenge, onChallengeChange, onNext }: {
   licensureDate?: Date;
   onDateChange: (date?: Date) => void;
   challenge?: string;
@@ -435,6 +447,118 @@ const GuidedOverlay = ({ onComplete }: { onComplete: () => void }) => {
     </motion.div>
   );
 };
+
+const SupervisorPersonalizationStep = ({ onNext }: { onNext: () => void }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -20 }}
+    className="flex flex-col items-center justify-center min-h-screen p-6"
+  >
+    <div className="w-full max-w-2xl">
+      <div className="text-center mb-8">
+        <p className="text-sm text-gray-500 mb-4">Step 2 of 3: Supervisor Setup</p>
+        <h1 className="text-3xl font-bold text-black mb-2">Set Up Your Supervision Practice</h1>
+        <p className="text-gray-600">Configure your supervisee management and compliance tracking</p>
+      </div>
+
+      <div className="space-y-6">
+        <Card className="backdrop-blur-sm bg-white/70">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              Supervision Features
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="flex items-center gap-3">
+                <CheckCircle className="w-5 h-5 text-green-500" />
+                <span className="text-sm">Multi-supervisee dashboard</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <CheckCircle className="w-5 h-5 text-green-500" />
+                <span className="text-sm">Compliance monitoring</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <CheckCircle className="w-5 h-5 text-green-500" />
+                <span className="text-sm">Session scheduling</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <CheckCircle className="w-5 h-5 text-green-500" />
+                <span className="text-sm">Progress reports</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="text-center mt-8">
+        <Button 
+          onClick={onNext}
+          className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 transition-all duration-300"
+        >
+          Set Up Dashboard
+          <ChevronRight className="w-4 h-4 ml-2" />
+        </Button>
+      </div>
+    </div>
+  </motion.div>
+);
+
+const EnterprisePersonalizationStep = ({ onNext }: { onNext: () => void }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -20 }}
+    className="flex flex-col items-center justify-center min-h-screen p-6"
+  >
+    <div className="w-full max-w-2xl">
+      <div className="text-center mb-8">
+        <p className="text-sm text-gray-500 mb-4">Step 2 of 3: Enterprise Setup</p>
+        <h1 className="text-3xl font-bold text-black mb-2">Configure Your Training Program</h1>
+        <p className="text-gray-600">Set up organization-wide supervision and reporting</p>
+      </div>
+
+      <div className="space-y-6">
+        <Card className="backdrop-blur-sm bg-white/70">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="w-5 h-5" />
+              Enterprise Features
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4">
+              <div className="flex items-center gap-3">
+                <CheckCircle className="w-5 h-5 text-green-500" />
+                <span className="text-sm">Unlimited supervisees</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <CheckCircle className="w-5 h-5 text-green-500" />
+                <span className="text-sm">Custom reporting</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <CheckCircle className="w-5 h-5 text-green-500" />
+                <span className="text-sm">API access</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="text-center mt-8">
+        <Button 
+          onClick={onNext}
+          className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 transition-all duration-300"
+        >
+          Set Up Enterprise Dashboard
+          <ChevronRight className="w-4 h-4 ml-2" />
+        </Button>
+      </div>
+    </div>
+  </motion.div>
+);
 
 const TrustSignal = () => (
   <div className="flex items-center justify-center gap-2 text-gray-500 text-sm">
