@@ -119,7 +119,7 @@ export const AddEntryForm = () => {
         <h1 className="text-4xl md:text-5xl font-extrabold mb-6 text-black dark:text-white tracking-tight leading-tight">
           {isSupervisor ? "Track your supervision" : "Log your progress"}
         </h1>
-        <p className="text-xl font-semibold text-gray-600 dark:text-gray-400 max-w-2xl">
+        <p className="text-xl font-light text-gray-600 dark:text-gray-400 max-w-2xl">
           {isSupervisor 
             ? "Document meaningful supervision sessions and guide your supervisees toward success."
             : "Capture your professional growth journey with detailed session tracking."

@@ -137,14 +137,14 @@ export const WelcomeSection = () => {
               </p>
             </div>
             <div className="text-right bg-white/50 dark:bg-gray-700/50 rounded-2xl p-4 backdrop-blur-sm">
-              <div className="text-3xl font-light text-gray-900 dark:text-white">
+              <div className="text-3xl font-bold text-gray-900 dark:text-white">
                 {entries?.length || 0}
               </div>
               <div className="text-gray-600 dark:text-gray-400 text-sm font-medium">Sessions logged</div>
             </div>
           </div>
           
-          <p className="text-2xl md:text-3xl font-semibold mb-6 max-w-3xl text-black dark:text-white leading-relaxed">
+          <p className="text-2xl md:text-3xl font-light mb-6 max-w-3xl text-gray-600 dark:text-gray-400 leading-relaxed">
             {personalizedMessage}
           </p>
           

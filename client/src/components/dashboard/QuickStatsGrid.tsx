@@ -89,7 +89,7 @@ export const QuickStatsGrid = () => {
                   </div>
                   <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">{stat.subtitle}</span>
                 </div>
-                <h4 className="text-3xl font-light text-gray-900 dark:text-white mb-2 tracking-tight">{stat.value}</h4>
+                <h4 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">{stat.value}</h4>
                 <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">{stat.title}</p>
                 <div className="mt-4 flex items-center text-sm">
                   <span className="text-blue-600 dark:text-blue-400 font-medium">{stat.change}</span>

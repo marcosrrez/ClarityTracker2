@@ -15,7 +15,7 @@ export default function SettingsPage() {
         <h1 className="text-4xl md:text-5xl font-extrabold mb-6 text-black dark:text-white tracking-tight leading-tight">
           Customize your journey
         </h1>
-        <p className="text-xl font-semibold text-gray-600 dark:text-gray-400 max-w-2xl">
+        <p className="text-xl font-light text-gray-600 dark:text-gray-400 max-w-2xl">
           Personalize your ClarityLog experience and set meaningful goals for your professional growth.
         </p>
       </div>
