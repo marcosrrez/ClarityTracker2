@@ -4,19 +4,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent } from "@/components/ui/card";
 import { 
   User, 
   Users, 
   Building2, 
-  Calendar, 
-  Target, 
-  Heart, 
-  Brain,
-  CheckCircle,
-  ArrowRight,
-  ArrowLeft,
-  Sprout
+  ArrowLeft
 } from "lucide-react";
 
 interface OnboardingData {
@@ -119,292 +111,191 @@ export const OnboardingFlow = () => {
   };
 
   const steps = [
-    // Step 1: Welcome & Name
+    // Step 1: Track your hours with ease
     {
-      title: "Welcome to ClarityLog!",
-      subtitle: "Let's get you set up in just a few steps",
-      content: (
-        <div className="space-y-6">
-          <div className="text-center">
-            <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Sprout className="w-10 h-10 text-white" />
-            </div>
-            <p className="text-gray-600 text-lg">
-              First, let's get to know you better
-            </p>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              What's your preferred name?
-            </label>
-            <Input
-              type="text"
-              placeholder="Enter your preferred name"
-              value={data.preferredName}
-              onChange={(e) => setData(prev => ({ ...prev, preferredName: e.target.value }))}
-              className="text-lg py-3"
-            />
-          </div>
-        </div>
-      ),
-      canContinue: data.preferredName.trim().length > 0
+      title: "Track your hours with ease",
+      canContinue: true
     },
 
-    // Step 2: Account Type Selection
+    // Step 2: Get AI insights from your sessions
     {
-      title: "Choose Your Account Type",
-      subtitle: "Select the option that best describes your role",
-      content: (
-        <div className="grid grid-cols-1 gap-4">
-          {accountTypes.map((type) => (
-            <Card 
-              key={type.id}
-              className={`cursor-pointer transition-all duration-300 hover:shadow-lg ${
-                data.accountType === type.id 
-                  ? 'ring-2 ring-blue-600 bg-blue-50' 
-                  : 'hover:bg-gray-50'
-              }`}
-              onClick={() => setData(prev => ({ ...prev, accountType: type.id }))}
-            >
-              <CardContent className="p-6">
-                <div className="flex items-start space-x-4">
-                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                    data.accountType === type.id ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'
-                  }`}>
-                    <type.icon className="w-6 h-6" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                      {type.title}
-                    </h3>
-                    <p className="text-gray-600 mb-3">
-                      {type.description}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {type.features.map((feature) => (
-                        <span 
-                          key={feature}
-                          className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full"
-                        >
-                          {feature}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  {data.accountType === type.id && (
-                    <CheckCircle className="w-6 h-6 text-blue-600" />
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ),
+      title: "Get AI insights from your sessions",
+      canContinue: true
+    },
+
+    // Step 3: Stay on track for licensure
+    {
+      title: "Stay on track for licensure",
+      canContinue: true
+    },
+
+    // Step 4: Account type selection
+    {
+      title: "Which path describes you?",
+      showAccountSelection: true,
       canContinue: data.accountType !== undefined
     },
 
-    // Step 3: Location & Goals
+    // Step 5: Basic info
     {
-      title: "Tell us about your location and goals",
-      subtitle: "This helps us provide relevant resources and compliance information",
-      content: (
-        <div className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              State/Region
-            </label>
-            <Input
-              type="text"
-              placeholder="e.g., Texas, California, Ontario"
-              value={data.stateRegion}
-              onChange={(e) => setData(prev => ({ ...prev, stateRegion: e.target.value }))}
-              className="text-lg py-3"
-            />
-            <p className="text-sm text-gray-500 mt-1">
-              This helps us provide state-specific licensing requirements
-            </p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              What's your biggest challenge right now?
-            </label>
-            <Input
-              type="text"
-              placeholder="e.g., Time management, documentation, clinical skills"
-              value={data.trackingChallenge}
-              onChange={(e) => setData(prev => ({ ...prev, trackingChallenge: e.target.value }))}
-              className="text-lg py-3"
-            />
-          </div>
-
-          {data.accountType === 'enterprise' && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Organization Name
-              </label>
-              <Input
-                type="text"
-                placeholder="Your organization or training program name"
-                value={data.organizationName}
-                onChange={(e) => setData(prev => ({ ...prev, organizationName: e.target.value }))}
-                className="text-lg py-3"
-              />
-            </div>
-          )}
-
-          {(data.accountType === 'supervisor' || data.accountType === 'individual') && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Professional Goals (Optional)
-              </label>
-              <Input
-                type="text"
-                placeholder="What do you hope to achieve with ClarityLog?"
-                value={data.professionalGoals}
-                onChange={(e) => setData(prev => ({ ...prev, professionalGoals: e.target.value }))}
-                className="text-lg py-3"
-              />
-            </div>
-          )}
-        </div>
-      ),
-      canContinue: data.stateRegion.trim().length > 0 && data.trackingChallenge.trim().length > 0
-    },
-
-    // Step 4: Completion
-    {
-      title: "You're all set!",
-      subtitle: "Your personalized ClarityLog experience awaits",
-      content: (
-        <div className="text-center space-y-6">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-            <CheckCircle className="w-10 h-10 text-green-600" />
-          </div>
-          
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold text-gray-900">
-              Welcome, {data.preferredName}!
-            </h3>
-            <p className="text-gray-600">
-              Based on your selections, we've customized ClarityLog to help you succeed as {
-                data.accountType === 'individual' ? 'an LAC pursuing LPC licensure' :
-                data.accountType === 'supervisor' ? 'a clinical supervisor' :
-                'an enterprise training program'
-              }.
-            </p>
-            
-            <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-sm font-medium text-gray-700 mb-2">
-                Your setup:
-              </p>
-              <div className="text-sm text-gray-600 space-y-1">
-                <div>Location: {data.stateRegion}</div>
-                <div>Focus: {data.trackingChallenge}</div>
-                {data.organizationName && <div>Organization: {data.organizationName}</div>}
-              </div>
-            </div>
-          </div>
-        </div>
-      ),
-      canContinue: true
+      title: "Let's personalize your experience",
+      showForm: true,
+      canContinue: data.preferredName.trim().length > 0 && data.stateRegion.trim().length > 0
     }
   ];
 
   const currentStepData = steps[currentStep];
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl">
-        {/* Progress indicator */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <span className="text-sm text-gray-500">
-              Step {currentStep + 1} of {steps.length}
-            </span>
-            <span className="text-sm text-gray-500">
-              {Math.round(((currentStep + 1) / steps.length) * 100)}%
-            </span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
-            />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 relative overflow-hidden">
+      {/* Skip button */}
+      <button
+        onClick={handleComplete}
+        className="absolute top-8 right-8 text-blue-500 hover:text-blue-700 transition-colors z-10"
+      >
+        Skip
+      </button>
+
+      {/* Back button (only show after first step) */}
+      {currentStep > 0 && (
+        <button
+          onClick={handlePrevious}
+          className="absolute top-8 left-8 text-blue-500 hover:text-blue-700 transition-colors z-10"
+        >
+          <ArrowLeft className="w-6 h-6" />
+        </button>
+      )}
+
+      <div className="flex items-center justify-center min-h-screen px-8">
+        <div className="w-full max-w-md text-center">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentStep}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+            >
+              {/* Benefits steps (0-2) */}
+              {currentStep < 3 && (
+                <div className="space-y-12">
+                  <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
+                    {currentStepData.title}
+                  </h1>
+                </div>
+              )}
+
+              {/* Account selection step */}
+              {currentStepData.showAccountSelection && (
+                <div className="space-y-8">
+                  <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-12">
+                    {currentStepData.title}
+                  </h1>
+                  
+                  <div className="space-y-4">
+                    {accountTypes.map((type) => (
+                      <button
+                        key={type.id}
+                        onClick={() => setData(prev => ({ ...prev, accountType: type.id }))}
+                        className={`w-full p-6 rounded-2xl border-2 transition-all ${
+                          data.accountType === type.id
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="flex items-center space-x-4">
+                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                            data.accountType === type.id ? 'bg-blue-500 text-white' : 'bg-gray-100'
+                          }`}>
+                            <type.icon className="w-5 h-5" />
+                          </div>
+                          <div className="text-left">
+                            <h3 className="font-semibold text-gray-900">{type.title}</h3>
+                            <p className="text-sm text-gray-600">{type.description}</p>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Form step */}
+              {currentStepData.showForm && (
+                <div className="space-y-8">
+                  <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-12">
+                    {currentStepData.title}
+                  </h1>
+                  
+                  <div className="space-y-6 text-left">
+                    <div>
+                      <Input
+                        type="text"
+                        placeholder="Your preferred name"
+                        value={data.preferredName}
+                        onChange={(e) => setData(prev => ({ ...prev, preferredName: e.target.value }))}
+                        className="w-full p-4 text-lg border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Input
+                        type="text"
+                        placeholder="State/Region (e.g., Texas, California)"
+                        value={data.stateRegion}
+                        onChange={(e) => setData(prev => ({ ...prev, stateRegion: e.target.value }))}
+                        className="w-full p-4 text-lg border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0"
+                      />
+                    </div>
+
+                    <div>
+                      <Input
+                        type="text"
+                        placeholder="Main challenge (e.g., Time management)"
+                        value={data.trackingChallenge}
+                        onChange={(e) => setData(prev => ({ ...prev, trackingChallenge: e.target.value }))}
+                        className="w-full p-4 text-lg border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0"
+                      />
+                    </div>
+
+                    {data.accountType === 'enterprise' && (
+                      <div>
+                        <Input
+                          type="text"
+                          placeholder="Organization name"
+                          value={data.organizationName}
+                          onChange={(e) => setData(prev => ({ ...prev, organizationName: e.target.value }))}
+                          className="w-full p-4 text-lg border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Next button */}
+          <div className="mt-16">
+            {currentStep === steps.length - 1 ? (
+              <Button
+                onClick={handleComplete}
+                disabled={!currentStepData.canContinue || isLoading}
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white py-4 text-lg rounded-xl font-medium"
+              >
+                {isLoading ? 'Setting up...' : 'Get Started'}
+              </Button>
+            ) : (
+              <Button
+                onClick={handleNext}
+                disabled={!currentStepData.canContinue}
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white py-4 text-lg rounded-xl font-medium"
+              >
+                Next
+              </Button>
+            )}
           </div>
         </div>
-
-        {/* Step content */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentStep}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
-            className="bg-white rounded-3xl p-8 shadow-lg border border-gray-200"
-          >
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                {currentStepData.title}
-              </h1>
-              <p className="text-gray-600 text-lg">
-                {currentStepData.subtitle}
-              </p>
-            </div>
-
-            <div className="mb-8">
-              {currentStepData.content}
-            </div>
-
-            {/* Navigation */}
-            <div className="flex justify-between items-center">
-              <Button
-                variant="outline"
-                onClick={handlePrevious}
-                disabled={currentStep === 0}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Previous
-              </Button>
-
-              {currentStep === steps.length - 1 ? (
-                <Button
-                  onClick={handleComplete}
-                  disabled={isLoading}
-                  className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
-                >
-                  {isLoading ? (
-                    <>
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                        className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
-                      />
-                      Setting up...
-                    </>
-                  ) : (
-                    <>
-                      Complete Setup
-                      <CheckCircle className="w-4 h-4" />
-                    </>
-                  )}
-                </Button>
-              ) : (
-                <Button
-                  onClick={handleNext}
-                  disabled={!currentStepData.canContinue}
-                  className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
-                >
-                  Continue
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
-          </motion.div>
-        </AnimatePresence>
       </div>
     </div>
   );
