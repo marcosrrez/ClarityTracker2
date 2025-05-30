@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ export default function CompliancePage() {
   const { user } = useAuth();
   const { permissions, isIndividual } = useAccountType();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [refreshing, setRefreshing] = useState(false);
 
   // Redirect individual users

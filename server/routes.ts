@@ -512,6 +512,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Hour sharing endpoints (for supervisee hour tracking)
+  app.get("/api/supervisee-hours/:superviseeId", async (req, res) => {
+    try {
+      const { superviseeId } = req.params;
+      
+      // Fetch log entries for the supervisee using the existing logEntry table
+      const entries = await db.select()
+        .from(logEntryTable)
+        .where(eq(logEntryTable.userId, superviseeId))
+        .orderBy(desc(logEntryTable.dateOfContact));
+      
+      res.json(entries);
+    } catch (error) {
+      console.error("Error fetching supervisee hours:", error);
+      res.status(500).json({ error: "Failed to fetch supervisee hours" });
+    }
+  });
+
+  // Individual supervisee endpoint
+  app.get("/api/supervisees/:id", async (req, res) => {
+    try {
+      const supervisorId = req.query.supervisorId as string;
+      const relationships = await storage.getSuperviseeRelationships(supervisorId || '');
+      const supervisee = relationships.find(r => r.superviseeId === req.params.id);
+      
+      if (!supervisee) {
+        return res.status(404).json({ error: "Supervisee not found" });
+      }
+      
+      res.json(supervisee);
+    } catch (error) {
+      console.error("Error fetching supervisee:", error);
+      res.status(500).json({ error: "Failed to fetch supervisee" });
+    }
+  });
+
   // Competency frameworks
   app.post("/api/supervision/frameworks", express.json(), async (req, res) => {
     try {
