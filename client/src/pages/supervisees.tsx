@@ -112,9 +112,8 @@ export default function SuperviseesPage() {
   };
 
   const filteredSupervisees = displaySupervisees.filter((supervisee: any) =>
-    supervisee.superviseeName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    supervisee.superviseeEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    supervisee.superviseeId?.toLowerCase().includes(searchTerm.toLowerCase())
+    supervisee.superviseeId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    supervisee.notes?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getStatusColor = (status: string) => {
@@ -240,10 +239,10 @@ export default function SuperviseesPage() {
                   <div className="flex justify-between items-start">
                     <div className="space-y-1">
                       <CardTitle className="text-lg">
-                        {supervisee.superviseeName || supervisee.superviseeId}
+                        {supervisee.superviseeId}
                       </CardTitle>
                       <CardDescription>
-                        {supervisee.superviseeEmail || 'Email not available'}
+                        Started: {new Date(supervisee.startDate).toLocaleDateString()}
                       </CardDescription>
                     </div>
                     <div className="flex gap-2">
