@@ -135,9 +135,13 @@ export const SettingsView = () => {
         .map(([key, index]) => `${key}: "${headers[index]}"`)
         .join(', ');
       
+      // Show specific detection of notes column for debugging
+      const notesColumnFound = columnMapping.notes !== undefined;
+      const notesColumnName = notesColumnFound ? headers[columnMapping.notes] : 'Not detected';
+      
       toast({
         title: "Columns detected!",
-        description: `Found: ${detectedColumns}`,
+        description: `Found: ${detectedColumns}. Notes column: ${notesColumnName}`,
       });
 
       // Process data rows
@@ -172,7 +176,7 @@ export const SettingsView = () => {
             supervisionType: mapSupervisionType(columns[columnMapping.supervisionType] || 'none'),
             indirectHours: false,
             techAssistedSupervision: parseFlexibleBoolean(columns[columnMapping.techAssisted] || 'false'),
-            notes: parseFlexibleString(columns[columnMapping.notes] || 'Imported from Excel'),
+            notes: parseFlexibleString(columns[columnMapping.notes] || ''),
           };
 
           console.log('Raw row data:', columns);
