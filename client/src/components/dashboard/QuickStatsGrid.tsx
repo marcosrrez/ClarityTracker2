@@ -73,7 +73,7 @@ export const QuickStatsGrid = () => {
 
   return (
     <section className="mb-8">
-      <h3 className="text-4xl md:text-5xl font-bold mb-8 bg-gradient-to-r from-emerald-600 via-blue-600 to-teal-700 bg-clip-text text-transparent tracking-tight">Your Progress</h3>
+      <h3 className="text-4xl md:text-5xl font-bold mb-8 text-black dark:text-white tracking-tight">Your Progress</h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {stats.map((stat, index) => {
           const Icon = stat.icon;

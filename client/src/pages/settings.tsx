@@ -12,7 +12,7 @@ export default function SettingsPage() {
   return (
     <div className="max-w-4xl mx-auto px-6 py-8 space-y-8">
       <div className="mb-12">
-        <h1 className="text-4xl md:text-5xl font-extrabold mb-6 bg-gradient-to-r from-emerald-600 via-blue-600 to-teal-700 bg-clip-text text-transparent tracking-tight leading-tight">
+        <h1 className="text-4xl md:text-5xl font-extrabold mb-6 text-black dark:text-white tracking-tight leading-tight">
           Customize your journey
         </h1>
         <p className="text-xl font-semibold text-gray-600 dark:text-gray-400 max-w-2xl">

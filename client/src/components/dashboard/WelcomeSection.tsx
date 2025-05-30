@@ -125,7 +125,7 @@ export const WelcomeSection = () => {
         <div className="relative z-10">
           <div className="flex items-start justify-between mb-6">
             <div>
-              <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-emerald-600 via-blue-600 to-teal-700 bg-clip-text text-transparent tracking-tight leading-tight">
+              <h1 className="text-5xl md:text-6xl font-bold mb-4 text-black dark:text-white tracking-tight leading-tight">
                 {getIntelligentGreeting()}
               </h1>
               <p className="text-gray-600 dark:text-gray-400 text-xl font-light">
@@ -144,7 +144,7 @@ export const WelcomeSection = () => {
             </div>
           </div>
           
-          <p className="text-2xl md:text-3xl font-semibold mb-6 max-w-3xl bg-gradient-to-r from-emerald-600 via-blue-600 to-teal-700 bg-clip-text text-transparent leading-relaxed">
+          <p className="text-2xl md:text-3xl font-semibold mb-6 max-w-3xl text-black dark:text-white leading-relaxed">
             {personalizedMessage}
           </p>
           
