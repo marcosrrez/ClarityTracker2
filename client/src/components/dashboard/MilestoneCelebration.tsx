@@ -104,7 +104,7 @@ export const MilestoneCelebration = ({ open, onClose, milestone }: MilestoneCele
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md p-0 overflow-hidden">
+      <DialogContent className="max-w-md p-0 overflow-hidden max-h-[85vh] overflow-y-auto my-8">
         <div className="relative">
           <Button
             variant="ghost"

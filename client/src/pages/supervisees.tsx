@@ -41,7 +41,7 @@ export default function SuperviseesPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Fetch supervisees data
-  const { data: supervisees = [], isLoading: loadingSupervisees, refetch: refetchSupervisees } = useQuery({
+  const { data: apiSupervisees = [], isLoading: loadingSupervisees, refetch: refetchSupervisees } = useQuery({
     queryKey: ['/api/supervisees', user?.uid],
     queryFn: async () => {
       const response = await fetch(`/api/supervisees?supervisorId=${user?.uid}`);
@@ -76,8 +76,8 @@ export default function SuperviseesPage() {
     );
   }
 
-  // Mock supervisee data for demonstration
-  const supervisees = [
+  // Use real data from API, fallback to demo data if needed
+  const displaySupervisees = apiSupervisees.length > 0 ? apiSupervisees : [
     {
       id: "1",
       name: "Sarah Johnson",
@@ -149,7 +149,7 @@ export default function SuperviseesPage() {
     }
   };
 
-  const filteredSupervisees = supervisees.filter((supervisee: any) =>
+  const filteredSupervisees = displaySupervisees.filter((supervisee: any) =>
     supervisee.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     supervisee.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -196,7 +196,7 @@ export default function SuperviseesPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{supervisees.length}</div>
+            <div className="text-2xl font-bold">{displaySupervisees.length}</div>
             <p className="text-xs text-muted-foreground">Active under supervision</p>
           </CardContent>
         </Card>
