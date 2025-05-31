@@ -33,6 +33,7 @@ import {
   Building2,
   Shield,
   FileText,
+  Target,
 } from "lucide-react";
 
 const getNavigationItems = (accountType: string, permissions: any) => {
