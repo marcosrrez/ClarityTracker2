@@ -167,15 +167,16 @@ export const QuickLogWidget = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
+              className="fixed inset-0 bg-transparent z-40"
               onClick={() => setIsExpanded(false)}
             />
             
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, x: -20 }}
-              animate={{ opacity: 1, scale: 1, x: 0 }}
-              exit={{ opacity: 0, scale: 0.9, x: -20 }}
-              className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 p-4 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 z-50 min-w-80"
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ type: "spring", damping: 20, stiffness: 300 }}
+              className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 p-5 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 z-50 min-w-80"
             >
               <div className="mb-3">
                 <h3 className="font-bold text-black dark:text-white text-sm">Quick Log</h3>
