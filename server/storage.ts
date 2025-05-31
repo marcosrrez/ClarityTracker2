@@ -845,7 +845,7 @@ export class DatabaseStorage implements IStorage {
     await this.createReview({
       promptId: id,
       userId: prompt.userId,
-      difficulty: 'again', // Start with 'again' to schedule first review immediately
+      difficulty: 0, // 0 = again, schedule first review immediately
       nextReviewDate: now, // Schedule for immediate review
       interval: 1,
       easeFactor: 2.5,
