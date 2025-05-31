@@ -924,7 +924,8 @@ export class DatabaseStorage implements IStorage {
 
   async generatePromptsFromContent(content: string, knowledgeEntryId: string, userId: string): Promise<Prompt[]> {
     try {
-      const OpenAI = require('openai');
+      // Try OpenAI first
+      const { default: OpenAI } = await import('openai');
       const openai = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY,
       });
@@ -960,9 +961,48 @@ export class DatabaseStorage implements IStorage {
       }
 
       return generatedPrompts;
-    } catch (error) {
-      console.error('Error generating prompts from content:', error);
-      throw new Error('Failed to generate study prompts. Please check your OpenAI API configuration.');
+    } catch (openaiError) {
+      console.error('OpenAI failed, trying Google AI:', openaiError);
+      
+      try {
+        // Fallback to Google AI
+        const { GoogleGenerativeAI } = await import('@google/generative-ai');
+        const genAI = new GoogleGenerativeAI(process.env.VITE_GOOGLE_AI_API_KEY!);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+        const prompt = `You are an expert educational content creator specializing in counseling and therapy. Generate 3-5 high-quality study prompts from the given content. Each prompt should test understanding, application, or critical thinking. Respond with valid JSON in this exact format: { "prompts": [{ "question": "...", "answer": "..." }] }
+
+Content to analyze:
+${content}`;
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const text = response.text();
+        
+        // Extract JSON from the response
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) {
+          throw new Error('No valid JSON found in Google AI response');
+        }
+        
+        const parsedResult = JSON.parse(jsonMatch[0]);
+        const generatedPrompts: Prompt[] = [];
+
+        for (const promptData of parsedResult.prompts || []) {
+          const prompt = await this.createPrompt({
+            knowledgeEntryId,
+            userId,
+            question: promptData.question,
+            answer: promptData.answer,
+          });
+          generatedPrompts.push(prompt);
+        }
+
+        return generatedPrompts;
+      } catch (googleError) {
+        console.error('Both OpenAI and Google AI failed:', googleError);
+        throw new Error('Failed to generate study prompts. Please check your API configuration for OpenAI or Google AI.');
+      }
     }
   }
 }
