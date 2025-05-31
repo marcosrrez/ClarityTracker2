@@ -42,7 +42,8 @@ const getNavigationItems = (accountType: string, permissions: any) => {
 
   const individualItems = [
     { href: "/insights", label: "Insights & Resources", icon: Lightbulb },
-    { href: "/spaced-repetition", label: "Spaced Repetition", icon: Brain },
+    { href: "/ai-insights", label: "AI Insights", icon: Brain },
+    { href: "/spaced-repetition", label: "Spaced Repetition", icon: BookOpen },
     { href: "/summary", label: "Summary", icon: BarChart3 },
     { href: "/gallery", label: "Gallery", icon: Images },
     { href: "/ai-analysis", label: "AI Analysis", icon: Bot },
