@@ -176,7 +176,7 @@ export const QuickLogWidget = () => {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               transition={{ type: "spring", damping: 20, stiffness: 300 }}
-              className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 p-5 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 z-50 min-w-80"
+              className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-4 p-5 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-600/50 z-50 min-w-80"
             >
               <div className="mb-3">
                 <h3 className="font-bold text-black dark:text-white text-sm">Quick Log</h3>
@@ -190,7 +190,7 @@ export const QuickLogWidget = () => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => handleQuickLog(template)}
-                    className="p-3 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 transition-colors text-left"
+                    className="p-3 bg-white/50 dark:bg-gray-700/50 hover:bg-white/80 dark:hover:bg-gray-600/80 rounded-xl border border-gray-200/60 dark:border-gray-500/60 backdrop-blur-sm transition-all text-left"
                   >
                     <div className="flex items-center space-x-2 mb-1">
                       <div className="text-blue-600 dark:text-blue-400">
