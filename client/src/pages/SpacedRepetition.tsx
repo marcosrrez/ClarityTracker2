@@ -181,27 +181,24 @@ const SpacedRepetition: React.FC = () => {
   }, [activeTab, currentPrompt, currentPromptIndex, startTime]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-white dark:bg-gray-950 p-6">
+      <div className="max-w-5xl mx-auto space-y-8">
         {/* Header */}
-        <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3 text-2xl font-bold text-black">
-              <Brain className="w-7 h-7 text-blue-600" />
-              Spaced Repetition Learning
-            </CardTitle>
-            <CardDescription className="text-lg">
-              Build lasting knowledge from your CE courses and professional reading
-            </CardDescription>
-          </CardHeader>
-        </Card>
+        <div className="text-center space-y-4">
+          <h1 className="text-4xl font-bold text-black dark:text-white">
+            Knowledge Retention
+          </h1>
+          <p className="text-lg font-medium text-gray-700 dark:text-gray-300 max-w-2xl mx-auto">
+            Transform your continuing education into lasting knowledge with AI-powered spaced repetition
+          </p>
+        </div>
 
         {/* Tab Navigation */}
-        <div className="flex gap-2">
+        <div className="flex gap-3 justify-center">
           <Button
             variant={activeTab === 'add' ? 'default' : 'outline'}
             onClick={() => setActiveTab('add')}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 px-6 py-3 font-medium"
           >
             <Plus className="w-4 h-4" />
             Add Knowledge ({knowledgeEntries.length} entries)
@@ -209,7 +206,7 @@ const SpacedRepetition: React.FC = () => {
           <Button
             variant={activeTab === 'review' ? 'default' : 'outline'}
             onClick={() => setActiveTab('review')}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 px-6 py-3 font-medium"
           >
             <Brain className="w-4 h-4" />
             Review ({duePrompts.length} due)
@@ -218,22 +215,22 @@ const SpacedRepetition: React.FC = () => {
 
         {/* Add Knowledge Tab */}
         {activeTab === 'add' && (
-          <Card className="bg-white/80 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-black font-bold">
-                <BookOpen className="w-5 h-5" />
+          <Card className="border border-gray-200 dark:border-gray-800 shadow-sm bg-white dark:bg-gray-950">
+            <CardHeader className="pb-6">
+              <CardTitle className="flex items-center gap-3 text-2xl font-bold text-black dark:text-white">
+                <BookOpen className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                 Add Knowledge Entry
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-base font-medium text-gray-700 dark:text-gray-300">
                 Input notes from CE courses, books, or articles to generate study prompts
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-black">Source Type</label>
+                  <label className="text-sm font-bold text-black dark:text-white block mb-2">Source Type</label>
                   <Select value={sourceType} onValueChange={(value: 'CE' | 'Book' | 'Article' | 'Course') => setSourceType(value)}>
-                    <SelectTrigger>
+                    <SelectTrigger className="border-gray-300 dark:border-gray-700 font-medium">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -245,38 +242,41 @@ const SpacedRepetition: React.FC = () => {
                   </Select>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-black">Source Title</label>
+                  <label className="text-sm font-bold text-black dark:text-white block mb-2">Source Title</label>
                   <Input
                     value={sourceTitle}
                     onChange={(e) => setSourceTitle(e.target.value)}
                     placeholder="e.g., 'The Body Keeps the Score'"
+                    className="border-gray-300 dark:border-gray-700 font-medium"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-sm font-medium text-black">Entry Title</label>
+                <label className="text-sm font-bold text-black dark:text-white block mb-2">Entry Title</label>
                 <Input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Brief title for this knowledge entry"
+                  className="border-gray-300 dark:border-gray-700 font-medium"
                 />
               </div>
 
               <div>
-                <label className="text-sm font-medium text-black">Content</label>
+                <label className="text-sm font-bold text-black dark:text-white block mb-2">Content</label>
                 <Textarea
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   placeholder="Paste your notes here..."
                   rows={6}
+                  className="border-gray-300 dark:border-gray-700 font-medium"
                 />
               </div>
 
               <Button 
                 onClick={handleAddKnowledge}
                 disabled={createEntryMutation.isPending}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                className="w-full py-3 text-base font-bold bg-blue-600 hover:bg-blue-700 text-white"
               >
                 {createEntryMutation.isPending ? 'Creating...' : 'Generate Study Prompts'}
               </Button>
@@ -308,32 +308,32 @@ const SpacedRepetition: React.FC = () => {
                 </CardContent>
               </Card>
             ) : (
-              <Card className="bg-white/90 backdrop-blur-sm border border-gray-200/60 shadow-lg">
-                <CardHeader className="pb-4">
+              <Card className="border border-gray-200 dark:border-gray-800 shadow-sm bg-white dark:bg-gray-950">
+                <CardHeader className="pb-6">
                   <div className="flex items-center justify-between">
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant="secondary" className="text-sm font-bold px-3 py-1">
                       Prompt {currentPromptIndex + 1} of {duePrompts.length}
                     </Badge>
-                    <Badge variant="outline" className="text-xs">
-                      Difficulty: {currentPrompt?.difficulty || 0}
+                    <Badge variant="outline" className="text-sm font-bold px-3 py-1">
+                      Level: {currentPrompt?.difficulty || 0}
                     </Badge>
                   </div>
                 </CardHeader>
                 
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
                   {/* Question */}
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <h3 className="text-lg font-medium text-black mb-2">Question:</h3>
-                    <p className="text-gray-700">{currentPrompt?.question}</p>
+                  <div className="p-6 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
+                    <h3 className="text-lg font-bold text-black dark:text-white mb-3">Question:</h3>
+                    <p className="text-gray-800 dark:text-gray-200 font-medium leading-relaxed">{currentPrompt?.question}</p>
                   </div>
 
                   {/* Show Answer Button */}
                   {!showAnswer && (
                     <Button
                       onClick={() => setShowAnswer(true)}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                      className="w-full py-3 text-base font-bold bg-blue-600 hover:bg-blue-700 text-white"
                     >
-                      <Eye className="w-4 h-4 mr-2" />
+                      <Eye className="w-5 h-5 mr-3" />
                       Show Answer
                     </Button>
                   )}
@@ -348,15 +348,15 @@ const SpacedRepetition: React.FC = () => {
                         transition={{ duration: 0.3 }}
                         className="space-y-4"
                       >
-                        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                          <h3 className="text-lg font-medium text-black mb-2">Answer:</h3>
-                          <p className="text-gray-700">{currentPrompt?.answer}</p>
+                        <div className="p-6 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+                          <h3 className="text-lg font-bold text-black dark:text-white mb-3">Answer:</h3>
+                          <p className="text-gray-800 dark:text-gray-200 font-medium leading-relaxed">{currentPrompt?.answer}</p>
                         </div>
 
                         {/* Difficulty Rating */}
-                        <div className="space-y-3">
-                          <h4 className="text-sm font-medium text-black">How well did you recall this?</h4>
-                          <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-4">
+                          <h4 className="text-base font-bold text-black dark:text-white">How well did you recall this?</h4>
+                          <div className="grid grid-cols-2 gap-3">
                             {difficultyOptions.map((option) => {
                               const IconComponent = option.icon;
                               return (
@@ -364,12 +364,12 @@ const SpacedRepetition: React.FC = () => {
                                   key={option.value}
                                   onClick={() => handlePromptAnswer(option.value)}
                                   disabled={submitReviewMutation.isPending}
-                                  className={`${option.color} text-white text-sm py-3 px-2 h-auto flex flex-col items-center gap-1`}
+                                  className={`${option.color} text-white text-sm py-4 px-3 h-auto flex flex-col items-center gap-2 font-bold`}
                                   variant="default"
                                 >
-                                  <IconComponent className="w-4 h-4" />
-                                  <span className="font-medium">{option.label}</span>
-                                  <span className="text-xs opacity-90">{option.description}</span>
+                                  <IconComponent className="w-5 h-5" />
+                                  <span className="font-bold">{option.label}</span>
+                                  <span className="text-xs opacity-90 font-medium">{option.description}</span>
                                 </Button>
                               );
                             })}
