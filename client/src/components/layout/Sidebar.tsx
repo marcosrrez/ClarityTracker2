@@ -138,25 +138,34 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
           <NotificationCenter />
         </div>
 
-        <nav className="flex-1 p-6 space-y-1">
+        <nav className="flex-1 p-4 space-y-2">
           {navigationItems.map((item) => {
             const Icon = item.icon;
             const isActive = location === item.href;
             
             return (
               <Link key={item.href} href={item.href}>
-                <Button
-                  variant="ghost"
-                  className={`w-full justify-start space-x-3 h-12 rounded-2xl transition-all duration-300 ${
-                    isActive 
-                      ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-700 dark:text-blue-300 shadow-sm border border-blue-200/50 dark:border-blue-700/50" 
-                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white/50 dark:hover:bg-gray-800/50"
+                <div
+                  className={`group flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
+                    isActive
+                      ? 'bg-blue-600 text-white shadow-lg'
+                      : 'text-gray-700 hover:text-black hover:bg-gray-100'
                   }`}
                   onClick={() => onOpenChange(false)}
                 >
-                  <Icon className="h-5 w-5" />
-                  <span className="font-medium">{item.label}</span>
-                </Button>
+                  <div className={`flex-shrink-0 p-2 rounded-lg ${
+                    isActive 
+                      ? 'bg-white/20' 
+                      : 'bg-gray-200 group-hover:bg-gray-300'
+                  }`}>
+                    <Icon className={`h-4 w-4 ${
+                      isActive 
+                        ? 'text-white' 
+                        : 'text-gray-600 group-hover:text-gray-700'
+                    }`} />
+                  </div>
+                  <span className="truncate font-medium">{item.label}</span>
+                </div>
               </Link>
             );
           })}
