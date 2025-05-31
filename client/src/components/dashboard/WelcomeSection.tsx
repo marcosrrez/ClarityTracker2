@@ -6,6 +6,7 @@ import { Plus, Sparkles } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useAccountType } from "@/hooks/use-account-type";
 import { useLogEntries } from "@/hooks/use-firestore";
+import { QuickLogWidget } from "@/components/entries/QuickLogWidget";
 
 export const WelcomeSection = () => {
   const { user, userProfile } = useAuth();
@@ -167,14 +168,7 @@ export const WelcomeSection = () => {
         
         {/* Action Area */}
         <div className="mt-6 flex items-center justify-between">
-          <Link href="/add-entry">
-            <Button 
-              className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-8 py-3 text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Log Session
-            </Button>
-          </Link>
+          <QuickLogWidget />
           
           {/* Smart Status Indicators */}
           <div className="flex items-center space-x-4">
