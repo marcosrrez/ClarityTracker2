@@ -33,56 +33,35 @@ import SpacedRepetition from "@/pages/SpacedRepetition";
 import AIInsights from "@/pages/AIInsights";
 import NotFound from "@/pages/not-found";
 
-// New Consolidated Pages
-import LogSession from "@/pages/LogSession";
-import MyProgress from "@/pages/MyProgress";
-
 function Router() {
   return (
     <Switch>
       <Route path="/auth" component={AuthPage} />
-      
-      {/* New Consolidated Routes */}
-      <Route path="/log-session" component={LogSession} />
-      <Route path="/my-progress" component={MyProgress} />
-      
-      {/* Renamed Routes with Better Labels */}
-      <Route path="/session-insights" component={AiAnalysisPage} />
-      <Route path="/professional-development" component={AIInsights} />
-      <Route path="/learning-resources" component={InsightsPage} />
-      <Route path="/reference-library" component={GalleryPage} />
-      <Route path="/supervision-management" component={SuperviseesWorkingPage} />
-      <Route path="/my-requirements" component={RequirementsPage} />
-      <Route path="/reports-analytics" component={ReportsPage} />
-      
-      {/* Legacy Routes (for backward compatibility) */}
       <Route path="/dashboard" component={DashboardPage} />
-      <Route path="/add-entry" component={LogSession} />
-      <Route path="/quick-entry" component={LogSession} />
+      <Route path="/add-entry" component={AddEntryPage} />
       <Route path="/insights" component={InsightsPage} />
       <Route path="/gallery" component={GalleryPage} />
       <Route path="/ai-analysis" component={AiAnalysisPage} />
-      <Route path="/ai-insights" component={AIInsights} />
       <Route path="/requirements" component={RequirementsPage} />
-      <Route path="/summary" component={MyProgress} />
-      <Route path="/supervisees" component={SuperviseesWorkingPage} />
-      <Route path="/compliance" component={CompliancePage} />
-      <Route path="/reports" component={ReportsPage} />
-      
-      {/* Existing Routes */}
       <Route path="/settings" component={SettingsPage} />
       <Route path="/feedback" component={FeedbackPage} />
       <Route path="/admin" component={AdminPage} />
       <Route path="/help" component={HelpPage} />
+      <Route path="/summary" component={SummaryPage} />
+      <Route path="/quick-entry" component={QuickEntryPage} />
+      <Route path="/supervisees" component={SuperviseesWorkingPage} />
+      <Route path="/compliance" component={CompliancePage} />
       <Route path="/supervisee/:id" component={SuperviseeProfilePage} />
+      <Route path="/reports" component={ReportsPage} />
       <Route path="/spaced-repetition" component={SpacedRepetition} />
+      <Route path="/ai-insights" component={AIInsights} />
       <Route path="/account-setup">
         <AuthGuard requireAccountSetup={false}>
           <AccountSetupPage />
         </AuthGuard>
       </Route>
       
-      {/* Default route */}
+      {/* Default route - redirect to dashboard */}
       <Route path="/" component={DashboardPage} />
       
       {/* 404 fallback */}

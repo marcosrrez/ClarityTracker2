@@ -33,43 +33,29 @@ import {
   Building2,
   Shield,
   FileText,
-  Target,
 } from "lucide-react";
 
 const getNavigationItems = (accountType: string, permissions: any) => {
-  // Core Workflow Navigation (always visible)
-  const coreItems = [
-    { href: "/", label: "Dashboard", icon: ChartLine },
-    { href: "/log-session", label: "Log Session", icon: Plus },
-    { href: "/my-progress", label: "My Progress", icon: Target },
+  const baseItems = [
+    { href: "/dashboard", label: "Dashboard", icon: ChartLine },
+    { href: "/add-entry", label: "Add Entry", icon: Plus },
   ];
 
-  // Professional Development Hub
-  const professionalDevelopmentItems = [
-    { href: "/session-insights", label: "Session Insights", icon: Brain },
-    { href: "/professional-development", label: "Professional Development", icon: Lightbulb },
-    { href: "/learning-resources", label: "Learning Resources", icon: BookOpen },
-    { href: "/reference-library", label: "Reference Library", icon: Images },
-  ];
-
-  // Individual user items (LACs and LPCs)
   const individualItems = [
-    ...coreItems,
-    ...professionalDevelopmentItems,
-    { href: "/spaced-repetition", label: "Study Sessions", icon: Brain },
-  ];
-
-  // Supervision Center (for supervisors)
-  const supervisionItems = [
-    { href: "/supervision-management", label: "Supervision Management", icon: Users },
-    { href: "/my-requirements", label: "My Requirements", icon: ClipboardList },
-    { href: "/reports-analytics", label: "Reports & Analytics", icon: FileText },
+    { href: "/insights", label: "Insights & Resources", icon: Lightbulb },
+    { href: "/ai-insights", label: "AI Insights", icon: Brain },
+    { href: "/spaced-repetition", label: "Spaced Repetition", icon: BookOpen },
+    { href: "/summary", label: "Summary", icon: BarChart3 },
+    { href: "/gallery", label: "Gallery", icon: Images },
+    { href: "/ai-analysis", label: "AI Analysis", icon: Bot },
+    { href: "/requirements", label: "Requirements", icon: ClipboardList },
   ];
 
   const supervisorItems = [
-    ...coreItems,
-    ...professionalDevelopmentItems,
-    ...supervisionItems,
+    { href: "/supervisees", label: "Supervisees", icon: Users },
+    { href: "/compliance", label: "Compliance", icon: Shield },
+    { href: "/reports", label: "Reports", icon: FileText },
+    ...individualItems,
   ];
 
   const enterpriseItems = [
@@ -84,14 +70,14 @@ const getNavigationItems = (accountType: string, permissions: any) => {
     { href: "/help", label: "Help", icon: HelpCircle },
   ];
 
-  let items = [];
+  let items = [...baseItems];
 
   if (accountType === 'enterprise') {
-    items = [...enterpriseItems];
+    items = [...items, ...enterpriseItems];
   } else if (accountType === 'supervisor') {
-    items = [...supervisorItems];
+    items = [...items, ...supervisorItems];
   } else {
-    items = [...individualItems];
+    items = [...items, ...individualItems];
   }
 
   return [...items, ...commonItems];
