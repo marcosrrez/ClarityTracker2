@@ -288,21 +288,21 @@ const SpacedRepetition: React.FC = () => {
         {activeTab === 'review' && (
           <div>
             {loadingPrompts ? (
-              <Card className="bg-white/80 backdrop-blur-sm">
-                <CardContent className="p-8 text-center">
-                  <div className="animate-spin w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
-                  <p>Loading prompts...</p>
+              <Card className="border border-gray-200 dark:border-gray-800 shadow-sm bg-white dark:bg-gray-950">
+                <CardContent className="p-12 text-center">
+                  <div className="animate-spin w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full mx-auto mb-6"></div>
+                  <p className="text-lg font-medium text-gray-700 dark:text-gray-300">Loading prompts...</p>
                 </CardContent>
               </Card>
             ) : duePrompts.length === 0 ? (
-              <Card className="bg-white/80 backdrop-blur-sm">
-                <CardContent className="p-8 text-center space-y-4">
-                  <Brain className="w-16 h-16 text-gray-400 mx-auto" />
-                  <h3 className="text-xl font-medium text-black">No prompts due for review</h3>
-                  <p className="text-gray-600">
+              <Card className="border border-gray-200 dark:border-gray-800 shadow-sm bg-white dark:bg-gray-950">
+                <CardContent className="p-12 text-center space-y-6">
+                  <Brain className="w-20 h-20 text-gray-400 dark:text-gray-600 mx-auto" />
+                  <h3 className="text-2xl font-bold text-black dark:text-white">No prompts due for review</h3>
+                  <p className="text-lg font-medium text-gray-600 dark:text-gray-400 max-w-md mx-auto">
                     Add some knowledge entries to generate study prompts, or check back later for scheduled reviews.
                   </p>
-                  <Button onClick={() => setActiveTab('add')} className="bg-blue-600 hover:bg-blue-700 text-white">
+                  <Button onClick={() => setActiveTab('add')} className="py-3 px-6 text-base font-bold bg-blue-600 hover:bg-blue-700 text-white">
                     Add Knowledge
                   </Button>
                 </CardContent>
