@@ -169,7 +169,7 @@ export const WelcomeSection = () => {
         {/* Action Area */}
         <div className="mt-6 flex items-center justify-between">
           <div className="flex-shrink-0">
-            <QuickLogWidget />
+            {/* Placeholder space for the overlay widget */}
           </div>
           
           {/* Smart Status Indicators */}
@@ -195,6 +195,11 @@ export const WelcomeSection = () => {
               </div>
             )}
           </div>
+        </div>
+        
+        {/* QuickLog Widget as overlay */}
+        <div className="absolute bottom-4 left-8">
+          <QuickLogWidget />
         </div>
       </div>
 
