@@ -26,8 +26,6 @@ export const QuickLogWidget = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragX, setDragX] = useState(0);
 
-  console.log('QuickLogWidget rendering:', { user: !!user, isSupervisor });
-
   const templates: QuickLogTemplate[] = isSupervisor ? [
     {
       id: 'supervision-1h',
@@ -135,9 +133,9 @@ export const QuickLogWidget = () => {
   };
 
   return (
-    <div className="relative">
+    <div className="relative z-10">
       <div
-        className="relative overflow-hidden rounded-xl"
+        className="relative rounded-xl"
         onPointerDown={handleDragStart}
         onPointerMove={handleDragMove}
         onPointerUp={handleDragEnd}
@@ -145,7 +143,7 @@ export const QuickLogWidget = () => {
       >
         <Button 
           className={`
-            relative bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg
+            bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg
             transition-all duration-200 ease-out
             ${isDragging ? 'scale-105' : ''}
           `}

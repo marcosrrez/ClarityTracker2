@@ -168,7 +168,9 @@ export const WelcomeSection = () => {
         
         {/* Action Area */}
         <div className="mt-6 flex items-center justify-between">
-          <QuickLogWidget />
+          <div className="flex-shrink-0">
+            <QuickLogWidget />
+          </div>
           
           {/* Smart Status Indicators */}
           <div className="flex items-center space-x-4">
