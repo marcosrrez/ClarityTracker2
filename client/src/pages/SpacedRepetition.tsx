@@ -1,105 +1,184 @@
 import React, { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Brain, BookOpen, Plus, Clock, TrendingUp } from 'lucide-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import KnowledgeInputForm from '@/components/knowledge/KnowledgeInputForm';
-import PromptCard from '@/components/knowledge/PromptCard';
+import { Brain, BookOpen, Plus, Eye, CheckCircle, AlertCircle, Clock } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
-
-// Mock user ID - in a real app this would come from authentication
-const MOCK_USER_ID = "user-123";
-
-interface DuePrompt {
-  id: string;
-  question: string;
-  answer: string;
-  imageUrl?: string;
-  nextReviewDate: Date;
-}
+import { apiRequest } from '@/lib/queryClient';
 
 interface KnowledgeEntry {
   id: string;
+  userId: string;
   title: string;
   content: string;
-  sourceType: 'CE' | 'Book';
-  sourceTitle: string;
+  sourceType: 'CE' | 'Book' | 'Article' | 'Course';
+  sourceTitle?: string;
   tags: string[];
   createdAt: Date;
   updatedAt: Date;
 }
 
+interface Prompt {
+  id: string;
+  knowledgeEntryId: string;
+  userId: string;
+  question: string;
+  answer: string;
+  difficulty: number;
+  easinessFactor: number;
+  interval: number;
+  repetitions: number;
+  nextReviewDate: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface Review {
+  id: string;
+  promptId: string;
+  userId: string;
+  quality: number;
+  timeSpent: number;
+  reviewedAt: Date;
+  wasCorrect: boolean;
+}
+
 const SpacedRepetition: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<'add' | 'review'>('add');
   const [currentPromptIndex, setCurrentPromptIndex] = useState(0);
-  const [showAddForm, setShowAddForm] = useState(false);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [startTime, setStartTime] = useState<Date | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch due prompts
-  const { data: duePrompts = [], isLoading: promptsLoading } = useQuery({
-    queryKey: ['/api/prompts/due', MOCK_USER_ID],
-    queryFn: async () => {
-      const response = await fetch(`/api/prompts/due/${MOCK_USER_ID}`);
-      if (!response.ok) throw new Error('Failed to fetch due prompts');
-      return response.json();
-    }
-  });
+  // Mock user ID - in real app, get from auth context
+  const userId = 'demo-user';
+
+  // Form state
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [sourceType, setSourceType] = useState<'CE' | 'Book' | 'Article' | 'Course'>('CE');
+  const [sourceTitle, setSourceTitle] = useState('');
 
   // Fetch knowledge entries
-  const { data: knowledgeEntries = [], isLoading: entriesLoading } = useQuery({
-    queryKey: ['/api/knowledge-entries', MOCK_USER_ID],
-    queryFn: async () => {
-      const response = await fetch(`/api/knowledge-entries/${MOCK_USER_ID}`);
-      if (!response.ok) throw new Error('Failed to fetch knowledge entries');
-      return response.json();
-    }
+  const { data: knowledgeEntries = [], isLoading: loadingEntries } = useQuery({
+    queryKey: ['/api/knowledge-entries', userId],
+    queryFn: () => fetch(`/api/knowledge-entries/${userId}`).then(res => res.json()),
+  });
+
+  // Fetch prompts due for review
+  const { data: duePrompts = [], isLoading: loadingPrompts } = useQuery({
+    queryKey: ['/api/prompts/due', userId],
+    queryFn: () => fetch(`/api/prompts/due/${userId}`).then(res => res.json()),
+  });
+
+  // Create knowledge entry mutation
+  const createEntryMutation = useMutation({
+    mutationFn: (data: any) => apiRequest('/api/knowledge-entries', 'POST', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/knowledge-entries', userId] });
+      toast({
+        title: "Knowledge Entry Created",
+        description: "Your entry has been saved and prompts are being generated.",
+      });
+      // Reset form
+      setTitle('');
+      setContent('');
+      setSourceTitle('');
+    },
+    onError: (error) => {
+      console.error('Error creating knowledge entry:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create knowledge entry. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Generate prompts mutation
+  const generatePromptsMutation = useMutation({
+    mutationFn: ({ content, knowledgeEntryId }: { content: string; knowledgeEntryId: string }) =>
+      apiRequest('/api/prompts/generate', 'POST', { content, knowledgeEntryId, userId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/prompts/due', userId] });
+    },
   });
 
   // Submit review mutation
-  const reviewMutation = useMutation({
-    mutationFn: async ({ promptId, difficulty }: { promptId: string; difficulty: number }) => {
-      const response = await fetch(`/api/prompts/${promptId}/review`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: MOCK_USER_ID, difficulty })
-      });
-      if (!response.ok) throw new Error('Failed to submit review');
-      return response.json();
-    },
+  const submitReviewMutation = useMutation({
+    mutationFn: (reviewData: any) => apiRequest('/api/reviews', 'POST', reviewData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/prompts/due', MOCK_USER_ID] });
-      // Move to next prompt after a delay
-      setTimeout(() => {
-        setCurrentPromptIndex(prev => prev + 1);
-      }, 1500);
-    },
-    onError: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/prompts/due', userId] });
       toast({
-        title: "Error",
-        description: "Failed to record your review. Please try again.",
-        variant: "destructive"
+        title: "Review Recorded",
+        description: "Your response has been saved and scheduled for future review.",
       });
-    }
+    },
   });
 
-  const handlePromptAnswer = (promptId: string, difficulty: number) => {
-    reviewMutation.mutate({ promptId, difficulty });
+  const handleAddKnowledge = async () => {
+    if (!title.trim() || !content.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in both title and content fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const entryData = {
+      userId,
+      title: title.trim(),
+      content: content.trim(),
+      sourceType,
+      sourceTitle: sourceTitle.trim() || undefined,
+      tags: [],
+    };
+
+    createEntryMutation.mutate(entryData);
   };
 
-  const handleAddSuccess = () => {
-    setShowAddForm(false);
-    queryClient.invalidateQueries({ queryKey: ['/api/knowledge-entries', MOCK_USER_ID] });
-    toast({
-      title: "Success",
-      description: "Knowledge entry added and prompts generated!"
-    });
+  const handlePromptAnswer = (quality: number) => {
+    if (!duePrompts[currentPromptIndex] || !startTime) return;
+
+    const timeSpent = Math.floor((Date.now() - startTime.getTime()) / 1000);
+    const reviewData = {
+      promptId: duePrompts[currentPromptIndex].id,
+      userId,
+      quality,
+      timeSpent,
+      wasCorrect: quality >= 2,
+    };
+
+    submitReviewMutation.mutate(reviewData);
+
+    setTimeout(() => {
+      setShowAnswer(false);
+      setCurrentPromptIndex(prev => (prev + 1) % duePrompts.length);
+      setStartTime(null);
+    }, 1500);
   };
 
   const currentPrompt = duePrompts[currentPromptIndex];
-  const hasMorePrompts = currentPromptIndex < duePrompts.length - 1;
-  const completedPrompts = currentPromptIndex;
+
+  const difficultyOptions = [
+    { value: 0, label: 'Again', icon: AlertCircle, color: 'bg-red-500 hover:bg-red-600', description: 'Complete blackout' },
+    { value: 1, label: 'Hard', icon: Clock, color: 'bg-orange-500 hover:bg-orange-600', description: 'Recalled with difficulty' },
+    { value: 2, label: 'Good', icon: CheckCircle, color: 'bg-blue-500 hover:bg-blue-600', description: 'Recalled with some effort' },
+    { value: 3, label: 'Easy', icon: CheckCircle, color: 'bg-green-500 hover:bg-green-600', description: 'Perfect recall' }
+  ];
+
+  useEffect(() => {
+    if (activeTab === 'review' && currentPrompt && !startTime) {
+      setStartTime(new Date());
+    }
+  }, [activeTab, currentPrompt, currentPromptIndex, startTime]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
@@ -112,159 +191,198 @@ const SpacedRepetition: React.FC = () => {
               Spaced Repetition Learning
             </CardTitle>
             <CardDescription className="text-lg">
-              Master your CE course and book knowledge through scientifically-proven spaced repetition
+              Build lasting knowledge from your CE courses and professional reading
             </CardDescription>
           </CardHeader>
         </Card>
 
-        <Tabs defaultValue="review" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 bg-white/80 backdrop-blur-sm">
-            <TabsTrigger value="review" className="flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              Review ({duePrompts.length})
-            </TabsTrigger>
-            <TabsTrigger value="add" className="flex items-center gap-2">
-              <Plus className="w-4 h-4" />
-              Add Knowledge
-            </TabsTrigger>
-            <TabsTrigger value="library" className="flex items-center gap-2">
-              <BookOpen className="w-4 h-4" />
-              Library ({knowledgeEntries.length})
-            </TabsTrigger>
-          </TabsList>
+        {/* Tab Navigation */}
+        <div className="flex gap-2">
+          <Button
+            variant={activeTab === 'add' ? 'default' : 'outline'}
+            onClick={() => setActiveTab('add')}
+            className="flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Add Knowledge ({knowledgeEntries.length} entries)
+          </Button>
+          <Button
+            variant={activeTab === 'review' ? 'default' : 'outline'}
+            onClick={() => setActiveTab('review')}
+            className="flex items-center gap-2"
+          >
+            <Brain className="w-4 h-4" />
+            Review ({duePrompts.length} due)
+          </Button>
+        </div>
 
-          {/* Review Tab */}
-          <TabsContent value="review" className="space-y-6">
-            {promptsLoading ? (
+        {/* Add Knowledge Tab */}
+        {activeTab === 'add' && (
+          <Card className="bg-white/80 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-black font-bold">
+                <BookOpen className="w-5 h-5" />
+                Add Knowledge Entry
+              </CardTitle>
+              <CardDescription>
+                Input notes from CE courses, books, or articles to generate study prompts
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-black">Source Type</label>
+                  <Select value={sourceType} onValueChange={(value: 'CE' | 'Book' | 'Article' | 'Course') => setSourceType(value)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="CE">CE Course</SelectItem>
+                      <SelectItem value="Book">Book</SelectItem>
+                      <SelectItem value="Article">Article</SelectItem>
+                      <SelectItem value="Course">Course</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-black">Source Title</label>
+                  <Input
+                    value={sourceTitle}
+                    onChange={(e) => setSourceTitle(e.target.value)}
+                    placeholder="e.g., 'The Body Keeps the Score'"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-black">Entry Title</label>
+                <Input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Brief title for this knowledge entry"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-black">Content</label>
+                <Textarea
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="Paste your notes here..."
+                  rows={6}
+                />
+              </div>
+
+              <Button 
+                onClick={handleAddKnowledge}
+                disabled={createEntryMutation.isPending}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
+              >
+                {createEntryMutation.isPending ? 'Creating...' : 'Generate Study Prompts'}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Review Tab */}
+        {activeTab === 'review' && (
+          <div>
+            {loadingPrompts ? (
               <Card className="bg-white/80 backdrop-blur-sm">
                 <CardContent className="p-8 text-center">
-                  <div className="animate-pulse space-y-4">
-                    <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto"></div>
-                    <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
-                  </div>
+                  <div className="animate-spin w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+                  <p>Loading prompts...</p>
                 </CardContent>
               </Card>
             ) : duePrompts.length === 0 ? (
               <Card className="bg-white/80 backdrop-blur-sm">
                 <CardContent className="p-8 text-center space-y-4">
                   <Brain className="w-16 h-16 text-gray-400 mx-auto" />
-                  <h3 className="text-xl font-medium text-black">No reviews due</h3>
+                  <h3 className="text-xl font-medium text-black">No prompts due for review</h3>
                   <p className="text-gray-600">
-                    Great job! You're all caught up with your spaced repetition reviews.
+                    Add some knowledge entries to generate study prompts, or check back later for scheduled reviews.
                   </p>
-                  <Button 
-                    onClick={() => setShowAddForm(true)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    Add More Knowledge
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : currentPromptIndex >= duePrompts.length ? (
-              <Card className="bg-white/80 backdrop-blur-sm">
-                <CardContent className="p-8 text-center space-y-4">
-                  <TrendingUp className="w-16 h-16 text-green-500 mx-auto" />
-                  <h3 className="text-xl font-medium text-black">Review Session Complete!</h3>
-                  <p className="text-gray-600">
-                    You've completed {completedPrompts} reviews. Your next reviews will be scheduled based on your performance.
-                  </p>
-                  <Button 
-                    onClick={() => setCurrentPromptIndex(0)}
-                    className="bg-green-600 hover:bg-green-700 text-white"
-                  >
-                    Start New Session
+                  <Button onClick={() => setActiveTab('add')} className="bg-blue-600 hover:bg-blue-700 text-white">
+                    Add Knowledge
                   </Button>
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-4">
-                {/* Progress */}
-                <Card className="bg-white/80 backdrop-blur-sm">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between text-sm text-gray-600">
-                      <span>Progress: {completedPrompts} / {duePrompts.length}</span>
-                      <Badge variant="outline">{hasMorePrompts ? 'In Progress' : 'Almost Done'}</Badge>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                      <div 
-                        className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${(completedPrompts / duePrompts.length) * 100}%` }}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Current Prompt */}
-                <PromptCard
-                  prompt={currentPrompt}
-                  onAnswer={handlePromptAnswer}
-                />
-              </div>
-            )}
-          </TabsContent>
-
-          {/* Add Knowledge Tab */}
-          <TabsContent value="add">
-            <KnowledgeInputForm 
-              userId={MOCK_USER_ID}
-              onSuccess={handleAddSuccess}
-            />
-          </TabsContent>
-
-          {/* Library Tab */}
-          <TabsContent value="library" className="space-y-4">
-            {entriesLoading ? (
-              <Card className="bg-white/80 backdrop-blur-sm">
-                <CardContent className="p-8 text-center">
-                  <div className="animate-pulse space-y-4">
-                    <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto"></div>
-                    <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
+              <Card className="bg-white/90 backdrop-blur-sm border border-gray-200/60 shadow-lg">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between">
+                    <Badge variant="secondary" className="text-xs">
+                      Prompt {currentPromptIndex + 1} of {duePrompts.length}
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">
+                      Difficulty: {currentPrompt?.difficulty || 0}
+                    </Badge>
                   </div>
-                </CardContent>
-              </Card>
-            ) : knowledgeEntries.length === 0 ? (
-              <Card className="bg-white/80 backdrop-blur-sm">
-                <CardContent className="p-8 text-center space-y-4">
-                  <BookOpen className="w-16 h-16 text-gray-400 mx-auto" />
-                  <h3 className="text-xl font-medium text-black">No knowledge entries yet</h3>
-                  <p className="text-gray-600">
-                    Start by adding notes from your CE courses or books to create study prompts.
-                  </p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2">
-                {knowledgeEntries.map((entry: KnowledgeEntry) => (
-                  <Card key={entry.id} className="bg-white/80 backdrop-blur-sm">
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <CardTitle className="text-lg font-medium text-black">{entry.title}</CardTitle>
-                        <Badge variant={entry.sourceType === 'CE' ? 'default' : 'secondary'}>
-                          {entry.sourceType}
-                        </Badge>
-                      </div>
-                      <CardDescription>{entry.sourceTitle}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-gray-600 line-clamp-3 mb-3">
-                        {entry.content}
-                      </p>
-                      {entry.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {entry.tags.map(tag => (
-                            <Badge key={tag} variant="outline" className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))}
+                </CardHeader>
+                
+                <CardContent className="space-y-4">
+                  {/* Question */}
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <h3 className="text-lg font-medium text-black mb-2">Question:</h3>
+                    <p className="text-gray-700">{currentPrompt?.question}</p>
+                  </div>
+
+                  {/* Show Answer Button */}
+                  {!showAnswer && (
+                    <Button
+                      onClick={() => setShowAnswer(true)}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      <Eye className="w-4 h-4 mr-2" />
+                      Show Answer
+                    </Button>
+                  )}
+
+                  {/* Answer Section */}
+                  <AnimatePresence>
+                    {showAnswer && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="space-y-4"
+                      >
+                        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                          <h3 className="text-lg font-medium text-black mb-2">Answer:</h3>
+                          <p className="text-gray-700">{currentPrompt?.answer}</p>
                         </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+
+                        {/* Difficulty Rating */}
+                        <div className="space-y-3">
+                          <h4 className="text-sm font-medium text-black">How well did you recall this?</h4>
+                          <div className="grid grid-cols-2 gap-2">
+                            {difficultyOptions.map((option) => {
+                              const IconComponent = option.icon;
+                              return (
+                                <Button
+                                  key={option.value}
+                                  onClick={() => handlePromptAnswer(option.value)}
+                                  disabled={submitReviewMutation.isPending}
+                                  className={`${option.color} text-white text-sm py-3 px-2 h-auto flex flex-col items-center gap-1`}
+                                  variant="default"
+                                >
+                                  <IconComponent className="w-4 h-4" />
+                                  <span className="font-medium">{option.label}</span>
+                                  <span className="text-xs opacity-90">{option.description}</span>
+                                </Button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </CardContent>
+              </Card>
             )}
-          </TabsContent>
-        </Tabs>
+          </div>
+        )}
       </div>
     </div>
   );
