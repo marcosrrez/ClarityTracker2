@@ -133,9 +133,8 @@ export const QuickLogWidget = () => {
   };
 
   return (
-    <div className="relative z-10">
+    <div className="relative">
       <div
-        className="relative rounded-xl"
         onPointerDown={handleDragStart}
         onPointerMove={handleDragMove}
         onPointerUp={handleDragEnd}
@@ -155,7 +154,7 @@ export const QuickLogWidget = () => {
         </Button>
         
         {dragX > 20 && (
-          <div className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-white/70">
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-white/70 pointer-events-none">
             →
           </div>
         )}

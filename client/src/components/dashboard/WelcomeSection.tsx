@@ -169,13 +169,7 @@ export const WelcomeSection = () => {
         {/* Action Area */}
         <div className="mt-6 flex items-center justify-between">
           <div className="flex-shrink-0">
-            <Button 
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg"
-              onClick={() => window.location.href = '/add-entry'}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Log Session (Test)
-            </Button>
+            <QuickLogWidget />
           </div>
           
           {/* Smart Status Indicators */}
