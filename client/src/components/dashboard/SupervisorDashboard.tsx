@@ -76,93 +76,267 @@ export const SupervisorDashboard = () => {
 
   return (
     <div className="space-y-6">
-      {/* Welcome Section */}
+      {/* Enhanced Welcome Section - Apple-inspired */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <Card className="backdrop-blur-sm bg-gradient-to-r from-blue-50 via-white to-purple-50 border-0 shadow-xl">
-          <CardContent className="p-8">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <h1 className="text-3xl font-bold text-black mb-2">
-                  {getWelcomeMessage()}
-                </h1>
-                <p className="text-gray-600">
-                  Monitor supervisee progress and maintain compliance standards
-                </p>
-              </div>
+        <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-xl rounded-2xl p-8 border border-white/20 shadow-2xl relative overflow-hidden">
+          {/* Subtle background decoration */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-50/30 to-transparent rounded-full -translate-y-16 translate-x-16" />
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-purple-50/20 to-transparent rounded-full translate-y-12 -translate-x-12" />
+          
+          <div className="relative flex items-center justify-between">
+            <div className="flex-1">
+              <h1 className="text-4xl font-black text-black dark:text-white mb-3 tracking-tight">
+                {getWelcomeMessage()}
+              </h1>
+              <p className="text-lg text-gray-600 dark:text-gray-300 font-medium">
+                Your supervisees are making progress
+              </p>
               
-              <div className="text-right">
-                <div className="flex items-center gap-2 mb-2">
-                  <Users className="w-5 h-5 text-blue-600" />
-                  <span className="text-2xl font-bold text-blue-600">{activeSupervisees}</span>
-                  <span className="text-gray-500">Active Supervisees</span>
-                </div>
-                {complianceIssues > 0 && (
-                  <Badge variant="destructive" className="mt-1">
-                    {complianceIssues} Compliance Issues
-                  </Badge>
+              {/* Status indicators */}
+              <div className="flex items-center space-x-6 mt-4">
+                {activeSupervisees > 0 && (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-sm text-green-600 dark:text-green-400 font-semibold">
+                      {activeSupervisees} active
+                    </span>
+                  </div>
+                )}
+                
+                {complianceIssues === 0 && totalSupervisees > 0 && (
+                  <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+                    All compliant
+                  </div>
                 )}
               </div>
             </div>
-          </CardContent>
-        </Card>
+            
+            {/* Primary Metric - Enhanced circular progress */}
+            <div className="relative">
+              <div className="w-32 h-32 relative">
+                {/* Progress ring */}
+                <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 120 120">
+                  <circle
+                    cx="60"
+                    cy="60"
+                    r="50"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    strokeDasharray="314"
+                    strokeDashoffset="314"
+                    className="text-gray-200 dark:text-gray-700"
+                  />
+                  <circle
+                    cx="60"
+                    cy="60"
+                    r="50"
+                    fill="none"
+                    stroke="#3B82F6"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    strokeDasharray="314"
+                    strokeDashoffset={314 - (activeSupervisees / Math.max(totalSupervisees, 1)) * 314}
+                    className="transition-all duration-2000 ease-out drop-shadow-sm"
+                    style={{
+                      filter: 'drop-shadow(0 0 6px rgba(59, 130, 246, 0.3))'
+                    }}
+                  />
+                </svg>
+                
+                {/* Center content */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <div className="text-3xl font-black text-black dark:text-white">
+                    {activeSupervisees}
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                    / {totalSupervisees} supervisees
+                  </div>
+                </div>
+              </div>
+              
+              {/* Active status */}
+              <div className="text-center mt-2">
+                <div className="text-sm font-bold text-black dark:text-white">
+                  {Math.round((activeSupervisees / Math.max(totalSupervisees, 1)) * 100)}% Active
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Quick action button */}
+          <div className="mt-6 flex justify-start">
+            <Link href="/supervisees">
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg">
+                <Users className="w-4 h-4 mr-2" />
+                Manage Supervisees
+              </Button>
+            </Link>
+          </div>
+        </div>
       </motion.div>
 
-      {/* Supervision Metrics */}
+      {/* Essential Supervisor Metrics Grid */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
-        className="grid grid-cols-1 md:grid-cols-4 gap-6"
+        className="grid grid-cols-2 gap-4"
       >
-        <Card className="backdrop-blur-sm bg-white/70">
-          <CardContent className="p-6 text-center">
-            <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Users className="w-6 h-6 text-white" />
+        {/* Supervision Capacity & Load */}
+        <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-xl rounded-xl p-4 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-green-50/30 to-transparent rounded-full -translate-y-8 translate-x-8" />
+          
+          <div className="relative">
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-2 bg-green-500/10 rounded-lg">
+                <Clock className="h-4 w-4 text-green-600 dark:text-green-400" />
+              </div>
+              <span className="text-xs text-green-600 dark:text-green-400 font-semibold">
+                {Math.round((totalSupervisionHours / Math.max(totalSupervisees * 2, 1)) * 100)}% capacity
+              </span>
             </div>
-            <h3 className="font-semibold text-gray-900 mb-2">Total Supervisees</h3>
-            <p className="text-2xl font-bold text-blue-600">{totalSupervisees}</p>
-            <p className="text-sm text-gray-500">{activeSupervisees} active</p>
-          </CardContent>
-        </Card>
+            
+            <div className="text-xl font-bold text-black dark:text-white mb-1">
+              {totalSupervisionHours.toFixed(1)}h
+            </div>
+            
+            <div className="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2">
+              Total Supervision
+            </div>
+            
+            {/* Load distribution */}
+            <div className="flex items-center justify-between">
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                {activeSupervisees > 0 ? `${(totalSupervisionHours / activeSupervisees).toFixed(1)}h avg/supervisee` : 'No active supervisees'}
+              </div>
+            </div>
+          </div>
+        </div>
 
-        <Card className="backdrop-blur-sm bg-white/70">
-          <CardContent className="p-6 text-center">
-            <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Clock className="w-6 h-6 text-white" />
+        {/* Compliance Overview */}
+        <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-xl rounded-xl p-4 relative overflow-hidden">
+          <div className={`absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl to-transparent rounded-full -translate-y-8 translate-x-8 ${
+            complianceIssues === 0 ? 'from-blue-50/30' : 'from-orange-50/30'
+          }`} />
+          
+          <div className="relative">
+            <div className="flex items-center justify-between mb-3">
+              <div className={`p-2 rounded-lg ${
+                complianceIssues === 0 ? 'bg-blue-500/10' : 'bg-orange-500/10'
+              }`}>
+                <CheckCircle className={`h-4 w-4 ${
+                  complianceIssues === 0 
+                    ? 'text-blue-600 dark:text-blue-400' 
+                    : 'text-orange-600 dark:text-orange-400'
+                }`} />
+              </div>
+              
+              <div className={`w-1.5 h-1.5 rounded-full ${
+                complianceIssues === 0 ? 'bg-blue-500' : 'bg-orange-500 animate-pulse'
+              }`} />
             </div>
-            <h3 className="font-semibold text-gray-900 mb-2">Supervision Hours</h3>
-            <p className="text-2xl font-bold text-green-600">{totalSupervisionHours}</p>
-            <p className="text-sm text-gray-500">this period</p>
-          </CardContent>
-        </Card>
+            
+            <div className="text-xl font-bold text-black dark:text-white mb-1">
+              {totalSupervisees - complianceIssues}/{totalSupervisees}
+            </div>
+            
+            <div className="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2">
+              Compliance Status
+            </div>
+            
+            {/* Compliance breakdown */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-500 dark:text-gray-400">Compliant</span>
+                <span className="text-blue-600 dark:text-blue-400 font-medium">
+                  {Math.round(((totalSupervisees - complianceIssues) / Math.max(totalSupervisees, 1)) * 100)}%
+                </span>
+              </div>
+              {complianceIssues > 0 && (
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-orange-600 dark:text-orange-400">Need attention</span>
+                  <span className="text-orange-600 dark:text-orange-400 font-medium">
+                    {complianceIssues}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
 
-        <Card className="backdrop-blur-sm bg-white/70">
-          <CardContent className="p-6 text-center">
-            <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="w-6 h-6 text-white" />
+        {/* Supervisee Progress Summary */}
+        <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-xl rounded-xl p-4 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-purple-50/30 to-transparent rounded-full -translate-y-8 translate-x-8" />
+          
+          <div className="relative">
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-2 bg-purple-500/10 rounded-lg">
+                <Users className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+              </div>
+              <span className="text-xs text-purple-600 dark:text-purple-400 font-semibold">
+                Progress tracking
+              </span>
             </div>
-            <h3 className="font-semibold text-gray-900 mb-2">Compliant</h3>
-            <p className="text-2xl font-bold text-purple-600">
-              {totalSupervisees - complianceIssues}
-            </p>
-            <p className="text-sm text-gray-500">of {totalSupervisees} supervisees</p>
-          </CardContent>
-        </Card>
+            
+            <div className="text-xl font-bold text-black dark:text-white mb-1">
+              {superviseeProgress.filter(s => s.isOnTrack).length}
+            </div>
+            
+            <div className="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2">
+              On Track
+            </div>
+            
+            {/* Progress indicators */}
+            <div className="flex items-center space-x-1">
+              {superviseeProgress.slice(0, 4).map((supervisee, index) => (
+                <div 
+                  key={supervisee.id}
+                  className={`w-2 h-2 rounded-full ${
+                    supervisee.isOnTrack ? 'bg-purple-500' : 'bg-gray-300 dark:bg-gray-600'
+                  }`}
+                />
+              ))}
+              {superviseeProgress.length > 4 && (
+                <span className="text-xs text-gray-400 dark:text-gray-500 ml-1">
+                  +{superviseeProgress.length - 4}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
 
-        <Card className="backdrop-blur-sm bg-white/70">
-          <CardContent className="p-6 text-center">
-            <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <AlertTriangle className="w-6 h-6 text-white" />
+        {/* Weekly Supervision Schedule */}
+        <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-xl rounded-xl p-4 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-indigo-50/30 to-transparent rounded-full -translate-y-8 translate-x-8" />
+          
+          <div className="relative">
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-2 bg-indigo-500/10 rounded-lg">
+                <Calendar className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+              </div>
             </div>
-            <h3 className="font-semibold text-gray-900 mb-2">Alerts</h3>
-            <p className="text-2xl font-bold text-orange-600">{complianceIssues}</p>
-            <p className="text-sm text-gray-500">require attention</p>
-          </CardContent>
-        </Card>
+            
+            <div className="text-xl font-bold text-black dark:text-white mb-1">
+              {activeSupervisees * 1} {/* Assume 1 session per active supervisee per week */}
+            </div>
+            
+            <div className="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2">
+              Weekly Sessions
+            </div>
+            
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              {activeSupervisees > 0 
+                ? `${activeSupervisees}h scheduled this week`
+                : 'No sessions scheduled'
+              }
+            </div>
+          </div>
+        </div>
       </motion.div>
 
       {/* Quick Actions for Supervisors */}

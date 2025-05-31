@@ -176,12 +176,29 @@ export const WelcomeSection = () => {
             </Button>
           </Link>
           
-          {/* Contextual Status - Only show when meaningful */}
-          {entries && entries.length > 2 && (
-            <div className="text-sm text-green-600 dark:text-green-400 font-medium">
-              On track this week
-            </div>
-          )}
+          {/* Smart Status Indicators */}
+          <div className="flex items-center space-x-4">
+            {entries && entries.length > 2 && (
+              <div className="flex items-center space-x-1">
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-sm text-green-600 dark:text-green-400 font-medium">
+                  Building consistency
+                </span>
+              </div>
+            )}
+            
+            {/* Weekly progress indicator */}
+            {entries && entries.filter((entry: any) => {
+              const entryDate = new Date(entry.dateOfContact);
+              const weekAgo = new Date();
+              weekAgo.setDate(weekAgo.getDate() - 7);
+              return entryDate >= weekAgo;
+            }).length >= 2 && (
+              <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+                Strong week
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
