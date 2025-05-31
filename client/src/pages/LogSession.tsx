@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -11,8 +11,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { Clock, Zap, FileText, Calendar, ArrowRight, Plus } from "lucide-react";
+import { Clock, Zap, FileText, Calendar, ArrowRight, Plus, Lightbulb } from "lucide-react";
 
 type EntryMode = "quick" | "detailed";
 
@@ -20,6 +21,12 @@ export default function LogSession() {
   const [quickMode, setQuickMode] = useState(true);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [smartSuggestions, setSmartSuggestions] = useState<Array<{
+    field: string;
+    value: any;
+    reason: string;
+  }>>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const form = useForm<InsertLogEntry>({
     resolver: zodResolver(insertLogEntrySchema),
@@ -33,6 +40,58 @@ export default function LogSession() {
       notes: "",
     },
   });
+
+  const watchedClientHours = form.watch("clientContactHours");
+  const watchedSupervisionType = form.watch("supervisionType");
+
+  // Smart prefill suggestions for quick mode
+  useEffect(() => {
+    if (quickMode) {
+      const generateSuggestions = () => {
+        const suggestions = [];
+        const currentHour = new Date().getHours();
+        const dayOfWeek = new Date().getDay();
+        
+        // Time-based intelligent suggestions
+        if (currentHour >= 9 && currentHour <= 17 && dayOfWeek >= 1 && dayOfWeek <= 5) {
+          if (!watchedClientHours) {
+            suggestions.push({
+              field: 'clientContactHours',
+              value: 1,
+              reason: 'Standard therapy session duration'
+            });
+          }
+        }
+        
+        // Evening sessions might be shorter
+        if (currentHour >= 18 || currentHour <= 8) {
+          if (!watchedClientHours) {
+            suggestions.push({
+              field: 'clientContactHours',
+              value: 0.75,
+              reason: 'Evening session duration'
+            });
+          }
+        }
+        
+        setSmartSuggestions(suggestions);
+        setShowSuggestions(suggestions.length > 0);
+      };
+
+      generateSuggestions();
+    } else {
+      setShowSuggestions(false);
+    }
+  }, [quickMode, watchedClientHours]);
+
+  const applySuggestion = (suggestion: any) => {
+    form.setValue(suggestion.field, suggestion.value);
+    setShowSuggestions(false);
+    toast({
+      title: "Applied suggestion",
+      description: `Set ${suggestion.field} to ${suggestion.value} hours`,
+    });
+  };
 
   const createEntryMutation = useMutation({
     mutationFn: async (data: InsertLogEntry) => {
@@ -166,6 +225,29 @@ export default function LogSession() {
                 />
               </div>
 
+              {/* Smart Suggestions - Only in Quick Mode */}
+              {quickMode && showSuggestions && smartSuggestions.length > 0 && (
+                <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-900/20">
+                  <Lightbulb className="h-4 w-4" />
+                  <AlertDescription>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">
+                        <strong>Smart suggestion:</strong> {smartSuggestions[0].reason}
+                      </span>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => applySuggestion(smartSuggestions[0])}
+                        className="ml-4"
+                      >
+                        Apply {smartSuggestions[0].value}h
+                      </Button>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              )}
+
               <FormField
                 control={form.control}
                 name="notes"
@@ -189,7 +271,8 @@ export default function LogSession() {
               {/* Detailed Fields - Only in Detailed Mode */}
               {!quickMode && (
                 <div className="space-y-6 border-t pt-6">
-                  <h3 className="text-lg font-semibold">Additional Details</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Comprehensive Documentation</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">Additional details for supervision preparation and professional development</p>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
@@ -239,6 +322,29 @@ export default function LogSession() {
                     />
                   </div>
 
+                  {/* Supervision Date - Only when supervision type is not "none" */}
+                  {watchedSupervisionType !== "none" && (
+                    <FormField
+                      control={form.control}
+                      name="supervisionDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Supervision Date</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="date"
+                              {...field}
+                              value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : field.value || ''}
+                              onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : undefined)}
+                              className="bg-white dark:bg-gray-700"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
                   <div className="flex items-center space-x-6">
                     <FormField
                       control={form.control}
@@ -271,6 +377,21 @@ export default function LogSession() {
                         </FormItem>
                       )}
                     />
+                  </div>
+
+                  <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-3">Professional Development Context</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                      These additional details help prepare for supervision sessions and track competency development across your therapeutic practice.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="font-medium">Quick Mode:</span> Essential information only
+                      </div>
+                      <div>
+                        <span className="font-medium">Detailed Mode:</span> Comprehensive documentation
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
