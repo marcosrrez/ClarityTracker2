@@ -198,7 +198,7 @@ export const WelcomeSection = () => {
         </div>
         
         {/* QuickLog Widget as overlay */}
-        <div className="absolute bottom-4 left-8">
+        <div className="absolute top-8 right-8">
           <QuickLogWidget />
         </div>
       </div>
