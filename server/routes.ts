@@ -733,6 +733,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertKnowledgeEntrySchema.parse(req.body);
       const entry = await storage.createKnowledgeEntry(validatedData);
+      
+      // Automatically generate prompts from the content
+      try {
+        await storage.generatePromptsFromContent(
+          validatedData.content,
+          entry.id,
+          validatedData.userId
+        );
+      } catch (promptError) {
+        console.error('Error generating prompts:', promptError);
+        // Continue without failing the knowledge entry creation
+      }
+      
       res.json(entry);
     } catch (error) {
       console.error('Error creating knowledge entry:', error);
