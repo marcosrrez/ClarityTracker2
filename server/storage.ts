@@ -9,6 +9,10 @@ import {
   knowledgeEntryTable,
   promptTable,
   reviewTable,
+  userTherapyProfileTable,
+  supervisionIntelligenceTable,
+  competencyAnalysisTable,
+  patternAnalysisTable,
   type Feedback, 
   type InsertFeedback, 
   type UserAnalytics, 
@@ -28,7 +32,15 @@ import {
   type Prompt,
   type InsertPrompt,
   type Review,
-  type InsertReview
+  type InsertReview,
+  type UserTherapyProfile,
+  type InsertUserTherapyProfile,
+  type SupervisionIntelligence,
+  type InsertSupervisionIntelligence,
+  type CompetencyAnalysis,
+  type InsertCompetencyAnalysis,
+  type PatternAnalysis,
+  type InsertPatternAnalysis
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, asc, and, gte, lte, isNull, sql } from "drizzle-orm";
@@ -86,6 +98,21 @@ export interface IStorage {
   updateReview(id: string, updates: Partial<Review>): Promise<void>;
   
   generatePromptsFromContent(content: string, knowledgeEntryId: string, userId: string): Promise<Prompt[]>;
+  
+  // Enhanced AI Features
+  getUserTherapyProfile(userId: string): Promise<UserTherapyProfile | undefined>;
+  createUserTherapyProfile(profile: InsertUserTherapyProfile): Promise<UserTherapyProfile>;
+  updateUserTherapyProfile(userId: string, updates: Partial<UserTherapyProfile>): Promise<void>;
+  
+  getSupervisionIntelligence(userId: string, weekStartDate?: Date): Promise<SupervisionIntelligence[]>;
+  createSupervisionIntelligence(intelligence: InsertSupervisionIntelligence): Promise<SupervisionIntelligence>;
+  
+  getCompetencyAnalysis(userId: string, sessionId?: string): Promise<CompetencyAnalysis[]>;
+  createCompetencyAnalysis(analysis: InsertCompetencyAnalysis): Promise<CompetencyAnalysis>;
+  
+  getPatternAnalysis(userId: string, alertType?: string): Promise<PatternAnalysis[]>;
+  createPatternAnalysis(pattern: InsertPatternAnalysis): Promise<PatternAnalysis>;
+  updatePatternAnalysis(id: string, updates: Partial<PatternAnalysis>): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {

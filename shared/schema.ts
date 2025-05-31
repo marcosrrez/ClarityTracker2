@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { pgTable, text, timestamp, varchar, integer, real } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, varchar, integer, real, jsonb, serial } from 'drizzle-orm/pg-core';
 
 // User Profile Schema
 export const userProfileSchema = z.object({
@@ -525,3 +525,192 @@ export type Prompt = z.infer<typeof promptSchema>;
 export type InsertPrompt = z.infer<typeof insertPromptSchema>;
 export type Review = z.infer<typeof reviewSchema>;
 export type InsertReview = z.infer<typeof insertReviewSchema>;
+
+// Progressive User Therapy Profile Schema
+export const userTherapyProfileSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  primaryModalities: z.array(z.string()).default([]), // CBT, DBT, EMDR, etc.
+  clientPopulations: z.array(z.string()).default([]), // anxiety, depression, trauma, etc.
+  commonInterventions: z.array(z.string()).default([]), // techniques user frequently mentions
+  challengePatterns: z.array(z.string()).default([]), // recurring difficulties identified by AI
+  strengthPatterns: z.array(z.string()).default([]), // consistent strengths noted
+  supervisorFeedbackThemes: z.array(z.string()).default([]), // common supervision topics
+  competencyLevels: z.object({
+    therapeuticRelationship: z.number().min(1).max(5),
+    assessmentSkills: z.number().min(1).max(5),
+    interventionPlanning: z.number().min(1).max(5),
+    ethicalDecisionMaking: z.number().min(1).max(5),
+    culturalCompetence: z.number().min(1).max(5),
+    lastUpdated: z.date()
+  }),
+  learningPreferences: z.array(z.string()).default([]), // visual, case-based, theoretical
+  sessionCount: z.number().default(0),
+  lastAnalyzed: z.date(),
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date())
+});
+
+export const insertUserTherapyProfileSchema = userTherapyProfileSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+
+// Supervision Intelligence Schema
+export const supervisionIntelligenceSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  weekStartDate: z.date(),
+  weeklyAnalysis: z.object({
+    patternAlerts: z.array(z.string()),
+    skillGrowthOpportunities: z.array(z.string()),
+    ethicalConsiderations: z.array(z.string()),
+    interventionEffectiveness: z.array(z.string()),
+    challengingCasesSummary: z.array(z.string())
+  }),
+  suggestedAgenda: z.object({
+    discussionTopics: z.array(z.string()),
+    specificCasesToReview: z.array(z.string()),
+    skillDevelopmentGoals: z.array(z.string()),
+    resourceRecommendations: z.array(z.string())
+  }),
+  sessionDataAnalyzed: z.number().default(0),
+  generatedAt: z.date().default(() => new Date()),
+  createdAt: z.date().default(() => new Date())
+});
+
+export const insertSupervisionIntelligenceSchema = supervisionIntelligenceSchema.omit({
+  id: true,
+  generatedAt: true,
+  createdAt: true
+});
+
+// Competency Analysis Schema
+export const competencyAnalysisSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  sessionId: z.string().optional(), // linked to specific session if applicable
+  competencyScores: z.object({
+    therapeuticRelationship: z.object({
+      score: z.number().min(1).max(5),
+      evidence: z.array(z.string()),
+      growthAreas: z.array(z.string())
+    }),
+    assessmentSkills: z.object({
+      score: z.number().min(1).max(5),
+      evidence: z.array(z.string()),
+      growthAreas: z.array(z.string())
+    }),
+    interventionPlanning: z.object({
+      score: z.number().min(1).max(5),
+      evidence: z.array(z.string()),
+      growthAreas: z.array(z.string())
+    }),
+    ethicalDecisionMaking: z.object({
+      score: z.number().min(1).max(5),
+      evidence: z.array(z.string()),
+      growthAreas: z.array(z.string())
+    }),
+    culturalCompetence: z.object({
+      score: z.number().min(1).max(5),
+      evidence: z.array(z.string()),
+      growthAreas: z.array(z.string())
+    })
+  }),
+  supervisionDiscussionPoints: z.array(z.string()),
+  nextDevelopmentSteps: z.array(z.string()),
+  analyzedAt: z.date().default(() => new Date()),
+  createdAt: z.date().default(() => new Date())
+});
+
+export const insertCompetencyAnalysisSchema = competencyAnalysisSchema.omit({
+  id: true,
+  analyzedAt: true,
+  createdAt: true
+});
+
+// Pattern Analysis Schema
+export const patternAnalysisSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  alertType: z.enum(['concern', 'growth', 'success', 'supervision_needed']),
+  pattern: z.string(),
+  frequency: z.number(),
+  timeline: z.string(),
+  recommendation: z.string(),
+  urgency: z.enum(['low', 'medium', 'high']),
+  isRead: z.boolean().default(false),
+  isResolved: z.boolean().default(false),
+  resolvedAt: z.date().optional(),
+  createdAt: z.date().default(() => new Date())
+});
+
+export const insertPatternAnalysisSchema = patternAnalysisSchema.omit({
+  id: true,
+  createdAt: true
+});
+
+export type UserTherapyProfile = z.infer<typeof userTherapyProfileSchema>;
+export type InsertUserTherapyProfile = z.infer<typeof insertUserTherapyProfileSchema>;
+export type SupervisionIntelligence = z.infer<typeof supervisionIntelligenceSchema>;
+export type InsertSupervisionIntelligence = z.infer<typeof insertSupervisionIntelligenceSchema>;
+export type CompetencyAnalysis = z.infer<typeof competencyAnalysisSchema>;
+export type InsertCompetencyAnalysis = z.infer<typeof insertCompetencyAnalysisSchema>;
+export type PatternAnalysis = z.infer<typeof patternAnalysisSchema>;
+export type InsertPatternAnalysis = z.infer<typeof insertPatternAnalysisSchema>;
+
+// Database Tables for AI Features
+export const userTherapyProfileTable = pgTable('user_therapy_profiles', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  primaryModalities: jsonb('primary_modalities').default([]).notNull(),
+  clientPopulations: jsonb('client_populations').default([]).notNull(),
+  commonInterventions: jsonb('common_interventions').default([]).notNull(),
+  challengePatterns: jsonb('challenge_patterns').default([]).notNull(),
+  strengthPatterns: jsonb('strength_patterns').default([]).notNull(),
+  supervisorFeedbackThemes: jsonb('supervisor_feedback_themes').default([]).notNull(),
+  competencyLevels: jsonb('competency_levels').notNull(),
+  learningPreferences: jsonb('learning_preferences').default([]).notNull(),
+  sessionCount: integer('session_count').default(0).notNull(),
+  lastAnalyzed: timestamp('last_analyzed').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+export const supervisionIntelligenceTable = pgTable('supervision_intelligence', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  weekStartDate: timestamp('week_start_date').notNull(),
+  weeklyAnalysis: jsonb('weekly_analysis').notNull(),
+  suggestedAgenda: jsonb('suggested_agenda').notNull(),
+  sessionDataAnalyzed: integer('session_data_analyzed').default(0).notNull(),
+  generatedAt: timestamp('generated_at').defaultNow().notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+export const competencyAnalysisTable = pgTable('competency_analysis', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  sessionId: varchar('session_id', { length: 255 }),
+  competencyScores: jsonb('competency_scores').notNull(),
+  supervisionDiscussionPoints: jsonb('supervision_discussion_points').default([]).notNull(),
+  nextDevelopmentSteps: jsonb('next_development_steps').default([]).notNull(),
+  analyzedAt: timestamp('analyzed_at').defaultNow().notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+export const patternAnalysisTable = pgTable('pattern_analysis', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  alertType: varchar('alert_type', { length: 50 }).notNull(),
+  pattern: text('pattern').notNull(),
+  frequency: integer('frequency').notNull(),
+  timeline: text('timeline').notNull(),
+  recommendation: text('recommendation').notNull(),
+  urgency: varchar('urgency', { length: 20 }).notNull(),
+  isRead: varchar('is_read', { length: 10 }).default('false').notNull(),
+  isResolved: varchar('is_resolved', { length: 10 }).default('false').notNull(),
+  resolvedAt: timestamp('resolved_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+});
