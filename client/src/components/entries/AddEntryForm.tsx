@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Check } from "lucide-react";
+import { Calendar as CalendarIcon, Check, Lightbulb, Clock, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,6 +32,12 @@ export const AddEntryForm = () => {
   const [supervisionCalendarOpen, setSupervisionCalendarOpen] = useState(false);
   const [notesContent, setNotesContent] = useState("");
   const [selectedSupervisee, setSelectedSupervisee] = useState("");
+  const [smartSuggestions, setSmartSuggestions] = useState<Array<{
+    field: string;
+    value: any;
+    reason: string;
+  }>>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const {
     register,
@@ -56,6 +62,45 @@ export const AddEntryForm = () => {
   const watchedDateOfContact = watch("dateOfContact");
   const watchedSupervisionDate = watch("supervisionDate");
   const watchedSupervisionType = watch("supervisionType");
+  const watchedClientHours = watch("clientContactHours");
+
+  // Smart suggestions based on user patterns
+  useEffect(() => {
+    const generateSuggestions = () => {
+      const suggestions = [];
+      const currentHour = new Date().getHours();
+      const dayOfWeek = new Date().getDay();
+      
+      // Time-based suggestions
+      if (currentHour >= 9 && currentHour <= 17) {
+        if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+          suggestions.push({
+            field: 'clientContactHours',
+            value: 1.5,
+            reason: 'Typical weekday session duration'
+          });
+        }
+      }
+      
+      // Pattern-based suggestions for common session types
+      if (!isSupervisor && !watchedClientHours) {
+        suggestions.push({
+          field: 'clientContactHours',
+          value: 1,
+          reason: 'Standard therapy session'
+        });
+      }
+      
+      setSmartSuggestions(suggestions);
+    };
+
+    generateSuggestions();
+  }, [watchedClientHours, isSupervisor]);
+
+  const applySuggestion = (suggestion: any) => {
+    setValue(suggestion.field, suggestion.value);
+    setShowSuggestions(false);
+  };
 
   const onSubmit = async (data: InsertLogEntry) => {
     if (!user) return;
@@ -129,6 +174,70 @@ export const AddEntryForm = () => {
       
       <Card className="backdrop-blur-sm bg-white/80 dark:bg-gray-800/80 border border-white/20 shadow-xl rounded-3xl">
         <CardContent className="p-8">
+          
+          {/* Smart Suggestions Panel */}
+          {smartSuggestions.length > 0 && !showSuggestions && (
+            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Lightbulb className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                    Smart suggestions available
+                  </span>
+                </div>
+                <Button 
+                  type="button"
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setShowSuggestions(true)}
+                  className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                >
+                  <Zap className="w-3 h-3 mr-1" />
+                  Show
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Expanded Suggestions */}
+          {showSuggestions && smartSuggestions.length > 0 && (
+            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-medium text-blue-800 dark:text-blue-200">Quick Fill Options</h3>
+                <Button 
+                  type="button"
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setShowSuggestions(false)}
+                  className="text-blue-600 dark:text-blue-400"
+                >
+                  ×
+                </Button>
+              </div>
+              <div className="space-y-2">
+                {smartSuggestions.map((suggestion, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => applySuggestion(suggestion)}
+                    className="w-full text-left p-3 bg-white dark:bg-gray-800 rounded-lg border border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
+                          {suggestion.field === 'clientContactHours' ? `${suggestion.value} hour session` : suggestion.value}
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          {suggestion.reason}
+                        </div>
+                      </div>
+                      <Clock className="w-4 h-4 text-blue-500" />
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* Date of Contact */}
