@@ -923,8 +923,47 @@ export class DatabaseStorage implements IStorage {
   }
 
   async generatePromptsFromContent(content: string, knowledgeEntryId: string, userId: string): Promise<Prompt[]> {
-    // Placeholder for OpenAI integration - will be implemented in API routes
-    return [];
+    try {
+      const OpenAI = require('openai');
+      const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: "You are an expert educational content creator specializing in counseling and therapy. Generate 3-5 high-quality study prompts from the given content. Each prompt should test understanding, application, or critical thinking. Respond with valid JSON in this exact format: { \"prompts\": [{ \"question\": \"...\", \"answer\": \"...\" }] }"
+          },
+          {
+            role: "user",
+            content: `Generate study prompts from this content:\n\n${content}`
+          }
+        ],
+        response_format: { type: "json_object" },
+        max_tokens: 1000,
+        temperature: 0.7,
+      });
+
+      const result = JSON.parse(response.choices[0].message.content);
+      const generatedPrompts: Prompt[] = [];
+
+      for (const promptData of result.prompts || []) {
+        const prompt = await this.createPrompt({
+          knowledgeEntryId,
+          userId,
+          question: promptData.question,
+          answer: promptData.answer,
+        });
+        generatedPrompts.push(prompt);
+      }
+
+      return generatedPrompts;
+    } catch (error) {
+      console.error('Error generating prompts from content:', error);
+      throw new Error('Failed to generate study prompts. Please check your OpenAI API configuration.');
+    }
   }
 }
 
