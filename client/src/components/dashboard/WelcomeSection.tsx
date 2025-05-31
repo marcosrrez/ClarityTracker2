@@ -119,7 +119,7 @@ export const WelcomeSection = () => {
   return (
     <section className="space-y-6">
       {/* Apple-inspired Welcome Section - Clean & Focused */}
-      <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-2xl p-8 pb-12 relative overflow-hidden">
+      <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-2xl p-8 pb-16 relative">
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <h1 className="text-4xl font-bold mb-2 text-black dark:text-white tracking-tight">
