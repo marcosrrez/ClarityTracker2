@@ -8,8 +8,9 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { OnboardingTrigger } from "@/components/onboarding/OnboardingTrigger";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { V2Layout } from "@/components/layout/V2Layout";
 
-// Pages
+// V1 Pages
 import AuthPage from "@/pages/auth";
 import { SuperhumanLandingPage } from "@/components/SuperhumanLandingPage";
 import DashboardPage from "@/pages/dashboard";
@@ -33,10 +34,46 @@ import SpacedRepetition from "@/pages/SpacedRepetition";
 import AIInsights from "@/pages/AIInsights";
 import NotFound from "@/pages/not-found";
 
+// V2 Main Surfaces
+import LogSessionView from "@/pages/v2/LogSessionView";
+import MyJourneyView from "@/pages/v2/MyJourneyView";
+import SupervisionHubView from "@/pages/v2/SupervisionHubView";
+import GrowthStudioView from "@/pages/v2/GrowthStudioView";
+import RhythmEngineView from "@/pages/v2/RhythmEngineView";
+
 function Router() {
   return (
     <Switch>
       <Route path="/auth" component={AuthPage} />
+      
+      {/* V2 Main Surfaces - The Five Core Views */}
+      <Route path="/v2/log">
+        <V2Layout>
+          <LogSessionView />
+        </V2Layout>
+      </Route>
+      <Route path="/v2/journey">
+        <V2Layout>
+          <MyJourneyView />
+        </V2Layout>
+      </Route>
+      <Route path="/v2/supervision">
+        <V2Layout>
+          <SupervisionHubView />
+        </V2Layout>
+      </Route>
+      <Route path="/v2/growth">
+        <V2Layout>
+          <GrowthStudioView />
+        </V2Layout>
+      </Route>
+      <Route path="/v2/rhythm">
+        <V2Layout>
+          <RhythmEngineView />
+        </V2Layout>
+      </Route>
+      
+      {/* V1 Legacy Pages */}
       <Route path="/dashboard" component={DashboardPage} />
       <Route path="/add-entry" component={AddEntryPage} />
       <Route path="/insights" component={InsightsPage} />
@@ -61,8 +98,12 @@ function Router() {
         </AuthGuard>
       </Route>
       
-      {/* Default route - redirect to dashboard */}
-      <Route path="/" component={DashboardPage} />
+      {/* Default route - redirect to V2 Log view */}
+      <Route path="/">
+        <V2Layout>
+          <LogSessionView />
+        </V2Layout>
+      </Route>
       
       {/* 404 fallback */}
       <Route component={NotFound} />
