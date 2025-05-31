@@ -78,7 +78,7 @@ const mockUserId = 'user_demo_123';
 export default function IntelligenceHub() {
   const [sessionNotes, setSessionNotes] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('insights');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -176,95 +176,81 @@ export default function IntelligenceHub() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="profile">Therapy Profile</TabsTrigger>
-            <TabsTrigger value="analyze">Session Analysis</TabsTrigger>
-            <TabsTrigger value="supervision">Supervision Prep</TabsTrigger>
-            <TabsTrigger value="patterns">Pattern Analysis</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="insights">Recent Insights</TabsTrigger>
+            <TabsTrigger value="analyze">Analyze Session</TabsTrigger>
+            <TabsTrigger value="profile">Deep Profile View</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-6">
-            {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card className="text-center">
-                <CardContent className="p-4">
-                  <Target className="h-6 w-6 text-blue-600 mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-black">4</p>
-                  <p className="text-sm text-gray-600">Active Competencies</p>
-                </CardContent>
-              </Card>
-              
-              <Card className="text-center">
-                <CardContent className="p-4">
-                  <TrendingUp className="h-6 w-6 text-green-600 mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-black">3</p>
-                  <p className="text-sm text-gray-600">Growth Areas</p>
-                </CardContent>
-              </Card>
-              
-              <Card className="text-center">
-                <CardContent className="p-4">
-                  <AlertCircle className="h-6 w-6 text-orange-600 mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-black">1</p>
-                  <p className="text-sm text-gray-600">Pattern Alerts</p>
-                </CardContent>
-              </Card>
-              
-              <Card className="text-center">
-                <CardContent className="p-4">
-                  <Brain className="h-6 w-6 text-purple-600 mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-black">23</p>
-                  <p className="text-sm text-gray-600">Total Insights</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Recent Insights */}
+          <TabsContent value="insights" className="space-y-6">
+            {/* All Insights in Detail */}
             <Card className="border-0 shadow-lg">
               <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
                 <CardTitle className="flex items-center gap-3 text-black font-bold">
                   <Lightbulb className="h-6 w-6 text-blue-600" />
-                  Recent Intelligence
+                  All Intelligence Insights
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
-                <div className="space-y-4">
-                  <div className="p-4 bg-green-50 border-l-4 border-l-green-600 rounded">
-                    <div className="flex items-start gap-3">
-                      <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
-                      <div>
-                        <h4 className="font-bold text-black">Growing Strength in Trauma-Informed Care</h4>
-                        <p className="text-gray-700 text-sm mt-1">
-                          Your recent sessions show developing expertise in trauma-informed approaches. Continue building these specialized skills.
-                        </p>
+                <div className="space-y-6">
+                  {/* Pattern Analysis Results */}
+                  {patternData && patternData.length > 0 ? (
+                    <div>
+                      <h4 className="font-bold text-black mb-3">Pattern Detection</h4>
+                      <div className="space-y-3">
+                        {patternData.map((pattern) => (
+                          <div key={pattern.id} className={`p-4 rounded-lg border ${getAlertColor(pattern.alertType)}`}>
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex items-center gap-2">
+                                {pattern.alertType === 'concern' && <AlertCircle className="h-5 w-5" />}
+                                {pattern.alertType === 'success' && <CheckCircle className="h-5 w-5" />}
+                                {pattern.alertType === 'growth' && <TrendingUp className="h-5 w-5" />}
+                                {pattern.alertType === 'supervision_needed' && <Users className="h-5 w-5" />}
+                                <span className="font-bold text-black">{pattern.pattern}</span>
+                              </div>
+                              <Badge variant="secondary" className="font-medium">
+                                {pattern.urgency}
+                              </Badge>
+                            </div>
+                            <p className="text-sm font-medium text-black mb-2">{pattern.recommendation}</p>
+                            <div className="text-xs text-gray-600">
+                              Frequency: {pattern.frequency} | Timeline: {pattern.timeline}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  </div>
-                  
-                  <div className="p-4 bg-blue-50 border-l-4 border-l-blue-600 rounded">
-                    <div className="flex items-start gap-3">
-                      <Brain className="h-5 w-5 text-blue-600 mt-0.5" />
-                      <div>
-                        <h4 className="font-bold text-black">Assessment Skills Improving</h4>
-                        <p className="text-gray-700 text-sm mt-1">
-                          Your case conceptualizations are becoming more thorough and nuanced. Consider advanced assessment training.
-                        </p>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Brain className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-bold text-black mb-2">Building Your Intelligence Profile</h3>
+                      <p className="text-gray-600">Continue logging sessions to generate personalized insights and pattern analysis.</p>
+                    </div>
+                  )}
+
+                  {/* Supervision Intelligence */}
+                  {supervisionData && supervisionData.length > 0 && (
+                    <div>
+                      <h4 className="font-bold text-black mb-3">Supervision Preparation Insights</h4>
+                      <div className="bg-purple-50 border-l-4 border-l-purple-600 p-4 rounded">
+                        {supervisionData.map((intel) => (
+                          <div key={intel.id} className="space-y-3">
+                            <div>
+                              <h5 className="font-medium text-black mb-2">Discussion Topics</h5>
+                              <div className="space-y-1">
+                                {intel.suggestedAgenda.discussionTopics.map((topic, index) => (
+                                  <div key={index} className="flex items-start gap-2">
+                                    <ArrowRight className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                                    <span className="text-sm text-black">{topic}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  </div>
-                  
-                  <div className="p-4 bg-orange-50 border-l-4 border-l-orange-600 rounded">
-                    <div className="flex items-start gap-3">
-                      <Target className="h-5 w-5 text-orange-600 mt-0.5" />
-                      <div>
-                        <h4 className="font-bold text-black">Focus Area: Cultural Competence</h4>
-                        <p className="text-gray-700 text-sm mt-1">
-                          Increase attention to cultural factors in treatment planning and intervention selection.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

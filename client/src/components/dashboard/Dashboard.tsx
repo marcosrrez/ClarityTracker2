@@ -5,6 +5,7 @@ import { ProgressSection } from "./ProgressSection";
 import { LogTableSection } from "./LogTableSection";
 import { PersonalizedAICoaching } from "./PersonalizedAICoaching";
 import { CompetencyTracker } from "./CompetencyTracker";
+import { SmartInsightsCard } from "./SmartInsightsCard";
 import { AchievementCelebration } from "./AchievementCelebration";
 import { MilestoneCelebration } from "./MilestoneCelebration";
 import { SupervisorDashboard } from "./SupervisorDashboard";
@@ -87,6 +88,7 @@ export const Dashboard = () => {
         {/* Smart Features Section - only if enabled */}
         {smartFeaturesEnabled && (
           <div className="space-y-6">
+            <SmartInsightsCard />
             <PersonalizedAICoaching />
             <CompetencyTracker />
           </div>
