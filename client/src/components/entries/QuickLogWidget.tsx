@@ -176,39 +176,40 @@ export const QuickLogWidget = () => {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               transition={{ type: "spring", damping: 20, stiffness: 300 }}
-              className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-4 p-5 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-600/50 z-50 min-w-80"
+              className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-4 p-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-xl shadow-xl border border-gray-200/50 dark:border-gray-600/50 z-50 w-72"
             >
-              <div className="mb-3">
+              <div className="mb-2">
                 <h3 className="font-bold text-black dark:text-white text-sm">Quick Log</h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400">One-click session logging</p>
               </div>
               
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-1.5">
                 {templates.map((template) => (
                   <motion.button
                     key={template.id}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => handleQuickLog(template)}
-                    className="p-3 bg-white/50 dark:bg-gray-700/50 hover:bg-white/80 dark:hover:bg-gray-600/80 rounded-xl border border-gray-200/60 dark:border-gray-500/60 backdrop-blur-sm transition-all text-left"
+                    className="p-2.5 bg-white/50 dark:bg-gray-700/50 hover:bg-white/80 dark:hover:bg-gray-600/80 rounded-lg border border-gray-200/60 dark:border-gray-500/60 backdrop-blur-sm transition-all text-left"
                   >
-                    <div className="flex items-center space-x-2 mb-1">
-                      <div className="text-blue-600 dark:text-blue-400">
+                    <div className="flex items-center space-x-1.5">
+                      <div className="text-blue-600 dark:text-blue-400 text-sm">
                         {template.icon}
                       </div>
-                      <span className="text-sm font-medium text-black dark:text-white">
-                        {template.name}
-                      </span>
-                    </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
-                      {template.data.clientContactHours && `${template.data.clientContactHours}h client`}
-                      {template.data.supervisionHours && `${template.data.supervisionHours}h supervision`}
+                      <div>
+                        <span className="text-xs font-medium text-black dark:text-white block">
+                          {template.name}
+                        </span>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          {template.data.clientContactHours && `${template.data.clientContactHours}h`}
+                          {template.data.supervisionHours && `${template.data.supervisionHours}h`}
+                        </div>
+                      </div>
                     </div>
                   </motion.button>
                 ))}
               </div>
               
-              <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
+              <div className="mt-2 pt-2 border-t border-gray-200/60 dark:border-gray-500/60">
                 <Button
                   variant="outline"
                   size="sm"
@@ -216,7 +217,7 @@ export const QuickLogWidget = () => {
                     setIsExpanded(false);
                     window.location.href = '/add-entry';
                   }}
-                  className="w-full text-xs"
+                  className="w-full text-xs py-1.5 bg-white/30 dark:bg-gray-700/30 border-gray-200/60 dark:border-gray-500/60"
                 >
                   <FileText className="w-3 h-3 mr-1" />
                   Full Form
