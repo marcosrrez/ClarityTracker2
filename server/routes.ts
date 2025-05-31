@@ -6,6 +6,8 @@ import { sendFeedbackToReplit, createReplitIssue } from "./replit-feedback";
 import { storage } from "./storage";
 import { handleTwilioWebhook } from "./sms-service";
 import { sendWelcomeEmail } from "./welcome-email";
+import OpenAI from "openai";
+import { insertKnowledgeEntrySchema } from "@shared/schema";
 
 // Email reminder scheduling function
 async function scheduleSessionReminders(session: any, reminderDays: number) {
@@ -725,6 +727,166 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // This server primarily serves the frontend and provides health checks
 
   const httpServer = createServer(app);
+
+  // Knowledge Base Routes
+  app.post('/api/knowledge-entries', async (req, res) => {
+    try {
+      const validatedData = insertKnowledgeEntrySchema.parse(req.body);
+      const entry = await storage.createKnowledgeEntry(validatedData);
+      res.json(entry);
+    } catch (error) {
+      console.error('Error creating knowledge entry:', error);
+      res.status(400).json({ error: 'Failed to create knowledge entry' });
+    }
+  });
+
+  app.get('/api/knowledge-entries/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const entries = await storage.getKnowledgeEntries(userId);
+      res.json(entries);
+    } catch (error) {
+      console.error('Error fetching knowledge entries:', error);
+      res.status(500).json({ error: 'Failed to fetch knowledge entries' });
+    }
+  });
+
+  app.post('/api/knowledge-entries/:id/generate-prompts', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { userId } = req.body;
+      
+      // Get the knowledge entry
+      const entries = await storage.getKnowledgeEntries(userId);
+      const entry = entries.find(e => e.id === id);
+      
+      if (!entry) {
+        return res.status(404).json({ error: 'Knowledge entry not found' });
+      }
+
+      // Generate prompts using OpenAI
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      
+      const prompt = `Convert the following notes into 3-5 question-answer pairs for spaced repetition learning. Each pair should test key concepts and be suitable for active recall. Format as JSON array with objects containing "question" and "answer" fields:
+
+${entry.content}
+
+Source: ${entry.sourceTitle} (${entry.sourceType})`;
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [{ role: "user", content: prompt }],
+        response_format: { type: "json_object" },
+        max_tokens: 1000
+      });
+
+      const generatedData = JSON.parse(completion.choices[0].message.content || '{"prompts": []}');
+      const promptPairs = generatedData.prompts || [];
+
+      // Save prompts to database
+      const savedPrompts = [];
+      for (const pair of promptPairs) {
+        const promptData = {
+          knowledgeEntryId: id,
+          userId,
+          question: pair.question,
+          answer: pair.answer,
+          imageUrl: entry.imageUrl
+        };
+        
+        const savedPrompt = await storage.createPrompt(promptData);
+        savedPrompts.push(savedPrompt);
+
+        // Create initial review schedule using SM-2 algorithm
+        const nextReviewDate = new Date();
+        nextReviewDate.setDate(nextReviewDate.getDate() + 1); // First review in 1 day
+
+        await storage.createReview({
+          promptId: savedPrompt.id,
+          userId,
+          difficulty: 3, // Default difficulty
+          easeFactor: 2.5, // SM-2 default
+          interval: 1, // 1 day
+          repetitions: 0,
+          nextReviewDate
+        });
+      }
+
+      res.json({ prompts: savedPrompts });
+    } catch (error) {
+      console.error('Error generating prompts:', error);
+      res.status(500).json({ error: 'Failed to generate prompts' });
+    }
+  });
+
+  app.get('/api/prompts/due/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const duePrompts = await storage.getPromptsDueForReview(userId);
+      res.json(duePrompts);
+    } catch (error) {
+      console.error('Error fetching due prompts:', error);
+      res.status(500).json({ error: 'Failed to fetch due prompts' });
+    }
+  });
+
+  app.post('/api/prompts/:id/review', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { userId, difficulty } = req.body;
+
+      // Get the latest review for this prompt
+      const reviews = await storage.getReviews(userId, id);
+      const latestReview = reviews[0];
+
+      if (!latestReview) {
+        return res.status(404).json({ error: 'No review found for this prompt' });
+      }
+
+      // SM-2 Algorithm implementation
+      let { easeFactor, interval, repetitions } = latestReview;
+      
+      if (difficulty >= 3) {
+        // Correct response
+        if (repetitions === 0) {
+          interval = 1;
+        } else if (repetitions === 1) {
+          interval = 6;
+        } else {
+          interval = Math.round(interval * easeFactor);
+        }
+        repetitions += 1;
+      } else {
+        // Incorrect response - restart
+        repetitions = 0;
+        interval = 1;
+      }
+
+      // Update ease factor
+      easeFactor = easeFactor + (0.1 - (5 - difficulty) * (0.08 + (5 - difficulty) * 0.02));
+      easeFactor = Math.max(1.3, easeFactor); // Minimum ease factor
+
+      // Calculate next review date
+      const nextReviewDate = new Date();
+      nextReviewDate.setDate(nextReviewDate.getDate() + interval);
+
+      // Create new review record
+      const newReview = await storage.createReview({
+        promptId: id,
+        userId,
+        difficulty,
+        easeFactor,
+        interval,
+        repetitions,
+        nextReviewDate
+      });
+
+      res.json(newReview);
+    } catch (error) {
+      console.error('Error recording review:', error);
+      res.status(500).json({ error: 'Failed to record review' });
+    }
+  });
 
   return httpServer;
 }

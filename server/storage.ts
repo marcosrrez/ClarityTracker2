@@ -6,6 +6,9 @@ import {
   competencyAssessmentTable,
   complianceAlertTable,
   competencyFrameworkTable,
+  knowledgeEntryTable,
+  promptTable,
+  reviewTable,
   type Feedback, 
   type InsertFeedback, 
   type UserAnalytics, 
@@ -19,7 +22,13 @@ import {
   type ComplianceAlert,
   type InsertComplianceAlert,
   type CompetencyFramework,
-  type InsertCompetencyFramework
+  type InsertCompetencyFramework,
+  type KnowledgeEntry,
+  type InsertKnowledgeEntry,
+  type Prompt,
+  type InsertPrompt,
+  type Review,
+  type InsertReview
 } from "@shared/schema";
 
 export interface IStorage {
@@ -746,6 +755,174 @@ export class DatabaseStorage implements IStorage {
       totalSessions: sessionTrends.reduce((sum, trend) => sum + parseInt(trend.sessionCount), 0),
       totalHours: sessionTrends.reduce((sum, trend) => sum + parseFloat(trend.totalHours), 0),
     };
+  }
+
+  // Knowledge Base and Spaced Repetition Methods
+  async createKnowledgeEntry(entry: InsertKnowledgeEntry): Promise<KnowledgeEntry> {
+    const id = crypto.randomUUID();
+    const now = new Date();
+    
+    const [created] = await db
+      .insert(knowledgeEntryTable)
+      .values({
+        id,
+        ...entry,
+        tags: entry.tags ? JSON.stringify(entry.tags) : null,
+        createdAt: now,
+        updatedAt: now
+      })
+      .returning();
+
+    return {
+      ...created,
+      tags: created.tags ? JSON.parse(created.tags) : []
+    } as KnowledgeEntry;
+  }
+
+  async getKnowledgeEntries(userId: string): Promise<KnowledgeEntry[]> {
+    const entries = await db
+      .select()
+      .from(knowledgeEntryTable)
+      .where(eq(knowledgeEntryTable.userId, userId))
+      .orderBy(desc(knowledgeEntryTable.createdAt));
+
+    return entries.map(entry => ({
+      ...entry,
+      tags: entry.tags ? JSON.parse(entry.tags) : []
+    })) as KnowledgeEntry[];
+  }
+
+  async updateKnowledgeEntry(id: string, updates: Partial<KnowledgeEntry>): Promise<void> {
+    const updateData = {
+      ...updates,
+      tags: updates.tags ? JSON.stringify(updates.tags) : undefined,
+      updatedAt: new Date()
+    };
+
+    await db
+      .update(knowledgeEntryTable)
+      .set(updateData)
+      .where(eq(knowledgeEntryTable.id, id));
+  }
+
+  async deleteKnowledgeEntry(id: string): Promise<void> {
+    const prompts = await db
+      .select({ id: promptTable.id })
+      .from(promptTable)
+      .where(eq(promptTable.knowledgeEntryId, id));
+
+    for (const prompt of prompts) {
+      await db
+        .delete(reviewTable)
+        .where(eq(reviewTable.promptId, prompt.id));
+    }
+
+    await db
+      .delete(promptTable)
+      .where(eq(promptTable.knowledgeEntryId, id));
+
+    await db
+      .delete(knowledgeEntryTable)
+      .where(eq(knowledgeEntryTable.id, id));
+  }
+
+  async createPrompt(prompt: InsertPrompt): Promise<Prompt> {
+    const id = crypto.randomUUID();
+    const now = new Date();
+    
+    const [created] = await db
+      .insert(promptTable)
+      .values({
+        id,
+        ...prompt,
+        createdAt: now
+      })
+      .returning();
+
+    return created as Prompt;
+  }
+
+  async getPrompts(userId: string, knowledgeEntryId?: string): Promise<Prompt[]> {
+    let query = db
+      .select()
+      .from(promptTable)
+      .where(eq(promptTable.userId, userId));
+
+    if (knowledgeEntryId) {
+      query = query.where(eq(promptTable.knowledgeEntryId, knowledgeEntryId));
+    }
+
+    const prompts = await query.orderBy(desc(promptTable.createdAt));
+    return prompts as Prompt[];
+  }
+
+  async getPromptsDueForReview(userId: string): Promise<(Prompt & { nextReviewDate: Date })[]> {
+    const now = new Date();
+    
+    const duePrompts = await db
+      .select({
+        id: promptTable.id,
+        knowledgeEntryId: promptTable.knowledgeEntryId,
+        userId: promptTable.userId,
+        question: promptTable.question,
+        answer: promptTable.answer,
+        imageUrl: promptTable.imageUrl,
+        createdAt: promptTable.createdAt,
+        nextReviewDate: reviewTable.nextReviewDate
+      })
+      .from(promptTable)
+      .innerJoin(reviewTable, eq(promptTable.id, reviewTable.promptId))
+      .where(
+        and(
+          eq(promptTable.userId, userId),
+          lte(reviewTable.nextReviewDate, now)
+        )
+      )
+      .orderBy(asc(reviewTable.nextReviewDate));
+
+    return duePrompts as (Prompt & { nextReviewDate: Date })[];
+  }
+
+  async createReview(review: InsertReview): Promise<Review> {
+    const id = crypto.randomUUID();
+    const now = new Date();
+    
+    const [created] = await db
+      .insert(reviewTable)
+      .values({
+        id,
+        ...review,
+        reviewedAt: now
+      })
+      .returning();
+
+    return created as Review;
+  }
+
+  async getReviews(userId: string, promptId?: string): Promise<Review[]> {
+    let query = db
+      .select()
+      .from(reviewTable)
+      .where(eq(reviewTable.userId, userId));
+
+    if (promptId) {
+      query = query.where(eq(reviewTable.promptId, promptId));
+    }
+
+    const reviews = await query.orderBy(desc(reviewTable.reviewedAt));
+    return reviews as Review[];
+  }
+
+  async updateReview(id: string, updates: Partial<Review>): Promise<void> {
+    await db
+      .update(reviewTable)
+      .set(updates)
+      .where(eq(reviewTable.id, id));
+  }
+
+  async generatePromptsFromContent(content: string, knowledgeEntryId: string, userId: string): Promise<Prompt[]> {
+    // Placeholder for OpenAI integration - will be implemented in API routes
+    return [];
   }
 }
 
