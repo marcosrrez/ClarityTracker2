@@ -1056,6 +1056,147 @@ ${content}`;
       }
     }
   }
+
+  // Enhanced AI Features Implementation
+
+  async getUserTherapyProfile(userId: string): Promise<UserTherapyProfile | undefined> {
+    const { db } = await import("./db");
+    const [profile] = await db
+      .select()
+      .from(userTherapyProfileTable)
+      .where(eq(userTherapyProfileTable.userId, userId));
+    
+    return profile || undefined;
+  }
+
+  async createUserTherapyProfile(profile: InsertUserTherapyProfile): Promise<UserTherapyProfile> {
+    const { db } = await import("./db");
+    const id = crypto.randomUUID();
+    
+    const [created] = await db
+      .insert(userTherapyProfileTable)
+      .values({
+        id,
+        ...profile,
+        competencyLevels: profile.competencyLevels || {
+          therapeuticRelationship: 3,
+          assessmentSkills: 3,
+          interventionPlanning: 3,
+          ethicalDecisionMaking: 3,
+          culturalCompetence: 3,
+          lastUpdated: new Date()
+        }
+      })
+      .returning();
+    
+    return created as UserTherapyProfile;
+  }
+
+  async updateUserTherapyProfile(userId: string, updates: Partial<UserTherapyProfile>): Promise<void> {
+    const { db } = await import("./db");
+    await db
+      .update(userTherapyProfileTable)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(userTherapyProfileTable.userId, userId));
+  }
+
+  async getSupervisionIntelligence(userId: string, weekStartDate?: Date): Promise<SupervisionIntelligence[]> {
+    const { db } = await import("./db");
+    let query = db
+      .select()
+      .from(supervisionIntelligenceTable)
+      .where(eq(supervisionIntelligenceTable.userId, userId));
+    
+    if (weekStartDate) {
+      query = query.where(eq(supervisionIntelligenceTable.weekStartDate, weekStartDate));
+    }
+    
+    const results = await query.orderBy(desc(supervisionIntelligenceTable.weekStartDate));
+    return results as SupervisionIntelligence[];
+  }
+
+  async createSupervisionIntelligence(intelligence: InsertSupervisionIntelligence): Promise<SupervisionIntelligence> {
+    const { db } = await import("./db");
+    const id = crypto.randomUUID();
+    
+    const [created] = await db
+      .insert(supervisionIntelligenceTable)
+      .values({
+        id,
+        ...intelligence
+      })
+      .returning();
+    
+    return created as SupervisionIntelligence;
+  }
+
+  async getCompetencyAnalysis(userId: string, sessionId?: string): Promise<CompetencyAnalysis[]> {
+    const { db } = await import("./db");
+    let query = db
+      .select()
+      .from(competencyAnalysisTable)
+      .where(eq(competencyAnalysisTable.userId, userId));
+    
+    if (sessionId) {
+      query = query.where(eq(competencyAnalysisTable.sessionId, sessionId));
+    }
+    
+    const results = await query.orderBy(desc(competencyAnalysisTable.analyzedAt));
+    return results as CompetencyAnalysis[];
+  }
+
+  async createCompetencyAnalysis(analysis: InsertCompetencyAnalysis): Promise<CompetencyAnalysis> {
+    const { db } = await import("./db");
+    const id = crypto.randomUUID();
+    
+    const [created] = await db
+      .insert(competencyAnalysisTable)
+      .values({
+        id,
+        ...analysis
+      })
+      .returning();
+    
+    return created as CompetencyAnalysis;
+  }
+
+  async getPatternAnalysis(userId: string, alertType?: string): Promise<PatternAnalysis[]> {
+    const { db } = await import("./db");
+    let query = db
+      .select()
+      .from(patternAnalysisTable)
+      .where(eq(patternAnalysisTable.userId, userId));
+    
+    if (alertType) {
+      query = query.where(eq(patternAnalysisTable.alertType, alertType as any));
+    }
+    
+    const results = await query.orderBy(desc(patternAnalysisTable.createdAt));
+    return results as PatternAnalysis[];
+  }
+
+  async createPatternAnalysis(pattern: InsertPatternAnalysis): Promise<PatternAnalysis> {
+    const { db } = await import("./db");
+    const id = crypto.randomUUID();
+    
+    const [created] = await db
+      .insert(patternAnalysisTable)
+      .values({
+        id,
+        ...pattern
+      })
+      .returning();
+    
+    return created as PatternAnalysis;
+  }
+
+  async updatePatternAnalysis(id: string, updates: Partial<PatternAnalysis>): Promise<void> {
+    const { db } = await import("./db");
+    await db
+      .update(patternAnalysisTable)
+      .set(updates)
+      .where(eq(patternAnalysisTable.id, id));
+  }
 }
 
 export const storage = new DatabaseStorage();

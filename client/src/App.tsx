@@ -30,6 +30,7 @@ import SuperviseeProfilePage from "@/pages/supervisee-profile";
 import ReportsPage from "@/pages/reports";
 import AccountSetupPage from "@/pages/account-setup";
 import SpacedRepetition from "@/pages/SpacedRepetition";
+import AIInsights from "@/pages/AIInsights";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -53,6 +54,7 @@ function Router() {
       <Route path="/supervisee/:id" component={SuperviseeProfilePage} />
       <Route path="/reports" component={ReportsPage} />
       <Route path="/spaced-repetition" component={SpacedRepetition} />
+      <Route path="/ai-insights" component={AIInsights} />
       <Route path="/account-setup">
         <AuthGuard requireAccountSetup={false}>
           <AccountSetupPage />

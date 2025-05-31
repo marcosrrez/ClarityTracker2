@@ -901,5 +901,209 @@ Source: ${entry.sourceTitle} (${entry.sourceType})`;
     }
   });
 
+  // Enhanced AI Features Routes
+  
+  // Progressive User Therapy Profile Routes
+  app.get('/api/ai/therapy-profile/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const profile = await storage.getUserTherapyProfile(userId);
+      res.json(profile || null);
+    } catch (error) {
+      console.error('Error fetching therapy profile:', error);
+      res.status(500).json({ error: 'Failed to fetch therapy profile' });
+    }
+  });
+
+  app.post('/api/ai/therapy-profile/analyze-session', express.json(), async (req, res) => {
+    try {
+      const { userId, sessionData } = req.body;
+      
+      // Get current profile
+      const currentProfile = await storage.getUserTherapyProfile(userId);
+      
+      // Import and use enhanced AI service
+      const { enhancedAI } = await import('./enhanced-ai-service');
+      
+      // Analyze session and update profile
+      const updates = await enhancedAI.updateUserProfile(userId, sessionData, currentProfile);
+      
+      if (currentProfile) {
+        await storage.updateUserTherapyProfile(userId, updates);
+      } else {
+        // Create new profile
+        await storage.createUserTherapyProfile({
+          userId,
+          lastAnalyzed: new Date(),
+          ...updates
+        });
+      }
+      
+      res.json({ success: true, updates });
+    } catch (error) {
+      console.error('Error analyzing session:', error);
+      res.status(500).json({ error: 'Failed to analyze session' });
+    }
+  });
+
+  // Supervision Intelligence Routes
+  app.get('/api/ai/supervision-intelligence/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { weekStartDate } = req.query;
+      
+      let startDate: Date | undefined;
+      if (weekStartDate) {
+        startDate = new Date(weekStartDate as string);
+      }
+      
+      const intelligence = await storage.getSupervisionIntelligence(userId, startDate);
+      res.json(intelligence);
+    } catch (error) {
+      console.error('Error fetching supervision intelligence:', error);
+      res.status(500).json({ error: 'Failed to fetch supervision intelligence' });
+    }
+  });
+
+  app.post('/api/ai/supervision-intelligence/generate', express.json(), async (req, res) => {
+    try {
+      const { userId, recentSessions } = req.body;
+      
+      // Get user profile for context
+      const userProfile = await storage.getUserTherapyProfile(userId);
+      
+      // Import and use enhanced AI service
+      const { enhancedAI } = await import('./enhanced-ai-service');
+      
+      // Generate supervision preparation insights
+      const intelligence = await enhancedAI.generateSupervisionPrep(userId, recentSessions, userProfile);
+      
+      // Save to database
+      const saved = await storage.createSupervisionIntelligence(intelligence);
+      
+      res.json(saved);
+    } catch (error) {
+      console.error('Error generating supervision intelligence:', error);
+      res.status(500).json({ error: 'Failed to generate supervision intelligence' });
+    }
+  });
+
+  // Competency Analysis Routes
+  app.get('/api/ai/competency-analysis/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { sessionId } = req.query;
+      
+      const analysis = await storage.getCompetencyAnalysis(userId, sessionId as string);
+      res.json(analysis);
+    } catch (error) {
+      console.error('Error fetching competency analysis:', error);
+      res.status(500).json({ error: 'Failed to fetch competency analysis' });
+    }
+  });
+
+  app.post('/api/ai/competency-analysis/analyze', express.json(), async (req, res) => {
+    try {
+      const { userId, sessionData } = req.body;
+      
+      // Get user profile for context
+      const userProfile = await storage.getUserTherapyProfile(userId);
+      
+      // Import and use enhanced AI service
+      const { enhancedAI } = await import('./enhanced-ai-service');
+      
+      // Analyze competencies
+      const analysis = await enhancedAI.analyzeCompetencies(sessionData, userProfile);
+      
+      // Fix userId assignment
+      analysis.userId = userId;
+      
+      // Save to database
+      const saved = await storage.createCompetencyAnalysis(analysis);
+      
+      res.json(saved);
+    } catch (error) {
+      console.error('Error analyzing competencies:', error);
+      res.status(500).json({ error: 'Failed to analyze competencies' });
+    }
+  });
+
+  // Pattern Analysis Routes
+  app.get('/api/ai/pattern-analysis/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { alertType, unreadOnly } = req.query;
+      
+      let patterns = await storage.getPatternAnalysis(userId, alertType as string);
+      
+      if (unreadOnly === 'true') {
+        patterns = patterns.filter(p => p.isRead === 'false');
+      }
+      
+      res.json(patterns);
+    } catch (error) {
+      console.error('Error fetching pattern analysis:', error);
+      res.status(500).json({ error: 'Failed to fetch pattern analysis' });
+    }
+  });
+
+  app.post('/api/ai/pattern-analysis/detect', express.json(), async (req, res) => {
+    try {
+      const { userId, sessions, timeframe = 30 } = req.body;
+      
+      // Import and use enhanced AI service
+      const { enhancedAI } = await import('./enhanced-ai-service');
+      
+      // Detect patterns
+      const patterns = await enhancedAI.detectPatterns(userId, sessions, timeframe);
+      
+      // Save patterns to database
+      const savedPatterns = [];
+      for (const pattern of patterns) {
+        const saved = await storage.createPatternAnalysis(pattern);
+        savedPatterns.push(saved);
+      }
+      
+      res.json(savedPatterns);
+    } catch (error) {
+      console.error('Error detecting patterns:', error);
+      res.status(500).json({ error: 'Failed to detect patterns' });
+    }
+  });
+
+  app.patch('/api/ai/pattern-analysis/:id', express.json(), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      
+      await storage.updatePatternAnalysis(id, updates);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error updating pattern analysis:', error);
+      res.status(500).json({ error: 'Failed to update pattern analysis' });
+    }
+  });
+
+  // Resource Suggestion Route
+  app.post('/api/ai/suggest-resources', express.json(), async (req, res) => {
+    try {
+      const { userId, challenge } = req.body;
+      
+      // Get user profile for context
+      const userProfile = await storage.getUserTherapyProfile(userId);
+      
+      // Import and use enhanced AI service
+      const { enhancedAI } = await import('./enhanced-ai-service');
+      
+      // Suggest resources
+      const suggestions = await enhancedAI.suggestResources(challenge, userProfile);
+      
+      res.json(suggestions);
+    } catch (error) {
+      console.error('Error suggesting resources:', error);
+      res.status(500).json({ error: 'Failed to suggest resources' });
+    }
+  });
+
   return httpServer;
 }
