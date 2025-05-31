@@ -29,6 +29,7 @@ import CompliancePage from "@/pages/compliance";
 import SuperviseeProfilePage from "@/pages/supervisee-profile";
 import ReportsPage from "@/pages/reports";
 import AccountSetupPage from "@/pages/account-setup";
+import SpacedRepetition from "@/pages/SpacedRepetition";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -51,6 +52,7 @@ function Router() {
       <Route path="/compliance" component={CompliancePage} />
       <Route path="/supervisee/:id" component={SuperviseeProfilePage} />
       <Route path="/reports" component={ReportsPage} />
+      <Route path="/spaced-repetition" component={SpacedRepetition} />
       <Route path="/account-setup">
         <AuthGuard requireAccountSetup={false}>
           <AccountSetupPage />
