@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { pgTable, text, timestamp, varchar } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, varchar, integer, real } from 'drizzle-orm/pg-core';
 
 // User Profile Schema
 export const userProfileSchema = z.object({
@@ -431,3 +431,97 @@ export const insertCompetencyFrameworkSchema = competencyFrameworkSchema.omit({
 
 export type CompetencyFramework = z.infer<typeof competencyFrameworkSchema>;
 export type InsertCompetencyFramework = z.infer<typeof insertCompetencyFrameworkSchema>;
+
+// Knowledge Base and Spaced Repetition Tables
+export const knowledgeEntryTable = pgTable('knowledge_entries', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  title: text('title').notNull(),
+  content: text('content').notNull(),
+  sourceType: varchar('source_type', { length: 50 }).notNull(), // 'CE' or 'Book'
+  sourceTitle: text('source_title').notNull(),
+  tags: text('tags'), // JSON array as text
+  imageUrl: text('image_url'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+export const promptTable = pgTable('prompts', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  knowledgeEntryId: varchar('knowledge_entry_id', { length: 255 }).references(() => knowledgeEntryTable.id).notNull(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  question: text('question').notNull(),
+  answer: text('answer').notNull(),
+  imageUrl: text('image_url'),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+export const reviewTable = pgTable('reviews', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  promptId: varchar('prompt_id', { length: 255 }).references(() => promptTable.id).notNull(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  difficulty: integer('difficulty').notNull(), // 0-5 scale
+  easeFactor: real('ease_factor').default(2.5).notNull(),
+  interval: integer('interval').default(1).notNull(), // days
+  repetitions: integer('repetitions').default(0).notNull(),
+  nextReviewDate: timestamp('next_review_date').notNull(),
+  reviewedAt: timestamp('reviewed_at').defaultNow().notNull()
+});
+
+export const knowledgeEntrySchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  title: z.string(),
+  content: z.string(),
+  sourceType: z.enum(['CE', 'Book']),
+  sourceTitle: z.string(),
+  tags: z.array(z.string()).optional(),
+  imageUrl: z.string().optional(),
+  createdAt: z.date(),
+  updatedAt: z.date()
+});
+
+export const insertKnowledgeEntrySchema = knowledgeEntrySchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+
+export const promptSchema = z.object({
+  id: z.string(),
+  knowledgeEntryId: z.string(),
+  userId: z.string(),
+  question: z.string(),
+  answer: z.string(),
+  imageUrl: z.string().optional(),
+  createdAt: z.date()
+});
+
+export const insertPromptSchema = promptSchema.omit({
+  id: true,
+  createdAt: true
+});
+
+export const reviewSchema = z.object({
+  id: z.string(),
+  promptId: z.string(),
+  userId: z.string(),
+  difficulty: z.number().min(0).max(5),
+  easeFactor: z.number(),
+  interval: z.number(),
+  repetitions: z.number(),
+  nextReviewDate: z.date(),
+  reviewedAt: z.date()
+});
+
+export const insertReviewSchema = reviewSchema.omit({
+  id: true,
+  reviewedAt: true
+});
+
+export type KnowledgeEntry = z.infer<typeof knowledgeEntrySchema>;
+export type InsertKnowledgeEntry = z.infer<typeof insertKnowledgeEntrySchema>;
+export type Prompt = z.infer<typeof promptSchema>;
+export type InsertPrompt = z.infer<typeof insertPromptSchema>;
+export type Review = z.infer<typeof reviewSchema>;
+export type InsertReview = z.infer<typeof insertReviewSchema>;

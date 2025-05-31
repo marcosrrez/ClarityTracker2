@@ -59,6 +59,22 @@ export interface IStorage {
   
   generateCompetencyReport(superviseeId: string): Promise<any>;
   getSupervisionTrends(supervisorId: string, timeframe?: string): Promise<any>;
+  
+  // Knowledge Base and Spaced Repetition functionality
+  createKnowledgeEntry(entry: InsertKnowledgeEntry): Promise<KnowledgeEntry>;
+  getKnowledgeEntries(userId: string): Promise<KnowledgeEntry[]>;
+  updateKnowledgeEntry(id: string, updates: Partial<KnowledgeEntry>): Promise<void>;
+  deleteKnowledgeEntry(id: string): Promise<void>;
+  
+  createPrompt(prompt: InsertPrompt): Promise<Prompt>;
+  getPrompts(userId: string, knowledgeEntryId?: string): Promise<Prompt[]>;
+  getPromptsDueForReview(userId: string): Promise<(Prompt & { nextReviewDate: Date })[]>;
+  
+  createReview(review: InsertReview): Promise<Review>;
+  getReviews(userId: string, promptId?: string): Promise<Review[]>;
+  updateReview(id: string, updates: Partial<Review>): Promise<void>;
+  
+  generatePromptsFromContent(content: string, knowledgeEntryId: string, userId: string): Promise<Prompt[]>;
 }
 
 export class DatabaseStorage implements IStorage {
