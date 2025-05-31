@@ -26,6 +26,8 @@ export const QuickLogWidget = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragX, setDragX] = useState(0);
 
+  console.log('QuickLogWidget rendering:', { user: !!user, isSupervisor });
+
   const templates: QuickLogTemplate[] = isSupervisor ? [
     {
       id: 'supervision-1h',
