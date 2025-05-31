@@ -841,6 +841,17 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
 
+    // Create initial review record for immediate review
+    await this.createReview({
+      promptId: id,
+      userId: prompt.userId,
+      difficulty: 'again', // Start with 'again' to schedule first review immediately
+      nextReviewDate: now, // Schedule for immediate review
+      interval: 1,
+      easeFactor: 2.5,
+      repetitions: 0
+    });
+
     return created as Prompt;
   }
 
