@@ -175,7 +175,7 @@ export const QuickLogWidget = () => {
               initial={{ opacity: 0, scale: 0.9, x: -20 }}
               animate={{ opacity: 1, scale: 1, x: 0 }}
               exit={{ opacity: 0, scale: 0.9, x: -20 }}
-              className="absolute bottom-full right-0 mb-2 p-4 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 z-50 min-w-80"
+              className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 p-4 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 z-50 min-w-80"
             >
               <div className="mb-3">
                 <h3 className="font-bold text-black dark:text-white text-sm">Quick Log</h3>
