@@ -96,9 +96,9 @@ export function V2Sidebar() {
           
           return (
             <Link key={item.href} href={item.href}>
-              <a
+              <div
                 onClick={() => setIsOpen(false)}
-                className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all group ${
+                className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all group cursor-pointer ${
                   isActive
                     ? 'bg-blue-600 text-white shadow-lg'
                     : 'hover:bg-gray-100 text-gray-700 hover:text-black'
@@ -125,7 +125,7 @@ export function V2Sidebar() {
                     {item.description}
                   </p>
                 </div>
-              </a>
+              </div>
             </Link>
           );
         })}
@@ -136,23 +136,23 @@ export function V2Sidebar() {
       {/* Settings & Help */}
       <div className="p-4 space-y-2">
         <Link href="/settings">
-          <a
+          <div
             onClick={() => setIsOpen(false)}
-            className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-100 text-gray-700 hover:text-black transition-all"
+            className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-100 text-gray-700 hover:text-black transition-all cursor-pointer"
           >
             <Settings className="h-4 w-4" />
             <span className="font-medium text-sm">Settings</span>
-          </a>
+          </div>
         </Link>
         
         <Link href="/help">
-          <a
+          <div
             onClick={() => setIsOpen(false)}
-            className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-100 text-gray-700 hover:text-black transition-all"
+            className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-100 text-gray-700 hover:text-black transition-all cursor-pointer"
           >
             <HelpCircle className="h-4 w-4" />
             <span className="font-medium text-sm">Help</span>
-          </a>
+          </div>
         </Link>
 
         <Button
