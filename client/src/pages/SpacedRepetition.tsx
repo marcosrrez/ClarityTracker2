@@ -79,7 +79,7 @@ const SpacedRepetition: React.FC = () => {
 
   // Create knowledge entry mutation
   const createEntryMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('/api/knowledge-entries', 'POST', data),
+    mutationFn: (data: any) => apiRequest('POST', '/api/knowledge-entries', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/knowledge-entries', userId] });
       toast({
@@ -104,7 +104,7 @@ const SpacedRepetition: React.FC = () => {
   // Generate prompts mutation
   const generatePromptsMutation = useMutation({
     mutationFn: ({ content, knowledgeEntryId }: { content: string; knowledgeEntryId: string }) =>
-      apiRequest('/api/prompts/generate', 'POST', { content, knowledgeEntryId, userId }),
+      apiRequest('POST', '/api/prompts/generate', { content, knowledgeEntryId, userId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/prompts/due', userId] });
     },
@@ -112,7 +112,7 @@ const SpacedRepetition: React.FC = () => {
 
   // Submit review mutation
   const submitReviewMutation = useMutation({
-    mutationFn: (reviewData: any) => apiRequest('/api/reviews', 'POST', reviewData),
+    mutationFn: (reviewData: any) => apiRequest('POST', '/api/reviews', reviewData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/prompts/due', userId] });
       toast({
