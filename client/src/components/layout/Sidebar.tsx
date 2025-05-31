@@ -16,6 +16,7 @@ import {
   Plus,
   Lightbulb,
   Brain,
+  BookOpen,
   BarChart3,
   Images,
   Bot,
