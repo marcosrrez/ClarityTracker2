@@ -106,13 +106,7 @@ export const CrossSessionInsights = () => {
       }
 
       // Enhanced analysis with Intelligence Hub capabilities
-      const result = await generateCrossSessionAnalysis(analysisData, userProfile, insightCards, {
-        includeTherapyProfile: totalSessions >= 10,
-        includePatternDetection: totalSessions >= 15,
-        includeCompetencyMapping: totalSessions >= 25,
-        includePredictiveInsights: totalSessions >= 50,
-        analysisDepth: currentMilestone.analysisType
-      });
+      const result = await generateCrossSessionAnalysis(analysisData, userProfile, insightCards);
       
       setAnalysis(result);
       setIsExpanded(true);
