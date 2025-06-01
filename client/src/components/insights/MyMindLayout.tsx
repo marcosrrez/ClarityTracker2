@@ -269,7 +269,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
       <div className={`bg-gray-50 dark:bg-gray-900 p-4 pt-1 flex-shrink-0 transition-transform duration-300 ${showBottomNav ? 'translate-y-0' : '-translate-y-full'}`}>
         <div className="space-y-4">
           {/* Main Search Bar */}
-          <div className="flex items-center gap-4 max-w-4xl">
+          <div className="flex items-center gap-3 max-w-5xl">
             <div className="flex-1 relative">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
               <Input
@@ -278,7 +278,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={handleSearchSubmit}
                 disabled={isProcessingSmartSearch}
-                className="pl-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-full h-14 text-lg"
+                className="pl-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-full h-12 text-base"
               />
               {isProcessingSmartSearch && (
                 <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
@@ -286,19 +286,18 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                 </div>
               )}
             </div>
-            <Button 
-              variant="outline"
-              className="rounded-full w-14 h-14 p-0 border-gray-200 dark:border-gray-700"
+            <button 
+              className="w-8 h-8 rounded-full bg-white/80 dark:bg-gray-800/80 border border-gray-200/30 dark:border-gray-700/30 flex items-center justify-center hover:bg-gray-100/50 dark:hover:bg-gray-700/50 transition-colors"
               onClick={() => setShowSmartSpaces(!showSmartSpaces)}
             >
-              <Filter className="h-5 w-5" />
-            </Button>
-            <Button 
-              className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-14 h-14 p-0 shadow-lg"
+              <Filter className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+            </button>
+            <button 
+              className="w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shadow-lg transition-colors"
               onClick={() => setShowResourceWidget(true)}
             >
-              <Plus className="h-5 w-5" />
-            </Button>
+              <Plus className="h-4 w-4" />
+            </button>
           </div>
 
           {/* Smart Spaces - Auto-Organization Categories */}
