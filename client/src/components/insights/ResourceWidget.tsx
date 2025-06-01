@@ -239,33 +239,41 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
           </div>
 
           {/* Action Bar */}
-          <div className="flex items-center justify-center gap-8 px-4 py-3 bg-gray-50 dark:bg-slate-800/50 border-t border-gray-200 dark:border-slate-700">
-            <button
-              onClick={() => document.getElementById('file-upload')?.click()}
-              className="flex flex-col items-center gap-1 p-2 text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 transition-colors disabled:opacity-50"
-              disabled={isLoading}
-            >
-              <Paperclip className="h-4 w-4" />
-              <span className="text-xs font-medium">Attach</span>
-            </button>
-            
-            <button
-              onClick={() => setInputValue('https://')}
-              className="flex flex-col items-center gap-1 p-2 text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 transition-colors disabled:opacity-50"
-              disabled={isLoading}
-            >
-              <Globe className="h-4 w-4" />
-              <span className="text-xs font-medium">Web</span>
-            </button>
-            
-            <button
-              onClick={handleExport}
-              className="flex flex-col items-center gap-1 p-2 text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 transition-colors disabled:opacity-50"
-              disabled={isLoading}
-            >
-              <Download className="h-4 w-4" />
-              <span className="text-xs font-medium">Export</span>
-            </button>
+          <div className="px-4 py-3 bg-gray-50 dark:bg-slate-800/50 border-t border-gray-200 dark:border-slate-700">
+            <div className="flex items-center justify-center gap-2">
+              <div className="flex items-center bg-white dark:bg-slate-700 rounded-full border border-gray-200 dark:border-slate-600 shadow-sm">
+                <button
+                  onClick={() => document.getElementById('file-upload')?.click()}
+                  className="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-600 transition-all rounded-l-full disabled:opacity-50"
+                  disabled={isLoading}
+                >
+                  <Paperclip className="h-4 w-4" />
+                  <span className="text-sm font-medium">Attach</span>
+                </button>
+                
+                <div className="w-px h-6 bg-gray-200 dark:bg-slate-600" />
+                
+                <button
+                  onClick={() => setInputValue('https://')}
+                  className="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-600 transition-all disabled:opacity-50"
+                  disabled={isLoading}
+                >
+                  <Globe className="h-4 w-4" />
+                  <span className="text-sm font-medium">Web</span>
+                </button>
+                
+                <div className="w-px h-6 bg-gray-200 dark:bg-slate-600" />
+                
+                <button
+                  onClick={handleExport}
+                  className="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-600 transition-all rounded-r-full disabled:opacity-50"
+                  disabled={isLoading}
+                >
+                  <Download className="h-4 w-4" />
+                  <span className="text-sm font-medium">Export</span>
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Hidden file input */}
