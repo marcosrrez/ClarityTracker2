@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Calendar, Sparkles, Search, Plus, Bold, Italic, Type, Paperclip, Edit3, Check, Filter, Tags } from "lucide-react";
+import { Calendar, Sparkles, Search, Plus, Bold, Italic, Type, Paperclip, Edit3, Check, Filter, Tags, Upload } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { createInsightCard } from "@/lib/firestore";
@@ -41,6 +41,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
   const [showAIAgent, setShowAIAgent] = useState(false);
   const [showBottomNav, setShowBottomNav] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [isProcessingSmartSearch, setIsProcessingSmartSearch] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -67,6 +68,70 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
       return () => scrollElement.removeEventListener('scroll', handleScroll);
     }
   }, [lastScrollY]);
+
+  // Smart search functionality for URLs and content
+  const handleSmartSearch = async (query: string) => {
+    if (!user || !query.trim()) return;
+
+    // Check if it's a URL
+    const urlPattern = /^(https?:\/\/[^\s]+)/i;
+    const isUrl = urlPattern.test(query.trim());
+
+    // Check if it's a large content paste (more than 100 characters)
+    const isLargeContent = query.length > 100;
+
+    if (isUrl || isLargeContent) {
+      setIsProcessingSmartSearch(true);
+      
+      try {
+        let content = query;
+        let title = "Smart Search Entry";
+        
+        if (isUrl) {
+          // For URL scraping, we'd need to add a backend endpoint
+          title = `Web Content: ${query}`;
+          content = `URL: ${query}\n\nNote: URL content scraping feature coming soon.`;
+        } else {
+          title = `Pasted Content - ${new Date().toLocaleDateString()}`;
+        }
+
+        const newCard: InsertInsightCard = {
+          type: 'note',
+          title,
+          content,
+          tags: ['smart-search', isUrl ? 'url-content' : 'pasted-content'],
+        };
+
+        await createInsightCard(user.uid, newCard);
+        
+        if (onRefresh) {
+          await onRefresh();
+        }
+
+        setSearchQuery("");
+        
+        toast({
+          title: "Content Added",
+          description: isUrl ? "URL saved as insight card" : "Content saved as insight card",
+        });
+        
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to save content",
+          variant: "destructive",
+        });
+      } finally {
+        setIsProcessingSmartSearch(false);
+      }
+    }
+  };
+
+  const handleSearchSubmit = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSmartSearch(searchQuery);
+    }
+  };
 
   // Enhanced MyMind-style search - search across all analysis fields
   const filteredItems = galleryItems.filter(item => {
@@ -200,19 +265,26 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
 
   return (
     <div className="h-screen bg-gray-50 dark:bg-gray-900 flex flex-col overflow-hidden">
-      {/* Search Bar & Smart Spaces - Fixed at top */}
-      <div className="bg-gray-50 dark:bg-gray-900 p-6 flex-shrink-0">
+      {/* Search Bar & Smart Spaces - Auto-hide on scroll */}
+      <div className={`bg-gray-50 dark:bg-gray-900 p-4 pt-2 flex-shrink-0 transition-transform duration-300 ${showBottomNav ? 'translate-y-0' : '-translate-y-full'}`}>
         <div className="space-y-4">
           {/* Main Search Bar */}
           <div className="flex items-center gap-4 max-w-4xl">
             <div className="flex-1 relative">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
               <Input
-                placeholder="Search insights & resources..."
+                placeholder="Search insights, paste content, or add URLs..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleSearchSubmit}
+                disabled={isProcessingSmartSearch}
                 className="pl-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-full h-14 text-lg"
               />
+              {isProcessingSmartSearch && (
+                <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                  <div className="w-5 h-5 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin" />
+                </div>
+              )}
             </div>
             <Button 
               variant="outline"
@@ -225,7 +297,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
               className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-14 h-14 p-0 shadow-lg"
               onClick={() => setShowResourceWidget(true)}
             >
-              <Plus className="h-6 w-6" />
+              <Plus className="h-5 w-5" />
             </Button>
           </div>
 
@@ -428,9 +500,9 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
       {/* Subtle Bottom Navigation Panel - Replit Style with Auto-Hide */}
       <div className={`fixed bottom-0 left-0 right-0 z-30 transition-all duration-300 ${showBottomNav ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}`}>
         <div className="bg-gradient-to-t from-gray-50/90 to-transparent dark:from-gray-900/90 dark:to-transparent pt-4 pb-3">
-          <div className="max-w-xs mx-auto px-3">
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-full border border-gray-200/30 dark:border-gray-700/30 shadow-lg p-1">
-              <div className="flex items-center justify-center gap-0">
+          <div className="max-w-sm mx-auto px-3">
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-full border border-gray-200/30 dark:border-gray-700/30 shadow-lg p-2">
+              <div className="flex items-center justify-center gap-1">
                 {/* Add Note Button */}
                 <button
                   onClick={() => {
@@ -439,29 +511,25 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                     setNoteTitle("");
                     setIsHeaderVisible(true);
                   }}
-                  className="flex-1 flex items-center gap-2 p-2 rounded-full hover:bg-gray-100/50 dark:hover:bg-gray-700/50 transition-all duration-200 group"
+                  className="flex-1 flex flex-col items-center gap-1 p-3 rounded-full hover:bg-gray-100/50 dark:hover:bg-gray-700/50 transition-all duration-200 group"
                 >
                   <div className="w-8 h-8 rounded-full bg-blue-500/10 dark:bg-blue-400/10 flex items-center justify-center group-hover:bg-blue-500/20 dark:group-hover:bg-blue-400/20 transition-colors">
                     <Plus className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <div className="flex-1 text-left hidden sm:block">
-                    <div className="text-xs font-medium text-gray-700 dark:text-gray-300">Note</div>
-                  </div>
+                  <div className="text-xs font-medium text-gray-700 dark:text-gray-300">Add Note</div>
                 </button>
 
                 {/* AI Agent Button */}
                 <button
                   onClick={() => setShowAIAgent(true)}
-                  className="flex-1 flex items-center gap-2 p-2 rounded-full hover:bg-gray-100/50 dark:hover:bg-gray-700/50 transition-all duration-200 group"
+                  className="flex-1 flex flex-col items-center gap-1 p-3 rounded-full hover:bg-gray-100/50 dark:hover:bg-gray-700/50 transition-all duration-200 group"
                 >
                   <div className="w-8 h-8 rounded-full bg-purple-500/10 dark:bg-purple-400/10 flex items-center justify-center group-hover:bg-purple-500/20 dark:group-hover:bg-purple-400/20 transition-colors">
                     <svg className="h-4 w-4 text-purple-600 dark:text-purple-400" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M11 21h-1l1-7H7.5c-.88 0-.33-.75-.31-.78C8.48 10.94 10.42 7.54 13.01 3h1l-1 7h3.51c.4 0 .62.19.4.66C12.97 17.55 11 21 11 21z"/>
                     </svg>
                   </div>
-                  <div className="flex-1 text-left hidden sm:block">
-                    <div className="text-xs font-medium text-gray-700 dark:text-gray-300">AI</div>
-                  </div>
+                  <div className="text-xs font-medium text-gray-700 dark:text-gray-300">AI Agent</div>
                 </button>
               </div>
             </div>

@@ -39,15 +39,10 @@ interface ResourceWidgetProps {
 }
 
 export function ResourceWidget({ open, onOpenChange, onResourceAdded }: ResourceWidgetProps) {
-  const [selectedMode, setSelectedMode] = useState<'url' | 'manual' | 'pdf' | 'download' | null>(null);
-  const [inputValue, setInputValue] = useState("");
+  const [selectedMode, setSelectedMode] = useState<'import' | 'export' | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [resultMessage, setResultMessage] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
-  const [attachedFile, setAttachedFile] = useState<File | null>(null);
-  const [conversationHistory, setConversationHistory] = useState<Array<{role: 'user' | 'assistant', content: string, timestamp: Date}>>([]);
-  const [showCreateCard, setShowCreateCard] = useState(false);
-  const [lastResponse, setLastResponse] = useState("");
   const { user } = useAuth();
   const { toast } = useToast();
 
