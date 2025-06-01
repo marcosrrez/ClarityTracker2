@@ -21,6 +21,7 @@ import {
   Sparkles,
   Plus
 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Link } from "wouter";
 
 export const CrossSessionAnalysisView = () => {
@@ -109,50 +110,110 @@ export const CrossSessionAnalysisView = () => {
       </div>
 
       {/* Longitudinal Development Metrics */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-muted-foreground">Practice Evolution</p>
-              <p className="text-lg font-bold text-foreground">
+      <TooltipProvider>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Card className="p-4 cursor-help hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground">Practice Evolution</p>
+                    <p className="text-lg font-bold text-foreground">
+                      {(() => {
+                        const timeSpan = totalSessions > 1 ? 
+                          Math.ceil((new Date(logEntries[logEntries.length - 1].dateOfContact).getTime() - 
+                                     new Date(logEntries[0].dateOfContact).getTime()) / (1000 * 60 * 60 * 24 * 7)) : 0;
+                        return `${timeSpan}w`;
+                      })()}
+                    </p>
+                  </div>
+                  <TrendingUp className="h-5 w-5 text-blue-500" />
+                </div>
+              </Card>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs">
+              <p className="font-medium">Practice Evolution Timeline</p>
+              <p className="text-sm text-muted-foreground">
                 {(() => {
                   const timeSpan = totalSessions > 1 ? 
                     Math.ceil((new Date(logEntries[logEntries.length - 1].dateOfContact).getTime() - 
                                new Date(logEntries[0].dateOfContact).getTime()) / (1000 * 60 * 60 * 24 * 7)) : 0;
-                  return `${timeSpan}w`;
+                  if (timeSpan > 12) return "Great longitudinal data! You have sufficient session history for meaningful pattern analysis.";
+                  if (timeSpan > 4) return "Good progress tracking. Continue documenting to build stronger pattern recognition.";
+                  return "Keep documenting sessions to establish longitudinal patterns for supervision discussions.";
                 })()}
               </p>
-            </div>
-            <TrendingUp className="h-5 w-5 text-blue-500" />
-          </div>
-        </Card>
-        
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-muted-foreground">Growth Trajectory</p>
-              <p className="text-lg font-bold text-foreground">
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Card className="p-4 cursor-help hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground">Growth Insights</p>
+                    <p className="text-lg font-bold text-foreground">
+                      {(() => {
+                        const growthKeywords = ['challenge', 'difficult', 'struggle', 'learn', 'improve', 'develop'];
+                        return logEntries.filter((entry: any) => 
+                          growthKeywords.some(keyword => 
+                            entry.notes?.toLowerCase().includes(keyword) || 
+                            entry.supervisionNotes?.toLowerCase().includes(keyword)
+                          )
+                        ).length;
+                      })()}
+                    </p>
+                  </div>
+                  <Target className="h-5 w-5 text-amber-500" />
+                </div>
+              </Card>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs">
+              <p className="font-medium">Growth Areas Documented</p>
+              <p className="text-sm text-muted-foreground">
                 {(() => {
                   const growthKeywords = ['challenge', 'difficult', 'struggle', 'learn', 'improve', 'develop'];
-                  const recentGrowth = logEntries.slice(-5).filter((entry: any) => 
+                  const growthEntries = logEntries.filter((entry: any) => 
                     growthKeywords.some(keyword => 
                       entry.notes?.toLowerCase().includes(keyword) || 
                       entry.supervisionNotes?.toLowerCase().includes(keyword)
                     )
-                  ).length;
-                  return recentGrowth > 2 ? "↗" : recentGrowth > 0 ? "→" : "↘";
+                  );
+                  const recentGrowth = growthEntries.slice(-3);
+                  if (growthEntries.length === 0) return "No growth challenges documented yet. Consider reflecting on areas for development.";
+                  if (growthEntries.length > 3) return `Active learning mindset! Recent growth areas include sessions where you've noted challenges and learning opportunities.`;
+                  return `${growthEntries.length} sessions mention growth opportunities. Great self-awareness for professional development.`;
                 })()}
               </p>
-            </div>
-            <Target className="h-5 w-5 text-amber-500" />
-          </div>
-        </Card>
-        
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-muted-foreground">Approach Consistency</p>
-              <p className="text-lg font-bold text-foreground">
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Card className="p-4 cursor-help hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground">Approach Consistency</p>
+                    <p className="text-lg font-bold text-foreground">
+                      {(() => {
+                        const modalityKeywords = ['cbt', 'dbt', 'emdr', 'therapy', 'intervention', 'technique'];
+                        const consistency = modalityKeywords.filter(keyword => 
+                          logEntries.filter((entry: any) => 
+                            entry.notes?.toLowerCase().includes(keyword) || 
+                            entry.supervisionNotes?.toLowerCase().includes(keyword)
+                          ).length >= 2
+                        ).length;
+                        return `${Math.min(consistency * 25, 100)}%`;
+                      })()}
+                    </p>
+                  </div>
+                  <Brain className="h-5 w-5 text-green-500" />
+                </div>
+              </Card>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs">
+              <p className="font-medium">Therapeutic Approach Development</p>
+              <p className="text-sm text-muted-foreground">
                 {(() => {
                   const modalityKeywords = ['cbt', 'dbt', 'emdr', 'therapy', 'intervention', 'technique'];
                   const consistency = modalityKeywords.filter(keyword => 
@@ -161,31 +222,51 @@ export const CrossSessionAnalysisView = () => {
                       entry.supervisionNotes?.toLowerCase().includes(keyword)
                     ).length >= 2
                   ).length;
-                  return `${Math.min(consistency * 25, 100)}%`;
+                  const percentage = Math.min(consistency * 25, 100);
+                  if (percentage >= 75) return "Strong therapeutic identity emerging! You're consistently applying specific modalities and techniques.";
+                  if (percentage >= 50) return "Good foundation developing. Continue exploring and documenting your preferred therapeutic approaches.";
+                  return "Early stage of approach development. Document specific techniques and modalities you're learning to track your emerging style.";
                 })()}
               </p>
-            </div>
-            <Brain className="h-5 w-5 text-green-500" />
-          </div>
-        </Card>
-        
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-muted-foreground">Supervision Readiness</p>
-              <p className="text-lg font-bold text-foreground">
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Card className="p-4 cursor-help hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground">Supervision Readiness</p>
+                    <p className="text-lg font-bold text-foreground">
+                      {(() => {
+                        const supervisionEntries = logEntries.filter((entry: any) => 
+                          entry.supervisionType && entry.supervisionType !== 'none'
+                        );
+                        return supervisionEntries.length > 0 ? "Ready" : "Prepare";
+                      })()}
+                    </p>
+                  </div>
+                  <Eye className="h-5 w-5 text-purple-500" />
+                </div>
+              </Card>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs">
+              <p className="font-medium">Supervision Preparation Status</p>
+              <p className="text-sm text-muted-foreground">
                 {(() => {
                   const supervisionEntries = logEntries.filter((entry: any) => 
                     entry.supervisionType && entry.supervisionType !== 'none'
                   );
-                  return supervisionEntries.length > 0 ? "Ready" : "Prepare";
+                  if (supervisionEntries.length > 0) {
+                    return `You have ${supervisionEntries.length} documented supervision topics ready for discussion. Great preparation for meaningful supervision sessions.`;
+                  }
+                  return "Consider documenting specific cases or challenges you'd like to discuss in supervision. This helps maximize your supervision time.";
                 })()}
               </p>
-            </div>
-            <Eye className="h-5 w-5 text-purple-500" />
-          </div>
-        </Card>
-      </div>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      </TooltipProvider>
 
       {/* Authentic Pattern Analysis from Session Data */}
       {logEntries.length > 0 && (
@@ -355,43 +436,7 @@ export const CrossSessionAnalysisView = () => {
         </div>
       )}
 
-      {!analysis && !isGenerating && totalSessions > 0 && (
-        <Card className="bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-indigo-950/50 dark:via-gray-900 dark:to-purple-950/50 border-indigo-200/60 dark:border-indigo-800/60">
-          <CardContent className="pt-8 pb-8 text-center">
-            <div className="relative mb-6">
-              <div className="absolute inset-0 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full w-16 h-16 mx-auto opacity-20 animate-pulse"></div>
-              <Sparkles className="h-16 w-16 text-indigo-600 dark:text-indigo-400 mx-auto relative z-10" />
-            </div>
-            <h3 className="text-xl font-bold mb-3 bg-gradient-to-r from-indigo-900 via-purple-900 to-indigo-900 dark:from-indigo-100 dark:via-purple-100 dark:to-indigo-100 bg-clip-text text-transparent">
-              AI-Powered Longitudinal Analysis
-            </h3>
-            <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-lg mx-auto leading-relaxed">
-              Discover deep patterns across your {totalSessions} sessions and {insightCards.length} insight cards. 
-              Generate comprehensive insights into your therapeutic identity development and professional evolution over time.
-            </p>
-            <div className="space-y-4">
-              <Button 
-                onClick={generateAnalysis}
-                size="lg"
-                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-medium h-12 px-8 shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                <Sparkles className="h-5 w-5 mr-2" />
-                Generate Deep Analysis
-              </Button>
-              <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-xl border border-amber-200/60 dark:border-amber-800/60">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Lightbulb className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                  <h4 className="font-medium text-amber-800 dark:text-amber-200">Longitudinal Insights Available</h4>
-                </div>
-                <p className="text-sm text-amber-700 dark:text-amber-300">
-                  View authentic patterns and evolution trends from your documented sessions below, 
-                  or use AI analysis to discover deeper cross-session insights and supervision preparation materials.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+
 
       {isGenerating && (
         <Card>
