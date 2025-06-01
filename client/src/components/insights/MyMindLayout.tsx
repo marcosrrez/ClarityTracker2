@@ -396,55 +396,51 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
         )}
       </div>
 
-      {/* Bottom Action Cards - Add Note & AI Agent */}
+      {/* Unified Bottom Navigation Panel - Replit Style */}
       <div className="fixed bottom-0 left-0 right-0 z-30">
-        <div className="bg-gradient-to-t from-gray-50 to-transparent dark:from-gray-900 dark:to-transparent pt-8 pb-0">
-          <div className="max-w-2xl mx-auto px-6">
-            <div className="grid grid-cols-2 gap-3">
-              {/* Add Note Card */}
-              <Card 
-                className="border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 transition-colors cursor-pointer bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-lg"
-                onClick={() => {
-                  setShowNoteEditor(true);
-                  setNoteContent("");
-                  setNoteTitle("");
-                  setIsHeaderVisible(true);
-                }}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
-                      <Plus className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-sm text-blue-600 dark:text-blue-400">ADD NOTE</h3>
-                      <p className="text-muted-foreground text-xs">
-                        Start typing...
-                      </p>
-                    </div>
+        <div className="bg-gradient-to-t from-white to-transparent dark:from-gray-900 dark:to-transparent pt-6 pb-2">
+          <div className="max-w-md mx-auto px-4">
+            <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-lg rounded-2xl border border-gray-200/50 dark:border-gray-700/50 shadow-xl p-2">
+              <div className="flex items-center justify-center gap-1">
+                {/* Add Note Button */}
+                <button
+                  onClick={() => {
+                    setShowNoteEditor(true);
+                    setNoteContent("");
+                    setNoteTitle("");
+                    setIsHeaderVisible(true);
+                  }}
+                  className="flex-1 flex items-center gap-3 p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <Plus className="h-5 w-5 text-white" />
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="flex-1 text-left">
+                    <div className="text-sm font-medium text-gray-900 dark:text-white">Add Note</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">Start writing...</div>
+                  </div>
+                </button>
 
-              {/* AI Agent Card */}
-              <Card 
-                className="border-2 border-dashed border-purple-300 dark:border-purple-600 hover:border-purple-400 dark:hover:border-purple-500 transition-colors cursor-pointer bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-lg"
-                onClick={() => setShowAIAgent(true)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0">
-                      <Sparkles className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-sm text-purple-600 dark:text-purple-400">AI AGENT</h3>
-                      <p className="text-muted-foreground text-xs">
-                        Ask anything...
-                      </p>
-                    </div>
+                {/* Separator */}
+                <div className="w-px h-12 bg-gray-200 dark:bg-gray-600 mx-1"></div>
+
+                {/* AI Agent Button */}
+                <button
+                  onClick={() => setShowAIAgent(true)}
+                  className="flex-1 flex items-center gap-3 p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    {/* Custom ClarityLog AI Icon */}
+                    <svg className="h-5 w-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                    </svg>
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="flex-1 text-left">
+                    <div className="text-sm font-medium text-gray-900 dark:text-white">AI Agent</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">Ask anything...</div>
+                  </div>
+                </button>
+              </div>
             </div>
           </div>
         </div>
