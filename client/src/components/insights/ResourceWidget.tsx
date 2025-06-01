@@ -41,6 +41,7 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
   const [isLoading, setIsLoading] = useState(false);
   const [resultMessage, setResultMessage] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
+  const [attachedFile, setAttachedFile] = useState<File | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -50,8 +51,45 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
       setInputValue("");
       setResultMessage("");
       setShowSuccess(false);
+      setAttachedFile(null);
     }
     onOpenChange(newOpen);
+  };
+
+  const handleFileAttachment = (file: File) => {
+    setAttachedFile(file);
+    
+    // Auto-generate input based on file type
+    if (file.type === 'application/pdf') {
+      setInputValue(`Analyze this PDF: ${file.name}`);
+    } else if (file.type.startsWith('image/')) {
+      setInputValue(`What can you tell me about this image: ${file.name}?`);
+    } else {
+      setInputValue(`Help me understand this file: ${file.name}`);
+    }
+  };
+
+  const processFileContent = async (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        const content = e.target?.result as string;
+        if (file.type.startsWith('image/')) {
+          // For images, we'll return the base64 data
+          resolve(content);
+        } else {
+          // For text files, return the content
+          resolve(content);
+        }
+      };
+      
+      if (file.type.startsWith('image/')) {
+        reader.readAsDataURL(file);
+      } else {
+        reader.readAsText(file);
+      }
+    });
   };
 
   const detectInputType = (input: string) => {
@@ -64,7 +102,7 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
     return 'text';
   };
 
-  const handleAIQuery = async (question: string) => {
+  const handleAIQuery = async (question: string, fileContent?: string) => {
     setIsLoading(true);
     setResultMessage("Thinking...");
     
@@ -78,15 +116,27 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
       
       Provide helpful, professional responses that support their growth as counselors.`;
 
+      // Combine question with file content if available
+      let fullMessage = question;
+      if (fileContent && attachedFile) {
+        if (attachedFile.type.startsWith('image/')) {
+          fullMessage += `\n\nI've attached an image file (${attachedFile.name}). Please analyze this image and provide relevant insights.`;
+        } else {
+          fullMessage += `\n\nFile content from ${attachedFile.name}:\n${fileContent}`;
+        }
+      }
+
       const response = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: question,
+          message: fullMessage,
           systemPrompt,
-          userId: user?.uid
+          userId: user?.uid,
+          fileContent: attachedFile?.type.startsWith('image/') ? fileContent : undefined,
+          fileType: attachedFile?.type
         }),
       });
 
@@ -100,8 +150,8 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
       const qaCard: InsertInsightCard = {
         type: 'note',
         title: `AI Assistant: ${question.substring(0, 50)}...`,
-        content: `**Question:** ${question}\n\n**Answer:** ${data.response}`,
-        tags: ['ai-assistant', 'q-and-a'],
+        content: `**Question:** ${question}${attachedFile ? ` (with ${attachedFile.name})` : ''}\n\n**Answer:** ${data.response}`,
+        tags: ['ai-assistant', 'q-and-a', ...(attachedFile ? ['file-analysis'] : [])],
       };
 
       await createInsightCard(user?.uid || '', qaCard);
@@ -148,7 +198,11 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
           onResourceAdded();
         }
       } else if (inputType === 'question') {
-        await handleAIQuery(inputValue);
+        let fileContent = undefined;
+        if (attachedFile) {
+          fileContent = await processFileContent(attachedFile);
+        }
+        await handleAIQuery(inputValue, fileContent);
       } else {
         setResultMessage("Processing your text...");
         
@@ -278,6 +332,18 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
 
           {/* Input Area */}
           <div className="p-4 border-t border-gray-200 dark:border-slate-700">
+            {attachedFile && (
+              <div className="mb-2 p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg flex items-center gap-2">
+                <Paperclip className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <span className="text-sm text-blue-700 dark:text-blue-300 flex-1">{attachedFile.name}</span>
+                <button
+                  onClick={() => setAttachedFile(null)}
+                  className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
+                >
+                  ×
+                </button>
+              </div>
+            )}
             <div className="flex gap-2">
               <div className="flex-1">
                 <Textarea
@@ -305,7 +371,9 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
               <div className="flex items-center bg-white dark:bg-slate-700 rounded-full border border-gray-200 dark:border-slate-600 shadow-sm">
                 <button
                   onClick={() => document.getElementById('file-upload')?.click()}
-                  className="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-600 transition-all rounded-l-full disabled:opacity-50"
+                  className={`flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-600 transition-all rounded-l-full disabled:opacity-50 ${
+                    attachedFile ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' : ''
+                  }`}
                   disabled={isLoading}
                 >
                   <Paperclip className="h-4 w-4" />
@@ -341,12 +409,12 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
           <input
             id="file-upload"
             type="file"
-            accept=".pdf"
+            accept=".pdf,.txt,.doc,.docx,.jpg,.jpeg,.png,.gif"
             className="hidden"
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) {
-                handlePdfUpload(file);
+                handleFileAttachment(file);
               }
             }}
           />

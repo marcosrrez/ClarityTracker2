@@ -1164,22 +1164,35 @@ ${userContext}
 
 Please provide a helpful, professional response that's personalized to their situation when possible.`;
 
-      // Use OpenAI for the chat response
-      const openai = new (await import('openai')).default({
-        apiKey: process.env.OPENAI_API_KEY,
-      });
+      // Try OpenAI first, fallback to Google AI
+      let response;
+      try {
+        const openai = new (await import('openai')).default({
+          apiKey: process.env.OPENAI_API_KEY,
+        });
 
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-        messages: [
-          { role: "system", content: enhancedPrompt },
-          { role: "user", content: message }
-        ],
-        max_tokens: 500,
-        temperature: 0.7,
-      });
+        const completion = await openai.chat.completions.create({
+          model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+          messages: [
+            { role: "system", content: enhancedPrompt },
+            { role: "user", content: message }
+          ],
+          max_tokens: 500,
+          temperature: 0.7,
+        });
 
-      const response = completion.choices[0].message.content;
+        response = completion.choices[0].message.content;
+      } catch (openaiError) {
+        console.log('OpenAI failed, trying Google AI:', openaiError.message);
+        
+        // Fallback to Google AI
+        const { GoogleGenerativeAI } = await import('@google/generative-ai');
+        const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '');
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+        const result = await model.generateContent([enhancedPrompt, message].join('\n\n'));
+        response = result.response.text();
+      }
 
       res.json({ response });
     } catch (error) {
