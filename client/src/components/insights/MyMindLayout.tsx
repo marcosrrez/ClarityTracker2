@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { createInsightCard } from "@/lib/firestore";
 import { useAuth } from "@/hooks/use-auth";
 import { ResourceWidget } from "./ResourceWidget";
+import { AIAgentWidget } from "./AIAgentWidget";
 import type { InsertInsightCard } from "@shared/schema";
 
 interface GalleryItem {
@@ -37,6 +38,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
   const [selectedSmartSpace, setSelectedSmartSpace] = useState<string>("all");
   const [showSmartSpaces, setShowSmartSpaces] = useState(false);
   const [showResourceWidget, setShowResourceWidget] = useState(false);
+  const [showAIAgent, setShowAIAgent] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -394,33 +396,56 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
         )}
       </div>
 
-      {/* Simple Add Note Card - MyMind Style */}
+      {/* Bottom Action Cards - Add Note & AI Agent */}
       <div className="fixed bottom-0 left-0 right-0 z-30">
         <div className="bg-gradient-to-t from-gray-50 to-transparent dark:from-gray-900 dark:to-transparent pt-8 pb-0">
-          <div className="max-w-md mx-auto px-6">
-            <Card 
-              className="border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 transition-colors cursor-pointer bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-lg"
-              onClick={() => {
-                setShowNoteEditor(true);
-                setNoteContent("");
-                setNoteTitle("");
-                setIsHeaderVisible(true);
-              }}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
-                    <Plus className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          <div className="max-w-2xl mx-auto px-6">
+            <div className="grid grid-cols-2 gap-3">
+              {/* Add Note Card */}
+              <Card 
+                className="border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 transition-colors cursor-pointer bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-lg"
+                onClick={() => {
+                  setShowNoteEditor(true);
+                  setNoteContent("");
+                  setNoteTitle("");
+                  setIsHeaderVisible(true);
+                }}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
+                      <Plus className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-sm text-blue-600 dark:text-blue-400">ADD NOTE</h3>
+                      <p className="text-muted-foreground text-xs">
+                        Start typing...
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-sm text-blue-600 dark:text-blue-400">ADD A NEW NOTE</h3>
-                    <p className="text-muted-foreground text-sm">
-                      Start typing here...
-                    </p>
+                </CardContent>
+              </Card>
+
+              {/* AI Agent Card */}
+              <Card 
+                className="border-2 border-dashed border-purple-300 dark:border-purple-600 hover:border-purple-400 dark:hover:border-purple-500 transition-colors cursor-pointer bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-lg"
+                onClick={() => setShowResourceWidget(true)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0">
+                      <Sparkles className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-sm text-purple-600 dark:text-purple-400">AI AGENT</h3>
+                      <p className="text-muted-foreground text-xs">
+                        Ask anything...
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </div>

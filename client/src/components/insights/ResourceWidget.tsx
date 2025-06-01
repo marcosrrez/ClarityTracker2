@@ -377,7 +377,7 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
           {/* Header */}
           <div className="px-4 py-3 border-b border-gray-200 dark:border-slate-700">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium text-gray-900 dark:text-white">Add Resource</h3>
+              <h3 className="text-sm font-medium text-gray-900 dark:text-white">AI Assistant</h3>
               {conversationHistory.length > 0 && (
                 <div className="flex gap-1">
                   <button
