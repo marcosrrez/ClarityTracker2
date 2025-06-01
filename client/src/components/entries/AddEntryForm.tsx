@@ -766,7 +766,7 @@ export const AddEntryForm = () => {
                       </button>
 
                       {/* AI Analysis Button */}
-                      <div className="group relative">
+                      <div className="group relative ml-1">
                         <button
                           type="button"
                           onClick={handleAiAnalysis}
@@ -783,7 +783,10 @@ export const AddEntryForm = () => {
                           {isAnalyzing ? (
                             <div className="w-4 h-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
                           ) : (
-                            <Zap className="w-4 h-4" />
+                            <Zap className={cn(
+                              "w-4 h-4",
+                              editor?.getText().trim() && !isAnalyzing && "animate-pulse"
+                            )} />
                           )}
                         </button>
                         
