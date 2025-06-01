@@ -763,111 +763,110 @@ export const GalleryView = () => {
                 </div>
               </div>
 
-              {/* Card Content Body - Clean Layout */}
-              <div className="p-6">
-                {/* Main Content: Two Column Layout */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* Left Column: Session Notes (2/3 width) */}
-                  <div className="lg:col-span-2">
-                    <div className="h-full">
-                      <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-4 text-base">
-                        Session Notes
-                      </h3>
-                      <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 min-h-[400px]">
-                        <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
-                          {expandedCard.notes || "No detailed notes recorded for this session."}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right Column: AI Analysis (1/3 width) */}
+              {/* Card Content Body - Scrollable Layout */}
+              <div className="overflow-y-auto" style={{ maxHeight: 'calc(85vh - 200px)' }}>
+                <div className="p-6 space-y-6">
+                  {/* AI Analysis Section - Top Priority */}
                   {expandedCard.analysis && (
-                    <div className="space-y-4">
-                      <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-4 text-base">
+                    <div>
+                      <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4 text-lg">
                         AI Analysis
                       </h3>
 
-                      {/* Summary */}
-                      {expandedCard.analysis.summary && (
-                        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-                          <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2 text-sm">
-                            Summary
-                          </h4>
-                          <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
-                            {expandedCard.analysis.summary}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Key Themes */}
-                      {expandedCard.analysis.themes && expandedCard.analysis.themes.length > 0 && (
-                        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-                          <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3 text-sm">
-                            Key Themes
-                          </h4>
-                          <div className="space-y-2">
-                            {expandedCard.analysis.themes.map((theme: string, index: number) => (
-                              <div key={index} className="bg-white dark:bg-gray-700 p-2 rounded text-xs border border-gray-200 dark:border-gray-600">
-                                {theme}
-                              </div>
-                            ))}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        {/* Summary */}
+                        {expandedCard.analysis.summary && (
+                          <div className="md:col-span-2 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3 text-sm">
+                              Summary
+                            </h4>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                              {expandedCard.analysis.summary}
+                            </p>
                           </div>
-                        </div>
-                      )}
+                        )}
 
-                      {/* Areas for Growth */}
-                      {expandedCard.analysis.potentialBlindSpots && expandedCard.analysis.potentialBlindSpots.length > 0 && (
-                        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-                          <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3 text-sm">
-                            Areas for Growth
-                          </h4>
-                          <div className="space-y-2">
-                            {expandedCard.analysis.potentialBlindSpots.map((blindSpot: string, index: number) => (
-                              <div key={index} className="bg-white dark:bg-gray-700 p-2 rounded text-xs border border-gray-200 dark:border-gray-600">
-                                {blindSpot}
-                              </div>
-                            ))}
+                        {/* Key Themes */}
+                        {expandedCard.analysis.themes && expandedCard.analysis.themes.length > 0 && (
+                          <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3 text-sm">
+                              Key Themes
+                            </h4>
+                            <div className="space-y-2">
+                              {expandedCard.analysis.themes.map((theme: string, index: number) => (
+                                <div key={index} className="bg-white dark:bg-gray-700 p-3 rounded text-sm border border-gray-200 dark:border-gray-600">
+                                  {theme}
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
 
-                      {/* Key Learnings */}
-                      {expandedCard.analysis.keyLearnings && expandedCard.analysis.keyLearnings.length > 0 && (
-                        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-                          <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3 text-sm">
-                            Key Learnings
-                          </h4>
-                          <div className="space-y-2">
-                            {expandedCard.analysis.keyLearnings.map((learning: string, index: number) => (
-                              <div key={index} className="bg-white dark:bg-gray-700 p-2 rounded text-xs border border-gray-200 dark:border-gray-600">
-                                {learning}
-                              </div>
-                            ))}
+                        {/* Areas for Growth */}
+                        {expandedCard.analysis.potentialBlindSpots && expandedCard.analysis.potentialBlindSpots.length > 0 && (
+                          <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3 text-sm">
+                              Areas for Growth
+                            </h4>
+                            <div className="space-y-2">
+                              {expandedCard.analysis.potentialBlindSpots.map((blindSpot: string, index: number) => (
+                                <div key={index} className="bg-white dark:bg-gray-700 p-3 rounded text-sm border border-gray-200 dark:border-gray-600">
+                                  {blindSpot}
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
 
-                      {/* Reflection Questions */}
-                      {expandedCard.analysis.reflectivePrompts && expandedCard.analysis.reflectivePrompts.length > 0 && (
-                        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-                          <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3 text-sm">
-                            Reflection Questions
-                          </h4>
-                          <div className="space-y-3">
-                            {expandedCard.analysis.reflectivePrompts.map((prompt: string, index: number) => (
-                              <div key={index} className="bg-white dark:bg-gray-700 p-3 rounded border border-gray-200 dark:border-gray-600">
-                                <p className="text-xs text-gray-700 dark:text-gray-300 font-medium mb-1">
-                                  Question {index + 1}:
-                                </p>
-                                <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">{prompt}</p>
-                              </div>
-                            ))}
+                        {/* Key Learnings */}
+                        {expandedCard.analysis.keyLearnings && expandedCard.analysis.keyLearnings.length > 0 && (
+                          <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3 text-sm">
+                              Key Learnings
+                            </h4>
+                            <div className="space-y-2">
+                              {expandedCard.analysis.keyLearnings.map((learning: string, index: number) => (
+                                <div key={index} className="bg-white dark:bg-gray-700 p-3 rounded text-sm border border-gray-200 dark:border-gray-600">
+                                  {learning}
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
+
+                        {/* Reflection Questions */}
+                        {expandedCard.analysis.reflectivePrompts && expandedCard.analysis.reflectivePrompts.length > 0 && (
+                          <div className="md:col-span-2 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3 text-sm">
+                              Reflection Questions
+                            </h4>
+                            <div className="space-y-3">
+                              {expandedCard.analysis.reflectivePrompts.map((prompt: string, index: number) => (
+                                <div key={index} className="bg-white dark:bg-gray-700 p-4 rounded border border-gray-200 dark:border-gray-600">
+                                  <p className="text-sm text-gray-700 dark:text-gray-300 font-medium mb-2">
+                                    Question {index + 1}:
+                                  </p>
+                                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{prompt}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
+
+                  {/* Session Notes Section - Bottom */}
+                  <div>
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4 text-lg">
+                      Session Notes
+                    </h3>
+                    <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                      <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+                        {expandedCard.notes || "No detailed notes recorded for this session."}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
