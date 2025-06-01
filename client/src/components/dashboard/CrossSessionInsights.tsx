@@ -142,25 +142,27 @@ export const CrossSessionInsights = () => {
 
   return (
     <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-      <Card className="border-0 shadow-lg overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/20 dark:to-purple-950/20">
+      <Card className="border-0 shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <CardTitle className="flex items-center gap-3">
-                <BarChart3 className="h-6 w-6 text-indigo-600" />
-                Cross-Session Pattern Analysis
-                {currentMilestone && (
-                  <Badge variant="secondary" className="bg-indigo-100 text-indigo-700">
-                    Milestone {currentMilestone.milestone} Unlocked
-                  </Badge>
-                )}
-              </CardTitle>
-              <CardDescription>
-                {currentMilestone 
-                  ? `Longitudinal insights available: ${currentMilestone.title}`
-                  : `${milestones[0].milestone - totalSessions} more sessions to unlock pattern analysis`
-                }
-              </CardDescription>
+            <div className="flex items-center gap-3">
+              <BarChart3 className="h-6 w-6 text-green-600" />
+              <div>
+                <CardTitle className="text-black font-bold">
+                  Cross-Session Pattern Analysis
+                  {currentMilestone && (
+                    <Badge variant="secondary" className="ml-2 bg-green-100 text-green-700">
+                      Milestone {currentMilestone.milestone}
+                    </Badge>
+                  )}
+                </CardTitle>
+                <CardDescription className="text-gray-600 text-sm">
+                  {currentMilestone 
+                    ? `${currentMilestone.title} insights available`
+                    : `${milestones[0].milestone - totalSessions} more sessions to unlock`
+                  }
+                </CardDescription>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               {currentMilestone && (
@@ -168,13 +170,13 @@ export const CrossSessionInsights = () => {
                   onClick={generateProgressiveAnalysis} 
                   disabled={isGenerating}
                   size="sm"
-                  className="rounded-xl font-medium transition-all duration-300"
+                  className="bg-blue-600 hover:bg-blue-700 font-bold rounded-xl"
                 >
                   {isGenerating ? "Analyzing..." : "Generate Insights"}
                 </Button>
               )}
               <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="text-gray-600">
                   {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 </Button>
               </CollapsibleTrigger>
