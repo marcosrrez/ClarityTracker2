@@ -169,223 +169,164 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-hidden" aria-describedby="resource-widget-description">
-        <DialogHeader className="border-b pb-6">
-          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Add Professional Resource
-          </DialogTitle>
-          <p className="text-muted-foreground">
-            Transform articles and content into actionable professional development insights
-          </p>
-        </DialogHeader>
-        
-        <div className="py-6 space-y-8 overflow-y-auto">
+      <DialogContent className="sm:max-w-md p-0 gap-0 rounded-2xl" aria-describedby="resource-widget-description">
+        <div className="p-6">
           {!selectedMode ? (
             <>
-              {/* Premium Mode Selection */}
-              <div className="grid gap-4">
+              {/* Compact Header */}
+              <div className="text-center mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Add Resource</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">AI-powered analysis</p>
+              </div>
+              
+              {/* Compact Mode Cards */}
+              <div className="space-y-3">
                 <div 
-                  className="group relative overflow-hidden rounded-xl border-2 border-dashed border-gray-200 hover:border-blue-400 transition-all duration-300 cursor-pointer bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 p-6"
+                  className="group flex items-center gap-3 p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/20 transition-all duration-200 cursor-pointer"
                   onClick={() => setSelectedMode('url')}
                 >
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
-                      <Globe className="h-6 w-6" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                        Web Article Analysis
-                      </h3>
-                      <p className="text-gray-600 dark:text-gray-400 mb-3">
-                        Paste any URL to automatically extract, summarize, and analyze content for therapeutic insights
-                      </p>
-                      <div className="flex gap-2">
-                        <div className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs rounded-full">
-                          Auto-extract
-                        </div>
-                        <div className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs rounded-full">
-                          AI Analysis
-                        </div>
-                      </div>
-                    </div>
-                    <ExternalLink className="h-5 w-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                  <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white flex-shrink-0">
+                    <Globe className="h-5 w-5" />
                   </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-gray-900 dark:text-gray-100">Web Article</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate">Auto-extract from URL</p>
+                  </div>
+                  <ExternalLink className="h-4 w-4 text-gray-400 group-hover:text-blue-600 transition-colors flex-shrink-0" />
                 </div>
 
                 <div 
-                  className="group relative overflow-hidden rounded-xl border-2 border-dashed border-gray-200 hover:border-purple-400 transition-all duration-300 cursor-pointer bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 p-6"
+                  className="group flex items-center gap-3 p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/20 transition-all duration-200 cursor-pointer"
                   onClick={() => setSelectedMode('manual')}
                 >
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-purple-600 flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
-                      <FileText className="h-6 w-6" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                        Manual Content Entry
-                      </h3>
-                      <p className="text-gray-600 dark:text-gray-400 mb-3">
-                        Copy and paste article text when websites block automatic access
-                      </p>
-                      <div className="flex gap-2">
-                        <div className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs rounded-full">
-                          Manual Entry
-                        </div>
-                        <div className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs rounded-full">
-                          AI Analysis
-                        </div>
-                      </div>
-                    </div>
-                    <FileText className="h-5 w-5 text-gray-400 group-hover:text-purple-600 transition-colors" />
+                  <div className="w-10 h-10 rounded-lg bg-purple-600 flex items-center justify-center text-white flex-shrink-0">
+                    <FileText className="h-5 w-5" />
                   </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-gray-900 dark:text-gray-100">Manual Entry</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate">Paste content directly</p>
+                  </div>
+                  <FileText className="h-4 w-4 text-gray-400 group-hover:text-purple-600 transition-colors flex-shrink-0" />
                 </div>
               </div>
 
-              {/* Coming Soon Features */}
-              <div className="border-t pt-6">
-                <h4 className="text-sm font-medium text-gray-500 mb-4 uppercase tracking-wide">Coming Soon</h4>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
-                    <BookOpen className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                    <p className="text-sm font-medium text-center text-gray-600 dark:text-gray-400">PDF Analysis</p>
+              {/* Coming Soon - Compact */}
+              <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex justify-center gap-4">
+                  <div className="text-center">
+                    <div className="w-8 h-8 mx-auto mb-1 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                      <BookOpen className="h-4 w-4 text-gray-400" />
+                    </div>
+                    <p className="text-xs text-gray-400">PDF</p>
                   </div>
-                  <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
-                    <Video className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                    <p className="text-sm font-medium text-center text-gray-600 dark:text-gray-400">Video Transcripts</p>
+                  <div className="text-center">
+                    <div className="w-8 h-8 mx-auto mb-1 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                      <Video className="h-4 w-4 text-gray-400" />
+                    </div>
+                    <p className="text-xs text-gray-400">Video</p>
                   </div>
                 </div>
               </div>
             </>
           ) : selectedMode === 'url' ? (
-            /* URL Input Mode */
-            <div className="space-y-6">
+            /* Compact URL Input */
+            <div className="space-y-4">
               <div className="flex items-center gap-3">
                 <Button 
                   variant="ghost" 
                   size="sm" 
                   onClick={() => setSelectedMode(null)}
-                  className="p-2"
+                  className="p-1 h-8 w-8"
                 >
                   ←
                 </Button>
                 <div className="flex items-center gap-2">
-                  <Globe className="h-5 w-5 text-blue-600" />
-                  <h3 className="text-lg font-semibold">Web Article Analysis</h3>
+                  <Globe className="h-4 w-4 text-blue-600" />
+                  <h3 className="font-semibold">Web Article</h3>
                 </div>
               </div>
 
-              <form onSubmit={handleSubmit(onSummarizeUrl)} className="space-y-6">
-                <div className="space-y-3">
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Article URL
-                  </label>
+              <form onSubmit={handleSubmit(onSummarizeUrl)} className="space-y-4">
+                <div>
                   <Input
                     {...register("url")}
-                    placeholder="https://www.example.com/therapeutic-article"
+                    placeholder="https://example.com/article"
                     disabled={isSummarizing}
-                    className="h-12 text-base font-mono bg-white dark:bg-gray-800"
+                    className="font-mono text-sm"
                   />
                   {errors.url && (
-                    <p className="text-sm text-red-600 dark:text-red-400">{errors.url.message}</p>
+                    <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.url.message}</p>
                   )}
-                </div>
-                
-                <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
-                  <div className="flex items-start gap-3">
-                    <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                    <div className="text-sm text-blue-800 dark:text-blue-200">
-                      <p className="font-medium mb-1">AI will analyze for:</p>
-                      <ul className="list-disc list-inside space-y-1 text-blue-700 dark:text-blue-300">
-                        <li>Therapeutic techniques and modalities</li>
-                        <li>Professional development insights</li>
-                        <li>Key takeaways and action items</li>
-                        <li>Relevance to counseling practice</li>
-                      </ul>
-                    </div>
-                  </div>
                 </div>
                 
                 <Button 
                   type="submit" 
                   disabled={isSummarizing}
-                  className="w-full h-12 text-base bg-blue-600 hover:bg-blue-700"
+                  className="w-full bg-blue-600 hover:bg-blue-700"
                 >
                   {isSummarizing ? (
                     <>
-                      <LoadingSpinner size="sm" className="mr-3" />
-                      Analyzing Content...
+                      <LoadingSpinner size="sm" className="mr-2" />
+                      Analyzing...
                     </>
                   ) : (
                     <>
-                      <ExternalLink className="h-5 w-5 mr-3" />
-                      Analyze Article
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Analyze
                     </>
                   )}
                 </Button>
               </form>
             </div>
           ) : (
-            /* Manual Content Mode */
-            <div className="space-y-6">
+            /* Compact Manual Input */
+            <div className="space-y-4">
               <div className="flex items-center gap-3">
                 <Button 
                   variant="ghost" 
                   size="sm" 
                   onClick={() => setSelectedMode(null)}
-                  className="p-2"
+                  className="p-1 h-8 w-8"
                 >
                   ←
                 </Button>
                 <div className="flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-purple-600" />
-                  <h3 className="text-lg font-semibold">Manual Content Entry</h3>
+                  <FileText className="h-4 w-4 text-purple-600" />
+                  <h3 className="font-semibold">Manual Entry</h3>
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <div className="space-y-3">
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Source URL (Optional)
-                  </label>
-                  <Input
-                    value={manualUrl}
-                    onChange={(e) => setManualUrl(e.target.value)}
-                    placeholder="https://www.example.com/article (for reference)"
-                    disabled={isSummarizing}
-                    className="h-10 text-sm font-mono"
-                  />
-                </div>
-
-                <div className="space-y-3">
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Article Content
-                  </label>
-                  <textarea
-                    value={manualContent}
-                    onChange={(e) => setManualContent(e.target.value)}
-                    placeholder="Paste the full article content here for AI analysis..."
-                    className="w-full h-40 p-4 border rounded-lg resize-none text-sm leading-relaxed bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    disabled={isSummarizing}
-                  />
-                  <p className="text-xs text-gray-500">
-                    {manualContent.length} characters
-                  </p>
-                </div>
+              <div className="space-y-3">
+                <Input
+                  value={manualUrl}
+                  onChange={(e) => setManualUrl(e.target.value)}
+                  placeholder="Source URL (optional)"
+                  disabled={isSummarizing}
+                  className="text-sm font-mono"
+                />
+                
+                <textarea
+                  value={manualContent}
+                  onChange={(e) => setManualContent(e.target.value)}
+                  placeholder="Paste article content here..."
+                  className="w-full h-24 p-3 text-sm border rounded-lg resize-none bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  disabled={isSummarizing}
+                />
                 
                 <Button 
                   onClick={handleManualSubmit}
                   disabled={isSummarizing || !manualContent.trim()}
-                  className="w-full h-12 text-base bg-purple-600 hover:bg-purple-700"
+                  className="w-full bg-purple-600 hover:bg-purple-700"
                 >
                   {isSummarizing ? (
                     <>
-                      <LoadingSpinner size="sm" className="mr-3" />
-                      Analyzing Content...
+                      <LoadingSpinner size="sm" className="mr-2" />
+                      Analyzing...
                     </>
                   ) : (
                     <>
-                      <FileText className="h-5 w-5 mr-3" />
-                      Analyze Content
+                      <FileText className="h-4 w-4 mr-2" />
+                      Analyze
                     </>
                   )}
                 </Button>
