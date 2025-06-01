@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,7 +18,7 @@ export const EnhancedProgressSection = () => {
   const { entries, loading: entriesLoading } = useLogEntries();
   const { settings, loading: settingsLoading, refetch: refetchSettings } = useAppSettings();
   const { toast } = useToast();
-  
+
   const [ethicsHours, setEthicsHours] = useState("");
   const [savingEthics, setSavingEthics] = useState(false);
 
@@ -82,7 +81,7 @@ export const EnhancedProgressSection = () => {
   const hasReached1000CCH = finalTotalCCH >= 1000;
   const hasReached2000CCH = finalTotalCCH >= 2000;
   const hasReached3000CCH = finalTotalCCH >= 3000;
-  
+
   // Check supervision alert
   const checkInInterval = settings?.licenseInfo?.supervisionCheckInInterval || 30;
   const lacDate = settings?.licenseInfo?.lacLicenseDate;
@@ -101,7 +100,7 @@ export const EnhancedProgressSection = () => {
 
   const handleSaveEthics = async () => {
     if (!user) return;
-    
+
     const hours = parseFloat(ethicsHours);
     if (isNaN(hours) || hours < 0) {
       toast({
@@ -184,7 +183,7 @@ export const EnhancedProgressSection = () => {
               Track your journey to becoming a Licensed Professional Counselor
             </p>
           </div>
-          
+
           {/* Overall Progress Ring */}
           <div className="hidden md:block">
             <EnhancedProgressRing
@@ -217,7 +216,7 @@ export const EnhancedProgressSection = () => {
                 >
                   {/* Background gradient */}
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-transparent to-purple-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  
+
                   <div className="relative z-10">
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center space-x-3">
@@ -231,7 +230,7 @@ export const EnhancedProgressSection = () => {
                           </p>
                         </div>
                       </div>
-                      
+
                       <div className="text-right">
                         <div className="text-2xl font-bold" style={{ color: card.color }}>
                           {Math.round(card.progress)}%
@@ -429,7 +428,7 @@ export const EnhancedProgressSection = () => {
                 <Target className="h-5 w-5 text-blue-500" />
                 <span>Renewal Requirements</span>
               </h4>
-              
+
               <div className="space-y-6">
                 <div>
                   <Label htmlFor="ethicsHours" className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 block">
@@ -462,7 +461,7 @@ export const EnhancedProgressSection = () => {
                     </Button>
                   </div>
                 </div>
-                
+
                 <div>
                   <div className="flex justify-between text-sm text-gray-600 dark:text-gray-300 mb-3 font-medium">
                     <span>Progress</span>

@@ -55,6 +55,8 @@ export const AddEntryForm = () => {
       supervisionHours: 0,
       supervisionType: "none",
       techAssistedSupervision: false,
+      professionalDevelopmentHours: 0,
+      professionalDevelopmentType: "none",
       notes: "",
     },
   });
@@ -88,6 +90,15 @@ export const AddEntryForm = () => {
           field: 'clientContactHours',
           value: 1,
           reason: 'Standard therapy session'
+        });
+      }
+
+      // Professional development suggestions
+      if (dayOfWeek === 5 || dayOfWeek === 6) { // Friday or Saturday
+        suggestions.push({
+          field: 'professionalDevelopmentHours',
+          value: 2,
+          reason: 'Weekend workshop/training'
         });
       }
       
@@ -303,6 +314,47 @@ export const AddEntryForm = () => {
               <Label htmlFor="indirectHours" className="text-gray-700 font-medium">
                 Indirect client contact hours
               </Label>
+            </div>
+
+            {/* Professional Development Section */}
+            <div className="space-y-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-2xl">
+              <h3 className="font-semibold text-gray-900 dark:text-white">Professional Development</h3>
+              
+              {/* Professional Development Hours */}
+              <div className="space-y-2">
+                <Label htmlFor="professionalDevelopmentHours" className="text-gray-700 dark:text-gray-300 font-medium">Professional Development Hours</Label>
+                <Input
+                  {...register("professionalDevelopmentHours", { valueAsNumber: true })}
+                  type="number"
+                  step="0.25"
+                  min="0"
+                  className="rounded-3xl border-gray-200 focus:border-green-500"
+                />
+                {errors.professionalDevelopmentHours && (
+                  <p className="text-sm text-red-500">{errors.professionalDevelopmentHours.message}</p>
+                )}
+              </div>
+
+              {/* Professional Development Type */}
+              <div className="space-y-2">
+                <Label className="text-gray-700 font-medium">Development Type</Label>
+                <Select onValueChange={(value) => setValue("professionalDevelopmentType", value as any)}>
+                  <SelectTrigger className="rounded-xl border-gray-200">
+                    <SelectValue placeholder="Select development type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="ethics">Ethics Training</SelectItem>
+                    <SelectItem value="workshop">Workshop/Seminar</SelectItem>
+                    <SelectItem value="conference">Conference</SelectItem>
+                    <SelectItem value="webinar">Webinar</SelectItem>
+                    <SelectItem value="reading">Professional Reading</SelectItem>
+                    <SelectItem value="research">Research Activity</SelectItem>
+                    <SelectItem value="consultation">Peer Consultation</SelectItem>
+                    <SelectItem value="training">Specialized Training</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {/* Supervision Section */}

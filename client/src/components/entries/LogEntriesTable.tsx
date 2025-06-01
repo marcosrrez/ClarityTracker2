@@ -1,3 +1,7 @@
+The code changes aim to add a "Prof Dev" column to the LogEntriesTable component, displaying professional development hours for each log entry.
+```
+
+```replit_final_file
 import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import {
@@ -25,18 +29,18 @@ type SortDirection = "asc" | "desc";
 
 export const LogEntriesTable = () => {
   const { entries, loading, error } = useLogEntries();
-  
+
   // Filters
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [supervisionFilter, setSupervisionFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [dateRange, setDateRange] = useState<{from?: Date; to?: Date}>({});
   const [dateCalendarOpen, setDateCalendarOpen] = useState(false);
-  
+
   // Sorting
   const [sortField, setSortField] = useState<SortField>("dateOfContact");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
-  
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -262,6 +266,7 @@ export const LogEntriesTable = () => {
                       Supervision <ArrowUpDown className="ml-1 h-4 w-4" />
                     </Button>
                   </TableHead>
+                  <TableHead>Prof Dev</TableHead>
                   <TableHead>Notes</TableHead>
                 </TableRow>
               </TableHeader>
@@ -282,8 +287,39 @@ export const LogEntriesTable = () => {
                         {entry.indirectHours ? "Indirect" : "Direct"}
                       </Badge>
                     </TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      {formatSupervisionDisplay(entry)}
+                    <TableCell>
+                      {entry.supervisionHours > 0 ? (
+                        <div className="space-y-1">
+                          <div className="font-medium text-blue-600">
+                            {entry.supervisionHours}h
+                          </div>
+                          <div className="text-xs text-gray-500 capitalize">
+                            {entry.supervisionType.replace('_', ' ')}
+                          </div>
+                          {entry.techAssistedSupervision && (
+                            <Badge variant="outline" className="text-xs">
+                              Tech Assisted
+                            </Badge>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">None</span>
+                      )}
+                    </TableCell>
+
+                    <TableCell>
+                      {(entry.professionalDevelopmentHours || 0) > 0 ? (
+                        <div className="space-y-1">
+                          <div className="font-medium text-green-600">
+                            {entry.professionalDevelopmentHours}h
+                          </div>
+                          <div className="text-xs text-gray-500 capitalize">
+                            {(entry.professionalDevelopmentType || 'none').replace('_', ' ')}
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">None</span>
+                      )}
                     </TableCell>
                     <TableCell className="max-w-xs">
                       <div className="truncate" title={entry.notes}>

@@ -34,10 +34,15 @@ export const logEntrySchema = z.object({
   dateOfContact: z.date(),
   clientContactHours: z.number().min(0).max(24),
   indirectHours: z.boolean().default(false),
-  supervisionDate: z.date().optional(),
   supervisionHours: z.number().min(0).max(8).default(0),
   supervisionType: z.enum(["none", "individual", "dyadic", "group"]).default("none"),
+  supervisionDate: z.date().optional(),
   techAssistedSupervision: z.boolean().default(false),
+  professionalDevelopmentHours: z.number().min(0).default(0),
+  professionalDevelopmentType: z.enum([
+    "none", "ethics", "workshop", "conference", "webinar", 
+    "reading", "research", "consultation", "training"
+  ]).default("none"),
   notes: z.string().default(""),
   createdAt: z.date().default(() => new Date()),
   updatedAt: z.date().default(() => new Date()),
@@ -162,7 +167,7 @@ export const userAnalyticsTable = pgTable('user_analytics', {
   userId: varchar('user_id', { length: 255 }).notNull(),
   sessionId: varchar('session_id', { length: 255 }).notNull(),
   event: varchar('event', { length: 100 }).notNull(), // page_view, entry_added, ai_analysis, etc.
-  page: varchar('page', { length: 100 }), // dashboard, add-entry, insights, etc.
+  page: varchar('page', { length: 100 }), // dashboard, add-entry,insights, etc.
   metadata: text('metadata'), // JSON string for additional data
   timestamp: timestamp('timestamp').defaultNow().notNull(),
 });
