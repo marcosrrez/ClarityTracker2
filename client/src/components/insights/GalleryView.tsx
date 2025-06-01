@@ -84,68 +84,62 @@ export const GalleryView = () => {
     }
   }, [user, entries, entriesLoading]);
 
-  // Create card decks organized by month and weeks
-  const createCardDecks = (items: GalleryItem[]): CardDeck[] => {
-    const monthGroups: Map<string, GalleryItem[]> = new Map();
+  // Create intelligent card organization
+  const createCardDecks = (items: GalleryItem[]): WeekDeck[] => {
+    if (items.length === 0) return [];
 
-    items.forEach(item => {
-      const date = new Date(item.dateOfContact);
-      const monthKey = format(date, "yyyy-MM");
+    // Sort items by date (newest first)
+    const sortedItems = items.sort((a, b) => new Date(b.dateOfContact).getTime() - new Date(a.dateOfContact).getTime());
+    
+    // Group items by week across all months
+    const weekGroups: Map<string, GalleryItem[]> = new Map();
+    
+    sortedItems.forEach(item => {
+      const itemDate = new Date(item.dateOfContact);
+      const weekStart = startOfWeek(itemDate, { weekStartsOn: 1 });
+      const weekKey = format(weekStart, "yyyy-'W'ww");
       
-      if (!monthGroups.has(monthKey)) {
-        monthGroups.set(monthKey, []);
+      if (!weekGroups.has(weekKey)) {
+        weekGroups.set(weekKey, []);
       }
-      monthGroups.get(monthKey)!.push(item);
+      weekGroups.get(weekKey)!.push(item);
     });
 
-    return Array.from(monthGroups.entries())
-      .map(([monthKey, monthItems]) => {
-        const monthDate = new Date(monthKey + "-01");
-        const month = format(monthDate, "MMMM");
-        const year = monthDate.getFullYear();
+    // Convert to deck format and limit to 4 most recent weeks with content
+    const weekDecks = Array.from(weekGroups.entries())
+      .map(([weekKey, weekItems]) => {
+        const firstItem = weekItems[0];
+        const weekStart = startOfWeek(new Date(firstItem.dateOfContact), { weekStartsOn: 1 });
+        const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
         
-        // Group items by week within the month
-        const weekGroups: Map<number, GalleryItem[]> = new Map();
-        
-        monthItems.forEach(item => {
-          const itemDate = new Date(item.dateOfContact);
-          const weekStart = startOfWeek(itemDate, { weekStartsOn: 1 });
-          const monthStart = startOfMonth(monthDate);
-          
-          // Calculate week number within the month (0-3)
-          const weekNumber = Math.floor((weekStart.getTime() - monthStart.getTime()) / (7 * 24 * 60 * 60 * 1000));
-          const adjustedWeekNumber = Math.max(0, Math.min(3, weekNumber));
-          
-          if (!weekGroups.has(adjustedWeekNumber)) {
-            weekGroups.set(adjustedWeekNumber, []);
-          }
-          weekGroups.get(adjustedWeekNumber)!.push(item);
-        });
-
-        // Create week decks (ensure we have 4 weeks)
-        const weeks: WeekDeck[] = [];
-        for (let i = 0; i < 4; i++) {
-          const weekItems = weekGroups.get(i) || [];
-          const weekStart = new Date(monthDate);
-          weekStart.setDate(weekStart.getDate() + (i * 7));
-          const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
-          
-          weeks.push({
-            label: `Week ${i + 1}`,
-            items: weekItems.sort((a, b) => new Date(b.dateOfContact).getTime() - new Date(a.dateOfContact).getTime()),
-            weekNumber: i + 1,
-            startDate: weekStart,
-            endDate: weekEnd
-          });
-        }
-
         return {
-          month,
-          year,
-          weeks
+          label: format(weekStart, "MMM d") + " - " + format(weekEnd, "MMM d"),
+          items: weekItems,
+          weekNumber: parseInt(format(weekStart, "w")),
+          startDate: weekStart,
+          endDate: weekEnd
         };
       })
-      .sort((a, b) => b.year - a.year || (b.month > a.month ? 1 : -1));
+      .sort((a, b) => b.startDate.getTime() - a.startDate.getTime())
+      .slice(0, 4); // Show up to 4 most recent weeks
+
+    // Ensure we have exactly 4 decks, padding with empty ones if needed
+    while (weekDecks.length < 4) {
+      const lastWeek = weekDecks[weekDecks.length - 1];
+      const nextWeekStart = new Date(lastWeek ? lastWeek.startDate : new Date());
+      nextWeekStart.setDate(nextWeekStart.getDate() - 7);
+      const nextWeekEnd = endOfWeek(nextWeekStart, { weekStartsOn: 1 });
+      
+      weekDecks.push({
+        label: format(nextWeekStart, "MMM d") + " - " + format(nextWeekEnd, "MMM d"),
+        items: [],
+        weekNumber: parseInt(format(nextWeekStart, "w")),
+        startDate: nextWeekStart,
+        endDate: nextWeekEnd
+      });
+    }
+
+    return weekDecks;
   };
 
   // Intelligent search function
@@ -203,8 +197,38 @@ export const GalleryView = () => {
     }
   };
 
-  // Swipe gesture handlers
-  const handleMouseDown = (weekIndex: number, event: React.MouseEvent) => {
+  // Generate inviting summary for cards
+  const generateInvitingSummary = (item: GalleryItem): string => {
+    if (item.analysis?.summary) {
+      const summary = item.analysis.summary;
+      
+      // Create more engaging, personal summaries
+      if (summary.toLowerCase().includes('blind spot')) {
+        return `In this session, you became aware of a potential blind spot...`;
+      } else if (summary.toLowerCase().includes('breakthrough') || summary.toLowerCase().includes('insight')) {
+        return `This session brought you a meaningful breakthrough...`;
+      } else if (summary.toLowerCase().includes('challenge') || summary.toLowerCase().includes('difficult')) {
+        return `You navigated some challenging territory in this session...`;
+      } else if (summary.toLowerCase().includes('progress') || summary.toLowerCase().includes('growth')) {
+        return `You made notable progress in this session...`;
+      } else if (summary.toLowerCase().includes('reflection') || summary.toLowerCase().includes('explore')) {
+        return `This session opened up space for deep reflection...`;
+      } else {
+        return `In this session, you explored important themes...`;
+      }
+    } else {
+      // Fallback based on note content or session length
+      if (item.clientContactHours >= 1) {
+        return `A meaningful ${item.clientContactHours}-hour session where you...`;
+      } else {
+        return `A focused session that covered important ground...`;
+      }
+    }
+  };
+
+  // Enhanced swipe gesture handlers with touch support
+  const handlePointerDown = (weekIndex: number, event: React.PointerEvent) => {
+    event.preventDefault();
     setDragState({
       weekIndex,
       startX: event.clientX,
@@ -212,29 +236,29 @@ export const GalleryView = () => {
     });
   };
 
-  const handleMouseMove = (event: React.MouseEvent) => {
+  const handlePointerMove = (event: React.PointerEvent) => {
     if (dragState) {
       setDragState(prev => prev ? { ...prev, currentX: event.clientX } : null);
     }
   };
 
-  const handleMouseUp = () => {
+  const handlePointerUp = () => {
     if (dragState) {
       const deltaX = dragState.currentX - dragState.startX;
-      const threshold = 50; // Minimum swipe distance
+      const threshold = 60; // Minimum swipe distance
       
       if (Math.abs(deltaX) > threshold) {
         const weekIndex = dragState.weekIndex;
         const currentCardIndex = selectedCardIndex[weekIndex];
-        const currentDeck = currentCardDecks[0]?.weeks[weekIndex];
+        const currentWeekDeck = weekDecks[weekIndex];
         
-        if (currentDeck && currentDeck.items.length > 0) {
+        if (currentWeekDeck && currentWeekDeck.items.length > 0) {
           if (deltaX > 0 && currentCardIndex > 0) {
             // Swipe right - previous card
             const newIndices = [...selectedCardIndex];
             newIndices[weekIndex] = currentCardIndex - 1;
             setSelectedCardIndex(newIndices);
-          } else if (deltaX < 0 && currentCardIndex < currentDeck.items.length - 1) {
+          } else if (deltaX < 0 && currentCardIndex < currentWeekDeck.items.length - 1) {
             // Swipe left - next card
             const newIndices = [...selectedCardIndex];
             newIndices[weekIndex] = currentCardIndex + 1;
@@ -258,9 +282,8 @@ export const GalleryView = () => {
     return matchesCategory;
   });
 
-  // Create card decks
-  const currentCardDecks = createCardDecks(filteredItems);
-  const currentDeck = currentCardDecks[0]; // Show current month
+  // Create week decks from filtered items
+  const weekDecks = createCardDecks(filteredItems);
 
   // Reset indices when data changes
   useEffect(() => {
@@ -315,16 +338,16 @@ export const GalleryView = () => {
         </Select>
       </div>
 
-      {/* Month Header */}
-      {currentDeck && (
+      {/* Header */}
+      {weekDecks.length > 0 && (
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-foreground">{currentDeck.month} {currentDeck.year}</h2>
-          <p className="text-sm text-muted-foreground mt-1">Swipe cards left or right to navigate</p>
+          <h2 className="text-2xl font-bold text-foreground">Your Session Insights</h2>
+          <p className="text-sm text-muted-foreground mt-1">Swipe cards left or right to navigate • {filteredItems.length} sessions available</p>
         </div>
       )}
 
       {/* Card Deck Interface - 4 Week Layout */}
-      {!currentDeck || currentDeck.weeks.every(week => week.items.length === 0) ? (
+      {weekDecks.length === 0 || weekDecks.every(week => week.items.length === 0) ? (
         <div className="text-center py-12">
           <Bot className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-foreground mb-2">No Session Insights Yet</h3>
@@ -334,7 +357,7 @@ export const GalleryView = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
-          {currentDeck.weeks.map((week, weekIndex) => (
+          {weekDecks.map((week, weekIndex) => (
             <div key={weekIndex} className="space-y-4">
               {/* Week Header */}
               <div className="text-center">
@@ -360,20 +383,22 @@ export const GalleryView = () => {
                   </div>
                 ) : (
                   <div 
-                    className="relative w-full h-full cursor-pointer"
-                    onMouseDown={(e) => handleMouseDown(weekIndex, e)}
-                    onMouseMove={handleMouseMove}
-                    onMouseUp={handleMouseUp}
-                    onMouseLeave={handleMouseUp}
+                    className="relative w-full h-full cursor-pointer select-none"
+                    onPointerDown={(e) => handlePointerDown(weekIndex, e)}
+                    onPointerMove={handlePointerMove}
+                    onPointerUp={handlePointerUp}
+                    onPointerLeave={handlePointerUp}
+                    style={{ touchAction: 'none' }}
                   >
-                    {/* Stack of Cards - Show up to 3 behind current */}
-                    {week.items.slice(selectedCardIndex[weekIndex], selectedCardIndex[weekIndex] + 4).map((item, stackIndex) => {
+                    {/* Stack of Cards - Show up to 4 behind current */}
+                    {week.items.slice(selectedCardIndex[weekIndex], selectedCardIndex[weekIndex] + 4).map((item: GalleryItem, stackIndex: number) => {
                       const isActive = stackIndex === 0;
-                      const zIndex = 4 - stackIndex;
-                      const opacity = stackIndex === 0 ? 1 : Math.max(0.3, 1 - stackIndex * 0.2);
-                      const scale = stackIndex === 0 ? 1 : Math.max(0.95, 1 - stackIndex * 0.02);
-                      const translateY = stackIndex * 3;
-                      const translateX = stackIndex * 2;
+                      const zIndex = 10 - stackIndex;
+                      const opacity = stackIndex === 0 ? 1 : Math.max(0.4, 1 - stackIndex * 0.15);
+                      const scale = stackIndex === 0 ? 1 : Math.max(0.92, 1 - stackIndex * 0.025);
+                      const translateY = stackIndex * 4;
+                      const translateX = stackIndex * 3;
+                      const rotateZ = stackIndex === 0 ? 0 : (stackIndex - 2) * 0.5;
 
                       return (
                         <div
@@ -384,11 +409,15 @@ export const GalleryView = () => {
                           style={{
                             zIndex,
                             opacity,
-                            transform: `translate(${translateX}px, ${translateY}px) scale(${scale})`,
+                            transform: `translate(${translateX}px, ${translateY}px) scale(${scale}) rotate(${rotateZ}deg)`,
                           }}
                           onClick={() => isActive && setExpandedCard(item)}
                         >
-                          <Card className={`w-full h-full ${isActive ? 'shadow-lg border-blue-200 dark:border-blue-800' : 'shadow-md'} bg-white dark:bg-gray-900`}>
+                          <Card className={`w-full h-full group ${
+                            isActive 
+                              ? 'shadow-xl border-2 border-blue-300 dark:border-blue-600 ring-2 ring-blue-100 dark:ring-blue-900' 
+                              : 'shadow-lg border-gray-200 dark:border-gray-700'
+                          } bg-white dark:bg-gray-900`}>
                             <CardHeader className="pb-3">
                               <div className="flex items-start justify-between">
                                 <div className="flex-1 min-w-0">
@@ -414,7 +443,7 @@ export const GalleryView = () => {
                                       e.stopPropagation();
                                       setDeleteDialogItem(item);
                                     }}
-                                    className="text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100"
+                                    className="text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
                                   >
                                     <Trash2 className="h-3 w-3" />
                                   </Button>
@@ -424,13 +453,10 @@ export const GalleryView = () => {
 
                             {isActive && (
                               <CardContent className="space-y-3">
-                                {/* Brief Summary */}
-                                <div>
-                                  <p className="text-xs text-muted-foreground line-clamp-3">
-                                    {item.analysis?.summary 
-                                      ? item.analysis.summary.substring(0, 120) + "..."
-                                      : item.notes.substring(0, 120) + "..."
-                                    }
+                                {/* Inviting Summary */}
+                                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-3 rounded-lg">
+                                  <p className="text-sm text-blue-900 dark:text-blue-100 font-medium leading-relaxed">
+                                    {generateInvitingSummary(item)}
                                   </p>
                                 </div>
 
@@ -450,9 +476,9 @@ export const GalleryView = () => {
 
                                 {/* Tap to expand hint */}
                                 <div className="flex items-center justify-center pt-2 border-t border-gray-100 dark:border-gray-800">
-                                  <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                                  <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400 transition-colors hover:text-blue-700 dark:hover:text-blue-300">
                                     <Eye className="h-3 w-3" />
-                                    <span className="text-xs font-medium">Tap to view details</span>
+                                    <span className="text-xs font-medium">Tap to explore details</span>
                                   </div>
                                 </div>
                               </CardContent>
@@ -469,7 +495,7 @@ export const GalleryView = () => {
               {week.items.length > 1 && (
                 <div className="flex justify-center">
                   <div className="flex space-x-1">
-                    {week.items.map((_, cardIndex) => (
+                    {week.items.map((_: GalleryItem, cardIndex: number) => (
                       <button
                         key={cardIndex}
                         onClick={() => {
@@ -491,6 +517,13 @@ export const GalleryView = () => {
           ))}
         </div>
       )}
+
+      {/* Add dialog descriptions for accessibility */}
+      <style jsx>{`
+        dialog[aria-describedby="undefined"] {
+          aria-describedby: auto;
+        }
+      `}</style>
 
       {/* Expanded Card Details Dialog */}
       <Dialog open={!!expandedCard} onOpenChange={() => setExpandedCard(null)}>
