@@ -44,7 +44,7 @@ export const GalleryView = () => {
   const [timeFilter, setTimeFilter] = useState("all");
   const [themeFilter, setThemeFilter] = useState("all");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [selectedCardIndex, setSelectedCardIndex] = useState<number[]>([0, 0, 0, 0]); // One for each week
+  const [selectedCardIndex, setSelectedCardIndex] = useState<number[]>([]);
   const [expandedCard, setExpandedCard] = useState<GalleryItem | null>(null);
   const [deleteDialogItem, setDeleteDialogItem] = useState<GalleryItem | null>(null);
   const [dragState, setDragState] = useState<{ weekIndex: number; startX: number; currentX: number } | null>(null);
@@ -86,62 +86,73 @@ export const GalleryView = () => {
     }
   }, [user, entries, entriesLoading]);
 
-  // Create intelligent card organization
-  const createCardDecks = (items: GalleryItem[]): WeekDeck[] => {
+  // Create streaming-style card rows (like Disney+)
+  const createCardRows = (items: GalleryItem[]): WeekDeck[] => {
     if (items.length === 0) return [];
 
     // Sort items by date (newest first)
     const sortedItems = items.sort((a, b) => new Date(b.dateOfContact).getTime() - new Date(a.dateOfContact).getTime());
     
-    // Group items by week across all months
-    const weekGroups: Map<string, GalleryItem[]> = new Map();
+    // Group items by time periods
+    const timeGroups: Map<string, GalleryItem[]> = new Map();
     
     sortedItems.forEach(item => {
       const itemDate = new Date(item.dateOfContact);
-      const weekStart = startOfWeek(itemDate, { weekStartsOn: 1 });
-      const weekKey = format(weekStart, "yyyy-'W'ww");
+      const now = new Date();
       
-      if (!weekGroups.has(weekKey)) {
-        weekGroups.set(weekKey, []);
+      // Determine time category
+      let category = "";
+      let sortKey = "";
+      
+      // This week
+      const weekStart = startOfWeek(now, { weekStartsOn: 1 });
+      const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
+      if (itemDate >= weekStart && itemDate <= weekEnd) {
+        category = "This Week";
+        sortKey = "1-this-week";
       }
-      weekGroups.get(weekKey)!.push(item);
+      // Last week
+      else {
+        const itemWeekStart = startOfWeek(itemDate, { weekStartsOn: 1 });
+        const weeksAgo = Math.floor((now.getTime() - itemWeekStart.getTime()) / (7 * 24 * 60 * 60 * 1000));
+        
+        if (weeksAgo === 1) {
+          category = "Last Week";
+          sortKey = "2-last-week";
+        } else if (weeksAgo <= 4) {
+          category = `${weeksAgo} Weeks Ago`;
+          sortKey = `${weeksAgo + 2}-weeks-ago`;
+        } else {
+          const monthName = format(itemDate, "MMMM yyyy");
+          category = monthName;
+          sortKey = `${weeksAgo + 10}-${monthName}`;
+        }
+      }
+      
+      if (!timeGroups.has(sortKey)) {
+        timeGroups.set(sortKey, []);
+      }
+      timeGroups.get(sortKey)!.push(item);
     });
 
-    // Convert to deck format and limit to 4 most recent weeks with content
-    const weekDecks = Array.from(weekGroups.entries())
-      .map(([weekKey, weekItems]) => {
-        const firstItem = weekItems[0];
+    // Convert to row format
+    const cardRows = Array.from(timeGroups.entries())
+      .map(([sortKey, rowItems]) => {
+        const category = sortKey.split('-').slice(1).join(' ');
+        const firstItem = rowItems[0];
         const weekStart = startOfWeek(new Date(firstItem.dateOfContact), { weekStartsOn: 1 });
-        const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
         
         return {
-          label: format(weekStart, "MMM d") + " - " + format(weekEnd, "MMM d"),
-          items: weekItems,
+          label: category.charAt(0).toUpperCase() + category.slice(1),
+          items: rowItems,
           weekNumber: parseInt(format(weekStart, "w")),
           startDate: weekStart,
-          endDate: weekEnd
+          endDate: endOfWeek(weekStart, { weekStartsOn: 1 })
         };
       })
-      .sort((a, b) => b.startDate.getTime() - a.startDate.getTime())
-      .slice(0, 4); // Show up to 4 most recent weeks
+      .sort((a, b) => a.label.localeCompare(b.label));
 
-    // Ensure we have exactly 4 decks, padding with empty ones if needed
-    while (weekDecks.length < 4) {
-      const lastWeek = weekDecks[weekDecks.length - 1];
-      const nextWeekStart = new Date(lastWeek ? lastWeek.startDate : new Date());
-      nextWeekStart.setDate(nextWeekStart.getDate() - 7);
-      const nextWeekEnd = endOfWeek(nextWeekStart, { weekStartsOn: 1 });
-      
-      weekDecks.push({
-        label: format(nextWeekStart, "MMM d") + " - " + format(nextWeekEnd, "MMM d"),
-        items: [],
-        weekNumber: parseInt(format(nextWeekStart, "w")),
-        startDate: nextWeekStart,
-        endDate: nextWeekEnd
-      });
-    }
-
-    return weekDecks;
+    return cardRows;
   };
 
   // Intelligent search function
@@ -276,25 +287,7 @@ export const GalleryView = () => {
       const deltaX = dragState.currentX - dragState.startX;
       const threshold = 60; // Minimum swipe distance
       
-      if (Math.abs(deltaX) > threshold) {
-        const weekIndex = dragState.weekIndex;
-        const currentCardIndex = selectedCardIndex[weekIndex];
-        const currentWeekDeck = weekDecks[weekIndex];
-        
-        if (currentWeekDeck && currentWeekDeck.items.length > 0) {
-          if (deltaX > 0 && currentCardIndex > 0) {
-            // Swipe right - previous card
-            const newIndices = [...selectedCardIndex];
-            newIndices[weekIndex] = currentCardIndex - 1;
-            setSelectedCardIndex(newIndices);
-          } else if (deltaX < 0 && currentCardIndex < currentWeekDeck.items.length - 1) {
-            // Swipe left - next card
-            const newIndices = [...selectedCardIndex];
-            newIndices[weekIndex] = currentCardIndex + 1;
-            setSelectedCardIndex(newIndices);
-          }
-        }
-      }
+      // Note: Swipe functionality replaced with horizontal scrolling
       setDragState(null);
     }
   };
@@ -355,8 +348,8 @@ export const GalleryView = () => {
     return matchesCategory && matchesTime && matchesTheme;
   });
 
-  // Create week decks from filtered items
-  const weekDecks = createCardDecks(filteredItems);
+  // Create streaming-style card rows from filtered items
+  const cardRows = createCardRows(filteredItems);
   const uniqueThemes = getUniqueThemes(galleryItems);
 
   // Check if any filters are active
@@ -373,7 +366,7 @@ export const GalleryView = () => {
 
   // Reset indices when data changes
   useEffect(() => {
-    setSelectedCardIndex([0, 0, 0, 0]);
+    setSelectedCardIndex([]);
   }, [searchQuery, categoryFilter, timeFilter, themeFilter]);
 
   if (entriesLoading || loading) {
@@ -508,196 +501,140 @@ export const GalleryView = () => {
       </div>
 
       {/* Header */}
-      {weekDecks.length > 0 && (
+      {cardRows.length > 0 && (
         <div className="text-center">
           <h2 className="text-2xl font-bold text-foreground">Your Session Insights</h2>
-          <p className="text-sm text-muted-foreground mt-1">Swipe cards left or right to navigate • {filteredItems.length} sessions available</p>
+          <p className="text-sm text-muted-foreground mt-1">Scroll horizontally through each time period • {filteredItems.length} sessions available</p>
         </div>
       )}
 
-      {/* Card Deck Interface - 4 Week Layout */}
-      {weekDecks.length === 0 || weekDecks.every(week => week.items.length === 0) ? (
+      {/* Disney+ Style Card Rows */}
+      {cardRows.length === 0 ? (
         <div className="text-center py-12">
           <Bot className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-foreground mb-2">No Session Insights Yet</h3>
           <p className="text-muted-foreground">
-            Your session insights will appear here as beautiful card decks organized by week.
+            Your session insights will appear here organized by time period, just like your favorite streaming service.
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
-          {weekDecks.map((week, weekIndex) => (
-            <div key={weekIndex} className="space-y-4">
-              {/* Week Header */}
-              <div className="text-center">
-                <h3 className="text-lg font-semibold text-foreground">{week.label}</h3>
-                <p className="text-xs text-muted-foreground">
-                  {format(week.startDate, "MMM d")} - {format(week.endDate, "MMM d")}
-                </p>
-                {week.items.length > 0 && (
-                  <Badge variant="outline" className="mt-1">
-                    {selectedCardIndex[weekIndex] + 1} of {week.items.length}
-                  </Badge>
-                )}
+        <div className="space-y-8">
+          {cardRows.map((row: WeekDeck, rowIndex: number) => (
+            <div key={rowIndex} className="space-y-4">
+              {/* Row Header */}
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-semibold text-foreground">{row.label}</h3>
+                <Badge variant="outline" className="text-xs">
+                  {row.items.length} session{row.items.length !== 1 ? 's' : ''}
+                </Badge>
               </div>
 
-              {/* Card Stack */}
-              <div className="relative h-80">
-                {week.items.length === 0 ? (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center p-6 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
-                      <Calendar className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                      <p className="text-sm text-muted-foreground">No sessions this week</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div 
-                    className="relative w-full h-full cursor-pointer select-none"
-                    onPointerDown={(e) => handlePointerDown(weekIndex, e)}
-                    onPointerMove={handlePointerMove}
-                    onPointerUp={handlePointerUp}
-                    onPointerLeave={handlePointerUp}
-                    style={{ touchAction: 'none' }}
-                  >
-                    {/* Stack of Cards - Show up to 4 behind current */}
-                    {week.items.slice(selectedCardIndex[weekIndex], selectedCardIndex[weekIndex] + 4).map((item: GalleryItem, stackIndex: number) => {
-                      const isActive = stackIndex === 0;
-                      const zIndex = 10 - stackIndex;
-                      const opacity = stackIndex === 0 ? 1 : Math.max(0.4, 1 - stackIndex * 0.15);
-                      const scale = stackIndex === 0 ? 1 : Math.max(0.92, 1 - stackIndex * 0.025);
-                      const translateY = stackIndex * 4;
-                      const translateX = stackIndex * 3;
-                      const rotateZ = stackIndex === 0 ? 0 : (stackIndex - 2) * 0.5;
-
-                      return (
-                        <div
-                          key={item.id}
-                          className={`absolute inset-0 transition-all duration-300 ease-out ${
-                            isActive ? 'cursor-pointer hover:shadow-xl' : 'cursor-default'
-                          }`}
-                          style={{
-                            zIndex,
-                            opacity,
-                            transform: `translate(${translateX}px, ${translateY}px) scale(${scale}) rotate(${rotateZ}deg)`,
-                          }}
-                          onClick={() => isActive && setExpandedCard(item)}
-                        >
-                          <Card className={`w-full h-full group ${
-                            isActive 
-                              ? 'shadow-xl border-2 border-blue-300 dark:border-blue-600 ring-2 ring-blue-100 dark:ring-blue-900' 
-                              : 'shadow-lg border-gray-200 dark:border-gray-700'
-                          } bg-white dark:bg-gray-900`}>
-                            <CardHeader className="pb-3">
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1 min-w-0">
-                                  <CardTitle className="text-sm font-medium truncate">
-                                    {format(new Date(item.dateOfContact), "MMM d, yyyy")}
-                                  </CardTitle>
-                                  <CardDescription className="flex items-center gap-2 mt-1">
-                                    <Calendar className="h-3 w-3" />
-                                    <span className="text-xs">{item.clientContactHours}h</span>
-                                    {item.analysis && (
-                                      <Badge variant="secondary" className="text-xs">
-                                        <Sparkles className="h-2 w-2 mr-1" />
-                                        AI
-                                      </Badge>
-                                    )}
-                                  </CardDescription>
-                                </div>
-                                {isActive && item.analysis && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setDeleteDialogItem(item);
-                                    }}
-                                    className="text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
-                                  >
-                                    <Trash2 className="h-3 w-3" />
-                                  </Button>
+              {/* Horizontal Scrolling Cards */}
+              <div className="relative">
+                <div 
+                  className="flex gap-4 overflow-x-auto scrollbar-hide pb-4"
+                  style={{ scrollSnapType: 'x mandatory', scrollBehavior: 'smooth' }}
+                >
+                  {row.items.map((item: GalleryItem, cardIndex: number) => (
+                    <div
+                      key={item.id}
+                      className="flex-shrink-0 w-80"
+                      style={{ scrollSnapAlign: 'start' }}
+                    >
+                      <Card 
+                        className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105 bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700"
+                        onClick={() => setExpandedCard(item)}
+                      >
+                        <CardHeader className="pb-3">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 min-w-0">
+                              <CardTitle className="text-base font-medium">
+                                {format(new Date(item.dateOfContact), "EEEE, MMM d")}
+                              </CardTitle>
+                              <CardDescription className="flex items-center gap-2 mt-1">
+                                <Calendar className="h-4 w-4" />
+                                <span className="text-sm">{item.clientContactHours} hours</span>
+                                {item.analysis && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    <Sparkles className="h-3 w-3 mr-1" />
+                                    AI Analyzed
+                                  </Badge>
                                 )}
-                              </div>
-                            </CardHeader>
-
-                            {isActive && (
-                              <CardContent className="space-y-3">
-                                {/* Inviting Summary */}
-                                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-3 rounded-lg">
-                                  <p className="text-sm text-blue-900 dark:text-blue-100 font-medium leading-relaxed">
-                                    {generateInvitingSummary(item)}
-                                  </p>
-                                </div>
-
-                                {/* Key Themes Preview */}
-                                {item.analysis?.themes && (
-                                  <div className="flex flex-wrap gap-1">
-                                    {(() => {
-                                      const themes = Array.isArray(item.analysis.themes) 
-                                        ? item.analysis.themes 
-                                        : typeof item.analysis.themes === 'object'
-                                          ? Object.values(item.analysis.themes)
-                                          : [item.analysis.themes];
-                                      
-                                      return themes.slice(0, 3).map((theme: any, index: number) => (
-                                        <Badge key={index} variant="outline" className="text-xs">
-                                          {String(theme)}
-                                        </Badge>
-                                      ));
-                                    })()}
-                                    {(() => {
-                                      const themes = Array.isArray(item.analysis.themes) 
-                                        ? item.analysis.themes 
-                                        : typeof item.analysis.themes === 'object'
-                                          ? Object.values(item.analysis.themes)
-                                          : [item.analysis.themes];
-                                      
-                                      return themes.length > 3 && (
-                                        <Badge variant="outline" className="text-xs">+{themes.length - 3}</Badge>
-                                      );
-                                    })()}
-                                  </div>
-                                )}
-
-                                {/* Tap to expand hint */}
-                                <div className="flex items-center justify-center pt-2 border-t border-gray-100 dark:border-gray-800">
-                                  <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400 transition-colors hover:text-blue-700 dark:hover:text-blue-300">
-                                    <Eye className="h-3 w-3" />
-                                    <span className="text-xs font-medium">Tap to explore details</span>
-                                  </div>
-                                </div>
-                              </CardContent>
+                              </CardDescription>
+                            </div>
+                            {item.analysis && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteDialogItem(item);
+                                }}
+                                className="text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             )}
-                          </Card>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
+                          </div>
+                        </CardHeader>
 
-              {/* Card Navigation Dots */}
-              {week.items.length > 1 && (
-                <div className="flex justify-center">
-                  <div className="flex space-x-1">
-                    {week.items.map((_: GalleryItem, cardIndex: number) => (
-                      <button
-                        key={cardIndex}
-                        onClick={() => {
-                          const newIndices = [...selectedCardIndex];
-                          newIndices[weekIndex] = cardIndex;
-                          setSelectedCardIndex(newIndices);
-                        }}
-                        className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                          cardIndex === selectedCardIndex[weekIndex]
-                            ? 'bg-blue-500' 
-                            : 'bg-gray-300 dark:bg-gray-600'
-                        }`}
-                      />
-                    ))}
-                  </div>
+                        <CardContent className="space-y-4">
+                          {/* Inviting Summary */}
+                          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-4 rounded-lg">
+                            <p className="text-sm text-blue-900 dark:text-blue-100 font-medium leading-relaxed">
+                              {generateInvitingSummary(item)}
+                            </p>
+                          </div>
+
+                          {/* Key Themes */}
+                          {item.analysis?.themes && (
+                            <div className="flex flex-wrap gap-2">
+                              {(() => {
+                                const themes = Array.isArray(item.analysis.themes) 
+                                  ? item.analysis.themes 
+                                  : typeof item.analysis.themes === 'object'
+                                    ? Object.values(item.analysis.themes)
+                                    : [item.analysis.themes];
+                                
+                                return themes.slice(0, 4).map((theme: any, index: number) => (
+                                  <Badge key={index} variant="outline" className="text-xs">
+                                    {String(theme)}
+                                  </Badge>
+                                ));
+                              })()}
+                              {(() => {
+                                const themes = Array.isArray(item.analysis.themes) 
+                                  ? item.analysis.themes 
+                                  : typeof item.analysis.themes === 'object'
+                                    ? Object.values(item.analysis.themes)
+                                    : [item.analysis.themes];
+                                
+                                return themes.length > 4 && (
+                                  <Badge variant="outline" className="text-xs">+{themes.length - 4}</Badge>
+                                );
+                              })()}
+                            </div>
+                          )}
+
+                          {/* Session Notes Preview */}
+                          <div className="text-sm text-muted-foreground line-clamp-3">
+                            {item.notes.substring(0, 150)}
+                            {item.notes.length > 150 && "..."}
+                          </div>
+
+                          {/* Click to expand hint */}
+                          <div className="flex items-center justify-center pt-3 border-t border-gray-100 dark:border-gray-800">
+                            <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400 transition-colors group-hover:text-blue-700 dark:group-hover:text-blue-300">
+                              <Eye className="h-4 w-4" />
+                              <span className="text-sm font-medium">Click to explore details</span>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  ))}
                 </div>
-              )}
+              </div>
             </div>
           ))}
         </div>
