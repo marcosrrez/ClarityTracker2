@@ -7,6 +7,7 @@ import { PersonalizedAICoaching } from "./PersonalizedAICoaching";
 import { CompetencyTracker } from "./CompetencyTracker";
 import { SmartInsightsCard } from "./SmartInsightsCard";
 import { AIIntegrationTracker } from "./AIIntegrationTracker";
+import { CrossSessionInsights } from "./CrossSessionInsights";
 import { AchievementCelebration } from "./AchievementCelebration";
 import { MilestoneCelebration } from "./MilestoneCelebration";
 import { SupervisorDashboard } from "./SupervisorDashboard";
@@ -99,6 +100,9 @@ export const Dashboard = () => {
             </ErrorBoundary>
             <ErrorBoundary>
               <SmartInsightsCard />
+            </ErrorBoundary>
+            <ErrorBoundary>
+              <CrossSessionInsights />
             </ErrorBoundary>
             <ErrorBoundary>
               <PersonalizedAICoaching />

@@ -1,7 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InsightsResourcesTab } from "@/components/insights/InsightsResourcesTab";
 import { GalleryView } from "@/components/insights/GalleryView";
-import { CrossSessionAnalysisView } from "@/components/insights/CrossSessionAnalysisView";
 import { useAnalytics, usePageTimeTracking } from "@/hooks/use-analytics";
 import { useEffect } from "react";
 
@@ -23,31 +22,21 @@ export default function InsightsPage() {
         </p>
       </div>
       
-      <Tabs defaultValue="patterns" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 bg-gray-100 dark:bg-gray-800 p-1 rounded-2xl h-14 items-center">
-          <TabsTrigger 
-            value="patterns" 
-            className="relative rounded-xl font-medium flex items-center justify-center h-12 transition-all duration-300 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm data-[state=active]:text-gray-900 dark:data-[state=active]:text-gray-100 text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-          >
-            Pattern Analysis
-          </TabsTrigger>
+      <Tabs defaultValue="gallery" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-2xl h-14 items-center">
           <TabsTrigger 
             value="gallery" 
             className="relative rounded-xl font-medium flex items-center justify-center h-12 transition-all duration-300 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm data-[state=active]:text-gray-900 dark:data-[state=active]:text-gray-100 text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
           >
-            Analysis Gallery
+            Insights & Resources
           </TabsTrigger>
           <TabsTrigger 
             value="resources" 
             className="relative rounded-xl font-medium flex items-center justify-center h-12 transition-all duration-300 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm data-[state=active]:text-gray-900 dark:data-[state=active]:text-gray-100 text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
           >
-            Resources
+            Knowledge Base
           </TabsTrigger>
         </TabsList>
-      
-        <TabsContent value="patterns" className="mt-6">
-          <CrossSessionAnalysisView />
-        </TabsContent>
         
         <TabsContent value="gallery" className="mt-6">
           <GalleryView />
