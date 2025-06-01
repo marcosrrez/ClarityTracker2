@@ -722,149 +722,109 @@ export const GalleryView = () => {
         </div>
       )}
 
-      {/* Expanded Card Details Dialog - Beautiful Larger Card */}
+      {/* Expanded Card Details Dialog - Clean White Card */}
       <Dialog open={!!expandedCard} onOpenChange={() => setExpandedCard(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] p-0 m-8">
+        <DialogContent className="max-w-5xl max-h-[85vh] p-8 m-8">
           {expandedCard && (
-            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden" style={{ minHeight: '600px' }}>
-              {/* Beautiful Card Header */}
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6">
+            <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+              {/* Clean Card Header */}
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-2xl font-bold">
-                      {format(new Date(expandedCard.dateOfContact), "EEEE, MMM d")}
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                      {format(new Date(expandedCard.dateOfContact), "EEEE, MMMM d, yyyy")}
                     </h2>
-                    <div className="flex items-center gap-4 mt-2 text-blue-100">
+                    <div className="flex items-center gap-4 mt-1 text-gray-600 dark:text-gray-400">
                       <div className="flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
-                        <span>{expandedCard.clientContactHours} hours</span>
+                        <span className="text-sm">{expandedCard.clientContactHours} hours</span>
                       </div>
-                      <span className="text-sm">
-                        {format(new Date(expandedCard.dateOfContact), "yyyy")}
-                      </span>
+                      {expandedCard.analysis && (
+                        <Badge variant="secondary" className="text-xs">
+                          <Sparkles className="h-3 w-3 mr-1" />
+                          AI Analyzed
+                        </Badge>
+                      )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    {expandedCard.analysis && (
-                      <div className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
-                        <div className="flex items-center gap-1">
-                          <Sparkles className="h-4 w-4" />
-                          <span className="text-sm font-medium">AI Analyzed</span>
-                        </div>
-                      </div>
-                    )}
-                    {expandedCard.analysis && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setDeleteDialogItem(expandedCard);
-                          setExpandedCard(null);
-                        }}
-                        className="text-white/80 hover:text-white hover:bg-white/20"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
+                  {expandedCard.analysis && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setDeleteDialogItem(expandedCard);
+                        setExpandedCard(null);
+                      }}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               </div>
 
-              {/* Card Content Body - Two Column Layout */}
-              <div className="p-8 max-h-[65vh] overflow-y-auto">
-                {/* Top Section: Session Insight */}
-                {expandedCard.analysis && (
-                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-6 rounded-lg border border-blue-200 dark:border-blue-800 mb-6">
-                    <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-3 text-lg">
-                      Session Insight
-                    </h3>
-                    <p className="text-blue-800 dark:text-blue-200 leading-relaxed text-base">
-                      {generateInvitingSummary(expandedCard)}
-                    </p>
-                  </div>
-                )}
-
+              {/* Card Content Body - Clean Layout */}
+              <div className="p-6">
                 {/* Main Content: Two Column Layout */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {/* Left Column: Session Notes */}
-                  <div className="space-y-6">
-                    <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
-                      <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-4 text-lg flex items-center gap-2">
-                        <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
-                        Your Session Notes
-                      </h4>
-                      <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed min-h-[200px] whitespace-pre-wrap">
-                        {expandedCard.notes || "No detailed notes recorded for this session."}
-                      </div>
-                    </div>
-
-                    {/* Reflective Prompts */}
-                    {expandedCard.analysis?.reflectivePrompts && (
-                      <div className="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 p-6 rounded-lg border border-amber-200 dark:border-amber-800">
-                        <h4 className="font-semibold text-amber-900 dark:text-amber-100 mb-4 text-lg flex items-center gap-2">
-                          <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
-                          Reflection Questions
-                        </h4>
-                        <div className="space-y-4">
-                          {(() => {
-                            const prompts = Array.isArray(expandedCard.analysis.reflectivePrompts) 
-                              ? expandedCard.analysis.reflectivePrompts 
-                              : typeof expandedCard.analysis.reflectivePrompts === 'object'
-                                ? Object.values(expandedCard.analysis.reflectivePrompts)
-                                : [expandedCard.analysis.reflectivePrompts];
-                            
-                            return prompts.slice(0, 3).map((prompt: any, index: number) => (
-                              <div key={index} className="bg-white dark:bg-gray-800 p-4 rounded border-l-4 border-amber-400 shadow-sm">
-                                <p className="text-sm text-gray-700 dark:text-gray-300 font-medium mb-2">
-                                  Question {index + 1}:
-                                </p>
-                                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{String(prompt)}</p>
-                              </div>
-                            ));
-                          })()}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Left Column: Session Notes (2/3 width) */}
+                  <div className="lg:col-span-2">
+                    <div className="h-full">
+                      <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-4 text-base">
+                        Session Notes
+                      </h3>
+                      <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 min-h-[400px]">
+                        <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+                          {expandedCard.notes || "No detailed notes recorded for this session."}
                         </div>
                       </div>
-                    )}
+                    </div>
                   </div>
 
-                  {/* Right Column: Analysis Grid */}
+                  {/* Right Column: AI Analysis (1/3 width) */}
                   {expandedCard.analysis && (
                     <div className="space-y-4">
+                      <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-4 text-base">
+                        AI Analysis
+                      </h3>
+
+                      {/* Summary */}
+                      {expandedCard.analysis.summary && (
+                        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                          <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2 text-sm">
+                            Summary
+                          </h4>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+                            {expandedCard.analysis.summary}
+                          </p>
+                        </div>
+                      )}
+
                       {/* Key Themes */}
-                      {expandedCard.analysis.themes && (
-                        <div className="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-                          <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-                            <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                      {expandedCard.analysis.themes && expandedCard.analysis.themes.length > 0 && (
+                        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                          <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3 text-sm">
                             Key Themes
                           </h4>
                           <div className="space-y-2">
-                            {(() => {
-                              const themes = Array.isArray(expandedCard.analysis.themes) 
-                                ? expandedCard.analysis.themes 
-                                : typeof expandedCard.analysis.themes === 'object'
-                                  ? Object.values(expandedCard.analysis.themes)
-                                  : [expandedCard.analysis.themes];
-                              
-                              return themes.map((theme: any, index: number) => (
-                                <div key={index} className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded text-sm">
-                                  {String(theme)}
-                                </div>
-                              ));
-                            })()}
+                            {expandedCard.analysis.themes.map((theme: string, index: number) => (
+                              <div key={index} className="bg-white dark:bg-gray-700 p-2 rounded text-xs border border-gray-200 dark:border-gray-600">
+                                {theme}
+                              </div>
+                            ))}
                           </div>
                         </div>
                       )}
 
-                      {/* Potential Blind Spots */}
+                      {/* Areas for Growth */}
                       {expandedCard.analysis.potentialBlindSpots && expandedCard.analysis.potentialBlindSpots.length > 0 && (
-                        <div className="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-                          <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-                            <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                          <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3 text-sm">
                             Areas for Growth
                           </h4>
                           <div className="space-y-2">
                             {expandedCard.analysis.potentialBlindSpots.map((blindSpot: string, index: number) => (
-                              <div key={index} className="bg-orange-50 dark:bg-orange-900/20 p-3 rounded text-sm">
+                              <div key={index} className="bg-white dark:bg-gray-700 p-2 rounded text-xs border border-gray-200 dark:border-gray-600">
                                 {blindSpot}
                               </div>
                             ))}
@@ -873,34 +833,47 @@ export const GalleryView = () => {
                       )}
 
                       {/* Key Learnings */}
-                      <div className="grid grid-cols-1 gap-4">
-                        {expandedCard.analysis.keyLearnings && expandedCard.analysis.keyLearnings.length > 0 && (
-                          <div className="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-                            <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-                              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                              Key Learnings
-                            </h4>
-                            <div className="space-y-2">
-                              {expandedCard.analysis.keyLearnings.map((learning: string, index: number) => (
-                                <div key={index} className="bg-green-50 dark:bg-green-900/20 p-3 rounded text-sm">
-                                  {learning}
-                                </div>
-                              ))}
-                            </div>
+                      {expandedCard.analysis.keyLearnings && expandedCard.analysis.keyLearnings.length > 0 && (
+                        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                          <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3 text-sm">
+                            Key Learnings
+                          </h4>
+                          <div className="space-y-2">
+                            {expandedCard.analysis.keyLearnings.map((learning: string, index: number) => (
+                              <div key={index} className="bg-white dark:bg-gray-700 p-2 rounded text-xs border border-gray-200 dark:border-gray-600">
+                                {learning}
+                              </div>
+                            ))}
                           </div>
-                        )}
-                      </div>
+                        </div>
+                      )}
+
+                      {/* Reflection Questions */}
+                      {expandedCard.analysis.reflectivePrompts && expandedCard.analysis.reflectivePrompts.length > 0 && (
+                        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                          <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3 text-sm">
+                            Reflection Questions
+                          </h4>
+                          <div className="space-y-3">
+                            {expandedCard.analysis.reflectivePrompts.map((prompt: string, index: number) => (
+                              <div key={index} className="bg-white dark:bg-gray-700 p-3 rounded border border-gray-200 dark:border-gray-600">
+                                <p className="text-xs text-gray-700 dark:text-gray-300 font-medium mb-1">
+                                  Question {index + 1}:
+                                </p>
+                                <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">{prompt}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
               </div>
 
               {/* Card Footer */}
-              <div className="bg-gray-50 dark:bg-gray-800 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between">
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {expandedCard.analysis ? 'Complete AI analysis available' : 'Ready for AI analysis'}
-                  </div>
+              <div className="bg-gray-50 dark:bg-gray-800 px-6 py-3 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-end">
                   <Button 
                     variant="outline" 
                     size="sm" 
