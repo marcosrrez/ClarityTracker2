@@ -222,68 +222,68 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-sm p-0 gap-0 rounded-3xl bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600" aria-describedby="resource-widget-description">
+      <DialogContent className="w-80 h-96 p-0 gap-0 rounded-2xl bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600 overflow-hidden" aria-describedby="resource-widget-description">
         <DialogTitle className="sr-only">Add Resource</DialogTitle>
-        <div className="p-6">
+        <div className="p-4 h-full flex flex-col">
           {!selectedMode ? (
             <>
               {/* Search Bar Style Input */}
               <div 
-                className="flex items-center gap-3 p-4 bg-gray-200 dark:bg-gray-700 rounded-full cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors mb-6"
+                className="flex items-center gap-3 p-3 bg-gray-200 dark:bg-gray-700 rounded-full cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors mb-4"
                 onClick={() => setSelectedMode('url')}
               >
-                <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+                <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
                   <Globe className="h-3 w-3 text-white" />
                 </div>
                 <span className="text-gray-600 dark:text-gray-300 text-sm flex-1">Paste article URL or search</span>
               </div>
               
               {/* Icon Actions Grid */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2 flex-1">
                 <button
                   onClick={() => setSelectedMode('url')}
-                  className="flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors group"
+                  className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors group"
                 >
-                  <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-xl flex items-center justify-center group-hover:bg-blue-600 transition-colors">
-                    <Globe className="h-6 w-6 text-gray-500 dark:text-gray-400 group-hover:text-white" />
+                  <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-xl flex items-center justify-center group-hover:bg-blue-600 transition-colors">
+                    <Globe className="h-5 w-5 text-gray-500 dark:text-gray-400 group-hover:text-white" />
                   </div>
-                  <span className="text-xs text-gray-600 dark:text-gray-400">Web Article</span>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">Web</span>
                 </button>
 
                 <button
                   onClick={() => setSelectedMode('manual')}
-                  className="flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors group"
+                  className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors group"
                 >
-                  <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-xl flex items-center justify-center group-hover:bg-purple-600 transition-colors">
-                    <FileText className="h-6 w-6 text-gray-500 dark:text-gray-400 group-hover:text-white" />
+                  <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-xl flex items-center justify-center group-hover:bg-purple-600 transition-colors">
+                    <FileText className="h-5 w-5 text-gray-500 dark:text-gray-400 group-hover:text-white" />
                   </div>
-                  <span className="text-xs text-gray-600 dark:text-gray-400">Manual Entry</span>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">Paste</span>
                 </button>
 
                 <button
                   onClick={() => setSelectedMode('pdf')}
-                  className="flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors group"
+                  className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors group"
                 >
-                  <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-xl flex items-center justify-center group-hover:bg-green-600 transition-colors">
-                    <Upload className="h-6 w-6 text-gray-500 dark:text-gray-400 group-hover:text-white" />
+                  <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-xl flex items-center justify-center group-hover:bg-green-600 transition-colors">
+                    <Upload className="h-5 w-5 text-gray-500 dark:text-gray-400 group-hover:text-white" />
                   </div>
-                  <span className="text-xs text-gray-600 dark:text-gray-400">Upload PDF</span>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">PDF</span>
                 </button>
 
                 <button
                   onClick={() => setSelectedMode('download')}
-                  className="flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors group"
+                  className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors group"
                 >
-                  <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-xl flex items-center justify-center group-hover:bg-orange-600 transition-colors">
-                    <Download className="h-6 w-6 text-gray-500 dark:text-gray-400 group-hover:text-white" />
+                  <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-xl flex items-center justify-center group-hover:bg-orange-600 transition-colors">
+                    <Download className="h-5 w-5 text-gray-500 dark:text-gray-400 group-hover:text-white" />
                   </div>
-                  <span className="text-xs text-gray-600 dark:text-gray-400">Download</span>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">Export</span>
                 </button>
               </div>
             </>
           ) : selectedMode === 'url' ? (
             /* URL Input Mode */
-            <div className="space-y-4">
+            <div className="flex flex-col h-full">
               <div className="flex items-center gap-3 mb-4">
                 <Button 
                   variant="ghost" 
@@ -299,41 +299,41 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
                 </div>
               </div>
 
-              <form onSubmit={handleSubmit(onSummarizeUrl)} className="space-y-4">
-                <div className="relative">
-                  <Input
-                    {...register("url")}
-                    placeholder="https://example.com/article"
-                    disabled={isSummarizing}
-                    className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 rounded-full pl-4 pr-4 h-12 font-mono text-sm focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  {errors.url && (
-                    <p className="text-xs text-red-600 dark:text-red-400 mt-2 px-4">{errors.url.message}</p>
-                  )}
-                </div>
-                
-                <Button 
-                  type="submit" 
+              <form onSubmit={handleSubmit(onSummarizeUrl)} className="flex flex-col gap-4 flex-1">
+                <Input
+                  {...register("url")}
+                  placeholder="https://example.com/article"
                   disabled={isSummarizing}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-full h-12"
-                >
-                  {isSummarizing ? (
-                    <>
-                      <LoadingSpinner size="sm" className="mr-2" />
-                      Analyzing...
-                    </>
-                  ) : (
-                    <>
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      Analyze Article
-                    </>
-                  )}
-                </Button>
+                  className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 rounded-full px-4 h-10 font-mono text-sm focus:ring-blue-500 focus:border-blue-500"
+                />
+                {errors.url && (
+                  <p className="text-xs text-red-600 dark:text-red-400 px-4">{errors.url.message}</p>
+                )}
+                
+                <div className="mt-auto">
+                  <Button 
+                    type="submit" 
+                    disabled={isSummarizing}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-full h-10"
+                  >
+                    {isSummarizing ? (
+                      <>
+                        <LoadingSpinner size="sm" className="mr-2" />
+                        Analyzing...
+                      </>
+                    ) : (
+                      <>
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Analyze
+                      </>
+                    )}
+                  </Button>
+                </div>
               </form>
             </div>
           ) : selectedMode === 'manual' ? (
             /* Manual Input Mode */
-            <div className="space-y-4">
+            <div className="flex flex-col h-full">
               <div className="flex items-center gap-3 mb-4">
                 <Button 
                   variant="ghost" 
@@ -349,27 +349,27 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
                 </div>
               </div>
 
-              <div className="space-y-3">
+              <div className="flex flex-col gap-3 flex-1">
                 <Input
                   value={manualUrl}
                   onChange={(e) => setManualUrl(e.target.value)}
                   placeholder="Source URL (optional)"
                   disabled={isSummarizing}
-                  className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 rounded-full px-4 h-10 text-sm font-mono focus:ring-purple-500 focus:border-purple-500"
+                  className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 rounded-full px-4 h-8 text-sm font-mono focus:ring-purple-500 focus:border-purple-500"
                 />
                 
                 <textarea
                   value={manualContent}
                   onChange={(e) => setManualContent(e.target.value)}
                   placeholder="Paste article content here..."
-                  className="w-full h-32 p-4 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-2xl resize-none text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="flex-1 p-3 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl resize-none text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   disabled={isSummarizing}
                 />
                 
                 <Button 
                   onClick={handleManualSubmit}
                   disabled={isSummarizing || !manualContent.trim()}
-                  className="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-full h-12"
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-full h-10"
                 >
                   {isSummarizing ? (
                     <>
@@ -379,7 +379,7 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
                   ) : (
                     <>
                       <FileText className="h-4 w-4 mr-2" />
-                      Analyze Content
+                      Analyze
                     </>
                   )}
                 </Button>
@@ -387,7 +387,7 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
             </div>
           ) : selectedMode === 'pdf' ? (
             /* PDF Upload Mode */
-            <div className="space-y-4">
+            <div className="flex flex-col h-full">
               <div className="flex items-center gap-3 mb-4">
                 <Button 
                   variant="ghost" 
@@ -403,11 +403,11 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl p-8 text-center">
-                  <Upload className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                    {pdfFile ? pdfFile.name : "Choose a PDF file to upload"}
+              <div className="flex flex-col gap-4 flex-1">
+                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-6 text-center flex-1 flex flex-col justify-center">
+                  <Upload className="h-8 w-8 mx-auto mb-3 text-gray-400" />
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                    {pdfFile ? pdfFile.name : "Choose PDF file"}
                   </p>
                   <input
                     type="file"
@@ -419,7 +419,7 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
                   />
                   <label
                     htmlFor="pdf-upload"
-                    className="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-full cursor-pointer"
+                    className="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-full cursor-pointer text-sm"
                   >
                     <BookOpen className="h-4 w-4 mr-2" />
                     Choose File
@@ -430,7 +430,7 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
                   <Button 
                     onClick={() => handlePdfUpload(pdfFile)}
                     disabled={isSummarizing}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white rounded-full h-12"
+                    className="w-full bg-green-600 hover:bg-green-700 text-white rounded-full h-10"
                   >
                     {isSummarizing ? (
                       <>
@@ -440,7 +440,7 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
                     ) : (
                       <>
                         <Upload className="h-4 w-4 mr-2" />
-                        Upload & Analyze
+                        Upload
                       </>
                     )}
                   </Button>
@@ -449,7 +449,7 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
             </div>
           ) : (
             /* Download Mode */
-            <div className="space-y-4">
+            <div className="flex flex-col h-full">
               <div className="flex items-center gap-3 mb-4">
                 <Button 
                   variant="ghost" 
@@ -461,19 +461,19 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
                 </Button>
                 <div className="flex items-center gap-2">
                   <Download className="h-4 w-4 text-orange-600" />
-                  <h3 className="font-medium text-gray-900 dark:text-gray-100">Download Insights</h3>
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100">Export Data</h3>
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <div>
+              <div className="flex flex-col gap-4 flex-1">
+                <div className="flex-1">
                   <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
                     Time Range
                   </label>
                   <select
                     value={downloadTimeframe}
                     onChange={(e) => setDownloadTimeframe(e.target.value as any)}
-                    className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
                   >
                     <option value="week">Last Week</option>
                     <option value="month">Last Month</option>
@@ -485,10 +485,10 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
                 
                 <Button 
                   onClick={handleDownloadInsights}
-                  className="w-full bg-orange-600 hover:bg-orange-700 text-white rounded-full h-12"
+                  className="w-full bg-orange-600 hover:bg-orange-700 text-white rounded-full h-10"
                 >
                   <Download className="h-4 w-4 mr-2" />
-                  Download Data
+                  Download
                 </Button>
               </div>
             </div>
