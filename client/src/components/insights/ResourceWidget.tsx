@@ -15,7 +15,10 @@ import {
   Send,
   Paperclip,
   CheckCircle,
-  Plus
+  Plus,
+  BookOpen,
+  History,
+  Trash2
 } from "lucide-react";
 import { summarizeWebContent } from "@/lib/ai";
 import { createInsightCard } from "@/lib/firestore";
@@ -42,6 +45,9 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
   const [resultMessage, setResultMessage] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
   const [attachedFile, setAttachedFile] = useState<File | null>(null);
+  const [conversationHistory, setConversationHistory] = useState<Array<{role: 'user' | 'assistant', content: string, timestamp: Date}>>([]);
+  const [showCreateCard, setShowCreateCard] = useState(false);
+  const [lastResponse, setLastResponse] = useState("");
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -52,8 +58,76 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
       setResultMessage("");
       setShowSuccess(false);
       setAttachedFile(null);
+      setShowCreateCard(false);
+      setLastResponse("");
     }
     onOpenChange(newOpen);
+  };
+
+  const handleCreateLearningCard = async () => {
+    if (!lastResponse) return;
+
+    try {
+      const learningCard: InsertInsightCard = {
+        type: 'note',
+        title: `Learning Card: ${inputValue.substring(0, 50)}...`,
+        content: `**Original Question:** ${inputValue}${attachedFile ? ` (with ${attachedFile.name})` : ''}\n\n**AI Response:** ${lastResponse}`,
+        tags: ['learning-card', 'ai-assistant', ...(attachedFile ? ['file-analysis'] : [])],
+      };
+
+      await createInsightCard(user?.uid || '', learningCard);
+      
+      toast({
+        title: "Learning Card Created",
+        description: "The conversation has been saved to your insights.",
+      });
+
+      setShowCreateCard(false);
+      
+      if (onResourceAdded) {
+        onResourceAdded();
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create learning card.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSaveConversation = async () => {
+    if (conversationHistory.length === 0) return;
+
+    try {
+      const conversationText = conversationHistory
+        .map(msg => `**${msg.role === 'user' ? 'You' : 'Assistant'}:** ${msg.content}`)
+        .join('\n\n');
+
+      const conversationCard: InsertInsightCard = {
+        type: 'note',
+        title: `AI Conversation - ${new Date().toLocaleDateString()}`,
+        content: conversationText,
+        tags: ['conversation', 'ai-assistant', 'saved-chat'],
+      };
+
+      await createInsightCard(user?.uid || '', conversationCard);
+      
+      toast({
+        title: "Conversation Saved",
+        description: "Your entire conversation has been saved to your insights.",
+      });
+      
+      if (onResourceAdded) {
+        onResourceAdded();
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save conversation.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleFileAttachment = (file: File) => {
@@ -107,6 +181,14 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
     setResultMessage("Thinking...");
     
     try {
+      // Add to conversation history
+      const userMessage = {
+        role: 'user' as const,
+        content: question + (attachedFile ? ` (with ${attachedFile.name})` : ''),
+        timestamp: new Date()
+      };
+      setConversationHistory(prev => [...prev, userMessage]);
+
       // Create a therapy-focused prompt
       const systemPrompt = `You are ClarityLog's AI assistant, specializing in helping Licensed Associate Counselors (LACs) with their professional development and licensure journey. You have expertise in:
       - Therapy techniques (CBT, DBT, motivational interviewing, etc.)
@@ -146,21 +228,18 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
 
       const data = await response.json();
       
-      // Create an insight card for the Q&A
-      const qaCard: InsertInsightCard = {
-        type: 'note',
-        title: `AI Assistant: ${question.substring(0, 50)}...`,
-        content: `**Question:** ${question}${attachedFile ? ` (with ${attachedFile.name})` : ''}\n\n**Answer:** ${data.response}`,
-        tags: ['ai-assistant', 'q-and-a', ...(attachedFile ? ['file-analysis'] : [])],
+      // Add AI response to conversation history
+      const aiMessage = {
+        role: 'assistant' as const,
+        content: data.response,
+        timestamp: new Date()
       };
-
-      await createInsightCard(user?.uid || '', qaCard);
+      setConversationHistory(prev => [...prev, aiMessage]);
+      
+      setLastResponse(data.response);
       setResultMessage(`✓ ${data.response.substring(0, 100)}...`);
       setShowSuccess(true);
-      
-      if (onResourceAdded) {
-        onResourceAdded();
-      }
+      setShowCreateCard(true);
       
     } catch (error) {
       console.error('Error with AI query:', error);
@@ -310,6 +389,28 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
               </div>
             ) : (
               <div className="space-y-4">
+                {/* Conversation History */}
+                {conversationHistory.length > 0 && (
+                  <div className="space-y-3 max-h-48 overflow-y-auto p-3 bg-gray-50 dark:bg-slate-800/50 rounded-lg border border-gray-200 dark:border-slate-700">
+                    {conversationHistory.map((message, index) => (
+                      <div key={index} className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-[80%] p-2 rounded-lg text-xs ${
+                          message.role === 'user' 
+                            ? 'bg-blue-600 text-white rounded-br-sm' 
+                            : 'bg-white dark:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-600 rounded-bl-sm'
+                        }`}>
+                          <div className="whitespace-pre-wrap">{message.content}</div>
+                          <div className={`text-xs mt-1 opacity-70 ${
+                            message.role === 'user' ? 'text-blue-100' : 'text-gray-500 dark:text-slate-400'
+                          }`}>
+                            {message.timestamp.toLocaleTimeString()}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 {resultMessage && (
                   <div className={`p-3 rounded-lg text-sm ${
                     showSuccess 
@@ -323,6 +424,32 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
                         <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
                       ) : null}
                       <span>{resultMessage}</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Create Learning Card Option */}
+                {showCreateCard && (
+                  <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <BookOpen className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                        <span className="text-amber-700 dark:text-amber-300 text-xs">Save as learning card?</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setShowCreateCard(false)}
+                          className="px-2 py-1 text-xs text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-200"
+                        >
+                          Skip
+                        </button>
+                        <button
+                          onClick={handleCreateLearningCard}
+                          className="px-2 py-1 text-xs bg-amber-600 text-white rounded hover:bg-amber-700"
+                        >
+                          Save
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
