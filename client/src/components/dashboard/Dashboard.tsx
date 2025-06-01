@@ -11,6 +11,7 @@ import { AchievementCelebration } from "./AchievementCelebration";
 import { MilestoneCelebration } from "./MilestoneCelebration";
 import { SupervisorDashboard } from "./SupervisorDashboard";
 import { WelcomeOverlay } from "./WelcomeOverlay";
+import { ErrorBoundary } from "./ErrorBoundary";
 import { useMilestoneDetection } from "@/hooks/use-milestone-detection";
 import { useAppSettings } from "@/hooks/use-firestore";
 import { useAccountType } from "@/hooks/use-account-type";
@@ -77,34 +78,50 @@ export const Dashboard = () => {
         )}
 
         {/* Welcome section - always shown */}
-        <div className="backdrop-blur-sm">
-          <WelcomeSection />
-        </div>
+        <ErrorBoundary>
+          <div className="backdrop-blur-sm">
+            <WelcomeSection />
+          </div>
+        </ErrorBoundary>
       
         {/* Quick Stats - always shown */}
-        <div>
-          <QuickStatsGrid />
-        </div>
+        <ErrorBoundary>
+          <div>
+            <QuickStatsGrid />
+          </div>
+        </ErrorBoundary>
         
         {/* Smart Features Section - only if enabled */}
         {smartFeaturesEnabled && (
           <div className="space-y-6">
-            <AIIntegrationTracker />
-            <SmartInsightsCard />
-            <PersonalizedAICoaching />
-            <CompetencyTracker />
+            <ErrorBoundary>
+              <AIIntegrationTracker />
+            </ErrorBoundary>
+            <ErrorBoundary>
+              <SmartInsightsCard />
+            </ErrorBoundary>
+            <ErrorBoundary>
+              <PersonalizedAICoaching />
+            </ErrorBoundary>
+            <ErrorBoundary>
+              <CompetencyTracker />
+            </ErrorBoundary>
           </div>
         )}
         
         {/* Progress tracking - always shown */}
-        <div>
-          <ProgressSection />
-        </div>
+        <ErrorBoundary>
+          <div>
+            <ProgressSection />
+          </div>
+        </ErrorBoundary>
         
         {/* Recent entries - always shown */}
-        <div>
-          <LogTableSection />
-        </div>
+        <ErrorBoundary>
+          <div>
+            <LogTableSection />
+          </div>
+        </ErrorBoundary>
       </div>
     </div>
   );

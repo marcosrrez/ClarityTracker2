@@ -73,7 +73,7 @@ export const useAppSettings = () => {
         setError(null);
       } catch (err) {
         setError("Failed to load settings");
-        console.error(err);
+        console.error("Error loading user profile:", err);
       } finally {
         setLoading(false);
       }
