@@ -260,6 +260,16 @@ export const createAiAnalysis = async (userId: string, analysis: InsertAiAnalysi
   }
 };
 
+export const deleteAiAnalysis = async (userId: string, logEntryId: string): Promise<void> => {
+  try {
+    const docRef = doc(db, "users", userId, "galleryAnalyses", logEntryId);
+    await deleteDoc(docRef);
+  } catch (error) {
+    console.error("Error deleting AI analysis:", error);
+    throw error;
+  }
+};
+
 // Milestone operations
 export const getMilestones = async (userId: string): Promise<Milestone[]> => {
   try {

@@ -4,28 +4,41 @@ import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Sparkles, Search, Lightbulb, Target, Eye, BookOpen, Tag, X, Bot } from "lucide-react";
+import { Calendar, Sparkles, Search, Lightbulb, Target, Eye, BookOpen, Tag, X, Bot, ChevronLeft, ChevronRight, Trash2, AlertTriangle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { format } from "date-fns";
+import { format, startOfWeek, startOfMonth, isWithinInterval, endOfWeek, endOfMonth } from "date-fns";
 import { useLogEntries } from "@/hooks/use-firestore";
-import { getAiAnalysis } from "@/lib/firestore";
+import { getAiAnalysis, deleteAiAnalysis } from "@/lib/firestore";
 import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
 import type { LogEntry, AiAnalysis } from "@shared/schema";
 
 interface GalleryItem extends LogEntry {
   analysis?: AiAnalysis;
 }
 
+interface CardGroup {
+  label: string;
+  items: GalleryItem[];
+  startDate: Date;
+  endDate: Date;
+}
+
 export const GalleryView = () => {
   const { user } = useAuth();
   const { entries, loading: entriesLoading } = useLogEntries();
+  const { toast } = useToast();
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [groupBy, setGroupBy] = useState<"week" | "month">("week");
   const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null);
+  const [selectedGroupIndex, setSelectedGroupIndex] = useState(0);
+  const [selectedCardIndex, setSelectedCardIndex] = useState(0);
+  const [deleteDialogItem, setDeleteDialogItem] = useState<GalleryItem | null>(null);
 
   useEffect(() => {
     const loadAnalyses = async () => {
@@ -62,6 +75,116 @@ export const GalleryView = () => {
       loadAnalyses();
     }
   }, [user, entries, entriesLoading]);
+
+  // Create card groups by week or month
+  const createCardGroups = (items: GalleryItem[]): CardGroup[] => {
+    const groups: Map<string, GalleryItem[]> = new Map();
+
+    items.forEach(item => {
+      const date = new Date(item.dateOfContact);
+      let key: string;
+      let startDate: Date;
+      let endDate: Date;
+
+      if (groupBy === "week") {
+        startDate = startOfWeek(date, { weekStartsOn: 1 });
+        endDate = endOfWeek(date, { weekStartsOn: 1 });
+        key = format(startDate, "yyyy-'W'ww");
+      } else {
+        startDate = startOfMonth(date);
+        endDate = endOfMonth(date);
+        key = format(startDate, "yyyy-MM");
+      }
+
+      if (!groups.has(key)) {
+        groups.set(key, []);
+      }
+      groups.get(key)!.push(item);
+    });
+
+    return Array.from(groups.entries())
+      .map(([key, items]) => {
+        const firstItem = items[0];
+        const date = new Date(firstItem.dateOfContact);
+        
+        let startDate: Date;
+        let endDate: Date;
+        let label: string;
+
+        if (groupBy === "week") {
+          startDate = startOfWeek(date, { weekStartsOn: 1 });
+          endDate = endOfWeek(date, { weekStartsOn: 1 });
+          label = `Week of ${format(startDate, "MMM d")}`;
+        } else {
+          startDate = startOfMonth(date);
+          endDate = endOfMonth(date);
+          label = format(startDate, "MMMM yyyy");
+        }
+
+        return {
+          label,
+          items: items.sort((a, b) => new Date(b.dateOfContact).getTime() - new Date(a.dateOfContact).getTime()),
+          startDate,
+          endDate
+        };
+      })
+      .sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
+  };
+
+  // Intelligent search function
+  const performIntelligentSearch = (items: GalleryItem[], query: string): GalleryItem[] => {
+    if (!query.trim()) return items;
+
+    const searchTerms = query.toLowerCase().split(' ').filter(term => term.length > 1);
+    
+    return items.filter(item => {
+      const searchableText = [
+        item.notes,
+        item.analysis?.summary || '',
+        item.analysis?.themes?.join(' ') || '',
+        item.analysis?.reflectivePrompts?.join(' ') || '',
+        item.analysis?.keyLearnings?.join(' ') || '',
+        item.analysis?.ccsrCategory || '',
+        format(new Date(item.dateOfContact), 'MMMM yyyy dd')
+      ].join(' ').toLowerCase();
+
+      return searchTerms.some(term => searchableText.includes(term));
+    });
+  };
+
+  // Handle deletion
+  const handleDeleteAnalysis = async (item: GalleryItem) => {
+    if (!user) return;
+
+    try {
+      if (item.analysis) {
+        await deleteAiAnalysis(user.uid, item.id);
+        
+        // Update local state
+        setGalleryItems(prev => 
+          prev.map(galleryItem => 
+            galleryItem.id === item.id 
+              ? { ...galleryItem, analysis: undefined }
+              : galleryItem
+          )
+        );
+        
+        toast({
+          title: "Analysis Deleted",
+          description: "The AI analysis has been removed. Your session hours remain tracked.",
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting analysis:", error);
+      toast({
+        title: "Deletion Failed",
+        description: "Unable to delete the analysis. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteDialogItem(null);
+    }
+  };
 
   const filteredItems = galleryItems.filter(item => {
     const matchesSearch = !searchQuery || 
