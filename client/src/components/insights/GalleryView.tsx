@@ -48,6 +48,7 @@ export const GalleryView = () => {
   const [expandedCard, setExpandedCard] = useState<GalleryItem | null>(null);
   const [deleteDialogItem, setDeleteDialogItem] = useState<GalleryItem | null>(null);
   const [dragState, setDragState] = useState<{ weekIndex: number; startX: number; currentX: number } | null>(null);
+  const [showScrollGuide, setShowScrollGuide] = useState<{[key: string]: boolean}>({});
   const containerRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
@@ -360,6 +361,15 @@ export const GalleryView = () => {
   const searchedItems = performIntelligentSearch(galleryItems, searchQuery);
   
   const filteredItems = searchedItems.filter(item => {
+    // Only show entries with substantial content (10+ words) or existing analysis
+    const noteWords = item.notes.trim().split(/\s+/).filter(word => word.length > 0);
+    const hasSubstantialContent = noteWords.length >= 10;
+    const hasAnalysis = !!item.analysis;
+    
+    if (!hasAnalysis && !hasSubstantialContent) {
+      return false; // Skip brief entries without analysis
+    }
+
     // Category filter
     const matchesCategory = categoryFilter === "all" || 
       (categoryFilter === "with-analysis" && item.analysis) ||
@@ -586,6 +596,19 @@ export const GalleryView = () => {
                     scrollSnapType: 'x mandatory',
                     scrollBehavior: 'auto' // Slower, more controlled scrolling
                   }}
+                  onScroll={(e) => {
+                    const target = e.target as HTMLDivElement;
+                    const rowKey = `row-${rowIndex}`;
+                    
+                    // Show scroll guide when scrolling
+                    setShowScrollGuide(prev => ({ ...prev, [rowKey]: true }));
+                    
+                    // Hide it after scrolling stops
+                    clearTimeout((window as any)[`scrollTimeout-${rowKey}`]);
+                    (window as any)[`scrollTimeout-${rowKey}`] = setTimeout(() => {
+                      setShowScrollGuide(prev => ({ ...prev, [rowKey]: false }));
+                    }, 1500);
+                  }}
                 >
                   {row.items.map((item: GalleryItem, cardIndex: number) => (
                     <div
@@ -686,6 +709,13 @@ export const GalleryView = () => {
                     </div>
                   ))}
                 </div>
+                
+                {/* Conditional Scroll Guide - only shows during scrolling */}
+                {showScrollGuide[`row-${rowIndex}`] && row.items.length > 3 && (
+                  <div className="absolute bottom-2 right-4 bg-black/70 text-white text-xs px-2 py-1 rounded-full transition-opacity duration-300">
+                    ← Scroll for more →
+                  </div>
+                )}
               </div>
             </div>
           ))}
