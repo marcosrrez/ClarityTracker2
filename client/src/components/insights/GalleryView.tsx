@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Sparkles, Search, Trash2, AlertTriangle, Bot, Eye, Filter, X } from "lucide-react";
+import { Calendar, Sparkles, Search, MoreHorizontal, AlertTriangle, Bot, Eye, Filter, Minimize2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -645,9 +645,9 @@ export const GalleryView = () => {
                                   e.stopPropagation();
                                   setDeleteDialogItem(item);
                                 }}
-                                className="text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
                               >
-                                <Trash2 className="h-3 w-3" />
+                                <MoreHorizontal className="h-3 w-3" />
                               </Button>
                             )}
                           </div>
@@ -751,19 +751,29 @@ export const GalleryView = () => {
                       )}
                     </div>
                   </div>
-                  {expandedCard.analysis && (
+                  <div className="flex items-center gap-2">
+                    {expandedCard.analysis && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setDeleteDialogItem(expandedCard);
+                          setExpandedCard(null);
+                        }}
+                        className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-all duration-200"
+                      >
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    )}
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => {
-                        setDeleteDialogItem(expandedCard);
-                        setExpandedCard(null);
-                      }}
-                      className="text-red-500 hover:text-red-700"
+                      onClick={() => setExpandedCard(null)}
+                      className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-all duration-200 p-2"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Minimize2 className="h-4 w-4" />
                     </Button>
-                  )}
+                  </div>
                 </div>
               </div>
 
