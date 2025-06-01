@@ -250,6 +250,9 @@ export const generatePersonalizedDashboardInsights = async (entries: any[], user
   skillDevelopmentTip: string;
   supervisionTopic: string;
   professionalGrowthInsight: string;
+  therapyProfileInsight?: string;
+  competencyFocus?: string;
+  patternAlert?: string;
 }> => {
   const accountType = userProfile?.accountType || 'individual';
   const isSupervisor = accountType === 'supervisor' || accountType === 'enterprise';
@@ -290,22 +293,34 @@ export const generatePersonalizedDashboardInsights = async (entries: any[], user
           professionalGrowthInsight: "Encouraging insight about professional development progress"
         };
 
-    const prompt = `Based on these recent ${sessionType}, provide personalized weekly insights for professional development:
+    // Enhanced prompt with Intelligence Hub capabilities
+    const totalSessionCount = entries.length;
+    const canAnalyzePatterns = totalSessionCount >= 15;
+    const canProvideProfileInsights = totalSessionCount >= 10;
+    const canSuggestCompetencyFocus = totalSessionCount >= 5;
+
+    const enhancedPrompt = `Based on these recent ${sessionType} (${totalSessionCount} total sessions), provide personalized weekly insights with integrated intelligence:
 
 ${recentEntries.map((entry, index) => `
 Recent Session ${index + 1}: ${entry.notes.substring(0, 200)}...
 `).join('\n')}
 
-Provide JSON response:
+Analysis Context:
+- Total Sessions: ${totalSessionCount}
+- Pattern Analysis Available: ${canAnalyzePatterns}
+- Profile Insights Available: ${canProvideProfileInsights}
+- Competency Focus Available: ${canSuggestCompetencyFocus}
+
+Provide JSON response with enhanced insights:
 {
   "weeklyFocus": "${focusAreas.weeklyFocus}",
   "skillDevelopmentTip": "${focusAreas.skillDevelopmentTip}",
   "supervisionTopic": "${focusAreas.supervisionTopic}",
-  "professionalGrowthInsight": "${focusAreas.professionalGrowthInsight}"
+  "professionalGrowthInsight": "${focusAreas.professionalGrowthInsight}"${canProvideProfileInsights ? ',\n  "therapyProfileInsight": "Emerging therapy identity or style based on session patterns"' : ''}${canSuggestCompetencyFocus ? ',\n  "competencyFocus": "Specific competency area to develop based on recent work"' : ''}${canAnalyzePatterns ? ',\n  "patternAlert": "Important pattern or trend requiring attention"' : ''}
 }`;
 
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent(enhancedPrompt);
     const response = await result.response;
     const text = response.text();
     
