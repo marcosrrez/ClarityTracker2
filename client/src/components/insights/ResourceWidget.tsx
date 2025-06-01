@@ -74,16 +74,14 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
         const summary = await summarizeWebContent(inputValue);
         
         const summaryCard: InsertInsightCard = {
-          userId: user?.uid || '',
+          type: 'articleSummary',
           title: `Web Article Summary`,
           content: summary,
           tags: ['web-article', 'resource'],
-          type: 'article',
-          source: inputValue,
-          createdAt: new Date(),
+          originalUrl: inputValue,
         };
 
-        await createInsightCard(summaryCard);
+        await createInsightCard(user?.uid || '', summaryCard);
         setResultMessage("✓ Article analyzed and added to your insights");
         setShowSuccess(true);
         
@@ -94,15 +92,13 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
         setResultMessage("Processing your text...");
         
         const textCard: InsertInsightCard = {
-          userId: user?.uid || '',
+          type: 'note',
           title: `Manual Entry`,
           content: inputValue,
           tags: ['manual-entry', 'resource'],
-          type: 'note',
-          createdAt: new Date(),
         };
 
-        await createInsightCard(textCard);
+        await createInsightCard(user?.uid || '', textCard);
         setResultMessage("✓ Text saved to your insights");
         setShowSuccess(true);
         
@@ -134,17 +130,15 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
     setResultMessage("Processing PDF document...");
     
     try {
-      // For now, just create a placeholder card
+      // Create a note card for the PDF document
       const pdfCard: InsertInsightCard = {
-        userId: user?.uid || '',
+        type: 'note',
         title: `PDF Document: ${file.name}`,
         content: `PDF document uploaded: ${file.name} (${Math.round(file.size / 1024)}KB)`,
         tags: ['pdf', 'document', 'resource'],
-        type: 'document',
-        createdAt: new Date(),
       };
 
-      await createInsightCard(pdfCard);
+      await createInsightCard(user?.uid || '', pdfCard);
       setResultMessage("✓ PDF document processed and added");
       setShowSuccess(true);
       
@@ -182,37 +176,38 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="w-96 h-[500px] p-0 gap-0 rounded-2xl bg-slate-900 border-slate-700 overflow-hidden" aria-describedby="resource-widget-description">
+      <DialogContent className="w-[400px] h-[520px] p-0 gap-0 rounded-xl bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-700 overflow-hidden shadow-xl" aria-describedby="resource-widget-description">
         <DialogTitle className="sr-only">AI Resource Assistant</DialogTitle>
         
         <div className="h-full flex flex-col">
+          {/* Header */}
+          <div className="px-4 py-3 border-b border-gray-200 dark:border-slate-700">
+            <h3 className="text-sm font-medium text-gray-900 dark:text-white">Add Resource</h3>
+          </div>
+
           {/* Content Area */}
-          <div className="flex-1 p-6 overflow-y-auto">
+          <div className="flex-1 p-4 overflow-y-auto">
             {!selectedMode && !resultMessage ? (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Plus className="h-8 w-8 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold text-white mb-2">AI Resource Assistant</h3>
-                <p className="text-slate-400 text-sm leading-relaxed">
-                  Add web articles, paste text, upload documents, or export your insights using the tools below
+              <div className="text-center py-8">
+                <p className="text-gray-600 dark:text-slate-400 text-sm mb-6 leading-relaxed">
+                  Paste a URL or enter text to analyze, upload documents, or export your insights
                 </p>
               </div>
             ) : (
-              <div className="py-8">
+              <div className="space-y-4">
                 {resultMessage && (
-                  <div className={`p-4 rounded-lg border ${
+                  <div className={`p-3 rounded-lg text-sm ${
                     showSuccess 
-                      ? 'bg-green-900/20 border-green-700 text-green-300' 
-                      : 'bg-slate-800 border-slate-700 text-slate-300'
+                      ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800' 
+                      : 'bg-gray-50 dark:bg-slate-800 text-gray-700 dark:text-slate-300 border border-gray-200 dark:border-slate-700'
                   }`}>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       {isLoading ? (
-                        <LoadingSpinner />
+                        <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin" />
                       ) : showSuccess ? (
-                        <CheckCircle className="h-5 w-5 text-green-400" />
+                        <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
                       ) : null}
-                      <p className="text-sm">{resultMessage}</p>
+                      <span>{resultMessage}</span>
                     </div>
                   </div>
                 )}
@@ -221,21 +216,22 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
           </div>
 
           {/* Input Area */}
-          <div className="p-4 border-t border-slate-700">
-            <div className="flex items-end gap-3">
+          <div className="p-4 border-t border-gray-200 dark:border-slate-700">
+            <div className="flex gap-2">
               <div className="flex-1">
                 <Textarea
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="Paste a URL or enter text to analyze..."
-                  className="min-h-[80px] bg-slate-800 border-slate-600 text-white placeholder-slate-400 resize-none focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Message Assistant..."
+                  className="min-h-[60px] bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-slate-400 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent rounded-lg text-sm"
                   disabled={isLoading}
                 />
               </div>
               <Button
                 onClick={handleInputSubmit}
                 disabled={!inputValue.trim() || isLoading}
-                className="bg-blue-600 hover:bg-blue-700 text-white p-3 h-12 w-12"
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 h-auto self-end"
               >
                 <Send className="h-4 w-4" />
               </Button>
@@ -243,32 +239,32 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
           </div>
 
           {/* Action Bar */}
-          <div className="flex items-center justify-center gap-6 p-4 bg-slate-800/50">
+          <div className="flex items-center justify-center gap-8 px-4 py-3 bg-gray-50 dark:bg-slate-800/50 border-t border-gray-200 dark:border-slate-700">
             <button
               onClick={() => document.getElementById('file-upload')?.click()}
-              className="flex flex-col items-center gap-1 p-2 text-slate-400 hover:text-white transition-colors"
+              className="flex flex-col items-center gap-1 p-2 text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 transition-colors disabled:opacity-50"
               disabled={isLoading}
             >
-              <Paperclip className="h-5 w-5" />
-              <span className="text-xs">Attach</span>
+              <Paperclip className="h-4 w-4" />
+              <span className="text-xs font-medium">Attach</span>
             </button>
             
             <button
               onClick={() => setInputValue('https://')}
-              className="flex flex-col items-center gap-1 p-2 text-slate-400 hover:text-white transition-colors"
+              className="flex flex-col items-center gap-1 p-2 text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 transition-colors disabled:opacity-50"
               disabled={isLoading}
             >
-              <Globe className="h-5 w-5" />
-              <span className="text-xs">Web</span>
+              <Globe className="h-4 w-4" />
+              <span className="text-xs font-medium">Web</span>
             </button>
             
             <button
               onClick={handleExport}
-              className="flex flex-col items-center gap-1 p-2 text-slate-400 hover:text-white transition-colors"
+              className="flex flex-col items-center gap-1 p-2 text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 transition-colors disabled:opacity-50"
               disabled={isLoading}
             >
-              <Download className="h-5 w-5" />
-              <span className="text-xs">Export</span>
+              <Download className="h-4 w-4" />
+              <span className="text-xs font-medium">Export</span>
             </button>
           </div>
 
