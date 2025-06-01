@@ -108,97 +108,82 @@ export const CrossSessionAnalysisView = () => {
         </Button>
       </div>
 
-      {/* Professional Development Insights */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Supervision Topics</p>
-                <p className="text-3xl font-bold text-foreground">
-                  {(() => {
-                    const supervisionEntries = logEntries.filter((entry: any) => 
-                      entry.supervisionType && entry.supervisionType !== 'none'
-                    );
-                    return supervisionEntries.length;
-                  })()}
-                </p>
-              </div>
-              <Target className="h-8 w-8 text-blue-500" />
+      {/* Longitudinal Development Metrics */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <Card className="p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Practice Evolution</p>
+              <p className="text-lg font-bold text-foreground">
+                {(() => {
+                  const timeSpan = totalSessions > 1 ? 
+                    Math.ceil((new Date(logEntries[logEntries.length - 1].dateOfContact).getTime() - 
+                               new Date(logEntries[0].dateOfContact).getTime()) / (1000 * 60 * 60 * 24 * 7)) : 0;
+                  return `${timeSpan}w`;
+                })()}
+              </p>
             </div>
-          </CardContent>
+            <TrendingUp className="h-5 w-5 text-blue-500" />
+          </div>
         </Card>
         
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Growth Areas Identified</p>
-                <p className="text-3xl font-bold text-foreground">
-                  {(() => {
-                    const growthKeywords = ['challenge', 'difficult', 'struggle', 'learn', 'improve', 'develop'];
-                    const growthMentions = logEntries.filter((entry: any) => 
-                      growthKeywords.some(keyword => 
-                        entry.notes?.toLowerCase().includes(keyword) || 
-                        entry.supervisionNotes?.toLowerCase().includes(keyword)
-                      )
-                    ).length;
-                    return growthMentions;
-                  })()}
-                </p>
-              </div>
-              <Lightbulb className="h-8 w-8 text-amber-500" />
+        <Card className="p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Growth Trajectory</p>
+              <p className="text-lg font-bold text-foreground">
+                {(() => {
+                  const growthKeywords = ['challenge', 'difficult', 'struggle', 'learn', 'improve', 'develop'];
+                  const recentGrowth = logEntries.slice(-5).filter((entry: any) => 
+                    growthKeywords.some(keyword => 
+                      entry.notes?.toLowerCase().includes(keyword) || 
+                      entry.supervisionNotes?.toLowerCase().includes(keyword)
+                    )
+                  ).length;
+                  return recentGrowth > 2 ? "↗" : recentGrowth > 0 ? "→" : "↘";
+                })()}
+              </p>
             </div>
-          </CardContent>
+            <Target className="h-5 w-5 text-amber-500" />
+          </div>
         </Card>
         
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Therapeutic Modalities</p>
-                <p className="text-3xl font-bold text-foreground">
-                  {(() => {
-                    const modalityKeywords = ['cbt', 'dbt', 'emdr', 'therapy', 'intervention', 'technique', 'approach'];
-                    const modalityMentions = new Set();
-                    logEntries.forEach((entry: any) => {
-                      modalityKeywords.forEach(keyword => {
-                        if (entry.notes?.toLowerCase().includes(keyword) || 
-                            entry.supervisionNotes?.toLowerCase().includes(keyword)) {
-                          modalityMentions.add(keyword);
-                        }
-                      });
-                    });
-                    return modalityMentions.size;
-                  })()}
-                </p>
-              </div>
-              <Brain className="h-8 w-8 text-green-500" />
+        <Card className="p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Approach Consistency</p>
+              <p className="text-lg font-bold text-foreground">
+                {(() => {
+                  const modalityKeywords = ['cbt', 'dbt', 'emdr', 'therapy', 'intervention', 'technique'];
+                  const consistency = modalityKeywords.filter(keyword => 
+                    logEntries.filter((entry: any) => 
+                      entry.notes?.toLowerCase().includes(keyword) || 
+                      entry.supervisionNotes?.toLowerCase().includes(keyword)
+                    ).length >= 2
+                  ).length;
+                  return `${Math.min(consistency * 25, 100)}%`;
+                })()}
+              </p>
             </div>
-          </CardContent>
+            <Brain className="h-5 w-5 text-green-500" />
+          </div>
         </Card>
         
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Reflection Depth</p>
-                <p className="text-3xl font-bold text-foreground">
-                  {(() => {
-                    const reflectionKeywords = ['reflect', 'realize', 'insight', 'understand', 'aware'];
-                    const reflectiveEntries = logEntries.filter((entry: any) => 
-                      reflectionKeywords.some(keyword => 
-                        entry.notes?.toLowerCase().includes(keyword) || 
-                        entry.supervisionNotes?.toLowerCase().includes(keyword)
-                      )
-                    ).length;
-                    return Math.round((reflectiveEntries / Math.max(logEntries.length, 1)) * 100);
-                  })()}%
-                </p>
-              </div>
-              <Eye className="h-8 w-8 text-purple-500" />
+        <Card className="p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Supervision Readiness</p>
+              <p className="text-lg font-bold text-foreground">
+                {(() => {
+                  const supervisionEntries = logEntries.filter((entry: any) => 
+                    entry.supervisionType && entry.supervisionType !== 'none'
+                  );
+                  return supervisionEntries.length > 0 ? "Ready" : "Prepare";
+                })()}
+              </p>
             </div>
-          </CardContent>
+            <Eye className="h-5 w-5 text-purple-500" />
+          </div>
         </Card>
       </div>
 
@@ -271,7 +256,7 @@ export const CrossSessionAnalysisView = () => {
                       <div key={index} className="bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg">
                         <p className="text-sm font-medium">{entry.supervisionType?.replace('_', ' ').toUpperCase()}</p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {format(new Date(entry.dateOfContact), 'MMM dd, yyyy')}
+                          {new Date(entry.dateOfContact).toLocaleDateString()}
                         </p>
                       </div>
                     ));
@@ -371,27 +356,37 @@ export const CrossSessionAnalysisView = () => {
       )}
 
       {!analysis && !isGenerating && totalSessions > 0 && (
-        <Card>
-          <CardContent className="pt-6 text-center">
-            <Brain className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Ready for Deep Analysis</h3>
-            <p className="text-muted-foreground mb-4">
-              Generate comprehensive insights across your {totalSessions} sessions and {insightCards.length} insight cards.
-              The AI will analyze all your session notes, previous analyses, and personal reflections for deep pattern discovery.
+        <Card className="bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-indigo-950/50 dark:via-gray-900 dark:to-purple-950/50 border-indigo-200/60 dark:border-indigo-800/60">
+          <CardContent className="pt-8 pb-8 text-center">
+            <div className="relative mb-6">
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full w-16 h-16 mx-auto opacity-20 animate-pulse"></div>
+              <Sparkles className="h-16 w-16 text-indigo-600 dark:text-indigo-400 mx-auto relative z-10" />
+            </div>
+            <h3 className="text-xl font-bold mb-3 bg-gradient-to-r from-indigo-900 via-purple-900 to-indigo-900 dark:from-indigo-100 dark:via-purple-100 dark:to-indigo-100 bg-clip-text text-transparent">
+              AI-Powered Longitudinal Analysis
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-lg mx-auto leading-relaxed">
+              Discover deep patterns across your {totalSessions} sessions and {insightCards.length} insight cards. 
+              Generate comprehensive insights into your therapeutic identity development and professional evolution over time.
             </p>
-            <div className="flex flex-col gap-4">
-              <Button onClick={generateAnalysis}>
-                <Sparkles className="h-4 w-4 mr-2" />
-                Analyze My Journey
+            <div className="space-y-4">
+              <Button 
+                onClick={generateAnalysis}
+                size="lg"
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-medium h-12 px-8 shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                <Sparkles className="h-5 w-5 mr-2" />
+                Generate Deep Analysis
               </Button>
-              <div className="text-center">
-                <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
-                  <h4 className="font-medium text-yellow-800 dark:text-yellow-200 mb-2">Manual Analysis Available</h4>
-                  <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                    View session data, themes, and patterns from your actual entries below. 
-                    For AI-powered cross-session analysis, please ensure your Google AI API key is properly configured.
-                  </p>
+              <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-xl border border-amber-200/60 dark:border-amber-800/60">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Lightbulb className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                  <h4 className="font-medium text-amber-800 dark:text-amber-200">Longitudinal Insights Available</h4>
                 </div>
+                <p className="text-sm text-amber-700 dark:text-amber-300">
+                  View authentic patterns and evolution trends from your documented sessions below, 
+                  or use AI analysis to discover deeper cross-session insights and supervision preparation materials.
+                </p>
               </div>
             </div>
           </CardContent>
