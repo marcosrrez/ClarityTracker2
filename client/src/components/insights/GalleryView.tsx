@@ -109,78 +109,105 @@ export function GalleryView({ userId }: GalleryViewProps) {
         onRefresh={refetch}
       />
 
-      {/* Expanded card modal */}
+      {/* Expanded card modal - MyMind Style */}
       {expandedCard && (
         <Dialog open={!!expandedCard} onOpenChange={() => setExpandedCard(null)}>
-          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Session from {format(new Date(expandedCard.dateOfContact), "MMMM d, yyyy")}
-              </DialogTitle>
-              <DialogDescription>
-                {expandedCard.clientContactHours} hours of client contact
-              </DialogDescription>
-            </DialogHeader>
-            
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900">
             <div className="space-y-6">
-              {/* Session Notes */}
+              {/* Title */}
               <div>
-                <h3 className="text-lg font-semibold mb-2">Session Notes</h3>
-                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                    {expandedCard.notes || "No notes available for this session."}
+                <h1 className="text-2xl font-bold text-black dark:text-white mb-4">
+                  Session: {format(new Date(expandedCard.dateOfContact), "MMMM d, yyyy")}
+                </h1>
+                <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                  {expandedCard.notes || "No notes available for this session."}
+                </p>
+              </div>
+
+              {/* TL;DR Box - like in MyMind screenshot */}
+              {expandedCard.analysis && expandedCard.analysis.summary && (
+                <div className="border border-orange-300 rounded-lg p-4 bg-orange-50 dark:bg-orange-900/20">
+                  <div className="text-sm font-medium text-orange-600 dark:text-orange-400 mb-2">TL;DR</div>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    {expandedCard.analysis.summary}
                   </p>
+                </div>
+              )}
+
+              {/* Mind Tags Section */}
+              <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-sm text-gray-500 uppercase tracking-wide">MIND TAGS</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button 
+                    size="sm" 
+                    className="bg-orange-500 hover:bg-orange-600 text-white rounded-full text-xs"
+                    onClick={() => {
+                      toast({
+                        title: "Add tag",
+                        description: "Tag functionality coming soon!",
+                      });
+                    }}
+                  >
+                    + Add tag
+                  </Button>
+                  
+                  {/* Enhanced Auto-Tags */}
+                  {expandedCard.analysis?.therapeuticModalities && Array.isArray(expandedCard.analysis.therapeuticModalities) && 
+                    expandedCard.analysis.therapeuticModalities.map((mod: string, index: number) => (
+                      <Badge key={index} variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                        # {mod}
+                      </Badge>
+                    ))
+                  }
+                  
+                  {expandedCard.analysis?.clientPresentation && Array.isArray(expandedCard.analysis.clientPresentation) && 
+                    expandedCard.analysis.clientPresentation.map((pres: string, index: number) => (
+                      <Badge key={index} variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                        # {pres}
+                      </Badge>
+                    ))
+                  }
+                  
+                  {expandedCard.analysis?.competencyAreas && Array.isArray(expandedCard.analysis.competencyAreas) && 
+                    expandedCard.analysis.competencyAreas.map((comp: string, index: number) => (
+                      <Badge key={index} variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+                        # {comp}
+                      </Badge>
+                    ))
+                  }
+                  
+                  {/* Fallback to themes if enhanced tags not available */}
+                  {(!expandedCard.analysis?.therapeuticModalities && !expandedCard.analysis?.clientPresentation && !expandedCard.analysis?.competencyAreas) && 
+                   expandedCard.analysis?.themes && Array.isArray(expandedCard.analysis.themes) && 
+                    expandedCard.analysis.themes.map((theme: string, index: number) => (
+                      <Badge key={index} variant="outline" className="text-xs">
+                        # {theme}
+                      </Badge>
+                    ))
+                  }
+                  
+                  {/* Session Info Tags */}
+                  <Badge variant="outline" className="text-xs">
+                    # {expandedCard.clientContactHours}h Session
+                  </Badge>
+                  <Badge variant="outline" className="text-xs">
+                    # {format(new Date(expandedCard.dateOfContact), "MMMM yyyy")}
+                  </Badge>
                 </div>
               </div>
 
-              {/* AI Analysis */}
+              {/* Additional Analysis Sections if available */}
               {expandedCard.analysis && (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <Sparkles className="h-4 w-4 text-blue-600" />
-                      AI Analysis
-                    </h3>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => setDeleteDialogItem(expandedCard)}
-                    >
-                      Delete Analysis
-                    </Button>
-                  </div>
-
-                  {expandedCard.analysis.summary && (
-                    <div>
-                      <h4 className="font-medium text-blue-600 mb-2">Summary</h4>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {expandedCard.analysis.summary}
-                      </p>
-                    </div>
-                  )}
-
-                  {expandedCard.analysis.themes && Array.isArray(expandedCard.analysis.themes) && expandedCard.analysis.themes.length > 0 && (
-                    <div>
-                      <h4 className="font-medium text-green-600 mb-2">Key Themes</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {expandedCard.analysis.themes.map((theme: string, index: number) => (
-                          <Badge key={index} variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                            {theme}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
                   {expandedCard.analysis.keyLearnings && Array.isArray(expandedCard.analysis.keyLearnings) && expandedCard.analysis.keyLearnings.length > 0 && (
                     <div>
                       <h4 className="font-medium text-purple-600 mb-2">Key Learnings</h4>
-                      <ul className="space-y-2">
+                      <ul className="space-y-1">
                         {expandedCard.analysis.keyLearnings.map((learning: string, index: number) => (
-                          <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
-                            <div className="w-1.5 h-1.5 bg-purple-400 rounded-full mt-2 flex-shrink-0"></div>
-                            <span>{learning}</span>
+                          <li key={index} className="text-sm text-gray-600 dark:text-gray-400">
+                            • {learning}
                           </li>
                         ))}
                       </ul>
@@ -189,12 +216,11 @@ export function GalleryView({ userId }: GalleryViewProps) {
 
                   {expandedCard.analysis.reflectivePrompts && Array.isArray(expandedCard.analysis.reflectivePrompts) && expandedCard.analysis.reflectivePrompts.length > 0 && (
                     <div>
-                      <h4 className="font-medium text-orange-600 mb-2">Reflective Prompts</h4>
-                      <ul className="space-y-2">
+                      <h4 className="font-medium text-orange-600 mb-2">Reflective Questions</h4>
+                      <ul className="space-y-1">
                         {expandedCard.analysis.reflectivePrompts.map((prompt: string, index: number) => (
-                          <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
-                            <div className="w-1.5 h-1.5 bg-orange-400 rounded-full mt-2 flex-shrink-0"></div>
-                            <span>{prompt}</span>
+                          <li key={index} className="text-sm text-gray-600 dark:text-gray-400">
+                            • {prompt}
                           </li>
                         ))}
                       </ul>
