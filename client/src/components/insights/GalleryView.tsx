@@ -582,11 +582,138 @@ export const GalleryView = () => {
         </Button>
       </div>
 
-      {/* Grid Layout - Pinterest/MyMind Style */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {/* Add Note Card - Always First */}
+      {/* Disney+ Style Card Rows */}
+      {cardRows.length === 0 ? (
+        <div className="text-center py-12">
+          <Bot className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-foreground mb-2">No Session Insights Yet</h3>
+          <p className="text-muted-foreground">
+            Your session insights will appear here organized by time period, just like your favorite streaming service.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-8">
+          {cardRows.map((row: WeekDeck, rowIndex: number) => (
+            <div key={rowIndex} className="space-y-4">
+              {/* Row Header */}
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-semibold text-foreground">{row.label}</h3>
+                <Badge variant="outline" className="text-xs">
+                  {row.items.length} session{row.items.length !== 1 ? 's' : ''}
+                </Badge>
+              </div>
+
+              {/* Horizontal Scrolling Cards */}
+              <div className="relative">
+                <div 
+                  className="flex gap-3 overflow-x-auto scrollbar-hide pb-4 scroll-smooth"
+                  style={{ 
+                    scrollSnapType: 'x mandatory',
+                    scrollBehavior: 'auto'
+                  }}
+                  onScroll={(e) => {
+                    const target = e.target as HTMLDivElement;
+                    const rowKey = `row-${rowIndex}`;
+                    
+                    setShowScrollGuide(prev => ({ ...prev, [rowKey]: true }));
+                    
+                    clearTimeout((window as any)[`scrollTimeout-${rowKey}`]);
+                    (window as any)[`scrollTimeout-${rowKey}`] = setTimeout(() => {
+                      setShowScrollGuide(prev => ({ ...prev, [rowKey]: false }));
+                    }, 1500);
+                  }}
+                >
+                  {row.items.map((item: GalleryItem, cardIndex: number) => (
+                    <div
+                      key={item.id}
+                      className="flex-shrink-0 w-72"
+                      style={{ scrollSnapAlign: 'start' }}
+                    >
+                      <Card 
+                        className="group cursor-pointer hover:shadow-lg transition-all duration-500 hover:scale-[1.02] bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 h-full"
+                        onClick={() => setExpandedCard(item)}
+                      >
+                        <CardHeader className="pb-3">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 min-w-0">
+                              <CardTitle className="text-sm font-medium">
+                                {format(new Date(item.dateOfContact), "MMM d, yyyy")}
+                              </CardTitle>
+                              <CardDescription className="flex items-center gap-2 mt-1">
+                                <Calendar className="h-3 w-3" />
+                                <span className="text-xs">{item.clientContactHours}h</span>
+                                {item.analysis && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    <Sparkles className="h-2 w-2 mr-1" />
+                                    AI
+                                  </Badge>
+                                )}
+                              </CardDescription>
+                            </div>
+                            {item.analysis && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteDialogItem(item);
+                                }}
+                                className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
+                              >
+                                <MoreHorizontal className="h-3 w-3" />
+                              </Button>
+                            )}
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-2">
+                            <p className="text-xs text-muted-foreground line-clamp-3">
+                              {item.notes || "No notes available"}
+                            </p>
+                            
+                            {item.analysis && (
+                              <div className="mt-3 space-y-2">
+                                {item.analysis.summary && (
+                                  <div className="text-xs">
+                                    <span className="font-medium text-blue-600">Summary:</span>
+                                    <p className="text-muted-foreground line-clamp-2 mt-1">
+                                      {item.analysis.summary}
+                                    </p>
+                                  </div>
+                                )}
+                                
+                                {item.analysis.themes && Array.isArray(item.analysis.themes) && item.analysis.themes.length > 0 && (
+                                  <div className="flex flex-wrap gap-1">
+                                    {item.analysis.themes.slice(0, 2).map((theme: string, index: number) => (
+                                      <Badge key={index} variant="outline" className="text-xs">
+                                        {theme}
+                                      </Badge>
+                                    ))}
+                                    {item.analysis.themes.length > 2 && (
+                                      <Badge variant="outline" className="text-xs">
+                                        +{item.analysis.themes.length - 2}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Add Note Card - MyMind Style at Bottom */}
+      <div className="mt-12 max-w-md">
         <Card 
-          className="border-2 border-dashed border-orange-300 dark:border-orange-600 hover:border-orange-400 dark:hover:border-orange-500 transition-colors cursor-pointer min-h-[200px] flex items-center justify-center"
+          className="border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-orange-400 dark:hover:border-orange-500 transition-colors cursor-pointer"
           onClick={() => {
             // TODO: Open rich text editor modal
             toast({
@@ -595,99 +722,20 @@ export const GalleryView = () => {
             });
           }}
         >
-          <CardContent className="p-6 text-center">
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-12 h-12 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
-                <Plus className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center flex-shrink-0">
+                <Plus className="h-4 w-4 text-orange-600 dark:text-orange-400" />
               </div>
-              <div>
-                <h3 className="font-semibold text-base">Add a New Note</h3>
-                <p className="text-muted-foreground text-xs mt-1">
+              <div className="flex-1">
+                <h3 className="font-semibold text-sm text-orange-600 dark:text-orange-400">ADD A NEW NOTE</h3>
+                <p className="text-muted-foreground text-sm mt-1">
                   Start typing here...
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
-
-        {/* Session Insights Cards */}
-        {filteredItems.map((item: GalleryItem) => (
-          <Card 
-            key={item.id}
-            className="group cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 min-h-[200px]"
-            onClick={() => setExpandedCard(item)}
-          >
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex-1 min-w-0">
-                  <CardTitle className="text-sm font-medium">
-                    {format(new Date(item.dateOfContact), "MMM d, yyyy")}
-                  </CardTitle>
-                  <CardDescription className="flex items-center gap-2 mt-1">
-                    <Calendar className="h-3 w-3" />
-                    <span className="text-xs">{item.clientContactHours}h</span>
-                    {item.analysis && (
-                      <Badge variant="secondary" className="text-xs">
-                        <Sparkles className="h-2 w-2 mr-1" />
-                        AI
-                      </Badge>
-                    )}
-                  </CardDescription>
-                </div>
-                {item.analysis && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setDeleteDialogItem(item);
-                    }}
-                    className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 opacity-0 group-hover:opacity-100 transition-all duration-200"
-                  >
-                    <MoreHorizontal className="h-3 w-3" />
-                  </Button>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {/* Session Notes Preview */}
-                <p className="text-xs text-muted-foreground line-clamp-3">
-                  {item.notes || "No notes available"}
-                </p>
-                
-                {/* AI Analysis Preview */}
-                {item.analysis && (
-                  <div className="mt-3 space-y-2">
-                    {item.analysis.summary && (
-                      <div className="text-xs">
-                        <span className="font-medium text-blue-600">Summary:</span>
-                        <p className="text-muted-foreground line-clamp-2 mt-1">
-                          {item.analysis.summary}
-                        </p>
-                      </div>
-                    )}
-                    
-                    {item.analysis.themes && Array.isArray(item.analysis.themes) && item.analysis.themes.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {item.analysis.themes.slice(0, 2).map((theme: string, index: number) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {theme}
-                          </Badge>
-                        ))}
-                        {item.analysis.themes.length > 2 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{item.analysis.themes.length - 2}
-                          </Badge>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
       </div>
 
       {/* Empty State for No Items */}
