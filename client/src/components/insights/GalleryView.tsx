@@ -724,7 +724,7 @@ export const GalleryView = () => {
 
       {/* Expanded Card Details Dialog - Clean White Card */}
       <Dialog open={!!expandedCard} onOpenChange={() => setExpandedCard(null)}>
-        <DialogContent className="max-w-6xl w-[90vw] h-[90vh] p-0 rounded-xl">
+        <DialogContent className="max-w-6xl w-[90vw] h-[90vh] p-0 rounded-xl [&>button]:hidden">
           <DialogHeader className="sr-only">
             <DialogTitle>Session Details</DialogTitle>
             <DialogDescription>Detailed view of session analysis and notes</DialogDescription>
