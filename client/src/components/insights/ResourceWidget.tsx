@@ -58,7 +58,66 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
     if (input.startsWith('http://') || input.startsWith('https://')) {
       return 'url';
     }
+    if (input.includes('?') || input.toLowerCase().includes('what') || input.toLowerCase().includes('how') || input.toLowerCase().includes('when')) {
+      return 'question';
+    }
     return 'text';
+  };
+
+  const handleAIQuery = async (question: string) => {
+    setIsLoading(true);
+    setResultMessage("Thinking...");
+    
+    try {
+      // Create a therapy-focused prompt
+      const systemPrompt = `You are ClarityLog's AI assistant, specializing in helping Licensed Associate Counselors (LACs) with their professional development and licensure journey. You have expertise in:
+      - Therapy techniques (CBT, DBT, motivational interviewing, etc.)
+      - Professional development and supervision
+      - Licensure requirements and progress tracking
+      - Clinical documentation and reflection
+      
+      Provide helpful, professional responses that support their growth as counselors.`;
+
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: question,
+          systemPrompt,
+          userId: user?.uid
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get AI response');
+      }
+
+      const data = await response.json();
+      
+      // Create an insight card for the Q&A
+      const qaCard: InsertInsightCard = {
+        type: 'note',
+        title: `AI Assistant: ${question.substring(0, 50)}...`,
+        content: `**Question:** ${question}\n\n**Answer:** ${data.response}`,
+        tags: ['ai-assistant', 'q-and-a'],
+      };
+
+      await createInsightCard(user?.uid || '', qaCard);
+      setResultMessage(`✓ ${data.response.substring(0, 100)}...`);
+      setShowSuccess(true);
+      
+      if (onResourceAdded) {
+        onResourceAdded();
+      }
+      
+    } catch (error) {
+      console.error('Error with AI query:', error);
+      setResultMessage("I'm having trouble connecting right now. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleInputSubmit = async () => {
@@ -88,6 +147,8 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
         if (onResourceAdded) {
           onResourceAdded();
         }
+      } else if (inputType === 'question') {
+        await handleAIQuery(inputValue);
       } else {
         setResultMessage("Processing your text...");
         
@@ -190,7 +251,7 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
             {!selectedMode && !resultMessage ? (
               <div className="text-center py-8">
                 <p className="text-gray-600 dark:text-slate-400 text-sm mb-6 leading-relaxed">
-                  Paste a URL or enter text to analyze, upload documents, or export your insights
+                  Ask questions like "What is CBT?" • Paste URLs to analyze articles • Add notes and documents
                 </p>
               </div>
             ) : (
@@ -222,7 +283,7 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
                 <Textarea
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="Message Assistant..."
+                  placeholder="Ask questions, paste URLs, or add resources..."
                   className="min-h-[60px] bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-slate-400 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent rounded-lg text-sm"
                   disabled={isLoading}
                 />

@@ -1122,6 +1122,72 @@ Source: ${entry.sourceTitle} (${entry.sourceType})`;
     }
   });
 
+  // AI Chat endpoint for conversational assistant
+  app.post('/api/ai/chat', express.json(), async (req, res) => {
+    try {
+      const { message, systemPrompt, userId } = req.body;
+
+      if (!message) {
+        return res.status(400).json({ error: 'Message is required' });
+      }
+
+      // Get user profile for context
+      let userProfile = null;
+      let recentLogs = [];
+      
+      try {
+        userProfile = await storage.getUserProfile(userId);
+        recentLogs = await storage.getEntriesByUserId(userId, 5); // Get last 5 entries for context
+      } catch (error) {
+        console.log('User data not available for context');
+      }
+
+      // Build context about the user
+      let userContext = '';
+      if (userProfile) {
+        userContext += `User context: ${userProfile.preferredName || 'User'} is working toward ${userProfile.focus} `;
+        userContext += `in ${userProfile.stateRegion}. `;
+        if (userProfile.specialties && userProfile.specialties.length > 0) {
+          userContext += `Specialties: ${userProfile.specialties.join(', ')}. `;
+        }
+      }
+
+      if (recentLogs && recentLogs.length > 0) {
+        userContext += `Recent activity: Has logged ${recentLogs.length} sessions recently. `;
+        const totalHours = recentLogs.reduce((sum, log) => sum + log.clientContactHours, 0);
+        userContext += `Recent contact hours: ${totalHours}. `;
+      }
+
+      const enhancedPrompt = `${systemPrompt}
+
+${userContext}
+
+Please provide a helpful, professional response that's personalized to their situation when possible.`;
+
+      // Use OpenAI for the chat response
+      const openai = new (await import('openai')).default({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          { role: "system", content: enhancedPrompt },
+          { role: "user", content: message }
+        ],
+        max_tokens: 500,
+        temperature: 0.7,
+      });
+
+      const response = completion.choices[0].message.content;
+
+      res.json({ response });
+    } catch (error) {
+      console.error('AI chat error:', error);
+      res.status(500).json({ error: 'Failed to process AI request' });
+    }
+  });
+
   // Insights History endpoint
   app.get('/api/ai/insights-history/:userId', async (req, res) => {
     try {
