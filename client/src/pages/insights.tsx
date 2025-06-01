@@ -1,5 +1,3 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { InsightsResourcesTab } from "@/components/insights/InsightsResourcesTab";
 import { GalleryView } from "@/components/insights/GalleryView";
 import { useAnalytics, usePageTimeTracking } from "@/hooks/use-analytics";
 import { useAuth } from "@/hooks/use-auth";
