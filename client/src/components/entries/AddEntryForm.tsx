@@ -29,7 +29,6 @@ export const AddEntryForm = () => {
   const [notesContent, setNotesContent] = useState("");
   
   // Collapsible sections
-  const [showQuickTemplates, setShowQuickTemplates] = useState(true);
   const [showDirectClient, setShowDirectClient] = useState(false);
   const [showSupervision, setShowSupervision] = useState(false);
   const [showProfDev, setShowProfDev] = useState(false);
@@ -164,98 +163,76 @@ export const AddEntryForm = () => {
       <Card className="backdrop-blur-sm bg-white/95 dark:bg-gray-800/95 border border-white/20 shadow-2xl rounded-3xl max-w-4xl mx-auto">
         <CardContent className="p-8">
           
-          {/* Quick Templates - Minimal Header */}
-          <div className="mb-12">
-            <button
-              type="button"
-              onClick={() => setShowQuickTemplates(!showQuickTemplates)}
-              className="w-full flex items-center justify-between p-6 bg-white dark:bg-gray-900 rounded-3xl border-0 shadow-sm hover:shadow-md transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-gray-500/10"
-            >
-              <div className="flex items-center space-x-4">
-                <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center">
-                  <Zap className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                </div>
-                <h3 className="text-xl font-medium text-gray-900 dark:text-white">Quick Start Templates</h3>
-              </div>
-              <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                {showQuickTemplates ? (
-                  <ChevronUp className="w-4 h-4 text-gray-500" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 text-gray-500" />
-                )}
-              </div>
-            </button>
+          {/* Quick Templates - Icon-like Cards */}
+          <div className="mb-10">
+            <div className="text-center mb-6">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Quick Start</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Choose your activity type to get started</p>
+            </div>
             
-            {showQuickTemplates && (
-              <div className="mt-6 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  
-                  {/* Client Session Template - Clean, Minimal */}
-                  <button
-                    type="button"
-                    onClick={() => applyTemplate('client')}
-                    className="group relative bg-white dark:bg-gray-900 rounded-3xl p-8 shadow-sm hover:shadow-lg border-0 transition-all duration-300 ease-out hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-blue-600/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <div className="relative space-y-4">
-                      <div className="w-14 h-14 mx-auto bg-blue-50 dark:bg-blue-950 rounded-2xl flex items-center justify-center group-hover:bg-blue-100 dark:group-hover:bg-blue-900 transition-colors duration-200">
-                        <Heart className="w-7 h-7 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <div className="text-center space-y-2">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Client Session</h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Individual, group, couples, family therapy</p>
-                        <div className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950 text-xs font-medium text-blue-700 dark:text-blue-300">
-                          1 hour • Direct contact
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-                  
-                  {/* Supervision Template - Clean, Minimal */}
-                  <button
-                    type="button"
-                    onClick={() => applyTemplate('supervision')}
-                    className="group relative bg-white dark:bg-gray-900 rounded-3xl p-8 shadow-sm hover:shadow-lg border-0 transition-all duration-300 ease-out hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-purple-500/20"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-purple-600/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <div className="relative space-y-4">
-                      <div className="w-14 h-14 mx-auto bg-purple-50 dark:bg-purple-950 rounded-2xl flex items-center justify-center group-hover:bg-purple-100 dark:group-hover:bg-purple-900 transition-colors duration-200">
-                        <Users className="w-7 h-7 text-purple-600 dark:text-purple-400" />
-                      </div>
-                      <div className="text-center space-y-2">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Supervision</h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Individual, dyadic, or group supervision</p>
-                        <div className="inline-flex items-center px-3 py-1 rounded-full bg-purple-50 dark:bg-purple-950 text-xs font-medium text-purple-700 dark:text-purple-300">
-                          1 hour • Required for licensure
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-                  
-                  {/* Professional Development Template - Clean, Minimal */}
-                  <button
-                    type="button"
-                    onClick={() => applyTemplate('development')}
-                    className="group relative bg-white dark:bg-gray-900 rounded-3xl p-8 shadow-sm hover:shadow-lg border-0 transition-all duration-300 ease-out hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-emerald-600/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <div className="relative space-y-4">
-                      <div className="w-14 h-14 mx-auto bg-emerald-50 dark:bg-emerald-950 rounded-2xl flex items-center justify-center group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900 transition-colors duration-200">
-                        <GraduationCap className="w-7 h-7 text-emerald-600 dark:text-emerald-400" />
-                      </div>
-                      <div className="text-center space-y-2">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Learning & Growth</h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Training, workshops, conferences, ethics</p>
-                        <div className="inline-flex items-center px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950 text-xs font-medium text-emerald-700 dark:text-emerald-300">
-                          2 hours • Professional development
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-                  
+            <div className="flex items-center justify-center gap-8">
+              
+              {/* Client Session Icon */}
+              <div className="group relative">
+                <button
+                  type="button"
+                  onClick={() => applyTemplate('client')}
+                  className="w-20 h-20 bg-white dark:bg-gray-900 rounded-2xl shadow-sm hover:shadow-md border-0 transition-all duration-300 ease-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500/20 flex items-center justify-center"
+                >
+                  <Heart className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                </button>
+                
+                {/* Hover Tooltip */}
+                <div className="absolute top-full mt-3 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-4 w-64">
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Client Session</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Individual, group, couples, family therapy</p>
+                    <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">1 hour • Direct contact</div>
+                  </div>
                 </div>
               </div>
-            )}
+              
+              {/* Supervision Icon */}
+              <div className="group relative">
+                <button
+                  type="button"
+                  onClick={() => applyTemplate('supervision')}
+                  className="w-20 h-20 bg-white dark:bg-gray-900 rounded-2xl shadow-sm hover:shadow-md border-0 transition-all duration-300 ease-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500/20 flex items-center justify-center"
+                >
+                  <Users className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+                </button>
+                
+                {/* Hover Tooltip */}
+                <div className="absolute top-full mt-3 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-4 w-64">
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Supervision</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Individual, dyadic, or group supervision</p>
+                    <div className="text-xs text-purple-600 dark:text-purple-400 font-medium">1 hour • Required for licensure</div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Professional Development Icon */}
+              <div className="group relative">
+                <button
+                  type="button"
+                  onClick={() => applyTemplate('development')}
+                  className="w-20 h-20 bg-white dark:bg-gray-900 rounded-2xl shadow-sm hover:shadow-md border-0 transition-all duration-300 ease-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 flex items-center justify-center"
+                >
+                  <GraduationCap className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
+                </button>
+                
+                {/* Hover Tooltip */}
+                <div className="absolute top-full mt-3 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-4 w-64">
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Learning & Growth</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Training, workshops, conferences, ethics</p>
+                    <div className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">2 hours • Professional development</div>
+                  </div>
+                </div>
+              </div>
+              
+            </div>
           </div>
           
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
