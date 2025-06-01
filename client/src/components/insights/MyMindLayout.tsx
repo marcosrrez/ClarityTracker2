@@ -178,7 +178,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
             <div className="flex-1 relative">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
               <Input
-                placeholder="Search by modality, client presentation, competency, emotional content..."
+                placeholder="Search insights & resources..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-full h-14 text-lg"
@@ -397,86 +397,33 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
         )}
       </div>
 
-      {/* Enhanced Add Note Card - MyMind Style with Note Modes */}
+      {/* Simple Add Note Card - MyMind Style */}
       <div className="fixed bottom-0 left-0 right-0 z-30">
         <div className="bg-gradient-to-t from-gray-50 to-transparent dark:from-gray-900 dark:to-transparent pt-8 pb-0">
-          <div className="max-w-2xl mx-auto px-6">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {/* Quick Reflection */}
-              <Card 
-                className="border-2 border-dashed border-blue-300 dark:border-blue-600 hover:border-blue-400 dark:hover:border-blue-500 transition-colors cursor-pointer bg-blue-50/80 dark:bg-blue-900/20 backdrop-blur-sm shadow-lg"
-                onClick={() => {
-                  setShowNoteEditor(true);
-                  setNoteContent("");
-                  setNoteTitle("Quick Reflection");
-                  setIsHeaderVisible(true);
-                }}
-              >
-                <CardContent className="p-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
-                      <Plus className="h-3 w-3 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium text-xs text-blue-600 dark:text-blue-400">QUICK REFLECTION</h3>
-                      <p className="text-muted-foreground text-xs">
-                        Session insights
-                      </p>
-                    </div>
+          <div className="max-w-md mx-auto px-6">
+            <Card 
+              className="border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 transition-colors cursor-pointer bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-lg"
+              onClick={() => {
+                setShowNoteEditor(true);
+                setNoteContent("");
+                setNoteTitle("");
+                setIsHeaderVisible(true);
+              }}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
+                    <Plus className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Supervision Prep */}
-              <Card 
-                className="border-2 border-dashed border-purple-300 dark:border-purple-600 hover:border-purple-400 dark:hover:border-purple-500 transition-colors cursor-pointer bg-purple-50/80 dark:bg-purple-900/20 backdrop-blur-sm shadow-lg"
-                onClick={() => {
-                  setShowNoteEditor(true);
-                  setNoteContent("");
-                  setNoteTitle("Supervision Prep");
-                  setIsHeaderVisible(true);
-                }}
-              >
-                <CardContent className="p-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0">
-                      <Sparkles className="h-3 w-3 text-purple-600 dark:text-purple-400" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium text-xs text-purple-600 dark:text-purple-400">SUPERVISION PREP</h3>
-                      <p className="text-muted-foreground text-xs">
-                        Case analysis
-                      </p>
-                    </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-sm text-blue-600 dark:text-blue-400">ADD A NEW NOTE</h3>
+                    <p className="text-muted-foreground text-sm">
+                      Start typing here...
+                    </p>
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Focus Mode */}
-              <Card 
-                className="border-2 border-dashed border-green-300 dark:border-green-600 hover:border-green-400 dark:hover:border-green-500 transition-colors cursor-pointer bg-green-50/80 dark:bg-green-900/20 backdrop-blur-sm shadow-lg"
-                onClick={() => {
-                  setShowNoteEditor(true);
-                  setNoteContent("");
-                  setNoteTitle("Deep Reflection");
-                  setIsHeaderVisible(true);
-                }}
-              >
-                <CardContent className="p-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
-                      <Edit3 className="h-3 w-3 text-green-600 dark:text-green-400" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium text-xs text-green-600 dark:text-green-400">FOCUS MODE</h3>
-                      <p className="text-muted-foreground text-xs">
-                        Deep writing
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
