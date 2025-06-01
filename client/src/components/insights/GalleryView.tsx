@@ -797,7 +797,10 @@ export const GalleryView = () => {
                               Key Themes
                             </h4>
                             <div className="space-y-3">
-                              {expandedCard.analysis.themes.map((theme: string, index: number) => (
+                              {(Array.isArray(expandedCard.analysis.themes) 
+                                ? expandedCard.analysis.themes 
+                                : Object.keys(expandedCard.analysis.themes).sort((a, b) => parseInt(a) - parseInt(b)).map(key => expandedCard.analysis.themes[key])
+                              ).map((theme: string, index: number) => (
                                 <div key={index} className="bg-white dark:bg-gray-700 p-3 rounded-lg border border-purple-200 dark:border-purple-600 shadow-sm">
                                   <p className="text-sm text-gray-700 dark:text-gray-300">{theme}</p>
                                 </div>
@@ -807,13 +810,16 @@ export const GalleryView = () => {
                         )}
 
                         {/* Areas for Growth */}
-                        {expandedCard.analysis.potentialBlindSpots && expandedCard.analysis.potentialBlindSpots.length > 0 && (
+                        {expandedCard.analysis.potentialBlindSpots && ((Array.isArray(expandedCard.analysis.potentialBlindSpots) && expandedCard.analysis.potentialBlindSpots.length > 0) || (typeof expandedCard.analysis.potentialBlindSpots === 'object' && Object.keys(expandedCard.analysis.potentialBlindSpots).length > 0)) && (
                           <div className="bg-orange-50 dark:bg-orange-900/20 p-5 rounded-xl border border-orange-200 dark:border-orange-800">
                             <h4 className="font-semibold text-orange-900 dark:text-orange-100 mb-4 text-base">
                               Areas for Growth
                             </h4>
                             <div className="space-y-3">
-                              {expandedCard.analysis.potentialBlindSpots.map((blindSpot: string, index: number) => (
+                              {(Array.isArray(expandedCard.analysis.potentialBlindSpots) 
+                                ? expandedCard.analysis.potentialBlindSpots 
+                                : Object.keys(expandedCard.analysis.potentialBlindSpots).sort((a, b) => parseInt(a) - parseInt(b)).map(key => expandedCard.analysis.potentialBlindSpots[key])
+                              ).map((blindSpot: string, index: number) => (
                                 <div key={index} className="bg-white dark:bg-gray-700 p-3 rounded-lg border border-orange-200 dark:border-orange-600 shadow-sm">
                                   <p className="text-sm text-gray-700 dark:text-gray-300">{blindSpot}</p>
                                 </div>
@@ -823,13 +829,16 @@ export const GalleryView = () => {
                         )}
 
                         {/* Key Learnings */}
-                        {expandedCard.analysis.keyLearnings && expandedCard.analysis.keyLearnings.length > 0 && (
+                        {expandedCard.analysis.keyLearnings && ((Array.isArray(expandedCard.analysis.keyLearnings) && expandedCard.analysis.keyLearnings.length > 0) || (typeof expandedCard.analysis.keyLearnings === 'object' && Object.keys(expandedCard.analysis.keyLearnings).length > 0)) && (
                           <div className="bg-green-50 dark:bg-green-900/20 p-5 rounded-xl border border-green-200 dark:border-green-800">
                             <h4 className="font-semibold text-green-900 dark:text-green-100 mb-4 text-base">
                               Key Learnings
                             </h4>
                             <div className="space-y-3">
-                              {expandedCard.analysis.keyLearnings.map((learning: string, index: number) => (
+                              {(Array.isArray(expandedCard.analysis.keyLearnings) 
+                                ? expandedCard.analysis.keyLearnings 
+                                : Object.keys(expandedCard.analysis.keyLearnings).sort((a, b) => parseInt(a) - parseInt(b)).map(key => expandedCard.analysis.keyLearnings[key])
+                              ).map((learning: string, index: number) => (
                                 <div key={index} className="bg-white dark:bg-gray-700 p-3 rounded-lg border border-green-200 dark:border-green-600 shadow-sm">
                                   <p className="text-sm text-gray-700 dark:text-gray-300">{learning}</p>
                                 </div>
@@ -851,13 +860,16 @@ export const GalleryView = () => {
                         )}
 
                         {/* Reflection Questions - Full Width */}
-                        {expandedCard.analysis.reflectivePrompts && expandedCard.analysis.reflectivePrompts.length > 0 && (
+                        {expandedCard.analysis.reflectivePrompts && ((Array.isArray(expandedCard.analysis.reflectivePrompts) && expandedCard.analysis.reflectivePrompts.length > 0) || (typeof expandedCard.analysis.reflectivePrompts === 'object' && Object.keys(expandedCard.analysis.reflectivePrompts).length > 0)) && (
                           <div className="lg:col-span-2 bg-amber-50 dark:bg-amber-900/20 p-5 rounded-xl border border-amber-200 dark:border-amber-800">
                             <h4 className="font-semibold text-amber-900 dark:text-amber-100 mb-4 text-base">
                               Reflection Questions
                             </h4>
                             <div className="space-y-4">
-                              {expandedCard.analysis.reflectivePrompts.map((prompt: string, index: number) => (
+                              {(Array.isArray(expandedCard.analysis.reflectivePrompts) 
+                                ? expandedCard.analysis.reflectivePrompts 
+                                : Object.keys(expandedCard.analysis.reflectivePrompts).sort((a, b) => parseInt(a) - parseInt(b)).map(key => expandedCard.analysis.reflectivePrompts[key])
+                              ).map((prompt: string, index: number) => (
                                 <div key={index} className="bg-white dark:bg-gray-700 p-4 rounded-lg border border-amber-200 dark:border-amber-600 shadow-sm">
                                   <p className="text-sm text-amber-900 dark:text-amber-100 font-medium mb-2">
                                     Question {index + 1}:
@@ -884,15 +896,7 @@ export const GalleryView = () => {
                     </div>
                   </div>
 
-                  {/* Debug Info - Remove this later */}
-                  {expandedCard.analysis && (
-                    <div className="bg-red-50 p-4 rounded-xl border border-red-200 text-xs">
-                      <h4 className="font-semibold mb-2">Debug - Available Analysis Data:</h4>
-                      <pre className="text-red-800 overflow-auto">
-                        {JSON.stringify(expandedCard.analysis, null, 2)}
-                      </pre>
-                    </div>
-                  )}
+
                 </div>
               </div>
 
