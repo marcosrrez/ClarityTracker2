@@ -724,9 +724,9 @@ export const GalleryView = () => {
 
       {/* Expanded Card Details Dialog - Clean White Card */}
       <Dialog open={!!expandedCard} onOpenChange={() => setExpandedCard(null)}>
-        <DialogContent className="max-w-6xl w-[90vw] h-[90vh] p-0">
+        <DialogContent className="max-w-6xl w-[90vw] h-[90vh] p-0 rounded-xl">
           {expandedCard && (
-            <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 h-full flex flex-col">
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 h-full flex flex-col overflow-hidden">
               {/* Clean Card Header */}
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
@@ -776,11 +776,11 @@ export const GalleryView = () => {
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* Summary - Full Width */}
                         {expandedCard.analysis.summary && (
-                          <div className="lg:col-span-2 bg-gray-50 dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700">
-                            <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3 text-base">
+                          <div className="lg:col-span-2 bg-blue-50 dark:bg-blue-900/20 p-5 rounded-xl border border-blue-200 dark:border-blue-800">
+                            <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-3 text-base">
                               Summary
                             </h4>
-                            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                            <p className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed">
                               {expandedCard.analysis.summary}
                             </p>
                           </div>
@@ -788,13 +788,13 @@ export const GalleryView = () => {
 
                         {/* Key Themes */}
                         {expandedCard.analysis.themes && expandedCard.analysis.themes.length > 0 && (
-                          <div className="bg-gray-50 dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700">
-                            <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-4 text-base">
+                          <div className="bg-purple-50 dark:bg-purple-900/20 p-5 rounded-xl border border-purple-200 dark:border-purple-800">
+                            <h4 className="font-semibold text-purple-900 dark:text-purple-100 mb-4 text-base">
                               Key Themes
                             </h4>
                             <div className="space-y-3">
                               {expandedCard.analysis.themes.map((theme: string, index: number) => (
-                                <div key={index} className="bg-white dark:bg-gray-700 p-3 rounded border border-gray-200 dark:border-gray-600">
+                                <div key={index} className="bg-white dark:bg-gray-700 p-3 rounded-lg border border-purple-200 dark:border-purple-600 shadow-sm">
                                   <p className="text-sm text-gray-700 dark:text-gray-300">{theme}</p>
                                 </div>
                               ))}
@@ -804,13 +804,13 @@ export const GalleryView = () => {
 
                         {/* Areas for Growth */}
                         {expandedCard.analysis.potentialBlindSpots && expandedCard.analysis.potentialBlindSpots.length > 0 && (
-                          <div className="bg-gray-50 dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700">
-                            <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-4 text-base">
+                          <div className="bg-orange-50 dark:bg-orange-900/20 p-5 rounded-xl border border-orange-200 dark:border-orange-800">
+                            <h4 className="font-semibold text-orange-900 dark:text-orange-100 mb-4 text-base">
                               Areas for Growth
                             </h4>
                             <div className="space-y-3">
                               {expandedCard.analysis.potentialBlindSpots.map((blindSpot: string, index: number) => (
-                                <div key={index} className="bg-white dark:bg-gray-700 p-3 rounded border border-gray-200 dark:border-gray-600">
+                                <div key={index} className="bg-white dark:bg-gray-700 p-3 rounded-lg border border-orange-200 dark:border-orange-600 shadow-sm">
                                   <p className="text-sm text-gray-700 dark:text-gray-300">{blindSpot}</p>
                                 </div>
                               ))}
@@ -820,13 +820,13 @@ export const GalleryView = () => {
 
                         {/* Key Learnings */}
                         {expandedCard.analysis.keyLearnings && expandedCard.analysis.keyLearnings.length > 0 && (
-                          <div className="bg-gray-50 dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700">
-                            <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-4 text-base">
+                          <div className="bg-green-50 dark:bg-green-900/20 p-5 rounded-xl border border-green-200 dark:border-green-800">
+                            <h4 className="font-semibold text-green-900 dark:text-green-100 mb-4 text-base">
                               Key Learnings
                             </h4>
                             <div className="space-y-3">
                               {expandedCard.analysis.keyLearnings.map((learning: string, index: number) => (
-                                <div key={index} className="bg-white dark:bg-gray-700 p-3 rounded border border-gray-200 dark:border-gray-600">
+                                <div key={index} className="bg-white dark:bg-gray-700 p-3 rounded-lg border border-green-200 dark:border-green-600 shadow-sm">
                                   <p className="text-sm text-gray-700 dark:text-gray-300">{learning}</p>
                                 </div>
                               ))}
@@ -836,11 +836,11 @@ export const GalleryView = () => {
 
                         {/* CCSR Category */}
                         {expandedCard.analysis.ccsrCategory && (
-                          <div className="bg-gray-50 dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700">
-                            <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-4 text-base">
+                          <div className="bg-indigo-50 dark:bg-indigo-900/20 p-5 rounded-xl border border-indigo-200 dark:border-indigo-800">
+                            <h4 className="font-semibold text-indigo-900 dark:text-indigo-100 mb-4 text-base">
                               CCSR Category
                             </h4>
-                            <div className="bg-white dark:bg-gray-700 p-3 rounded border border-gray-200 dark:border-gray-600">
+                            <div className="bg-white dark:bg-gray-700 p-3 rounded-lg border border-indigo-200 dark:border-indigo-600 shadow-sm">
                               <p className="text-sm text-gray-700 dark:text-gray-300">{expandedCard.analysis.ccsrCategory}</p>
                             </div>
                           </div>
@@ -848,17 +848,17 @@ export const GalleryView = () => {
 
                         {/* Reflection Questions - Full Width */}
                         {expandedCard.analysis.reflectivePrompts && expandedCard.analysis.reflectivePrompts.length > 0 && (
-                          <div className="lg:col-span-2 bg-gray-50 dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700">
-                            <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-4 text-base">
+                          <div className="lg:col-span-2 bg-amber-50 dark:bg-amber-900/20 p-5 rounded-xl border border-amber-200 dark:border-amber-800">
+                            <h4 className="font-semibold text-amber-900 dark:text-amber-100 mb-4 text-base">
                               Reflection Questions
                             </h4>
                             <div className="space-y-4">
                               {expandedCard.analysis.reflectivePrompts.map((prompt: string, index: number) => (
-                                <div key={index} className="bg-white dark:bg-gray-700 p-4 rounded border border-gray-200 dark:border-gray-600">
-                                  <p className="text-sm text-gray-700 dark:text-gray-300 font-medium mb-2">
+                                <div key={index} className="bg-white dark:bg-gray-700 p-4 rounded-lg border border-amber-200 dark:border-amber-600 shadow-sm">
+                                  <p className="text-sm text-amber-900 dark:text-amber-100 font-medium mb-2">
                                     Question {index + 1}:
                                   </p>
-                                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{prompt}</p>
+                                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{prompt}</p>
                                 </div>
                               ))}
                             </div>
@@ -873,12 +873,22 @@ export const GalleryView = () => {
                     <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-6 text-lg">
                       Session Notes
                     </h3>
-                    <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
                       <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap min-h-[200px]">
                         {expandedCard.notes || "No detailed notes recorded for this session."}
                       </div>
                     </div>
                   </div>
+
+                  {/* Debug Info - Remove this later */}
+                  {expandedCard.analysis && (
+                    <div className="bg-red-50 p-4 rounded-xl border border-red-200 text-xs">
+                      <h4 className="font-semibold mb-2">Debug - Available Analysis Data:</h4>
+                      <pre className="text-red-800 overflow-auto">
+                        {JSON.stringify(expandedCard.analysis, null, 2)}
+                      </pre>
+                    </div>
+                  )}
                 </div>
               </div>
 
