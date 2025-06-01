@@ -452,25 +452,16 @@ export const GalleryView = () => {
   return (
     <div className="space-y-8">
       {/* Search and Filter Controls */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent mb-2">
-            Session Insights Gallery
-          </h1>
-          <p className="text-gray-500 dark:text-gray-500 font-medium">
-            Browse and explore your therapy session reflections with AI-powered insights
-          </p>
-        </div>
-        
-        <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
           {/* Search Box */}
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search sessions, themes, or notes..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 pr-4 py-3 w-80 bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-800 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 focus:border-blue-300 dark:focus:border-blue-600 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900"
+              className="pl-10 w-80"
             />
           </div>
 
@@ -480,48 +471,47 @@ export const GalleryView = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className={`relative rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md transition-all duration-200 px-4 py-3 ${hasActiveFilters ? 'text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-700' : 'text-gray-500'}`}
+                className={`relative ${hasActiveFilters ? 'text-blue-600 dark:text-blue-400' : ''}`}
               >
                 <Filter className="h-4 w-4" />
                 {hasActiveFilters && (
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full border-2 border-white dark:border-gray-800" />
+                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full" />
                 )}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-72 p-6 rounded-xl border-gray-100 dark:border-gray-800 shadow-xl" align="start">
-              <div className="space-y-6">
+            <PopoverContent className="w-64 p-4" align="start">
+              <div className="space-y-4">
                 <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">Filter Options</h4>
-                  <p className="text-xs text-gray-500 dark:text-gray-500">Refine your session insights</p>
+                  <h4 className="font-medium text-sm text-foreground mb-2">Filter Options</h4>
                 </div>
                 
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <div>
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 block">Category</label>
+                    <label className="text-xs font-medium text-muted-foreground mb-2 block">Category</label>
                     <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                      <SelectTrigger className="w-full rounded-lg border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                      <SelectTrigger className="w-full">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="rounded-lg border-gray-100 dark:border-gray-800">
-                        <SelectItem value="all" className="rounded-md">All Sessions</SelectItem>
-                        <SelectItem value="with-analysis" className="rounded-md">AI Analyzed</SelectItem>
-                        <SelectItem value="themes" className="rounded-md">Has Themes</SelectItem>
-                        <SelectItem value="prompts" className="rounded-md">Has Reflection Questions</SelectItem>
+                      <SelectContent>
+                        <SelectItem value="all">All Items</SelectItem>
+                        <SelectItem value="with-analysis">With Analysis</SelectItem>
+                        <SelectItem value="themes">Has Themes</SelectItem>
+                        <SelectItem value="prompts">Has Prompts</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 block">Time Period</label>
+                    <label className="text-xs font-medium text-muted-foreground mb-2 block">Time Period</label>
                     <Select value={timeFilter} onValueChange={setTimeFilter}>
-                      <SelectTrigger className="w-full rounded-lg border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                      <SelectTrigger className="w-full">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="rounded-lg border-gray-100 dark:border-gray-800">
-                        <SelectItem value="all" className="rounded-md">All Time</SelectItem>
-                        <SelectItem value="this-week" className="rounded-md">This Week</SelectItem>
-                        <SelectItem value="this-month" className="rounded-md">This Month</SelectItem>
-                        <SelectItem value="last-30-days" className="rounded-md">Last 30 Days</SelectItem>
+                      <SelectContent>
+                        <SelectItem value="all">All Time</SelectItem>
+                        <SelectItem value="this-week">This Week</SelectItem>
+                        <SelectItem value="this-month">This Month</SelectItem>
+                        <SelectItem value="last-30-days">Last 30 Days</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

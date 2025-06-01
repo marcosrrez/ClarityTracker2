@@ -15,17 +15,34 @@ export default function InsightsPage() {
   return (
     <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Insights & Resources</h1>
-        <p className="text-muted-foreground max-w-3xl">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-700 dark:from-white dark:via-gray-100 dark:to-gray-300 bg-clip-text text-transparent mb-3">
+          Insights & Resources
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400 max-w-3xl text-lg font-medium leading-relaxed">
           AI-powered analysis, pattern discovery, and professional development insights to accelerate your growth toward licensure.
         </p>
       </div>
       
       <Tabs defaultValue="patterns" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="patterns">Pattern Analysis</TabsTrigger>
-          <TabsTrigger value="gallery">Analysis Gallery</TabsTrigger>
-          <TabsTrigger value="resources">Resources</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-2 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg">
+          <TabsTrigger 
+            value="patterns" 
+            className="rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-md data-[state=active]:text-gray-900 dark:data-[state=active]:text-gray-100 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 py-3"
+          >
+            Pattern Analysis
+          </TabsTrigger>
+          <TabsTrigger 
+            value="gallery" 
+            className="rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-md data-[state=active]:text-gray-900 dark:data-[state=active]:text-gray-100 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 py-3"
+          >
+            Analysis Gallery
+          </TabsTrigger>
+          <TabsTrigger 
+            value="resources" 
+            className="rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-md data-[state=active]:text-gray-900 dark:data-[state=active]:text-gray-100 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 py-3"
+          >
+            Resources
+          </TabsTrigger>
         </TabsList>
       
         <TabsContent value="patterns" className="mt-6">
