@@ -300,7 +300,10 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
       </div>
 
       {/* Masonry Grid Layout - MyMind Style for Maximum Cards */}
-      <div className="px-4 pb-32">
+      <div 
+        ref={scrollContainerRef}
+        className="px-4 pb-32 overflow-y-auto max-h-[calc(100vh-200px)]"
+      >
         {filteredItems.length === 0 ? (
           <div className="text-center py-12">
             <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-lg mx-auto mb-4 flex items-center justify-center">
@@ -422,8 +425,8 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
         )}
       </div>
 
-      {/* Unified Bottom Navigation Panel - Replit Style */}
-      <div className="fixed bottom-0 left-0 right-0 z-30">
+      {/* Unified Bottom Navigation Panel - Replit Style with Auto-Hide */}
+      <div className={`fixed bottom-0 left-0 right-0 z-30 transition-transform duration-300 ${showBottomNav ? 'translate-y-0' : 'translate-y-full'}`}>
         <div className="bg-gradient-to-t from-white to-transparent dark:from-gray-900 dark:to-transparent pt-6 pb-2">
           <div className="max-w-md mx-auto px-4">
             <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-lg rounded-2xl border border-gray-200/50 dark:border-gray-700/50 shadow-xl p-2">
