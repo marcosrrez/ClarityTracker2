@@ -1,7 +1,4 @@
-The code changes aim to add a "Prof Dev" column to the LogEntriesTable component, displaying professional development hours for each log entry.
-```
 
-```replit_final_file
 import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import {
