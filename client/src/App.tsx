@@ -78,7 +78,9 @@ function Router() {
       {/* V1 Legacy Pages */}
       <Route path="/dashboard" component={DashboardPage} />
       <Route path="/add-entry" component={AddEntryPage} />
-      <Route path="/insights" component={InsightsPage} />
+      <Route path="/insights">
+        <InsightsPage />
+      </Route>
       <Route path="/gallery" component={GalleryPage} />
       <Route path="/ai-analysis" component={AiAnalysisPage} />
       <Route path="/requirements" component={RequirementsPage} />
