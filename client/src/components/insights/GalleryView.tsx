@@ -5,7 +5,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar, Sparkles, Search, Trash2, AlertTriangle, Bot, Eye } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { format, startOfWeek, endOfWeek, getWeeksInMonth, startOfMonth, endOfMonth } from "date-fns";
 import { useLogEntries } from "@/hooks/use-firestore";
@@ -40,8 +40,8 @@ export const GalleryView = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
-  const [selectedMonth, setSelectedMonth] = useState(new Date());
-  const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
+  const [timeFilter, setTimeFilter] = useState("all");
+  const [themeFilter, setThemeFilter] = useState("all");
   const [selectedCardIndex, setSelectedCardIndex] = useState<number[]>([0, 0, 0, 0]); // One for each week
   const [expandedCard, setExpandedCard] = useState<GalleryItem | null>(null);
   const [deleteDialogItem, setDeleteDialogItem] = useState<GalleryItem | null>(null);
@@ -149,12 +149,39 @@ export const GalleryView = () => {
     const searchTerms = query.toLowerCase().split(' ').filter(term => term.length > 1);
     
     return items.filter(item => {
+      // Safely handle themes data structure
+      const themesText = item.analysis?.themes 
+        ? (Array.isArray(item.analysis.themes) 
+            ? item.analysis.themes.join(' ')
+            : typeof item.analysis.themes === 'object' 
+              ? Object.values(item.analysis.themes).join(' ')
+              : String(item.analysis.themes))
+        : '';
+
+      // Safely handle reflective prompts
+      const promptsText = item.analysis?.reflectivePrompts
+        ? (Array.isArray(item.analysis.reflectivePrompts)
+            ? item.analysis.reflectivePrompts.join(' ')
+            : typeof item.analysis.reflectivePrompts === 'object'
+              ? Object.values(item.analysis.reflectivePrompts).join(' ')
+              : String(item.analysis.reflectivePrompts))
+        : '';
+
+      // Safely handle key learnings
+      const learningsText = item.analysis?.keyLearnings
+        ? (Array.isArray(item.analysis.keyLearnings)
+            ? item.analysis.keyLearnings.join(' ')
+            : typeof item.analysis.keyLearnings === 'object'
+              ? Object.values(item.analysis.keyLearnings).join(' ')
+              : String(item.analysis.keyLearnings))
+        : '';
+
       const searchableText = [
         item.notes,
         item.analysis?.summary || '',
-        item.analysis?.themes?.join(' ') || '',
-        item.analysis?.reflectivePrompts?.join(' ') || '',
-        item.analysis?.keyLearnings?.join(' ') || '',
+        themesText,
+        promptsText,
+        learningsText,
         item.analysis?.ccsrCategory || '',
         format(new Date(item.dateOfContact), 'MMMM yyyy dd')
       ].join(' ').toLowerCase();
@@ -270,25 +297,70 @@ export const GalleryView = () => {
     }
   };
 
+  // Get unique themes for filter dropdown
+  const getUniqueThemes = (items: GalleryItem[]): string[] => {
+    const themes = new Set<string>();
+    items.forEach(item => {
+      if (item.analysis?.themes) {
+        if (Array.isArray(item.analysis.themes)) {
+          item.analysis.themes.forEach(theme => themes.add(theme));
+        } else if (typeof item.analysis.themes === 'object') {
+          Object.values(item.analysis.themes).forEach(theme => themes.add(String(theme)));
+        }
+      }
+    });
+    return Array.from(themes).sort();
+  };
+
   // Process items with intelligent search and filtering
   const searchedItems = performIntelligentSearch(galleryItems, searchQuery);
   
   const filteredItems = searchedItems.filter(item => {
+    // Category filter
     const matchesCategory = categoryFilter === "all" || 
       (categoryFilter === "with-analysis" && item.analysis) ||
-      (categoryFilter === "themes" && item.analysis?.themes?.length) ||
-      (categoryFilter === "prompts" && item.analysis?.reflectivePrompts?.length);
+      (categoryFilter === "themes" && item.analysis?.themes) ||
+      (categoryFilter === "prompts" && item.analysis?.reflectivePrompts);
 
-    return matchesCategory;
+    // Time filter
+    const itemDate = new Date(item.dateOfContact);
+    const now = new Date();
+    let matchesTime = true;
+
+    if (timeFilter === "this-week") {
+      const weekStart = startOfWeek(now, { weekStartsOn: 1 });
+      const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
+      matchesTime = itemDate >= weekStart && itemDate <= weekEnd;
+    } else if (timeFilter === "this-month") {
+      const monthStart = startOfMonth(now);
+      const monthEnd = endOfMonth(now);
+      matchesTime = itemDate >= monthStart && itemDate <= monthEnd;
+    } else if (timeFilter === "last-30-days") {
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      matchesTime = itemDate >= thirtyDaysAgo;
+    }
+
+    // Theme filter
+    let matchesTheme = true;
+    if (themeFilter !== "all" && item.analysis?.themes) {
+      if (Array.isArray(item.analysis.themes)) {
+        matchesTheme = item.analysis.themes.includes(themeFilter);
+      } else if (typeof item.analysis.themes === 'object') {
+        matchesTheme = Object.values(item.analysis.themes).includes(themeFilter);
+      }
+    }
+
+    return matchesCategory && matchesTime && matchesTheme;
   });
 
   // Create week decks from filtered items
   const weekDecks = createCardDecks(filteredItems);
+  const uniqueThemes = getUniqueThemes(galleryItems);
 
   // Reset indices when data changes
   useEffect(() => {
     setSelectedCardIndex([0, 0, 0, 0]);
-  }, [searchQuery, categoryFilter]);
+  }, [searchQuery, categoryFilter, timeFilter, themeFilter]);
 
   if (entriesLoading || loading) {
     return (
@@ -314,28 +386,73 @@ export const GalleryView = () => {
   return (
     <div className="space-y-8">
       {/* Search and Filter Controls */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search insights, themes, or notes..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search notes, insights, themes, or dates..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="w-full sm:w-40">
+              <SelectValue placeholder="Category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Items</SelectItem>
+              <SelectItem value="with-analysis">With Analysis</SelectItem>
+              <SelectItem value="themes">Has Themes</SelectItem>
+              <SelectItem value="prompts">Has Prompts</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        
-        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger className="w-full sm:w-40">
-            <SelectValue placeholder="Filter" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Items</SelectItem>
-            <SelectItem value="with-analysis">With Analysis</SelectItem>
-            <SelectItem value="themes">Has Themes</SelectItem>
-            <SelectItem value="prompts">Has Prompts</SelectItem>
-          </SelectContent>
-        </Select>
+
+        <div className="flex flex-col sm:flex-row gap-4">
+          <Select value={timeFilter} onValueChange={setTimeFilter}>
+            <SelectTrigger className="w-full sm:w-40">
+              <SelectValue placeholder="Time Period" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Time</SelectItem>
+              <SelectItem value="this-week">This Week</SelectItem>
+              <SelectItem value="this-month">This Month</SelectItem>
+              <SelectItem value="last-30-days">Last 30 Days</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={themeFilter} onValueChange={setThemeFilter}>
+            <SelectTrigger className="w-full sm:w-48">
+              <SelectValue placeholder="Filter by Theme" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Themes</SelectItem>
+              {uniqueThemes.map((theme) => (
+                <SelectItem key={theme} value={theme}>
+                  {theme}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {(searchQuery || categoryFilter !== "all" || timeFilter !== "all" || themeFilter !== "all") && (
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setSearchQuery("");
+                setCategoryFilter("all");
+                setTimeFilter("all");
+                setThemeFilter("all");
+              }}
+              className="w-full sm:w-auto"
+            >
+              Clear Filters
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Header */}
@@ -461,16 +578,32 @@ export const GalleryView = () => {
                                 </div>
 
                                 {/* Key Themes Preview */}
-                                {item.analysis?.themes && item.analysis.themes.length > 0 && (
+                                {item.analysis?.themes && (
                                   <div className="flex flex-wrap gap-1">
-                                    {item.analysis.themes.slice(0, 3).map((theme: string, index: number) => (
-                                      <Badge key={index} variant="outline" className="text-xs">
-                                        {theme}
-                                      </Badge>
-                                    ))}
-                                    {item.analysis.themes.length > 3 && (
-                                      <Badge variant="outline" className="text-xs">+{item.analysis.themes.length - 3}</Badge>
-                                    )}
+                                    {(() => {
+                                      const themes = Array.isArray(item.analysis.themes) 
+                                        ? item.analysis.themes 
+                                        : typeof item.analysis.themes === 'object'
+                                          ? Object.values(item.analysis.themes)
+                                          : [item.analysis.themes];
+                                      
+                                      return themes.slice(0, 3).map((theme: any, index: number) => (
+                                        <Badge key={index} variant="outline" className="text-xs">
+                                          {String(theme)}
+                                        </Badge>
+                                      ));
+                                    })()}
+                                    {(() => {
+                                      const themes = Array.isArray(item.analysis.themes) 
+                                        ? item.analysis.themes 
+                                        : typeof item.analysis.themes === 'object'
+                                          ? Object.values(item.analysis.themes)
+                                          : [item.analysis.themes];
+                                      
+                                      return themes.length > 3 && (
+                                        <Badge variant="outline" className="text-xs">+{themes.length - 3}</Badge>
+                                      );
+                                    })()}
                                   </div>
                                 )}
 
@@ -518,13 +651,6 @@ export const GalleryView = () => {
         </div>
       )}
 
-      {/* Add dialog descriptions for accessibility */}
-      <style jsx>{`
-        dialog[aria-describedby="undefined"] {
-          aria-describedby: auto;
-        }
-      `}</style>
-
       {/* Expanded Card Details Dialog */}
       <Dialog open={!!expandedCard} onOpenChange={() => setExpandedCard(null)}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -533,6 +659,9 @@ export const GalleryView = () => {
               <Sparkles className="h-5 w-5 text-blue-500" />
               Session Details
             </DialogTitle>
+            <DialogDescription>
+              Detailed view of your session analysis including notes, AI insights, and themes.
+            </DialogDescription>
           </DialogHeader>
           
           {expandedCard && (
@@ -663,6 +792,9 @@ export const GalleryView = () => {
               <AlertTriangle className="h-5 w-5 text-amber-500" />
               Delete Analysis
             </DialogTitle>
+            <DialogDescription>
+              Confirm deletion of AI analysis. Your session hours and notes will remain intact.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
