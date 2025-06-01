@@ -2,17 +2,15 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Check, Lightbulb, Clock, Zap, ChevronDown, ChevronUp, GraduationCap, Users } from "lucide-react";
+import { Calendar as CalendarIcon, Check, Lightbulb, Clock, Zap, ChevronDown, ChevronUp, GraduationCap, Users, Heart, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { cn } from "@/lib/utils";
 import { insertLogEntrySchema } from "@shared/schema";
@@ -21,26 +19,20 @@ import { createLogEntry, createAiAnalysis } from "@/lib/firestore";
 import { analyzeSessionNotes } from "@/lib/ai";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { useAccountType } from "@/hooks/use-account-type";
 
 export const AddEntryForm = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { isSupervisor, isIndividual } = useAccountType();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dateCalendarOpen, setDateCalendarOpen] = useState(false);
   const [supervisionCalendarOpen, setSupervisionCalendarOpen] = useState(false);
   const [notesContent, setNotesContent] = useState("");
-  const [selectedSupervisee, setSelectedSupervisee] = useState("");
-  const [smartSuggestions, setSmartSuggestions] = useState<Array<{
-    field: string;
-    value: any;
-    reason: string;
-  }>>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [showProfDev, setShowProfDev] = useState(false);
-  const [showSupervision, setShowSupervision] = useState(false);
+  
+  // Collapsible sections
+  const [showQuickTemplates, setShowQuickTemplates] = useState(true);
   const [showDirectClient, setShowDirectClient] = useState(false);
+  const [showSupervision, setShowSupervision] = useState(false);
+  const [showProfDev, setShowProfDev] = useState(false);
 
   const {
     register,
@@ -66,54 +58,40 @@ export const AddEntryForm = () => {
 
   const watchedDateOfContact = watch("dateOfContact");
   const watchedSupervisionDate = watch("supervisionDate");
-  const watchedSupervisionType = watch("supervisionType");
-  const watchedClientHours = watch("clientContactHours");
+  const watchedSupervisionHours = watch("supervisionHours");
 
-  // Smart suggestions based on user patterns
-  useEffect(() => {
-    const generateSuggestions = () => {
-      const suggestions = [];
-      const currentHour = new Date().getHours();
-      const dayOfWeek = new Date().getDay();
-      
-      // Time-based suggestions
-      if (currentHour >= 9 && currentHour <= 17) {
-        if (dayOfWeek >= 1 && dayOfWeek <= 5) {
-          suggestions.push({
-            field: 'clientContactHours',
-            value: 1.5,
-            reason: 'Typical weekday session duration'
-          });
-        }
-      }
-      
-      // Pattern-based suggestions for common session types
-      if (!isSupervisor && !watchedClientHours) {
-        suggestions.push({
-          field: 'clientContactHours',
-          value: 1,
-          reason: 'Standard therapy session'
-        });
-      }
-
-      // Professional development suggestions
-      if (dayOfWeek === 5 || dayOfWeek === 6) { // Friday or Saturday
-        suggestions.push({
-          field: 'professionalDevelopmentHours',
-          value: 2,
-          reason: 'Weekend workshop/training'
-        });
-      }
-      
-      setSmartSuggestions(suggestions);
-    };
-
-    generateSuggestions();
-  }, [watchedClientHours, isSupervisor]);
-
-  const applySuggestion = (suggestion: any) => {
-    setValue(suggestion.field, suggestion.value);
-    setShowSuggestions(false);
+  const applyTemplate = (template: 'client' | 'supervision' | 'development') => {
+    // Reset all values first
+    setValue("clientContactHours", 0);
+    setValue("indirectHours", false);
+    setValue("supervisionHours", 0);
+    setValue("professionalDevelopmentHours", 0);
+    setValue("supervisionType", "none");
+    setValue("professionalDevelopmentType", "none");
+    setValue("techAssistedSupervision", false);
+    
+    // Close all sections
+    setShowDirectClient(false);
+    setShowSupervision(false);
+    setShowProfDev(false);
+    
+    // Apply template and open relevant section
+    switch (template) {
+      case 'client':
+        setValue("clientContactHours", 1);
+        setShowDirectClient(true);
+        break;
+      case 'supervision':
+        setValue("supervisionHours", 1);
+        setValue("supervisionType", "individual");
+        setShowSupervision(true);
+        break;
+      case 'development':
+        setValue("professionalDevelopmentHours", 2);
+        setValue("professionalDevelopmentType", "workshop");
+        setShowProfDev(true);
+        break;
+    }
   };
 
   const onSubmit = async (data: InsertLogEntry) => {
@@ -121,11 +99,9 @@ export const AddEntryForm = () => {
 
     setIsSubmitting(true);
     try {
-      // Create the log entry with notes content
       const finalData = { ...data, notes: notesContent };
       const entryId = await createLogEntry(user.uid, finalData);
       
-      // If there are notes, automatically generate AI analysis
       if (notesContent && notesContent.trim().length > 0) {
         try {
           const analysis = await analyzeSessionNotes(notesContent);
@@ -141,8 +117,8 @@ export const AddEntryForm = () => {
           });
           
           toast({
-            title: "Entry saved with AI analysis",
-            description: "Your session has been logged and analyzed for insights.",
+            title: "Entry saved with AI insights",
+            description: "Your session has been logged and analyzed for professional growth patterns.",
           });
         } catch (aiError) {
           console.error("AI analysis failed:", aiError);
@@ -154,7 +130,7 @@ export const AddEntryForm = () => {
       } else {
         toast({
           title: "Entry saved successfully",
-          description: "Your session has been logged.",
+          description: "Your professional activity has been logged.",
         });
       }
       
@@ -173,171 +149,123 @@ export const AddEntryForm = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="mb-12">
-        <h1 className="text-4xl md:text-5xl font-extrabold mb-6 text-black dark:text-white tracking-tight leading-tight">
-          {isSupervisor ? "Track your supervision" : "Log your progress"}
+    <div className="space-y-8">
+      {/* Beautiful Header */}
+      <div className="text-center mb-12">
+        <h1 className="text-4xl md:text-5xl font-extrabold mb-4 text-black dark:text-white tracking-tight leading-tight">
+          Document your journey
         </h1>
-        <p className="text-xl font-light text-gray-600 dark:text-gray-400 max-w-2xl">
-          {isSupervisor 
-            ? "Document meaningful supervision sessions and guide your supervisees toward success."
-            : "Capture your professional growth journey with detailed session tracking."
-          }
+        <p className="text-xl font-light text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          Every session, supervision meeting, and learning experience brings you closer to licensure. 
+          <span className="text-blue-600 dark:text-blue-400 font-medium"> AI insights included.</span>
         </p>
       </div>
       
-      <Card className="backdrop-blur-sm bg-white/80 dark:bg-gray-800/80 border border-white/20 shadow-xl rounded-3xl">
+      <Card className="backdrop-blur-sm bg-white/95 dark:bg-gray-800/95 border border-white/20 shadow-2xl rounded-3xl max-w-4xl mx-auto">
         <CardContent className="p-8">
           
-          {/* Quick Entry Templates */}
-          <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
-            <div className="flex items-center space-x-2 mb-3">
-              <Zap className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              <h3 className="font-medium text-blue-800 dark:text-blue-200">Quick Entry Templates</h3>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setValue("clientContactHours", 1);
-                  setValue("indirectHours", false);
-                  setValue("supervisionHours", 0);
-                  setValue("professionalDevelopmentHours", 0);
-                  setValue("supervisionType", "none");
-                  setValue("professionalDevelopmentType", "none");
-                  setValue("techAssistedSupervision", false);
-                  setShowDirectClient(true);
-                  setShowSupervision(false);
-                  setShowProfDev(false);
-                }}
-                className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors text-center"
-              >
-                <div className="font-medium text-base text-gray-900 dark:text-gray-100 mb-1">Direct Contact Hours</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Individual, group, couples, family therapy</div>
-                <div className="text-xs text-blue-600 dark:text-blue-400">Sets: 1 hour client contact</div>
-              </button>
-              
-              <button
-                type="button"
-                onClick={() => {
-                  setValue("clientContactHours", 0);
-                  setValue("indirectHours", false);
-                  setValue("supervisionHours", 1);
-                  setValue("professionalDevelopmentHours", 0);
-                  setValue("supervisionType", "individual");
-                  setValue("professionalDevelopmentType", "none");
-                  setValue("techAssistedSupervision", false);
-                  setShowDirectClient(false);
-                  setShowSupervision(true);
-                  setShowProfDev(false);
-                }}
-                className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors text-center"
-              >
-                <div className="font-medium text-base text-gray-900 dark:text-gray-100 mb-1">Supervision Hours</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Individual, dyadic, or group supervision</div>
-                <div className="text-xs text-blue-600 dark:text-blue-400">Sets: 1 hour supervision</div>
-              </button>
-              
-              <button
-                type="button"
-                onClick={() => {
-                  setValue("clientContactHours", 0);
-                  setValue("indirectHours", false);
-                  setValue("supervisionHours", 0);
-                  setValue("professionalDevelopmentHours", 2);
-                  setValue("supervisionType", "none");
-                  setValue("professionalDevelopmentType", "workshop");
-                  setValue("techAssistedSupervision", false);
-                  setShowDirectClient(false);
-                  setShowSupervision(false);
-                  setShowProfDev(true);
-                }}
-                className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors text-center"
-              >
-                <div className="font-medium text-base text-gray-900 dark:text-gray-100 mb-1">Professional Development</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Training, workshops, conferences, ethics</div>
-                <div className="text-xs text-blue-600 dark:text-blue-400">Sets: 2 hours development</div>
-              </button>
-            </div>
-            
-            {/* Quick Sub-Templates for Direct Hours */}
-            <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-700">
-              <div className="text-xs text-gray-600 dark:text-gray-400 mb-2">Quick direct hour options:</div>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setValue("clientContactHours", 1);
-                    setValue("indirectHours", false);
-                    setValue("supervisionHours", 0);
-                    setValue("professionalDevelopmentHours", 0);
-                    setValue("techAssistedSupervision", false);
-                  }}
-                  className="px-3 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
-                >
-                  50min Individual
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setValue("clientContactHours", 1.5);
-                    setValue("indirectHours", false);
-                    setValue("supervisionHours", 0);
-                    setValue("professionalDevelopmentHours", 0);
-                    setValue("techAssistedSupervision", false);
-                  }}
-                  className="px-3 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
-                >
-                  90min Group
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setValue("clientContactHours", 1);
-                    setValue("indirectHours", false);
-                    setValue("supervisionHours", 0);
-                    setValue("professionalDevelopmentHours", 0);
-                    setValue("techAssistedSupervision", true);
-                  }}
-                  className="px-3 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
-                >
-                  Telehealth
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setValue("clientContactHours", 1);
-                    setValue("indirectHours", true);
-                    setValue("supervisionHours", 0);
-                    setValue("professionalDevelopmentHours", 0);
-                    setValue("techAssistedSupervision", false);
-                  }}
-                  className="px-3 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
-                >
-                  + Indirect Hours
-                </button>
+          {/* Quick Templates - Collapsible */}
+          <div className="mb-8">
+            <button
+              type="button"
+              onClick={() => setShowQuickTemplates(!showQuickTemplates)}
+              className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-2xl border border-blue-200 dark:border-blue-800 hover:from-blue-100 hover:to-purple-100 dark:hover:from-blue-900/30 dark:hover:to-purple-900/30 transition-all duration-200"
+            >
+              <div className="flex items-center space-x-3">
+                <Zap className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <h3 className="font-semibold text-blue-800 dark:text-blue-200">Quick Start Templates</h3>
               </div>
-            </div>
+              {showQuickTemplates ? (
+                <ChevronUp className="w-5 h-5 text-blue-500" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-blue-500" />
+              )}
+            </button>
+            
+            {showQuickTemplates && (
+              <div className="mt-4 p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-2xl border border-blue-200 dark:border-blue-800">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  
+                  {/* Client Session Template */}
+                  <button
+                    type="button"
+                    onClick={() => applyTemplate('client')}
+                    className="group p-6 bg-white dark:bg-gray-800 rounded-2xl border border-blue-200 dark:border-blue-700 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-lg transition-all duration-200"
+                  >
+                    <div className="flex flex-col items-center text-center space-y-3">
+                      <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl group-hover:bg-blue-200 dark:group-hover:bg-blue-900/50 transition-colors">
+                        <Heart className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Client Session</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Individual, group, couples, family therapy</p>
+                        <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">1 hour • Direct contact</div>
+                      </div>
+                    </div>
+                  </button>
+                  
+                  {/* Supervision Template */}
+                  <button
+                    type="button"
+                    onClick={() => applyTemplate('supervision')}
+                    className="group p-6 bg-white dark:bg-gray-800 rounded-2xl border border-purple-200 dark:border-purple-700 hover:border-purple-400 dark:hover:border-purple-500 hover:shadow-lg transition-all duration-200"
+                  >
+                    <div className="flex flex-col items-center text-center space-y-3">
+                      <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl group-hover:bg-purple-200 dark:group-hover:bg-purple-900/50 transition-colors">
+                        <Users className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Supervision</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Individual, dyadic, or group supervision</p>
+                        <div className="text-xs text-purple-600 dark:text-purple-400 font-medium">1 hour • Required for licensure</div>
+                      </div>
+                    </div>
+                  </button>
+                  
+                  {/* Professional Development Template */}
+                  <button
+                    type="button"
+                    onClick={() => applyTemplate('development')}
+                    className="group p-6 bg-white dark:bg-gray-800 rounded-2xl border border-green-200 dark:border-green-700 hover:border-green-400 dark:hover:border-green-500 hover:shadow-lg transition-all duration-200"
+                  >
+                    <div className="flex flex-col items-center text-center space-y-3">
+                      <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl group-hover:bg-green-200 dark:group-hover:bg-green-900/50 transition-colors">
+                        <GraduationCap className="w-6 h-6 text-green-600 dark:text-green-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Learning & Growth</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Training, workshops, conferences, ethics</p>
+                        <div className="text-xs text-green-600 dark:text-green-400 font-medium">2 hours • Professional development</div>
+                      </div>
+                    </div>
+                  </button>
+                  
+                </div>
+              </div>
+            )}
           </div>
           
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* Date of Contact */}
-            <div className="space-y-2">
-              <Label htmlFor="dateOfContact" className="text-gray-700 font-medium">Date of Contact *</Label>
+            
+            {/* Essential Date Field - Always Visible */}
+            <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-2xl">
+              <Label htmlFor="dateOfContact" className="text-lg font-semibold text-gray-800 dark:text-white mb-3 block">
+                Date of Activity
+              </Label>
               <Popover open={dateCalendarOpen} onOpenChange={setDateCalendarOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal rounded-xl border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500 dark:bg-gray-800",
+                      "w-full justify-start text-left font-normal text-base h-12 rounded-xl border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500 dark:bg-gray-800",
                       !watchedDateOfContact && "text-gray-500 dark:text-gray-400"
                     )}
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    <CalendarIcon className="mr-3 h-5 w-5" />
                     {watchedDateOfContact ? (
-                      format(watchedDateOfContact, "PPP")
+                      format(watchedDateOfContact, "EEEE, MMMM do, yyyy")
                     ) : (
-                      "Pick a date"
+                      "Select the date of your activity"
                     )}
                   </Button>
                 </PopoverTrigger>
@@ -355,180 +283,150 @@ export const AddEntryForm = () => {
                 </PopoverContent>
               </Popover>
               {errors.dateOfContact && (
-                <p className="text-sm text-red-500">{errors.dateOfContact.message}</p>
+                <p className="text-sm text-red-500 mt-2">{errors.dateOfContact.message}</p>
               )}
             </div>
 
-            {/* Direct Client Contact Section - Collapsible */}
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl overflow-hidden">
-              <button
-                type="button"
-                onClick={() => setShowDirectClient(!showDirectClient)}
-                className="w-full p-4 flex items-center justify-between hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
-              >
-                <div className="flex items-center space-x-2">
-                  <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                  <h3 className="font-semibold text-gray-900 dark:text-white">Direct Client Contact</h3>
-                </div>
-                {showDirectClient ? (
-                  <ChevronUp className="w-4 h-4 text-gray-500" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 text-gray-500" />
-                )}
-              </button>
-              
-              {showDirectClient && (
-                <div className="p-4 pt-0 space-y-4">
-                  {/* Client Contact Hours */}
-                  <div className="space-y-2">
-                    <Label htmlFor="clientContactHours" className="text-gray-700 dark:text-gray-300 font-medium">Client Contact Hours</Label>
-                    <Input
-                      {...register("clientContactHours", { valueAsNumber: true })}
-                      type="number"
-                      step="0.25"
-                      min="0"
-                      className="rounded-3xl border-gray-200 focus:border-blue-500"
-                    />
-                    {errors.clientContactHours && (
-                      <p className="text-sm text-red-500">{errors.clientContactHours.message}</p>
-                    )}
-                  </div>
-
-                  {/* Indirect Hours Checkbox */}
+            {/* Client Contact Section - Collapsible */}
+            {showDirectClient && (
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl overflow-hidden border border-blue-200 dark:border-blue-800">
+                <button
+                  type="button"
+                  onClick={() => setShowDirectClient(!showDirectClient)}
+                  className="w-full p-4 flex items-center justify-between hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                >
                   <div className="flex items-center space-x-3">
-                    <Checkbox
-                      {...register("indirectHours")}
-                      id="indirectHours"
-                      className="rounded border-gray-300"
-                    />
-                    <Label htmlFor="indirectHours" className="text-gray-700 dark:text-gray-300 font-medium">
-                      Indirect client contact hours
-                    </Label>
+                    <Heart className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Client Contact Details</h3>
                   </div>
-                </div>
-              )}
-            </div>
-
-            {/* Professional Development Section - Collapsible */}
-            <div className="bg-green-50 dark:bg-green-900/20 rounded-2xl overflow-hidden">
-              <button
-                type="button"
-                onClick={() => setShowProfDev(!showProfDev)}
-                className="w-full p-4 flex items-center justify-between hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
-              >
-                <div className="flex items-center space-x-2">
-                  <GraduationCap className="w-5 h-5 text-green-600 dark:text-green-400" />
-                  <h3 className="font-semibold text-gray-900 dark:text-white">Professional Development</h3>
-                </div>
-                {showProfDev ? (
                   <ChevronUp className="w-4 h-4 text-gray-500" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 text-gray-500" />
-                )}
-              </button>
-              
-              {showProfDev && (
-                <div className="p-4 pt-0 space-y-4">
-                  {/* Professional Development Hours */}
-                  <div className="space-y-2">
-                    <Label htmlFor="professionalDevelopmentHours" className="text-gray-700 dark:text-gray-300 font-medium">Professional Development Hours</Label>
-                    <Input
-                      {...register("professionalDevelopmentHours", { valueAsNumber: true })}
-                      type="number"
-                      step="0.25"
-                      min="0"
-                      className="rounded-3xl border-gray-200 focus:border-green-500"
-                    />
-                    {errors.professionalDevelopmentHours && (
-                      <p className="text-sm text-red-500">{errors.professionalDevelopmentHours.message}</p>
-                    )}
+                </button>
+                
+                <div className="p-6 pt-0 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="clientContactHours" className="text-gray-700 dark:text-gray-300 font-medium">Hours</Label>
+                      <Input
+                        {...register("clientContactHours", { valueAsNumber: true })}
+                        type="number"
+                        step="0.25"
+                        min="0"
+                        max="24"
+                        className="rounded-xl border-gray-200 focus:border-blue-500 h-12"
+                      />
+                      {errors.clientContactHours && (
+                        <p className="text-sm text-red-500">{errors.clientContactHours.message}</p>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center space-x-3 pt-8">
+                      <Checkbox
+                        {...register("indirectHours")}
+                        id="indirectHours"
+                        className="rounded border-gray-300"
+                      />
+                      <Label htmlFor="indirectHours" className="text-gray-700 dark:text-gray-300 font-medium">
+                        Includes indirect hours (notes, prep, coordination)
+                      </Label>
+                    </div>
                   </div>
-
-                  {/* Professional Development Type */}
-                  <div className="space-y-2">
-                    <Label className="text-gray-700 font-medium">Development Type</Label>
-                    <Select onValueChange={(value) => setValue("professionalDevelopmentType", value as any)}>
-                      <SelectTrigger className="rounded-xl border-gray-200">
-                        <SelectValue placeholder="Select development type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">None</SelectItem>
-                        <SelectItem value="ethics">Ethics Training</SelectItem>
-                        <SelectItem value="workshop">Workshop/Seminar</SelectItem>
-                        <SelectItem value="conference">Conference</SelectItem>
-                        <SelectItem value="webinar">Webinar</SelectItem>
-                        <SelectItem value="reading">Professional Reading</SelectItem>
-                        <SelectItem value="research">Research Activity</SelectItem>
-                        <SelectItem value="consultation">Peer Consultation</SelectItem>
-                        <SelectItem value="training">Specialized Training</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  
+                  {/* Quick hour buttons */}
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setValue("clientContactHours", 0.5)}
+                      className="px-3 py-1 text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+                    >
+                      30 min
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setValue("clientContactHours", 1)}
+                      className="px-3 py-1 text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+                    >
+                      1 hour
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setValue("clientContactHours", 1.5)}
+                      className="px-3 py-1 text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+                    >
+                      90 min
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setValue("techAssistedSupervision", !watch("techAssistedSupervision"))}
+                      className={cn(
+                        "px-3 py-1 text-sm rounded-full transition-colors",
+                        watch("techAssistedSupervision")
+                          ? "bg-blue-600 text-white"
+                          : "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/50"
+                      )}
+                    >
+                      Telehealth
+                    </button>
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Supervision Section - Collapsible */}
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl overflow-hidden">
-              <button
-                type="button"
-                onClick={() => setShowSupervision(!showSupervision)}
-                className="w-full p-4 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              >
-                <div className="flex items-center space-x-2">
-                  <Users className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                  <h3 className="font-semibold text-gray-900 dark:text-white">Supervision Details</h3>
-                </div>
-                {showSupervision ? (
+            {showSupervision && (
+              <div className="bg-purple-50 dark:bg-purple-900/20 rounded-2xl overflow-hidden border border-purple-200 dark:border-purple-800">
+                <button
+                  type="button"
+                  onClick={() => setShowSupervision(!showSupervision)}
+                  className="w-full p-4 flex items-center justify-between hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors"
+                >
+                  <div className="flex items-center space-x-3">
+                    <Users className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Supervision Details</h3>
+                  </div>
                   <ChevronUp className="w-4 h-4 text-gray-500" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 text-gray-500" />
-                )}
-              </button>
-              
-              {showSupervision && (
-                <div className="p-4 pt-0 space-y-4">
-                  {/* Supervision Hours */}
-                  <div className="space-y-2">
-                    <Label htmlFor="supervisionHours" className="text-gray-700 dark:text-gray-300 font-medium">Supervision Hours</Label>
-                    <Input
-                      {...register("supervisionHours", { valueAsNumber: true })}
-                      type="number"
-                      step="0.25"
-                      min="0"
-                      className="rounded-3xl border-gray-200 focus:border-blue-500"
-                    />
-                    {errors.supervisionHours && (
-                      <p className="text-sm text-red-500">{errors.supervisionHours.message}</p>
-                    )}
-                  </div>
-
-                  {/* Supervision Type */}
-                  <div className="space-y-2">
-                    <Label className="text-gray-700 font-medium">Supervision Type</Label>
-                    <Select onValueChange={(value) => setValue("supervisionType", value as any)}>
-                      <SelectTrigger className="rounded-xl border-gray-200">
-                        <SelectValue placeholder="Select supervision type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">None</SelectItem>
-                        <SelectItem value="individual">Individual</SelectItem>
-                        <SelectItem value="dyadic">Dyadic (Two Supervisees)</SelectItem>
-                        <SelectItem value="group">Group (3+ Supervisees)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Supervision Date */}
-                  {watch("supervisionHours") > 0 && (
+                </button>
+                
+                <div className="p-6 pt-0 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-gray-700 font-medium">Supervision Date</Label>
+                      <Label htmlFor="supervisionHours" className="text-gray-700 dark:text-gray-300 font-medium">Hours</Label>
+                      <Input
+                        {...register("supervisionHours", { valueAsNumber: true })}
+                        type="number"
+                        step="0.25"
+                        min="0"
+                        max="8"
+                        className="rounded-xl border-gray-200 focus:border-purple-500 h-12"
+                      />
+                      {errors.supervisionHours && (
+                        <p className="text-sm text-red-500">{errors.supervisionHours.message}</p>
+                      )}
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label className="text-gray-700 dark:text-gray-300 font-medium">Type</Label>
+                      <Select onValueChange={(value) => setValue("supervisionType", value as any)}>
+                        <SelectTrigger className="rounded-xl border-gray-200 h-12">
+                          <SelectValue placeholder="Select supervision type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="individual">Individual</SelectItem>
+                          <SelectItem value="dyadic">Dyadic (Two supervisees)</SelectItem>
+                          <SelectItem value="group">Group (3+ supervisees)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {watchedSupervisionHours > 0 && (
+                    <div className="space-y-2">
+                      <Label className="text-gray-700 dark:text-gray-300 font-medium">Supervision Date</Label>
                       <Popover open={supervisionCalendarOpen} onOpenChange={setSupervisionCalendarOpen}>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
                             className={cn(
-                              "w-full justify-start text-left font-normal rounded-xl border-gray-200 hover:border-gray-300",
+                              "w-full justify-start text-left font-normal rounded-xl border-gray-200 hover:border-gray-300 h-12",
                               !watchedSupervisionDate && "text-gray-500"
                             )}
                           >
@@ -556,60 +454,120 @@ export const AddEntryForm = () => {
                     </div>
                   )}
 
-                  {/* Tech Assisted Supervision */}
                   <div className="flex items-center space-x-3">
                     <Checkbox
                       {...register("techAssistedSupervision")}
                       id="techAssistedSupervision"
                       className="rounded border-gray-300"
                     />
-                    <Label htmlFor="techAssistedSupervision" className="text-gray-700 font-medium">
-                      Technology-assisted supervision
+                    <Label htmlFor="techAssistedSupervision" className="text-gray-700 dark:text-gray-300 font-medium">
+                      Technology-assisted supervision (video, phone)
                     </Label>
                   </div>
                 </div>
-              )}
-            </div>
-
-            {/* Notes */}
-            <div className="space-y-3">
-              <Label className="text-gray-700 font-medium text-lg">Session Notes</Label>
-              <div className="border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
-                <RichTextEditor
-                  content={notesContent}
-                  onChange={setNotesContent}
-                  placeholder="Describe the session, interventions used, client progress, challenges, insights, and your reflections..."
-                  minHeight="250px"
-                  maxLength={10000}
-                  showCharacterCount={true}
-                />
               </div>
-              <p className="text-sm text-gray-500">
-                Use this rich text editor to write detailed session notes. Your notes will be automatically analyzed for professional insights.
+            )}
+
+            {/* Professional Development Section - Collapsible */}
+            {showProfDev && (
+              <div className="bg-green-50 dark:bg-green-900/20 rounded-2xl overflow-hidden border border-green-200 dark:border-green-800">
+                <button
+                  type="button"
+                  onClick={() => setShowProfDev(!showProfDev)}
+                  className="w-full p-4 flex items-center justify-between hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
+                >
+                  <div className="flex items-center space-x-3">
+                    <GraduationCap className="w-5 h-5 text-green-600 dark:text-green-400" />
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Professional Development</h3>
+                  </div>
+                  <ChevronUp className="w-4 h-4 text-gray-500" />
+                </button>
+                
+                <div className="p-6 pt-0 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="professionalDevelopmentHours" className="text-gray-700 dark:text-gray-300 font-medium">Hours</Label>
+                      <Input
+                        {...register("professionalDevelopmentHours", { valueAsNumber: true })}
+                        type="number"
+                        step="0.25"
+                        min="0"
+                        className="rounded-xl border-gray-200 focus:border-green-500 h-12"
+                      />
+                      {errors.professionalDevelopmentHours && (
+                        <p className="text-sm text-red-500">{errors.professionalDevelopmentHours.message}</p>
+                      )}
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label className="text-gray-700 dark:text-gray-300 font-medium">Type</Label>
+                      <Select onValueChange={(value) => setValue("professionalDevelopmentType", value as any)}>
+                        <SelectTrigger className="rounded-xl border-gray-200 h-12">
+                          <SelectValue placeholder="Select development type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ethics">Ethics Training</SelectItem>
+                          <SelectItem value="workshop">Workshop/Seminar</SelectItem>
+                          <SelectItem value="conference">Conference</SelectItem>
+                          <SelectItem value="webinar">Webinar</SelectItem>
+                          <SelectItem value="reading">Professional Reading</SelectItem>
+                          <SelectItem value="research">Research Activity</SelectItem>
+                          <SelectItem value="consultation">Peer Consultation</SelectItem>
+                          <SelectItem value="training">Specialized Training</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Notes Section - Always Visible and Prominent */}
+            <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 p-6 rounded-2xl border border-amber-200 dark:border-amber-800">
+              <div className="flex items-center space-x-3 mb-4">
+                <BookOpen className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                <Label className="text-lg font-semibold text-gray-800 dark:text-white">
+                  Session Notes & Reflections
+                </Label>
+              </div>
+              <div className="relative">
+                <textarea
+                  value={notesContent}
+                  onChange={(e) => setNotesContent(e.target.value)}
+                  placeholder="Describe what happened in this session, your interventions, client progress, challenges you faced, insights gained, and your professional reflections. The more detail you provide, the better AI insights you'll receive about your growth patterns and areas for development."
+                  rows={8}
+                  className="w-full p-4 border border-amber-200 dark:border-amber-700 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-none text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-500 dark:placeholder-gray-400"
+                />
+                <div className="absolute bottom-3 right-3 text-xs text-gray-400">
+                  {notesContent.length} characters
+                </div>
+              </div>
+              <p className="text-sm text-amber-700 dark:text-amber-300 mt-3 flex items-center space-x-2">
+                <Lightbulb className="w-4 h-4" />
+                <span>AI will analyze your notes to identify growth patterns and provide personalized insights.</span>
               </p>
-              {errors.notes && (
-                <p className="text-sm text-red-500">{errors.notes.message}</p>
-              )}
             </div>
 
             {/* Submit Button */}
-            <Button 
-              type="submit" 
-              disabled={isSubmitting}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-3 text-base font-medium"
-            >
-              {isSubmitting ? (
-                <>
-                  <LoadingSpinner className="mr-2 h-4 w-4" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Check className="mr-2 h-4 w-4" />
-                  Save Entry
-                </>
-              )}
-            </Button>
+            <div className="pt-4">
+              <Button 
+                type="submit" 
+                disabled={isSubmitting}
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+              >
+                {isSubmitting ? (
+                  <>
+                    <LoadingSpinner className="mr-3 h-5 w-5" />
+                    Saving your progress...
+                  </>
+                ) : (
+                  <>
+                    <Check className="mr-3 h-5 w-5" />
+                    Save & Generate AI Insights
+                  </>
+                )}
+              </Button>
+            </div>
           </form>
         </CardContent>
       </Card>
