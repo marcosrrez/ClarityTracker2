@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Users, Phone, Plus, FileText } from "lucide-react";
+import { Clock, Users, Phone, Plus, FileText, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -89,56 +89,61 @@ export const QuickLogWidget = () => {
       }
     }
   ] : [
-    // Standard 60-minute session (most common)
+    // 60-minute direct session
     {
-      id: 'individual-60',
-      name: '60min Individual',
+      id: 'direct-60',
+      name: '60min Direct',
       icon: <Clock className="w-4 h-4" />,
       data: {
         clientContactHours: 1.0,
-        notes: 'Individual therapy session completed.'
+        indirectHours: false,
+        notes: 'Direct individual therapy session completed.'
       }
     },
-    // User's most common duration (if different from 60min)
-    ...(patterns.mostCommonDuration !== 1.0 ? [{
-      id: 'common-duration',
-      name: `${Math.round(patterns.mostCommonDuration * 60)}min Individual`,
-      icon: <Clock className="w-4 h-4" />,
-      data: {
-        clientContactHours: patterns.mostCommonDuration,
-        notes: 'Individual therapy session completed.'
-      }
-    }] : []),
-    // Today's total hours quick-add (if user has logged sessions today)
-    ...(patterns.todaysHours > 0 ? [{
-      id: 'todays-total',
-      name: `Today's Total (${patterns.todaysHours}h)`,
-      icon: <Plus className="w-4 h-4" />,
-      data: {
-        clientContactHours: patterns.todaysHours,
-        notes: `Batch entry for ${patterns.todaysSessionCount} session${patterns.todaysSessionCount !== 1 ? 's' : ''} today.`
-      }
-    }] : []),
-    // Standard 90-minute session
+    // 60-minute indirect session
     {
-      id: 'individual-90',
-      name: '90min Individual',
-      icon: <Clock className="w-4 h-4" />,
+      id: 'indirect-60',
+      name: '60min Indirect',
+      icon: <FileText className="w-4 h-4" />,
+      data: {
+        clientContactHours: 1.0,
+        indirectHours: true,
+        notes: 'Indirect services (case notes, treatment planning, etc.) completed.'
+      }
+    },
+    // 90-minute group session
+    {
+      id: 'group-90',
+      name: '90min Group',
+      icon: <Users className="w-4 h-4" />,
       data: {
         clientContactHours: 1.5,
-        notes: 'Extended individual therapy session completed.'
+        indirectHours: false,
+        notes: 'Group therapy session completed.'
       }
     },
-    // Group/telehealth options
+    // 60-minute telehealth session
     {
-      id: 'phone-session',
-      name: 'Telehealth',
+      id: 'telehealth-60',
+      name: '60min Telehealth',
       icon: <Phone className="w-4 h-4" />,
       data: {
         clientContactHours: 1.0,
+        indirectHours: false,
         notes: 'Telehealth session completed.'
       }
-    }
+    },
+    // User's most common duration (if different from standard options)
+    ...(patterns.mostCommonDuration !== 1.0 && patterns.mostCommonDuration !== 1.5 && patterns.todaysSessionCount > 2 ? [{
+      id: 'common-duration',
+      name: `${Math.round(patterns.mostCommonDuration * 60)}min Pattern`,
+      icon: <TrendingUp className="w-4 h-4" />,
+      data: {
+        clientContactHours: patterns.mostCommonDuration,
+        indirectHours: false,
+        notes: 'Session logged based on your common pattern.'
+      }
+    }] : [])
   ].slice(0, 4); // Limit to 4 most relevant options
 
   const handleDragStart = (e: React.PointerEvent) => {
@@ -170,27 +175,28 @@ export const QuickLogWidget = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...template.data,
-          userId: user?.uid,
+          userId: user?.uid || 'demo-user',
           dateOfContact: new Date(),
-          indirectHours: false,
           supervisionType: template.data.supervisionType || 'none',
           techAssistedSupervision: false
         }),
       });
 
       if (response.ok) {
-        // Invalidate and refetch all related data
-        await Promise.all([
-          queryClient.invalidateQueries({ queryKey: ['/api/log-entries'] }),
-          queryClient.invalidateQueries({ queryKey: ['/api/ai/integration-status'] }),
-          queryClient.invalidateQueries({ queryKey: ['/api/ai/smart-insights'] }),
-          refetch() // Firebase entries refetch
-        ]);
+        // Invalidate all dashboard-related queries for immediate refresh
+        queryClient.invalidateQueries({ queryKey: ['/api/log-entries'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/ai/integration-status'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/ai/smart-insights'] });
+        
+        // Force window reload to ensure dashboard updates
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
 
         const hours = template.data.clientContactHours || template.data.supervisionHours || 0;
         toast({
           title: "Entry logged!",
-          description: `${hours}h session saved successfully. Dashboard updated.`,
+          description: `${hours}h session saved. Dashboard updating...`,
         });
         setIsExpanded(false);
       } else {
