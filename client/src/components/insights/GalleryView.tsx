@@ -86,47 +86,45 @@ export const GalleryView = () => {
     }
   }, [user, entries, entriesLoading]);
 
-  // Create streaming-style card rows (like Disney+)
+  // Create streaming-style card rows with better grouping
   const createCardRows = (items: GalleryItem[]): WeekDeck[] => {
     if (items.length === 0) return [];
 
     // Sort items by date (newest first)
     const sortedItems = items.sort((a, b) => new Date(b.dateOfContact).getTime() - new Date(a.dateOfContact).getTime());
     
-    // Group items by time periods
+    // Group items by time periods with minimum group sizes
     const timeGroups: Map<string, GalleryItem[]> = new Map();
     
     sortedItems.forEach(item => {
       const itemDate = new Date(item.dateOfContact);
       const now = new Date();
       
-      // Determine time category
-      let category = "";
-      let sortKey = "";
-      
-      // This week
+      // This week gets priority
       const weekStart = startOfWeek(now, { weekStartsOn: 1 });
       const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
       if (itemDate >= weekStart && itemDate <= weekEnd) {
-        category = "This Week";
-        sortKey = "1-this-week";
-      }
-      // Last week
-      else {
-        const itemWeekStart = startOfWeek(itemDate, { weekStartsOn: 1 });
-        const weeksAgo = Math.floor((now.getTime() - itemWeekStart.getTime()) / (7 * 24 * 60 * 60 * 1000));
-        
-        if (weeksAgo === 1) {
-          category = "Last Week";
-          sortKey = "2-last-week";
-        } else if (weeksAgo <= 4) {
-          category = `${weeksAgo} Weeks Ago`;
-          sortKey = `${weeksAgo + 2}-weeks-ago`;
-        } else {
-          const monthName = format(itemDate, "MMMM yyyy");
-          category = monthName;
-          sortKey = `${weeksAgo + 10}-${monthName}`;
+        if (!timeGroups.has("1-this-week")) {
+          timeGroups.set("1-this-week", []);
         }
+        timeGroups.get("1-this-week")!.push(item);
+        return;
+      }
+
+      // Group by month for better consolidation
+      const monthKey = format(itemDate, "yyyy-MM");
+      const monthName = format(itemDate, "MMMM yyyy");
+      
+      // Calculate how recent this month is
+      const monthsAgo = (now.getFullYear() - itemDate.getFullYear()) * 12 + (now.getMonth() - itemDate.getMonth());
+      
+      let sortKey: string;
+      if (monthsAgo === 0) {
+        sortKey = "2-this-month";
+      } else if (monthsAgo === 1) {
+        sortKey = "3-last-month";
+      } else {
+        sortKey = `${monthsAgo + 10}-${monthKey}`;
       }
       
       if (!timeGroups.has(sortKey)) {
@@ -135,22 +133,73 @@ export const GalleryView = () => {
       timeGroups.get(sortKey)!.push(item);
     });
 
-    // Convert to row format
-    const cardRows = Array.from(timeGroups.entries())
-      .map(([sortKey, rowItems]) => {
-        const category = sortKey.split('-').slice(1).join(' ');
-        const firstItem = rowItems[0];
-        const weekStart = startOfWeek(new Date(firstItem.dateOfContact), { weekStartsOn: 1 });
+    // Post-process to merge small groups
+    const finalGroups: Map<string, GalleryItem[]> = new Map();
+    const minGroupSize = 2;
+    
+    const timeGroupEntries = Array.from(timeGroups.entries()).sort(([a], [b]) => a.localeCompare(b));
+    
+    for (const [sortKey, groupItems] of timeGroupEntries) {
+      if (sortKey === "1-this-week") {
+        // Always keep "This Week" separate
+        finalGroups.set(sortKey, groupItems);
+      } else if (groupItems.length >= minGroupSize) {
+        finalGroups.set(sortKey, groupItems);
+      } else {
+        // Merge small groups with the next closest time period
+        const nextKey = timeGroupEntries.find(([key, items]) => 
+          key > sortKey && items.length >= minGroupSize
+        );
         
-        return {
-          label: category.charAt(0).toUpperCase() + category.slice(1),
-          items: rowItems,
-          weekNumber: parseInt(format(weekStart, "w")),
-          startDate: weekStart,
-          endDate: endOfWeek(weekStart, { weekStartsOn: 1 })
-        };
-      })
-      .sort((a, b) => a.label.localeCompare(b.label));
+        if (nextKey) {
+          if (!finalGroups.has(nextKey[0])) {
+            finalGroups.set(nextKey[0], [...nextKey[1]]);
+          }
+          finalGroups.get(nextKey[0])!.push(...groupItems);
+        } else {
+          // If no suitable group found, create a "Previous Sessions" group
+          if (!finalGroups.has("99-previous-sessions")) {
+            finalGroups.set("99-previous-sessions", []);
+          }
+          finalGroups.get("99-previous-sessions")!.push(...groupItems);
+        }
+      }
+    }
+
+    // Convert to display format and sort by sort key to maintain proper order
+    const finalGroupEntries = Array.from(finalGroups.entries()).sort(([a], [b]) => a.localeCompare(b));
+    
+    const cardRows = finalGroupEntries.map(([sortKey, rowItems]) => {
+      const firstItem = rowItems[0];
+      const weekStart = startOfWeek(new Date(firstItem.dateOfContact), { weekStartsOn: 1 });
+      
+      let label: string;
+      if (sortKey === "1-this-week") {
+        label = "This Week";
+      } else if (sortKey === "2-this-month") {
+        label = "This Month";
+      } else if (sortKey === "3-last-month") {
+        label = "Last Month";
+      } else if (sortKey === "99-previous-sessions") {
+        label = "Previous Sessions";
+      } else {
+        // Extract month name from sort key
+        const monthMatch = sortKey.match(/\d{4}-\d{2}/);
+        if (monthMatch) {
+          label = format(new Date(monthMatch[0] + "-01"), "MMMM yyyy");
+        } else {
+          label = "Previous Sessions";
+        }
+      }
+      
+      return {
+        label,
+        items: rowItems.sort((a, b) => new Date(b.dateOfContact).getTime() - new Date(a.dateOfContact).getTime()),
+        weekNumber: parseInt(format(weekStart, "w")),
+        startDate: weekStart,
+        endDate: endOfWeek(weekStart, { weekStartsOn: 1 })
+      };
+    });
 
     return cardRows;
   };
@@ -532,32 +581,35 @@ export const GalleryView = () => {
               {/* Horizontal Scrolling Cards */}
               <div className="relative">
                 <div 
-                  className="flex gap-4 overflow-x-auto scrollbar-hide pb-4"
-                  style={{ scrollSnapType: 'x mandatory', scrollBehavior: 'smooth' }}
+                  className="flex gap-3 overflow-x-auto scrollbar-hide pb-4 scroll-smooth"
+                  style={{ 
+                    scrollSnapType: 'x mandatory',
+                    scrollBehavior: 'auto' // Slower, more controlled scrolling
+                  }}
                 >
                   {row.items.map((item: GalleryItem, cardIndex: number) => (
                     <div
                       key={item.id}
-                      className="flex-shrink-0 w-80"
+                      className="flex-shrink-0 w-72" // Smaller cards to show ~3 horizontally
                       style={{ scrollSnapAlign: 'start' }}
                     >
                       <Card 
-                        className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105 bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700"
+                        className="group cursor-pointer hover:shadow-lg transition-all duration-500 hover:scale-[1.02] bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 h-full"
                         onClick={() => setExpandedCard(item)}
                       >
                         <CardHeader className="pb-3">
                           <div className="flex items-start justify-between">
                             <div className="flex-1 min-w-0">
-                              <CardTitle className="text-base font-medium">
-                                {format(new Date(item.dateOfContact), "EEEE, MMM d")}
+                              <CardTitle className="text-sm font-medium">
+                                {format(new Date(item.dateOfContact), "MMM d, yyyy")}
                               </CardTitle>
                               <CardDescription className="flex items-center gap-2 mt-1">
-                                <Calendar className="h-4 w-4" />
-                                <span className="text-sm">{item.clientContactHours} hours</span>
+                                <Calendar className="h-3 w-3" />
+                                <span className="text-xs">{item.clientContactHours}h</span>
                                 {item.analysis && (
                                   <Badge variant="secondary" className="text-xs">
-                                    <Sparkles className="h-3 w-3 mr-1" />
-                                    AI Analyzed
+                                    <Sparkles className="h-2 w-2 mr-1" />
+                                    AI
                                   </Badge>
                                 )}
                               </CardDescription>
@@ -572,23 +624,23 @@ export const GalleryView = () => {
                                 }}
                                 className="text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-3 w-3" />
                               </Button>
                             )}
                           </div>
                         </CardHeader>
 
-                        <CardContent className="space-y-4">
+                        <CardContent className="space-y-3">
                           {/* Inviting Summary */}
-                          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-4 rounded-lg">
-                            <p className="text-sm text-blue-900 dark:text-blue-100 font-medium leading-relaxed">
+                          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-3 rounded-lg">
+                            <p className="text-xs text-blue-900 dark:text-blue-100 font-medium leading-relaxed line-clamp-2">
                               {generateInvitingSummary(item)}
                             </p>
                           </div>
 
                           {/* Key Themes */}
                           {item.analysis?.themes && (
-                            <div className="flex flex-wrap gap-2">
+                            <div className="flex flex-wrap gap-1">
                               {(() => {
                                 const themes = Array.isArray(item.analysis.themes) 
                                   ? item.analysis.themes 
@@ -596,7 +648,7 @@ export const GalleryView = () => {
                                     ? Object.values(item.analysis.themes)
                                     : [item.analysis.themes];
                                 
-                                return themes.slice(0, 4).map((theme: any, index: number) => (
+                                return themes.slice(0, 3).map((theme: any, index: number) => (
                                   <Badge key={index} variant="outline" className="text-xs">
                                     {String(theme)}
                                   </Badge>
@@ -609,24 +661,24 @@ export const GalleryView = () => {
                                     ? Object.values(item.analysis.themes)
                                     : [item.analysis.themes];
                                 
-                                return themes.length > 4 && (
-                                  <Badge variant="outline" className="text-xs">+{themes.length - 4}</Badge>
+                                return themes.length > 3 && (
+                                  <Badge variant="outline" className="text-xs">+{themes.length - 3}</Badge>
                                 );
                               })()}
                             </div>
                           )}
 
                           {/* Session Notes Preview */}
-                          <div className="text-sm text-muted-foreground line-clamp-3">
-                            {item.notes.substring(0, 150)}
-                            {item.notes.length > 150 && "..."}
+                          <div className="text-xs text-muted-foreground line-clamp-2">
+                            {item.notes.substring(0, 100)}
+                            {item.notes.length > 100 && "..."}
                           </div>
 
                           {/* Click to expand hint */}
-                          <div className="flex items-center justify-center pt-3 border-t border-gray-100 dark:border-gray-800">
+                          <div className="flex items-center justify-center pt-2 border-t border-gray-100 dark:border-gray-800">
                             <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400 transition-colors group-hover:text-blue-700 dark:group-hover:text-blue-300">
-                              <Eye className="h-4 w-4" />
-                              <span className="text-sm font-medium">Click to explore details</span>
+                              <Eye className="h-3 w-3" />
+                              <span className="text-xs font-medium">View details</span>
                             </div>
                           </div>
                         </CardContent>
