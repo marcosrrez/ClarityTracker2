@@ -166,58 +166,57 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
             </p>
           </div>
         ) : (
-          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 gap-4 space-y-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {filteredItems.map((item) => (
-              <div key={item.id} className="break-inside-avoid mb-4">
-                <Card 
-                  className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.01] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden"
-                  onClick={() => onItemClick(item)}
-                >
-                  <CardContent className="p-4">
-                    <div className="space-y-3">
-                      {/* Date and Duration */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-xs text-gray-500">
-                          <Calendar className="h-3 w-3" />
-                          <span>{format(new Date(item.dateOfContact), "MMM d, yyyy")}</span>
-                        </div>
-                        <Badge variant="secondary" className="text-xs">
-                          {item.clientContactHours}h
-                        </Badge>
+              <Card 
+                key={item.id}
+                className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden h-fit"
+                onClick={() => onItemClick(item)}
+              >
+                <CardContent className="p-4">
+                  <div className="space-y-3">
+                    {/* Date and Duration */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1 text-xs text-gray-500">
+                        <Calendar className="h-3 w-3" />
+                        <span className="truncate">{format(new Date(item.dateOfContact), "MMM d")}</span>
                       </div>
-
-                      {/* Notes Content */}
-                      <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                        {item.notes.length > 200 ? `${item.notes.substring(0, 200)}...` : item.notes}
-                      </div>
-
-                      {/* AI Analysis Tags */}
-                      {item.analysis && item.analysis.themes && Array.isArray(item.analysis.themes) && (
-                        <div className="flex flex-wrap gap-1">
-                          {item.analysis.themes.slice(0, 2).map((theme: string, index: number) => (
-                            <Badge key={index} variant="outline" className="text-xs">
-                              {theme}
-                            </Badge>
-                          ))}
-                          {item.analysis.themes.length > 2 && (
-                            <Badge variant="outline" className="text-xs">
-                              +{item.analysis.themes.length - 2}
-                            </Badge>
-                          )}
-                        </div>
-                      )}
-
-                      {/* AI Badge */}
-                      {item.analysis && (
-                        <div className="flex items-center gap-1 text-xs text-blue-600">
-                          <Sparkles className="h-3 w-3" />
-                          <span>AI Analysis</span>
-                        </div>
-                      )}
+                      <Badge variant="secondary" className="text-xs">
+                        {item.clientContactHours}h
+                      </Badge>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
+
+                    {/* Notes Content */}
+                    <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                      {item.notes.length > 120 ? `${item.notes.substring(0, 120)}...` : item.notes}
+                    </div>
+
+                    {/* AI Analysis Tags */}
+                    {item.analysis && item.analysis.themes && Array.isArray(item.analysis.themes) && (
+                      <div className="flex flex-wrap gap-1">
+                        {item.analysis.themes.slice(0, 2).map((theme: string, index: number) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {theme}
+                          </Badge>
+                        ))}
+                        {item.analysis.themes.length > 2 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{item.analysis.themes.length - 2}
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+
+                    {/* AI Badge */}
+                    {item.analysis && (
+                      <div className="flex items-center gap-1 text-xs text-blue-600">
+                        <Sparkles className="h-3 w-3" />
+                        <span>AI Analysis</span>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         )}
