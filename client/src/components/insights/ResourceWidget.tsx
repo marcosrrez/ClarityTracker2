@@ -222,7 +222,7 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="w-80 h-[420px] p-0 gap-0 rounded-2xl bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600 overflow-hidden" aria-describedby="resource-widget-description">
+      <DialogContent className="w-80 h-[440px] p-0 gap-0 rounded-2xl bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600 overflow-hidden" aria-describedby="resource-widget-description">
         <DialogTitle className="sr-only">Add Resource</DialogTitle>
         <div className="p-5 h-full flex flex-col">
           {!selectedMode ? (
@@ -239,45 +239,45 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
               </div>
               
               {/* Premium Actions Grid */}
-              <div className="grid grid-cols-2 gap-3 flex-1">
+              <div className="grid grid-cols-2 gap-2 flex-1">
                 <button
                   onClick={() => setSelectedMode('url')}
-                  className="flex flex-col items-center justify-center gap-3 p-4 bg-white dark:bg-gray-900 rounded-2xl hover:shadow-md transition-all duration-200 border border-gray-200 dark:border-gray-700 group"
+                  className="flex flex-col items-center justify-center gap-2 p-3 bg-white dark:bg-gray-900 rounded-xl hover:shadow-md transition-all duration-200 border border-gray-200 dark:border-gray-700 group"
                 >
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800 rounded-2xl flex items-center justify-center group-hover:from-blue-500 group-hover:to-blue-600 transition-all duration-200 shadow-sm">
-                    <Globe className="h-6 w-6 text-blue-600 dark:text-blue-400 group-hover:text-white transition-colors" />
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800 rounded-xl flex items-center justify-center group-hover:from-blue-500 group-hover:to-blue-600 transition-all duration-200 shadow-sm">
+                    <Globe className="h-5 w-5 text-blue-600 dark:text-blue-400 group-hover:text-white transition-colors" />
                   </div>
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Web Article</span>
+                  <span className="text-xs font-medium text-gray-700 dark:text-gray-200">Web Article</span>
                 </button>
 
                 <button
                   onClick={() => setSelectedMode('manual')}
-                  className="flex flex-col items-center justify-center gap-3 p-4 bg-white dark:bg-gray-900 rounded-2xl hover:shadow-md transition-all duration-200 border border-gray-200 dark:border-gray-700 group"
+                  className="flex flex-col items-center justify-center gap-2 p-3 bg-white dark:bg-gray-900 rounded-xl hover:shadow-md transition-all duration-200 border border-gray-200 dark:border-gray-700 group"
                 >
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900 dark:to-purple-800 rounded-2xl flex items-center justify-center group-hover:from-purple-500 group-hover:to-purple-600 transition-all duration-200 shadow-sm">
-                    <FileText className="h-6 w-6 text-purple-600 dark:text-purple-400 group-hover:text-white transition-colors" />
+                  <div className="w-10 h-10 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900 dark:to-purple-800 rounded-xl flex items-center justify-center group-hover:from-purple-500 group-hover:to-purple-600 transition-all duration-200 shadow-sm">
+                    <FileText className="h-5 w-5 text-purple-600 dark:text-purple-400 group-hover:text-white transition-colors" />
                   </div>
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Paste Text</span>
+                  <span className="text-xs font-medium text-gray-700 dark:text-gray-200">Paste Text</span>
                 </button>
 
                 <button
                   onClick={() => setSelectedMode('pdf')}
-                  className="flex flex-col items-center justify-center gap-3 p-4 bg-white dark:bg-gray-900 rounded-2xl hover:shadow-md transition-all duration-200 border border-gray-200 dark:border-gray-700 group"
+                  className="flex flex-col items-center justify-center gap-2 p-3 bg-white dark:bg-gray-900 rounded-xl hover:shadow-md transition-all duration-200 border border-gray-200 dark:border-gray-700 group"
                 >
-                  <div className="w-12 h-12 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900 dark:to-green-800 rounded-2xl flex items-center justify-center group-hover:from-green-500 group-hover:to-green-600 transition-all duration-200 shadow-sm">
-                    <Upload className="h-6 w-6 text-green-600 dark:text-green-400 group-hover:text-white transition-colors" />
+                  <div className="w-10 h-10 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900 dark:to-green-800 rounded-xl flex items-center justify-center group-hover:from-green-500 group-hover:to-green-600 transition-all duration-200 shadow-sm">
+                    <Upload className="h-5 w-5 text-green-600 dark:text-green-400 group-hover:text-white transition-colors" />
                   </div>
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Upload PDF</span>
+                  <span className="text-xs font-medium text-gray-700 dark:text-gray-200">Upload PDF</span>
                 </button>
 
                 <button
                   onClick={() => setSelectedMode('download')}
-                  className="flex flex-col items-center justify-center gap-3 p-4 bg-white dark:bg-gray-900 rounded-2xl hover:shadow-md transition-all duration-200 border border-gray-200 dark:border-gray-700 group col-span-2"
+                  className="flex flex-col items-center justify-center gap-2 p-3 bg-white dark:bg-gray-900 rounded-xl hover:shadow-md transition-all duration-200 border border-gray-200 dark:border-gray-700 group"
                 >
-                  <div className="w-12 h-12 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900 dark:to-orange-800 rounded-2xl flex items-center justify-center group-hover:from-orange-500 group-hover:to-orange-600 transition-all duration-200 shadow-sm">
-                    <Download className="h-6 w-6 text-orange-600 dark:text-orange-400 group-hover:text-white transition-colors" />
+                  <div className="w-10 h-10 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900 dark:to-orange-800 rounded-xl flex items-center justify-center group-hover:from-orange-500 group-hover:to-orange-600 transition-all duration-200 shadow-sm">
+                    <Download className="h-5 w-5 text-orange-600 dark:text-orange-400 group-hover:text-white transition-colors" />
                   </div>
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Export Insights</span>
+                  <span className="text-xs font-medium text-gray-700 dark:text-gray-200">Export Insights</span>
                 </button>
               </div>
             </>
