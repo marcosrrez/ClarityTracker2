@@ -429,7 +429,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
               {/* AI Agent Card */}
               <Card 
                 className="border-2 border-dashed border-purple-300 dark:border-purple-600 hover:border-purple-400 dark:hover:border-purple-500 transition-colors cursor-pointer bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-lg"
-                onClick={() => setShowResourceWidget(true)}
+                onClick={() => setShowAIAgent(true)}
               >
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
@@ -548,6 +548,13 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
       <ResourceWidget 
         open={showResourceWidget}
         onOpenChange={setShowResourceWidget}
+        onResourceAdded={onRefresh}
+      />
+
+      {/* AI Agent Widget */}
+      <AIAgentWidget 
+        open={showAIAgent}
+        onOpenChange={setShowAIAgent}
         onResourceAdded={onRefresh}
       />
     </div>
