@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar, Sparkles, Search, Trash2, AlertTriangle, Bot, Eye, Filter, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, startOfWeek, endOfWeek, getWeeksInMonth, startOfMonth, endOfMonth } from "date-fns";
 import { useLogEntries } from "@/hooks/use-firestore";
 import { getAiAnalysis, deleteAiAnalysis } from "@/lib/firestore";
@@ -42,8 +43,7 @@ export const GalleryView = () => {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [timeFilter, setTimeFilter] = useState("all");
   const [themeFilter, setThemeFilter] = useState("all");
-  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
-  const [isFilterExpanded, setIsFilterExpanded] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedCardIndex, setSelectedCardIndex] = useState<number[]>([0, 0, 0, 0]); // One for each week
   const [expandedCard, setExpandedCard] = useState<GalleryItem | null>(null);
   const [deleteDialogItem, setDeleteDialogItem] = useState<GalleryItem | null>(null);
@@ -368,8 +368,7 @@ export const GalleryView = () => {
     setCategoryFilter("all");
     setTimeFilter("all");
     setThemeFilter("all");
-    setIsSearchExpanded(false);
-    setIsFilterExpanded(false);
+    setIsFilterOpen(false);
   };
 
   // Reset indices when data changes
@@ -400,56 +399,26 @@ export const GalleryView = () => {
 
   return (
     <div className="space-y-8">
-      {/* Compact Search and Filter Controls */}
+      {/* Search and Filter Controls */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          {/* Expandable Search */}
-          <div className="flex items-center">
-            {!isSearchExpanded ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsSearchExpanded(true)}
-                className={`relative ${searchQuery ? 'text-blue-600 dark:text-blue-400' : ''}`}
-              >
-                <Search className="h-4 w-4" />
-                {searchQuery && (
-                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full" />
-                )}
-              </Button>
-            ) : (
-              <div className="flex items-center gap-2">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search sessions..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 w-64"
-                    autoFocus
-                  />
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setSearchQuery("");
-                    setIsSearchExpanded(false);
-                  }}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
+          {/* Search Box */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search sessions, themes, or notes..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 w-80"
+            />
           </div>
 
-          {/* Expandable Filters */}
-          <div className="flex items-center">
-            {!isFilterExpanded ? (
+          {/* Filter Dropdown */}
+          <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+            <PopoverTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setIsFilterExpanded(true)}
                 className={`relative ${hasActiveFilters ? 'text-blue-600 dark:text-blue-400' : ''}`}
               >
                 <Filter className="h-4 w-4" />
@@ -457,68 +426,84 @@ export const GalleryView = () => {
                   <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full" />
                 )}
               </Button>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                  <SelectTrigger className="w-36">
-                    <SelectValue placeholder="Category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Items</SelectItem>
-                    <SelectItem value="with-analysis">With Analysis</SelectItem>
-                    <SelectItem value="themes">Has Themes</SelectItem>
-                    <SelectItem value="prompts">Has Prompts</SelectItem>
-                  </SelectContent>
-                </Select>
+            </PopoverTrigger>
+            <PopoverContent className="w-64 p-4" align="start">
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium text-sm text-foreground mb-2">Filter Options</h4>
+                </div>
+                
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-2 block">Category</label>
+                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Items</SelectItem>
+                        <SelectItem value="with-analysis">With Analysis</SelectItem>
+                        <SelectItem value="themes">Has Themes</SelectItem>
+                        <SelectItem value="prompts">Has Prompts</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                <Select value={timeFilter} onValueChange={setTimeFilter}>
-                  <SelectTrigger className="w-36">
-                    <SelectValue placeholder="Time" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Time</SelectItem>
-                    <SelectItem value="this-week">This Week</SelectItem>
-                    <SelectItem value="this-month">This Month</SelectItem>
-                    <SelectItem value="last-30-days">Last 30 Days</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-2 block">Time Period</label>
+                    <Select value={timeFilter} onValueChange={setTimeFilter}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Time</SelectItem>
+                        <SelectItem value="this-week">This Week</SelectItem>
+                        <SelectItem value="this-month">This Month</SelectItem>
+                        <SelectItem value="last-30-days">Last 30 Days</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                <Select value={themeFilter} onValueChange={setThemeFilter}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Theme" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Themes</SelectItem>
-                    {uniqueThemes.map((theme) => (
-                      <SelectItem key={theme} value={theme}>
-                        {theme}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-2 block">Theme</label>
+                    <Select value={themeFilter} onValueChange={setThemeFilter}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Themes</SelectItem>
+                        {uniqueThemes.map((theme) => (
+                          <SelectItem key={theme} value={theme}>
+                            {theme}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsFilterExpanded(false)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+                {hasActiveFilters && (
+                  <div className="pt-2 border-t">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={clearAllFilters}
+                      className="w-full"
+                    >
+                      Clear All Filters
+                    </Button>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </PopoverContent>
+          </Popover>
         </div>
 
-        {/* Clear All Filters */}
+        {/* Active Filter Indicator */}
         {hasActiveFilters && (
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={clearAllFilters}
-            className="text-xs"
-          >
-            Clear All
-          </Button>
+          <div className="text-xs text-muted-foreground">
+            {filteredItems.length} of {galleryItems.length} sessions
+          </div>
         )}
       </div>
 
