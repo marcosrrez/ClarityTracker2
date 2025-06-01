@@ -376,7 +376,27 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
         <div className="h-full flex flex-col">
           {/* Header */}
           <div className="px-4 py-3 border-b border-gray-200 dark:border-slate-700">
-            <h3 className="text-sm font-medium text-gray-900 dark:text-white">Add Resource</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-medium text-gray-900 dark:text-white">Add Resource</h3>
+              {conversationHistory.length > 0 && (
+                <div className="flex gap-1">
+                  <button
+                    onClick={handleSaveConversation}
+                    className="p-1 text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200"
+                    title="Save conversation"
+                  >
+                    <History className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => setConversationHistory([])}
+                    className="p-1 text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200"
+                    title="Clear chat"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Content Area */}
