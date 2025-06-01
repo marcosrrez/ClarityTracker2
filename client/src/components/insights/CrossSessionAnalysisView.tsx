@@ -18,8 +18,10 @@ import {
   Brain,
   Calendar,
   BarChart3,
-  Sparkles
+  Sparkles,
+  Plus
 } from "lucide-react";
+import { Link } from "wouter";
 
 export const CrossSessionAnalysisView = () => {
   const { user, userProfile } = useAuth();
