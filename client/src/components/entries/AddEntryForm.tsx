@@ -106,9 +106,39 @@ export const AddEntryForm = () => {
     try {
       const analysis = await analyzeSessionNotes(noteText);
       setAiAnalysis(analysis);
+      
+      // Save the analysis to the gallery and dashboard data
+      const logEntry = {
+        dateOfContact: new Date(),
+        clientContactHours: 0,
+        indirectHours: false,
+        supervisionHours: 0,
+        supervisionType: "none" as const,
+        techAssistedSupervision: false,
+        professionalDevelopmentHours: 0,
+        professionalDevelopmentType: "none" as const,
+        notes: noteText
+      };
+
+      const logEntryId = await createLogEntry(user.uid, logEntry);
+
+      // Save the AI analysis linked to the log entry
+      const aiAnalysisData = {
+        logEntryId: logEntryId,
+        summary: analysis.summary,
+        themes: analysis.themes,
+        potentialBlindSpots: analysis.potentialBlindSpots || [],
+        reflectivePrompts: analysis.reflectivePrompts,
+        keyLearnings: analysis.keyLearnings || [],
+        ccsrCategory: analysis.ccsrCategory || "General",
+        originalNotesSnapshot: noteText
+      };
+
+      await createAiAnalysis(user.uid, aiAnalysisData);
+      
       toast({
-        title: "AI Analysis Complete",
-        description: "Your session notes have been analyzed. Review the insights below.",
+        title: "Analysis Complete",
+        description: "Your insights have been saved to your gallery and will appear in your dashboard.",
       });
     } catch (error) {
       console.error("AI analysis error:", error);
@@ -865,55 +895,72 @@ export const AddEntryForm = () => {
                     {editor?.getText().length || 0} characters
                   </div>
                 </div>
-              </div>
 
-              {/* AI Analysis Results */}
-              {aiAnalysis && (
-                <div className="mt-6 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl border border-blue-200 dark:border-blue-700">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
-                      <Sparkles className="w-4 h-4 text-white" />
+                {/* AI Analysis Results - Positioned directly below notes */}
+                {aiAnalysis && (
+                  <div className="mt-4 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl border border-blue-200 dark:border-blue-700">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
+                        <Sparkles className="w-4 h-4 text-white" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100">AI Analysis Results</h3>
+                      <div className="ml-auto text-xs text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-800 px-2 py-1 rounded-full">
+                        Saved to Gallery
+                      </div>
                     </div>
-                    <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100">AI Analysis Results</h3>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    {aiAnalysis.summary && (
-                      <div>
-                        <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Summary</h4>
-                        <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{aiAnalysis.summary}</p>
-                      </div>
-                    )}
                     
-                    {aiAnalysis.themes && aiAnalysis.themes.length > 0 && (
-                      <div>
-                        <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Key Themes</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {aiAnalysis.themes.map((theme: string, index: number) => (
-                            <span key={index} className="px-3 py-1 bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 text-xs rounded-full">
-                              {theme}
-                            </span>
-                          ))}
+                    <div className="space-y-4">
+                      {aiAnalysis.summary && (
+                        <div>
+                          <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Summary</h4>
+                          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{aiAnalysis.summary}</p>
                         </div>
-                      </div>
-                    )}
-                    
-                    {aiAnalysis.reflectivePrompts && aiAnalysis.reflectivePrompts.length > 0 && (
-                      <div>
-                        <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Reflective Questions</h4>
-                        <ul className="space-y-1">
-                          {aiAnalysis.reflectivePrompts.map((prompt: string, index: number) => (
-                            <li key={index} className="text-sm text-gray-700 dark:text-gray-300 flex items-start gap-2">
-                              <span className="text-blue-500 mt-1">•</span>
-                              {prompt}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                      )}
+                      
+                      {aiAnalysis.themes && aiAnalysis.themes.length > 0 && (
+                        <div>
+                          <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Key Themes</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {aiAnalysis.themes.map((theme: string, index: number) => (
+                              <span key={index} className="px-3 py-1 bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 text-xs rounded-full">
+                                {theme}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {aiAnalysis.reflectivePrompts && aiAnalysis.reflectivePrompts.length > 0 && (
+                        <div>
+                          <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Reflective Questions</h4>
+                          <ul className="space-y-2">
+                            {aiAnalysis.reflectivePrompts.map((prompt: string, index: number) => (
+                              <li key={index} className="text-sm text-gray-700 dark:text-gray-300 flex items-start gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg">
+                                <span className="text-blue-500 mt-0.5 font-medium">?</span>
+                                {prompt}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {aiAnalysis.keyLearnings && aiAnalysis.keyLearnings.length > 0 && (
+                        <div>
+                          <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Key Learnings</h4>
+                          <ul className="space-y-1">
+                            {aiAnalysis.keyLearnings.map((learning: string, index: number) => (
+                              <li key={index} className="text-sm text-gray-700 dark:text-gray-300 flex items-start gap-2">
+                                <span className="text-emerald-500 mt-1">→</span>
+                                {learning}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             {/* Submit Button */}
