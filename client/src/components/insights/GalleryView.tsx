@@ -115,7 +115,7 @@ export function GalleryView({ userId }: GalleryViewProps) {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || cardsLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <LoadingSpinner size="lg" />

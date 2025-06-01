@@ -10,6 +10,7 @@ import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { createInsightCard } from "@/lib/firestore";
 import { useAuth } from "@/hooks/use-auth";
+import { ResourceWidget } from "./ResourceWidget";
 import type { InsertInsightCard } from "@shared/schema";
 
 interface GalleryItem {
@@ -35,6 +36,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
   const [isSaving, setIsSaving] = useState(false);
   const [selectedSmartSpace, setSelectedSmartSpace] = useState<string>("all");
   const [showSmartSpaces, setShowSmartSpaces] = useState(false);
+  const [showResourceWidget, setShowResourceWidget] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -193,12 +195,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
             </Button>
             <Button 
               className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-14 h-14 p-0 shadow-lg"
-              onClick={() => {
-                toast({
-                  title: "Article Scraping",
-                  description: "Web scraping feature coming soon!",
-                });
-              }}
+              onClick={() => setShowResourceWidget(true)}
             >
               <Plus className="h-6 w-6" />
             </Button>
@@ -521,6 +518,13 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Resource Widget */}
+      <ResourceWidget 
+        open={showResourceWidget}
+        onOpenChange={setShowResourceWidget}
+        onResourceAdded={onRefresh}
+      />
     </div>
   );
 }
