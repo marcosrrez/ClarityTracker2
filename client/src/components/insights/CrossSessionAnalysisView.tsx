@@ -102,7 +102,7 @@ export const CrossSessionAnalysisView = () => {
         <Button 
           onClick={generateAnalysis} 
           disabled={isGenerating || !totalSessions}
-          className="min-w-32"
+          className="rounded-xl font-medium h-12 px-6 transition-all duration-300"
         >
           {isGenerating ? "Analyzing..." : "Generate Analysis"}
         </Button>
@@ -111,49 +111,49 @@ export const CrossSessionAnalysisView = () => {
       {/* Session Overview Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center space-x-2">
-              <Calendar className="h-5 w-5 text-blue-500" />
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-2xl font-bold">{totalSessions}</p>
-                <p className="text-sm text-muted-foreground">Total Sessions</p>
+                <p className="text-sm font-medium text-muted-foreground">Total Sessions</p>
+                <p className="text-3xl font-bold text-foreground">{totalSessions}</p>
               </div>
+              <Calendar className="h-8 w-8 text-blue-500" />
             </div>
           </CardContent>
         </Card>
         
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center space-x-2">
-              <BarChart3 className="h-5 w-5 text-green-500" />
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-2xl font-bold">{totalHours}h</p>
-                <p className="text-sm text-muted-foreground">Client Contact Hours</p>
+                <p className="text-sm font-medium text-muted-foreground">Client Contact Hours</p>
+                <p className="text-3xl font-bold text-foreground">{totalHours}h</p>
               </div>
+              <BarChart3 className="h-8 w-8 text-green-500" />
             </div>
           </CardContent>
         </Card>
         
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center space-x-2">
-              <BookOpen className="h-5 w-5 text-amber-500" />
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-2xl font-bold">{insightCards.length}</p>
-                <p className="text-sm text-muted-foreground">Insight Cards</p>
+                <p className="text-sm font-medium text-muted-foreground">Insight Cards</p>
+                <p className="text-3xl font-bold text-foreground">{insightCards.length}</p>
               </div>
+              <BookOpen className="h-8 w-8 text-amber-500" />
             </div>
           </CardContent>
         </Card>
         
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center space-x-2">
-              <TrendingUp className="h-5 w-5 text-purple-500" />
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-2xl font-bold">{timeSpan}</p>
-                <p className="text-sm text-muted-foreground">Days Tracked</p>
+                <p className="text-sm font-medium text-muted-foreground">Days Tracked</p>
+                <p className="text-3xl font-bold text-foreground">{timeSpan}</p>
               </div>
+              <TrendingUp className="h-8 w-8 text-purple-500" />
             </div>
           </CardContent>
         </Card>
