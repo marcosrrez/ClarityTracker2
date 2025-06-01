@@ -36,6 +36,45 @@ export function MyMindLayout({ galleryItems, onItemClick }: MyMindLayoutProps) {
     format(new Date(item.dateOfContact), "MMM d, yyyy").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Group items by time period for Disney-style browsing
+  const getTimeGroupedItems = () => {
+    const now = new Date();
+    const thisWeek = [];
+    const thisMonth = [];
+    const earlier = [];
+
+    const startOfThisWeek = new Date(now);
+    startOfThisWeek.setDate(now.getDate() - now.getDay());
+    startOfThisWeek.setHours(0, 0, 0, 0);
+
+    const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    for (const item of filteredItems) {
+      const itemDate = new Date(item.dateOfContact);
+      
+      if (itemDate >= startOfThisWeek) {
+        thisWeek.push(item);
+      } else if (itemDate >= startOfThisMonth) {
+        thisMonth.push(item);
+      } else {
+        earlier.push(item);
+      }
+    }
+
+    const groups = [];
+    if (thisWeek.length > 0) {
+      groups.push({ label: "This Week", items: thisWeek });
+    }
+    if (thisMonth.length > 0) {
+      groups.push({ label: "This Month", items: thisMonth });
+    }
+    if (earlier.length > 0) {
+      groups.push({ label: "Earlier", items: earlier });
+    }
+
+    return groups;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Search Bar - MyMind Style */}
@@ -44,14 +83,14 @@ export function MyMindLayout({ galleryItems, onItemClick }: MyMindLayoutProps) {
           <div className="flex-1 relative">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
             <Input
-              placeholder="Search my mind..."
+              placeholder="Search my insights and resources..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-full h-14 text-lg"
             />
           </div>
           <Button 
-            className="bg-orange-500 hover:bg-orange-600 text-white rounded-full w-14 h-14 p-0 shadow-lg"
+            className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-14 h-14 p-0 shadow-lg"
             onClick={() => {
               toast({
                 title: "Article Scraping",
@@ -64,90 +103,121 @@ export function MyMindLayout({ galleryItems, onItemClick }: MyMindLayoutProps) {
         </div>
       </div>
 
-      {/* Masonry Grid Layout - MyMind Style */}
+      {/* Disney-Style Horizontal Scrolling by Time Period */}
       <div className="px-6 pb-32">
-        <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 gap-6 space-y-6">
-          {filteredItems.map((item) => (
-            <div key={item.id} className="break-inside-avoid mb-6">
-              <Card 
-                className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden"
-                onClick={() => onItemClick(item)}
-              >
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    {/* Date and Duration */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-sm text-gray-500">
-                        <Calendar className="h-3 w-3" />
-                        <span>{format(new Date(item.dateOfContact), "MMM d, yyyy")}</span>
-                      </div>
-                      <Badge variant="secondary" className="text-xs">
-                        {item.clientContactHours}h
-                      </Badge>
-                    </div>
-
-                    {/* Notes Content */}
-                    <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                      {item.notes}
-                    </div>
-
-                    {/* AI Analysis Tags */}
-                    {item.analysis && item.analysis.themes && Array.isArray(item.analysis.themes) && (
-                      <div className="flex flex-wrap gap-1">
-                        {item.analysis.themes.slice(0, 3).map((theme: string, index: number) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {theme}
-                          </Badge>
-                        ))}
-                        {item.analysis.themes.length > 3 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{item.analysis.themes.length - 3}
-                          </Badge>
-                        )}
-                      </div>
-                    )}
-
-                    {/* AI Badge */}
-                    {item.analysis && (
-                      <div className="flex items-center gap-1 text-xs text-blue-600">
-                        <Sparkles className="h-3 w-3" />
-                        <span>AI Analysis</span>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+        {filteredItems.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-lg mx-auto mb-4 flex items-center justify-center">
+              <Sparkles className="h-6 w-6 text-gray-400" />
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Add Note Card - Fixed at Bottom MyMind Style */}
-      <div className="fixed bottom-6 left-6 right-6 z-30">
-        <div className="max-w-md mx-auto">
-          <Card 
-            className="border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-orange-400 dark:hover:border-orange-500 transition-colors cursor-pointer bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm"
-            onClick={() => {
-              setShowNoteEditor(true);
-              setNoteContent("");
-              setNoteTitle("");
-              setIsHeaderVisible(true);
-            }}
-          >
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center flex-shrink-0">
-                  <Plus className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">No Session Insights Yet</h3>
+            <p className="text-muted-foreground">
+              Your session insights will appear here organized by time period.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-8">
+            {getTimeGroupedItems().map((group, groupIndex) => (
+              <div key={groupIndex} className="space-y-4">
+                {/* Row Header */}
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-semibold text-foreground">{group.label}</h3>
+                  <Badge variant="outline" className="text-xs">
+                    {group.items.length} session{group.items.length !== 1 ? 's' : ''}
+                  </Badge>
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-sm text-orange-600 dark:text-orange-400">ADD A NEW NOTE</h3>
-                  <p className="text-muted-foreground text-sm">
-                    Start typing here...
-                  </p>
+
+                {/* Horizontal Scrolling Cards */}
+                <div className="relative">
+                  <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-4 scroll-smooth">
+                    {group.items.map((item) => (
+                      <div key={item.id} className="flex-shrink-0 w-72">
+                        <Card 
+                          className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-full"
+                          onClick={() => onItemClick(item)}
+                        >
+                          <CardContent className="p-6">
+                            <div className="space-y-4">
+                              {/* Date and Duration */}
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 text-sm text-gray-500">
+                                  <Calendar className="h-3 w-3" />
+                                  <span>{format(new Date(item.dateOfContact), "MMM d, yyyy")}</span>
+                                </div>
+                                <Badge variant="secondary" className="text-xs">
+                                  {item.clientContactHours}h
+                                </Badge>
+                              </div>
+
+                              {/* Notes Content */}
+                              <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-4">
+                                {item.notes}
+                              </div>
+
+                              {/* AI Analysis Tags */}
+                              {item.analysis && item.analysis.themes && Array.isArray(item.analysis.themes) && (
+                                <div className="flex flex-wrap gap-1">
+                                  {item.analysis.themes.slice(0, 2).map((theme: string, index: number) => (
+                                    <Badge key={index} variant="outline" className="text-xs">
+                                      {theme}
+                                    </Badge>
+                                  ))}
+                                  {item.analysis.themes.length > 2 && (
+                                    <Badge variant="outline" className="text-xs">
+                                      +{item.analysis.themes.length - 2}
+                                    </Badge>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* AI Badge */}
+                              {item.analysis && (
+                                <div className="flex items-center gap-1 text-xs text-blue-600">
+                                  <Sparkles className="h-3 w-3" />
+                                  <span>AI Analysis</span>
+                                </div>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Add Note Card - Connected to Bottom MyMind Style */}
+      <div className="fixed bottom-0 left-0 right-0 z-30">
+        <div className="bg-gradient-to-t from-gray-50 to-transparent dark:from-gray-900 dark:to-transparent pt-8 pb-0">
+          <div className="max-w-md mx-auto px-6">
+            <Card 
+              className="border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 transition-colors cursor-pointer bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-lg"
+              onClick={() => {
+                setShowNoteEditor(true);
+                setNoteContent("");
+                setNoteTitle("");
+                setIsHeaderVisible(true);
+              }}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
+                    <Plus className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-sm text-blue-600 dark:text-blue-400">ADD A NEW NOTE</h3>
+                    <p className="text-muted-foreground text-sm">
+                      Start typing here...
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
 

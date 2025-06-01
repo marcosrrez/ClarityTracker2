@@ -14,15 +14,8 @@ export default function InsightsPage() {
     trackPageView('insights');
   }, [trackPageView]);
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-700 dark:from-white dark:via-gray-100 dark:to-gray-300 bg-clip-text text-transparent mb-3">
-          Insights & Resources
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400 max-w-3xl text-lg font-medium leading-relaxed">
-          AI-powered analysis, pattern discovery, and professional development insights to accelerate your growth toward licensure.
-        </p>
-      </div>
+    <div className="w-full">
+      {/* Remove the header - search bar will contain the title */}
       
       <Tabs defaultValue="gallery" className="w-full">
         <TabsList className="grid w-full grid-cols-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-2xl h-14 items-center">
