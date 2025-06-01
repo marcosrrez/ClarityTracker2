@@ -32,7 +32,7 @@ export const logEntrySchema = z.object({
   id: z.string(),
   userId: z.string(),
   dateOfContact: z.date(),
-  clientContactHours: z.number().min(0).max(24),
+  clientContactHours: z.number().min(0).max(24).default(0),
   indirectHours: z.boolean().default(false),
   supervisionHours: z.number().min(0).max(8).default(0),
   supervisionType: z.enum(["none", "individual", "dyadic", "group"]).default("none"),

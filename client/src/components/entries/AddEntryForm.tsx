@@ -40,6 +40,7 @@ export const AddEntryForm = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showProfDev, setShowProfDev] = useState(false);
   const [showSupervision, setShowSupervision] = useState(false);
+  const [showDirectClient, setShowDirectClient] = useState(false);
 
   const {
     register,
@@ -205,6 +206,9 @@ export const AddEntryForm = () => {
                   setValue("supervisionType", "none");
                   setValue("professionalDevelopmentType", "none");
                   setValue("techAssistedSupervision", false);
+                  setShowDirectClient(true);
+                  setShowSupervision(false);
+                  setShowProfDev(false);
                 }}
                 className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors text-center"
               >
@@ -223,7 +227,9 @@ export const AddEntryForm = () => {
                   setValue("supervisionType", "individual");
                   setValue("professionalDevelopmentType", "none");
                   setValue("techAssistedSupervision", false);
+                  setShowDirectClient(false);
                   setShowSupervision(true);
+                  setShowProfDev(false);
                 }}
                 className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors text-center"
               >
@@ -242,6 +248,8 @@ export const AddEntryForm = () => {
                   setValue("supervisionType", "none");
                   setValue("professionalDevelopmentType", "workshop");
                   setValue("techAssistedSupervision", false);
+                  setShowDirectClient(false);
+                  setShowSupervision(false);
                   setShowProfDev(true);
                 }}
                 className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors text-center"
@@ -351,31 +359,54 @@ export const AddEntryForm = () => {
               )}
             </div>
 
-            {/* Client Contact Hours */}
-            <div className="space-y-2">
-              <Label htmlFor="clientContactHours" className="text-gray-700 font-medium">Client Contact Hours *</Label>
-              <Input
-                {...register("clientContactHours", { valueAsNumber: true })}
-                type="number"
-                step="0.25"
-                min="0"
-                className="rounded-3xl border-gray-200 focus:border-blue-500"
-              />
-              {errors.clientContactHours && (
-                <p className="text-sm text-red-500">{errors.clientContactHours.message}</p>
-              )}
-            </div>
+            {/* Direct Client Contact Section - Collapsible */}
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setShowDirectClient(!showDirectClient)}
+                className="w-full p-4 flex items-center justify-between hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+              >
+                <div className="flex items-center space-x-2">
+                  <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  <h3 className="font-semibold text-gray-900 dark:text-white">Direct Client Contact</h3>
+                </div>
+                {showDirectClient ? (
+                  <ChevronUp className="w-4 h-4 text-gray-500" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-gray-500" />
+                )}
+              </button>
+              
+              {showDirectClient && (
+                <div className="p-4 pt-0 space-y-4">
+                  {/* Client Contact Hours */}
+                  <div className="space-y-2">
+                    <Label htmlFor="clientContactHours" className="text-gray-700 dark:text-gray-300 font-medium">Client Contact Hours</Label>
+                    <Input
+                      {...register("clientContactHours", { valueAsNumber: true })}
+                      type="number"
+                      step="0.25"
+                      min="0"
+                      className="rounded-3xl border-gray-200 focus:border-blue-500"
+                    />
+                    {errors.clientContactHours && (
+                      <p className="text-sm text-red-500">{errors.clientContactHours.message}</p>
+                    )}
+                  </div>
 
-            {/* Indirect Hours Checkbox */}
-            <div className="flex items-center space-x-3">
-              <Checkbox
-                {...register("indirectHours")}
-                id="indirectHours"
-                className="rounded border-gray-300"
-              />
-              <Label htmlFor="indirectHours" className="text-gray-700 font-medium">
-                Indirect client contact hours
-              </Label>
+                  {/* Indirect Hours Checkbox */}
+                  <div className="flex items-center space-x-3">
+                    <Checkbox
+                      {...register("indirectHours")}
+                      id="indirectHours"
+                      className="rounded border-gray-300"
+                    />
+                    <Label htmlFor="indirectHours" className="text-gray-700 dark:text-gray-300 font-medium">
+                      Indirect client contact hours
+                    </Label>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Professional Development Section - Collapsible */}
