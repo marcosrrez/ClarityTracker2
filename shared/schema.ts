@@ -109,7 +109,7 @@ export const insightCardSchema = z.object({
     searchableContent: z.string(),
     confidence: z.number()
   }).optional(),
-  searchTags: z.array(z.string()).default([]), // Generated search tags
+  searchTags: z.array(z.string()).optional(), // Generated search tags
   createdAt: z.date().default(() => new Date()),
   updatedAt: z.date().default(() => new Date()),
 });
