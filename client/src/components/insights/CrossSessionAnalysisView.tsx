@@ -202,6 +202,174 @@ export const CrossSessionAnalysisView = () => {
         </Card>
       </div>
 
+      {/* Authentic Pattern Analysis from Session Data */}
+      {logEntries.length > 0 && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Pattern Recognition */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Brain className="h-5 w-5 text-indigo-500" />
+                  <span>Recurring Patterns</span>
+                </CardTitle>
+                <CardDescription>Themes emerging from your session notes</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {(() => {
+                    // Extract most common themes from session notes
+                    const commonWords = ['client', 'session', 'therapy', 'intervention', 'progress', 'challenge', 'boundary', 'rapport', 'assessment'];
+                    const themes = commonWords.filter(word => 
+                      logEntries.some((entry: any) => 
+                        entry.notes?.toLowerCase().includes(word) || 
+                        entry.supervisionNotes?.toLowerCase().includes(word)
+                      )
+                    ).slice(0, 4);
+                    
+                    return themes.length > 0 ? themes.map((theme, index) => (
+                      <div key={index} className="bg-indigo-50 dark:bg-indigo-950/20 p-3 rounded-lg">
+                        <p className="text-sm font-medium capitalize">{theme.replace('_', ' ')} Focus</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Mentioned in {logEntries.filter((entry: any) => 
+                            entry.notes?.toLowerCase().includes(theme) || 
+                            entry.supervisionNotes?.toLowerCase().includes(theme)
+                          ).length} sessions
+                        </p>
+                      </div>
+                    )) : (
+                      <p className="text-sm text-muted-foreground">Add more session notes to identify patterns</p>
+                    );
+                  })()}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Supervision Preparation */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Target className="h-5 w-5 text-blue-500" />
+                  <span>Supervision Readiness</span>
+                </CardTitle>
+                <CardDescription>Areas to discuss in your next supervision</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {(() => {
+                    const supervisionEntries = logEntries.filter((entry: any) => 
+                      entry.supervisionType && entry.supervisionType !== 'none'
+                    );
+                    
+                    if (supervisionEntries.length === 0) {
+                      return (
+                        <p className="text-sm text-muted-foreground">No supervision sessions documented yet</p>
+                      );
+                    }
+
+                    return supervisionEntries.slice(-3).map((entry: any, index: number) => (
+                      <div key={index} className="bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg">
+                        <p className="text-sm font-medium">{entry.supervisionType?.replace('_', ' ').toUpperCase()}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {format(new Date(entry.dateOfContact), 'MMM dd, yyyy')}
+                        </p>
+                      </div>
+                    ));
+                  })()}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Competency Tracking */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Star className="h-5 w-5 text-amber-500" />
+                  <span>Competency Development</span>
+                </CardTitle>
+                <CardDescription>Skills you're developing in practice</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {(() => {
+                    const competencyAreas = [
+                      { name: 'Assessment Skills', keywords: ['assess', 'evaluation', 'screening'] },
+                      { name: 'Intervention Techniques', keywords: ['intervention', 'technique', 'strategy'] },
+                      { name: 'Therapeutic Relationship', keywords: ['rapport', 'alliance', 'relationship'] },
+                      { name: 'Cultural Competence', keywords: ['cultural', 'diversity', 'background'] }
+                    ];
+
+                    const developedAreas = competencyAreas.filter(area => 
+                      area.keywords.some(keyword =>
+                        logEntries.some((entry: any) => 
+                          entry.notes?.toLowerCase().includes(keyword) || 
+                          entry.supervisionNotes?.toLowerCase().includes(keyword)
+                        )
+                      )
+                    ).slice(0, 3);
+
+                    return developedAreas.length > 0 ? developedAreas.map((area, index) => (
+                      <div key={index} className="bg-amber-50 dark:bg-amber-950/20 p-3 rounded-lg">
+                        <p className="text-sm font-medium">{area.name}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Evidence in your session documentation
+                        </p>
+                      </div>
+                    )) : (
+                      <p className="text-sm text-muted-foreground">Document more sessions to track competency development</p>
+                    );
+                  })()}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Professional Development Intelligence */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Sparkles className="h-5 w-5 text-purple-500" />
+                  <span>Growth Opportunities</span>
+                </CardTitle>
+                <CardDescription>Areas for continued development</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {(() => {
+                    const challengeKeywords = ['challenge', 'difficult', 'struggle', 'unclear', 'unsure'];
+                    const challengeEntries = logEntries.filter((entry: any) => 
+                      challengeKeywords.some(keyword => 
+                        entry.notes?.toLowerCase().includes(keyword) || 
+                        entry.supervisionNotes?.toLowerCase().includes(keyword)
+                      )
+                    );
+
+                    if (challengeEntries.length === 0) {
+                      return (
+                        <div className="bg-green-50 dark:bg-green-950/20 p-3 rounded-lg">
+                          <p className="text-sm font-medium">Strong Confidence</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            No major challenges documented recently
+                          </p>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="bg-purple-50 dark:bg-purple-950/20 p-3 rounded-lg">
+                        <p className="text-sm font-medium">Growth Areas Identified</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {challengeEntries.length} sessions mention learning opportunities
+                        </p>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+
       {!analysis && !isGenerating && totalSessions > 0 && (
         <Card>
           <CardContent className="pt-6 text-center">
