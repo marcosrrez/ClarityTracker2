@@ -222,9 +222,9 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="w-80 h-96 p-0 gap-0 rounded-2xl bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600 overflow-hidden" aria-describedby="resource-widget-description">
+      <DialogContent className="w-80 h-[420px] p-0 gap-0 rounded-2xl bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600 overflow-hidden" aria-describedby="resource-widget-description">
         <DialogTitle className="sr-only">Add Resource</DialogTitle>
-        <div className="p-4 h-full flex flex-col">
+        <div className="p-5 h-full flex flex-col">
           {!selectedMode ? (
             <>
               {/* Premium Search Bar */}
