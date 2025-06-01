@@ -224,7 +224,19 @@ Focus on professional development, clinical competency growth, and personalized 
     
   } catch (error) {
     console.error("Error generating cross-session analysis:", error);
-    throw new Error("Unable to generate cross-session analysis. Please try again.");
+    
+    // More specific error handling
+    if (error instanceof Error) {
+      if (error.message.includes('API key')) {
+        throw new Error("Google AI API key issue. Please check your API configuration.");
+      } else if (error.message.includes('quota')) {
+        throw new Error("API quota exceeded. Please try again later.");
+      } else if (error.message.includes('network') || error.message.includes('fetch')) {
+        throw new Error("Network connection issue. Please check your internet connection.");
+      }
+    }
+    
+    throw new Error(`Analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 };
 

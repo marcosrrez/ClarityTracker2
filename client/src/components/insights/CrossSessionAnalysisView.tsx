@@ -49,11 +49,21 @@ export const CrossSessionAnalysisView = () => {
       });
     } catch (error) {
       console.error("Error generating analysis:", error);
-      toast({
-        title: "Analysis Failed",
-        description: "Unable to generate cross-session analysis. Please try again.",
-        variant: "destructive",
-      });
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      
+      if (errorMessage.includes('API key')) {
+        toast({
+          title: "API Configuration Required",
+          description: "Google AI API access is needed for cross-session analysis. Please check your API key configuration.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Analysis Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -156,10 +166,21 @@ export const CrossSessionAnalysisView = () => {
               Generate comprehensive insights across your {totalSessions} sessions and {insightCards.length} insight cards.
               The AI will analyze all your session notes, previous analyses, and personal reflections for deep pattern discovery.
             </p>
-            <Button onClick={generateAnalysis}>
-              <Sparkles className="h-4 w-4 mr-2" />
-              Analyze My Journey
-            </Button>
+            <div className="flex flex-col gap-4">
+              <Button onClick={generateAnalysis}>
+                <Sparkles className="h-4 w-4 mr-2" />
+                Analyze My Journey
+              </Button>
+              <div className="text-center">
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
+                  <h4 className="font-medium text-yellow-800 dark:text-yellow-200 mb-2">Manual Analysis Available</h4>
+                  <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                    View session data, themes, and patterns from your actual entries below. 
+                    For AI-powered cross-session analysis, please ensure your Google AI API key is properly configured.
+                  </p>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -336,7 +357,102 @@ export const CrossSessionAnalysisView = () => {
               </CardContent>
             </Card>
           )}
+
+          {/* Manual Data Analysis - Using Authentic Session Data */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <BarChart3 className="h-5 w-5 text-green-500" />
+                <span>Your Session Data Overview</span>
+              </CardTitle>
+              <CardDescription>Authentic patterns from your logged sessions</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Session Types Distribution */}
+                {logEntries.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="font-medium">Session Types</h4>
+                    {(() => {
+                      const sessionTypes = logEntries.reduce((acc: any, entry: any) => {
+                        const type = entry.supervisionType && entry.supervisionType !== 'none' 
+                          ? 'Supervision' 
+                          : entry.indirectHours 
+                            ? 'Indirect Contact' 
+                            : 'Direct Contact';
+                        acc[type] = (acc[type] || 0) + 1;
+                        return acc;
+                      }, {});
+                      
+                      return Object.entries(sessionTypes).map(([type, count]) => (
+                        <div key={type} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                          <span className="text-sm">{type}</span>
+                          <Badge variant="secondary">{count as number} sessions</Badge>
+                        </div>
+                      ));
+                    })()}
+                  </div>
+                )}
+
+                {/* Recent Activity Timeline */}
+                {logEntries.slice(-5).length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="font-medium">Recent Activity</h4>
+                    <div className="space-y-2">
+                      {logEntries.slice(-5).reverse().map((entry: any, index: number) => (
+                        <div key={entry.id || index} className="flex items-start space-x-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                          <Calendar className="h-4 w-4 text-blue-500 mt-0.5" />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="text-sm font-medium">
+                                {new Date(entry.dateOfContact).toLocaleDateString()}
+                              </p>
+                              <Badge variant="outline" className="text-xs">
+                                {entry.clientContactHours}h
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                              {entry.notes.substring(0, 80)}...
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
+      )}
+
+      {/* Empty State with Better Guidance */}
+      {totalSessions === 0 && !isLoading && (
+        <Card>
+          <CardContent className="pt-12 pb-12 text-center">
+            <Calendar className="h-16 w-16 text-muted-foreground mx-auto mb-6" />
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3">
+              Start Your Professional Journey
+            </h3>
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+              Begin logging your sessions to unlock powerful pattern analysis and professional development insights.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button asChild>
+                <Link href="/add-entry">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Your First Session
+                </Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link href="/dashboard">
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  View Dashboard
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
