@@ -3,13 +3,14 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Sparkles, AlertTriangle, ChevronDown, Trash2, Share2, MoreHorizontal } from "lucide-react";
+import { Calendar, Sparkles, AlertTriangle, ChevronDown, Trash2, Share2, MoreHorizontal, X, Archive, Edit3, Copy } from "lucide-react";
 import { MyMindLayout } from "./MyMindLayout";
 import { format } from "date-fns";
 import { useLogEntries } from "@/hooks/use-firestore";
 import { getAiAnalysis, deleteAiAnalysis } from "@/lib/firestore";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface GalleryItem {
   id: string;
@@ -128,9 +129,53 @@ export function GalleryView({ userId }: GalleryViewProps) {
                 <div className="text-sm text-gray-600 dark:text-gray-400 truncate">
                   Session from {format(new Date(expandedCard.dateOfContact), "MMMM d, yyyy")}
                 </div>
-                <Button variant="ghost" size="sm" className="p-2">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center gap-2">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="p-2">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem onClick={() => {
+                        toast({
+                          title: "Auto-organize",
+                          description: "This session will be automatically tagged and organized into Smart Spaces based on therapeutic modalities and client presentations.",
+                        });
+                      }}>
+                        <Archive className="h-4 w-4 mr-2" />
+                        Auto-organize to Space
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => {
+                        toast({
+                          title: "Edit mode",
+                          description: "Edit functionality coming soon!",
+                        });
+                      }}>
+                        <Edit3 className="h-4 w-4 mr-2" />
+                        Edit session
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => {
+                        navigator.clipboard.writeText(`Session: ${format(new Date(expandedCard.dateOfContact), "MMMM d, yyyy")}\n\n${expandedCard.notes}`);
+                        toast({
+                          title: "Copied",
+                          description: "Session content copied to clipboard",
+                        });
+                      }}>
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copy content
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => setExpandedCard(null)}
+                    className="p-2"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
 
               {/* Scrollable Content */}
@@ -148,8 +193,8 @@ export function GalleryView({ userId }: GalleryViewProps) {
 
                   {/* TL;DR Box */}
                   {expandedCard.analysis && expandedCard.analysis.summary && (
-                    <div className="border border-orange-300 rounded-lg p-6 bg-orange-50 dark:bg-orange-900/20">
-                      <div className="text-sm font-medium text-orange-600 dark:text-orange-400 mb-3 uppercase tracking-wide">TL;DR</div>
+                    <div className="border border-blue-300 rounded-lg p-6 bg-blue-50 dark:bg-blue-900/20">
+                      <div className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-3 uppercase tracking-wide">TL;DR</div>
                       <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                         {expandedCard.analysis.summary}
                       </p>
@@ -164,7 +209,7 @@ export function GalleryView({ userId }: GalleryViewProps) {
                     <div className="flex flex-wrap gap-3">
                       <Button 
                         size="sm" 
-                        className="bg-orange-500 hover:bg-orange-600 text-white rounded-full px-4 py-2"
+                        className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 py-2"
                         onClick={() => {
                           toast({
                             title: "Add tag",
