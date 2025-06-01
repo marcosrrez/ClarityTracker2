@@ -39,7 +39,7 @@ export default function InsightsPage() {
         </TabsList>
         
         <TabsContent value="gallery" className="mt-6">
-          <GalleryView />
+          <GalleryView userId={user?.uid || ""} />
         </TabsContent>
         
         <TabsContent value="resources" className="mt-6">

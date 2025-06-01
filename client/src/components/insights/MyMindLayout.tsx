@@ -153,7 +153,7 @@ export function MyMindLayout({ galleryItems, onItemClick }: MyMindLayoutProps) {
 
       {/* Note Editor Modal - MyMind Style */}
       <Dialog open={showNoteEditor} onOpenChange={setShowNoteEditor}>
-        <DialogContent className="max-w-none w-full h-full p-0 gap-0 bg-gray-50 dark:bg-gray-900">
+        <DialogContent className="max-w-none w-full h-full p-0 gap-0 bg-gray-50 dark:bg-gray-900" aria-describedby="note-editor-description">
           <div className="flex flex-col h-full">
             {/* Header - hides on scroll */}
             <div className={`transition-all duration-300 ${isHeaderVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full absolute'}`}>
