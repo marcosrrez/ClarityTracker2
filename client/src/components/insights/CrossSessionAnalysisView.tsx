@@ -108,16 +108,23 @@ export const CrossSessionAnalysisView = () => {
         </Button>
       </div>
 
-      {/* Session Overview Stats */}
+      {/* Professional Development Insights */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Sessions</p>
-                <p className="text-3xl font-bold text-foreground">{totalSessions}</p>
+                <p className="text-sm font-medium text-muted-foreground">Supervision Topics</p>
+                <p className="text-3xl font-bold text-foreground">
+                  {(() => {
+                    const supervisionEntries = logEntries.filter((entry: any) => 
+                      entry.supervisionType && entry.supervisionType !== 'none'
+                    );
+                    return supervisionEntries.length;
+                  })()}
+                </p>
               </div>
-              <Calendar className="h-8 w-8 text-blue-500" />
+              <Target className="h-8 w-8 text-blue-500" />
             </div>
           </CardContent>
         </Card>
@@ -126,10 +133,21 @@ export const CrossSessionAnalysisView = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Client Contact Hours</p>
-                <p className="text-3xl font-bold text-foreground">{totalHours}h</p>
+                <p className="text-sm font-medium text-muted-foreground">Growth Areas Identified</p>
+                <p className="text-3xl font-bold text-foreground">
+                  {(() => {
+                    const growthKeywords = ['challenge', 'difficult', 'struggle', 'learn', 'improve', 'develop'];
+                    const growthMentions = logEntries.filter((entry: any) => 
+                      growthKeywords.some(keyword => 
+                        entry.notes?.toLowerCase().includes(keyword) || 
+                        entry.supervisionNotes?.toLowerCase().includes(keyword)
+                      )
+                    ).length;
+                    return growthMentions;
+                  })()}
+                </p>
               </div>
-              <BarChart3 className="h-8 w-8 text-green-500" />
+              <Lightbulb className="h-8 w-8 text-amber-500" />
             </div>
           </CardContent>
         </Card>
@@ -138,10 +156,24 @@ export const CrossSessionAnalysisView = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Insight Cards</p>
-                <p className="text-3xl font-bold text-foreground">{insightCards.length}</p>
+                <p className="text-sm font-medium text-muted-foreground">Therapeutic Modalities</p>
+                <p className="text-3xl font-bold text-foreground">
+                  {(() => {
+                    const modalityKeywords = ['cbt', 'dbt', 'emdr', 'therapy', 'intervention', 'technique', 'approach'];
+                    const modalityMentions = new Set();
+                    logEntries.forEach((entry: any) => {
+                      modalityKeywords.forEach(keyword => {
+                        if (entry.notes?.toLowerCase().includes(keyword) || 
+                            entry.supervisionNotes?.toLowerCase().includes(keyword)) {
+                          modalityMentions.add(keyword);
+                        }
+                      });
+                    });
+                    return modalityMentions.size;
+                  })()}
+                </p>
               </div>
-              <BookOpen className="h-8 w-8 text-amber-500" />
+              <Brain className="h-8 w-8 text-green-500" />
             </div>
           </CardContent>
         </Card>
@@ -150,10 +182,21 @@ export const CrossSessionAnalysisView = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Days Tracked</p>
-                <p className="text-3xl font-bold text-foreground">{timeSpan}</p>
+                <p className="text-sm font-medium text-muted-foreground">Reflection Depth</p>
+                <p className="text-3xl font-bold text-foreground">
+                  {(() => {
+                    const reflectionKeywords = ['reflect', 'realize', 'insight', 'understand', 'aware'];
+                    const reflectiveEntries = logEntries.filter((entry: any) => 
+                      reflectionKeywords.some(keyword => 
+                        entry.notes?.toLowerCase().includes(keyword) || 
+                        entry.supervisionNotes?.toLowerCase().includes(keyword)
+                      )
+                    ).length;
+                    return Math.round((reflectiveEntries / Math.max(logEntries.length, 1)) * 100);
+                  })()}%
+                </p>
               </div>
-              <TrendingUp className="h-8 w-8 text-purple-500" />
+              <Eye className="h-8 w-8 text-purple-500" />
             </div>
           </CardContent>
         </Card>
