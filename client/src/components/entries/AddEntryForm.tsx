@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Check, Lightbulb, Clock, Zap, ChevronDown, ChevronUp, GraduationCap, Users, Heart, BookOpen, Bold, Italic, List, Quote, Maximize2, Minimize2, Type, Palette, Link2, Code, AlignLeft, AlignCenter, AlignRight } from "lucide-react";
+import { Calendar as CalendarIcon, Check, Lightbulb, Clock, Zap, ChevronDown, ChevronUp, GraduationCap, Users, Heart, BookOpen, Bold, Italic, List, Quote, Maximize2, Minimize2, Type, Palette, Link2, Code, AlignLeft, AlignCenter, AlignRight, Brain, Sparkles } from "lucide-react";
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Highlight from '@tiptap/extension-highlight';
@@ -34,6 +34,8 @@ export const AddEntryForm = () => {
   const [notesContent, setNotesContent] = useState("");
   const [isNotesExpanded, setIsNotesExpanded] = useState(false);
   const [showAdvancedTools, setShowAdvancedTools] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [aiAnalysis, setAiAnalysis] = useState<any>(null);
 
   // Rich text editor
   const editor = useEditor({
@@ -79,6 +81,46 @@ export const AddEntryForm = () => {
   const watchedDateOfContact = watch("dateOfContact");
   const watchedSupervisionDate = watch("supervisionDate");
   const watchedSupervisionHours = watch("supervisionHours");
+
+  const handleAiAnalysis = async () => {
+    const noteText = editor?.getText() || "";
+    if (!noteText.trim()) {
+      toast({
+        title: "No notes to analyze",
+        description: "Please add some notes before requesting AI analysis.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to use AI analysis.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsAnalyzing(true);
+    try {
+      const analysis = await analyzeSessionNotes(noteText);
+      setAiAnalysis(analysis);
+      toast({
+        title: "AI Analysis Complete",
+        description: "Your session notes have been analyzed. Review the insights below.",
+      });
+    } catch (error) {
+      console.error("AI analysis error:", error);
+      toast({
+        title: "Analysis failed",
+        description: "Unable to analyze your notes. Please check your connection and try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   const applyTemplate = (template: 'client' | 'supervision' | 'development') => {
     // Reset all values first
@@ -688,9 +730,48 @@ export const AddEntryForm = () => {
                             ? "bg-yellow-500 text-white shadow-md"
                             : "hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
                         )}
+                        title="Highlight text"
                       >
                         <Lightbulb className="w-4 h-4" />
                       </button>
+
+                      <div className="w-px h-8 bg-gray-300 dark:bg-gray-600 mx-2" />
+                      
+                      {/* AI Analysis Button */}
+                      <div className="group relative">
+                        <button
+                          type="button"
+                          onClick={handleAiAnalysis}
+                          disabled={isAnalyzing || !editor?.getText().trim()}
+                          className={cn(
+                            "p-3 rounded-xl transition-all duration-200 relative",
+                            isAnalyzing 
+                              ? "bg-blue-500 text-white cursor-not-allowed"
+                              : !editor?.getText().trim()
+                              ? "text-gray-400 dark:text-gray-600 cursor-not-allowed"
+                              : "hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                          )}
+                        >
+                          {isAnalyzing ? (
+                            <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                          ) : (
+                            <Brain className="w-4 h-4" />
+                          )}
+                        </button>
+                        
+                        {/* Tooltip */}
+                        <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-20">
+                          <div className="bg-black text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap">
+                            {!editor?.getText().trim() 
+                              ? "Add notes to enable AI analysis"
+                              : isAnalyzing
+                              ? "Analyzing your notes..."
+                              : "Get AI insights from your notes"
+                            }
+                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-black"></div>
+                          </div>
+                        </div>
+                      </div>
 
                       {/* Advanced Tools Toggle - Only in expanded mode */}
                       {isNotesExpanded && (
@@ -785,6 +866,54 @@ export const AddEntryForm = () => {
                   </div>
                 </div>
               </div>
+
+              {/* AI Analysis Results */}
+              {aiAnalysis && (
+                <div className="mt-6 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl border border-blue-200 dark:border-blue-700">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
+                      <Sparkles className="w-4 h-4 text-white" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100">AI Analysis Results</h3>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {aiAnalysis.summary && (
+                      <div>
+                        <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Summary</h4>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{aiAnalysis.summary}</p>
+                      </div>
+                    )}
+                    
+                    {aiAnalysis.themes && aiAnalysis.themes.length > 0 && (
+                      <div>
+                        <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Key Themes</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {aiAnalysis.themes.map((theme: string, index: number) => (
+                            <span key={index} className="px-3 py-1 bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 text-xs rounded-full">
+                              {theme}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {aiAnalysis.reflectivePrompts && aiAnalysis.reflectivePrompts.length > 0 && (
+                      <div>
+                        <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Reflective Questions</h4>
+                        <ul className="space-y-1">
+                          {aiAnalysis.reflectivePrompts.map((prompt: string, index: number) => (
+                            <li key={index} className="text-sm text-gray-700 dark:text-gray-300 flex items-start gap-2">
+                              <span className="text-blue-500 mt-1">•</span>
+                              {prompt}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Submit Button */}
