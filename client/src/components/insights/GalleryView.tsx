@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Sparkles, Search, Trash2, AlertTriangle, Bot, Eye } from "lucide-react";
+import { Calendar, Sparkles, Search, Trash2, AlertTriangle, Bot, Eye, Filter, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { format, startOfWeek, endOfWeek, getWeeksInMonth, startOfMonth, endOfMonth } from "date-fns";
@@ -42,6 +42,8 @@ export const GalleryView = () => {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [timeFilter, setTimeFilter] = useState("all");
   const [themeFilter, setThemeFilter] = useState("all");
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [isFilterExpanded, setIsFilterExpanded] = useState(false);
   const [selectedCardIndex, setSelectedCardIndex] = useState<number[]>([0, 0, 0, 0]); // One for each week
   const [expandedCard, setExpandedCard] = useState<GalleryItem | null>(null);
   const [deleteDialogItem, setDeleteDialogItem] = useState<GalleryItem | null>(null);
@@ -357,6 +359,19 @@ export const GalleryView = () => {
   const weekDecks = createCardDecks(filteredItems);
   const uniqueThemes = getUniqueThemes(galleryItems);
 
+  // Check if any filters are active
+  const hasActiveFilters = searchQuery || categoryFilter !== "all" || timeFilter !== "all" || themeFilter !== "all";
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setSearchQuery("");
+    setCategoryFilter("all");
+    setTimeFilter("all");
+    setThemeFilter("all");
+    setIsSearchExpanded(false);
+    setIsFilterExpanded(false);
+  };
+
   // Reset indices when data changes
   useEffect(() => {
     setSelectedCardIndex([0, 0, 0, 0]);
@@ -385,74 +400,126 @@ export const GalleryView = () => {
 
   return (
     <div className="space-y-8">
-      {/* Search and Filter Controls */}
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search notes, insights, themes, or dates..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+      {/* Compact Search and Filter Controls */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          {/* Expandable Search */}
+          <div className="flex items-center">
+            {!isSearchExpanded ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsSearchExpanded(true)}
+                className={`relative ${searchQuery ? 'text-blue-600 dark:text-blue-400' : ''}`}
+              >
+                <Search className="h-4 w-4" />
+                {searchQuery && (
+                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full" />
+                )}
+              </Button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search sessions..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 w-64"
+                    autoFocus
+                  />
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setIsSearchExpanded(false);
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </div>
-          
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-full sm:w-40">
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Items</SelectItem>
-              <SelectItem value="with-analysis">With Analysis</SelectItem>
-              <SelectItem value="themes">Has Themes</SelectItem>
-              <SelectItem value="prompts">Has Prompts</SelectItem>
-            </SelectContent>
-          </Select>
+
+          {/* Expandable Filters */}
+          <div className="flex items-center">
+            {!isFilterExpanded ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsFilterExpanded(true)}
+                className={`relative ${hasActiveFilters ? 'text-blue-600 dark:text-blue-400' : ''}`}
+              >
+                <Filter className="h-4 w-4" />
+                {hasActiveFilters && (
+                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full" />
+                )}
+              </Button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger className="w-36">
+                    <SelectValue placeholder="Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Items</SelectItem>
+                    <SelectItem value="with-analysis">With Analysis</SelectItem>
+                    <SelectItem value="themes">Has Themes</SelectItem>
+                    <SelectItem value="prompts">Has Prompts</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={timeFilter} onValueChange={setTimeFilter}>
+                  <SelectTrigger className="w-36">
+                    <SelectValue placeholder="Time" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Time</SelectItem>
+                    <SelectItem value="this-week">This Week</SelectItem>
+                    <SelectItem value="this-month">This Month</SelectItem>
+                    <SelectItem value="last-30-days">Last 30 Days</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={themeFilter} onValueChange={setThemeFilter}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Theme" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Themes</SelectItem>
+                    {uniqueThemes.map((theme) => (
+                      <SelectItem key={theme} value={theme}>
+                        {theme}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsFilterExpanded(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4">
-          <Select value={timeFilter} onValueChange={setTimeFilter}>
-            <SelectTrigger className="w-full sm:w-40">
-              <SelectValue placeholder="Time Period" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Time</SelectItem>
-              <SelectItem value="this-week">This Week</SelectItem>
-              <SelectItem value="this-month">This Month</SelectItem>
-              <SelectItem value="last-30-days">Last 30 Days</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={themeFilter} onValueChange={setThemeFilter}>
-            <SelectTrigger className="w-full sm:w-48">
-              <SelectValue placeholder="Filter by Theme" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Themes</SelectItem>
-              {uniqueThemes.map((theme) => (
-                <SelectItem key={theme} value={theme}>
-                  {theme}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {(searchQuery || categoryFilter !== "all" || timeFilter !== "all" || themeFilter !== "all") && (
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setSearchQuery("");
-                setCategoryFilter("all");
-                setTimeFilter("all");
-                setThemeFilter("all");
-              }}
-              className="w-full sm:w-auto"
-            >
-              Clear Filters
-            </Button>
-          )}
-        </div>
+        {/* Clear All Filters */}
+        {hasActiveFilters && (
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={clearAllFilters}
+            className="text-xs"
+          >
+            Clear All
+          </Button>
+        )}
       </div>
 
       {/* Header */}
