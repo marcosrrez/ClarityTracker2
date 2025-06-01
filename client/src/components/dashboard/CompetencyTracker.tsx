@@ -160,14 +160,20 @@ export const CompetencyTracker = () => {
           evidenceCount += insightCards.length * 2;
         }
 
-        // Calculate progress (0-100%)
+        // Calculate progress with Intelligence Hub enhancements (0-100%)
         const maxEvidence = Math.max(20, logEntries.length * 2); // Scaling factor
-        const progress = Math.min(95, (evidenceCount / maxEvidence) * 100);
+        let progress = Math.min(95, (evidenceCount / maxEvidence) * 100);
+        
+        // Apply progression trend bonus for advanced analysis
+        if (canProvideAdvancedAnalysis && progressionTrend > 2) {
+          progress = Math.min(95, progress + 5); // Bonus for showing improvement
+        }
 
         return {
           ...comp,
           progress: Math.round(progress),
-          evidenceCount
+          evidenceCount,
+          trend: progressionTrend > 1 ? 'improving' : progressionTrend < -1 ? 'needs-attention' : 'stable'
         };
       });
 
