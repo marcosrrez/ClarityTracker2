@@ -41,9 +41,9 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Rams polish: Refined version of your original header */}
-      <header className="ive-glass sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border/50">
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Header */}
+      <header className="ive-glass sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border/50 flex-shrink-0">
         <div className="flex items-center justify-between px-6 h-16">
           <div className="flex items-center space-x-3 cursor-pointer ive-hover-lift transition-all duration-200" onClick={() => window.location.href = '/dashboard'}>
             <Sprout className="h-6 w-6 text-primary" />
@@ -71,16 +71,16 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         </div>
       </header>
 
-      {/* Rams polish: Keeping your original proportions with refined spacing */}
-      <main className="px-6 py-8 max-w-7xl mx-auto">
+      {/* Main content area */}
+      <main className="flex-1 px-6 py-8 max-w-7xl mx-auto w-full">
         {children}
       </main>
 
-      {/* Footer */}
-      <footer className="mt-16 py-8 border-t">
+      {/* Footer pushed to bottom */}
+      <footer className="flex-shrink-0 py-6 border-t bg-background">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center text-sm text-muted-foreground">
-            © 2024 ClarityLog. Designed for Licensed Associate Counselors on their path to professional licensure.
+          <div className="text-center text-xs text-muted-foreground">
+            © 2024 ClarityLog. Professional development platform for Licensed Associate Counselors.
           </div>
         </div>
       </footer>

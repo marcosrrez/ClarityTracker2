@@ -227,57 +227,57 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
         <div className="p-4 h-full flex flex-col">
           {!selectedMode ? (
             <>
-              {/* Search Bar Style Input */}
+              {/* Premium Search Bar */}
               <div 
-                className="flex items-center gap-3 p-3 bg-gray-200 dark:bg-gray-700 rounded-full cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors mb-4"
+                className="flex items-center gap-3 p-4 bg-white dark:bg-gray-900 rounded-2xl cursor-pointer hover:shadow-md transition-all duration-200 mb-6 border border-gray-200 dark:border-gray-700"
                 onClick={() => setSelectedMode('url')}
               >
-                <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
-                  <Globe className="h-3 w-3 text-white" />
+                <div className="w-6 h-6 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+                  <Globe className="h-3.5 w-3.5 text-white" />
                 </div>
-                <span className="text-gray-600 dark:text-gray-300 text-sm flex-1">Paste article URL or search</span>
+                <span className="text-gray-700 dark:text-gray-200 text-sm flex-1 font-medium">Add web article or resource</span>
               </div>
               
-              {/* Icon Actions Grid */}
-              <div className="grid grid-cols-2 gap-2 flex-1">
+              {/* Premium Actions Grid */}
+              <div className="grid grid-cols-2 gap-3 flex-1">
                 <button
                   onClick={() => setSelectedMode('url')}
-                  className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors group"
+                  className="flex flex-col items-center justify-center gap-3 p-4 bg-white dark:bg-gray-900 rounded-2xl hover:shadow-md transition-all duration-200 border border-gray-200 dark:border-gray-700 group"
                 >
-                  <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-xl flex items-center justify-center group-hover:bg-blue-600 transition-colors">
-                    <Globe className="h-5 w-5 text-gray-500 dark:text-gray-400 group-hover:text-white" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800 rounded-2xl flex items-center justify-center group-hover:from-blue-500 group-hover:to-blue-600 transition-all duration-200 shadow-sm">
+                    <Globe className="h-6 w-6 text-blue-600 dark:text-blue-400 group-hover:text-white transition-colors" />
                   </div>
-                  <span className="text-xs text-gray-600 dark:text-gray-400">Web</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Web Article</span>
                 </button>
 
                 <button
                   onClick={() => setSelectedMode('manual')}
-                  className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors group"
+                  className="flex flex-col items-center justify-center gap-3 p-4 bg-white dark:bg-gray-900 rounded-2xl hover:shadow-md transition-all duration-200 border border-gray-200 dark:border-gray-700 group"
                 >
-                  <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-xl flex items-center justify-center group-hover:bg-purple-600 transition-colors">
-                    <FileText className="h-5 w-5 text-gray-500 dark:text-gray-400 group-hover:text-white" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900 dark:to-purple-800 rounded-2xl flex items-center justify-center group-hover:from-purple-500 group-hover:to-purple-600 transition-all duration-200 shadow-sm">
+                    <FileText className="h-6 w-6 text-purple-600 dark:text-purple-400 group-hover:text-white transition-colors" />
                   </div>
-                  <span className="text-xs text-gray-600 dark:text-gray-400">Paste</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Paste Text</span>
                 </button>
 
                 <button
                   onClick={() => setSelectedMode('pdf')}
-                  className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors group"
+                  className="flex flex-col items-center justify-center gap-3 p-4 bg-white dark:bg-gray-900 rounded-2xl hover:shadow-md transition-all duration-200 border border-gray-200 dark:border-gray-700 group"
                 >
-                  <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-xl flex items-center justify-center group-hover:bg-green-600 transition-colors">
-                    <Upload className="h-5 w-5 text-gray-500 dark:text-gray-400 group-hover:text-white" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900 dark:to-green-800 rounded-2xl flex items-center justify-center group-hover:from-green-500 group-hover:to-green-600 transition-all duration-200 shadow-sm">
+                    <Upload className="h-6 w-6 text-green-600 dark:text-green-400 group-hover:text-white transition-colors" />
                   </div>
-                  <span className="text-xs text-gray-600 dark:text-gray-400">PDF</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Upload PDF</span>
                 </button>
 
                 <button
                   onClick={() => setSelectedMode('download')}
-                  className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors group"
+                  className="flex flex-col items-center justify-center gap-3 p-4 bg-white dark:bg-gray-900 rounded-2xl hover:shadow-md transition-all duration-200 border border-gray-200 dark:border-gray-700 group col-span-2"
                 >
-                  <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-xl flex items-center justify-center group-hover:bg-orange-600 transition-colors">
-                    <Download className="h-5 w-5 text-gray-500 dark:text-gray-400 group-hover:text-white" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900 dark:to-orange-800 rounded-2xl flex items-center justify-center group-hover:from-orange-500 group-hover:to-orange-600 transition-all duration-200 shadow-sm">
+                    <Download className="h-6 w-6 text-orange-600 dark:text-orange-400 group-hover:text-white transition-colors" />
                   </div>
-                  <span className="text-xs text-gray-600 dark:text-gray-400">Export</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Export Insights</span>
                 </button>
               </div>
             </>
