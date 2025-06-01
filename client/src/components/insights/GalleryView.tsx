@@ -1,13 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Sparkles, Search, ChevronLeft, ChevronRight, Trash2, AlertTriangle, Bot } from "lucide-react";
+import { Calendar, Sparkles, Search, Trash2, AlertTriangle, Bot, Eye } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { format, startOfWeek, startOfMonth, endOfWeek, endOfMonth } from "date-fns";
+import { format, startOfWeek, endOfWeek, getWeeksInMonth, startOfMonth, endOfMonth } from "date-fns";
 import { useLogEntries } from "@/hooks/use-firestore";
 import { getAiAnalysis, deleteAiAnalysis } from "@/lib/firestore";
 import { useAuth } from "@/hooks/use-auth";
@@ -18,11 +18,18 @@ interface GalleryItem extends LogEntry {
   analysis?: AiAnalysis;
 }
 
-interface CardGroup {
+interface WeekDeck {
   label: string;
   items: GalleryItem[];
+  weekNumber: number;
   startDate: Date;
   endDate: Date;
+}
+
+interface CardDeck {
+  month: string;
+  year: number;
+  weeks: WeekDeck[];
 }
 
 export const GalleryView = () => {
@@ -33,10 +40,13 @@ export const GalleryView = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
-  const [groupBy, setGroupBy] = useState<"week" | "month">("week");
-  const [selectedGroupIndex, setSelectedGroupIndex] = useState(0);
-  const [selectedCardIndex, setSelectedCardIndex] = useState(0);
+  const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
+  const [selectedCardIndex, setSelectedCardIndex] = useState<number[]>([0, 0, 0, 0]); // One for each week
+  const [expandedCard, setExpandedCard] = useState<GalleryItem | null>(null);
   const [deleteDialogItem, setDeleteDialogItem] = useState<GalleryItem | null>(null);
+  const [dragState, setDragState] = useState<{ weekIndex: number; startX: number; currentX: number } | null>(null);
+  const containerRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
     const loadAnalyses = async () => {
@@ -74,59 +84,68 @@ export const GalleryView = () => {
     }
   }, [user, entries, entriesLoading]);
 
-  // Create card groups by week or month
-  const createCardGroups = (items: GalleryItem[]): CardGroup[] => {
-    const groups: Map<string, GalleryItem[]> = new Map();
+  // Create card decks organized by month and weeks
+  const createCardDecks = (items: GalleryItem[]): CardDeck[] => {
+    const monthGroups: Map<string, GalleryItem[]> = new Map();
 
     items.forEach(item => {
       const date = new Date(item.dateOfContact);
-      let key: string;
-      let startDate: Date;
-      let endDate: Date;
-
-      if (groupBy === "week") {
-        startDate = startOfWeek(date, { weekStartsOn: 1 });
-        endDate = endOfWeek(date, { weekStartsOn: 1 });
-        key = format(startDate, "yyyy-'W'ww");
-      } else {
-        startDate = startOfMonth(date);
-        endDate = endOfMonth(date);
-        key = format(startDate, "yyyy-MM");
+      const monthKey = format(date, "yyyy-MM");
+      
+      if (!monthGroups.has(monthKey)) {
+        monthGroups.set(monthKey, []);
       }
-
-      if (!groups.has(key)) {
-        groups.set(key, []);
-      }
-      groups.get(key)!.push(item);
+      monthGroups.get(monthKey)!.push(item);
     });
 
-    return Array.from(groups.entries())
-      .map(([key, items]) => {
-        const firstItem = items[0];
-        const date = new Date(firstItem.dateOfContact);
+    return Array.from(monthGroups.entries())
+      .map(([monthKey, monthItems]) => {
+        const monthDate = new Date(monthKey + "-01");
+        const month = format(monthDate, "MMMM");
+        const year = monthDate.getFullYear();
         
-        let startDate: Date;
-        let endDate: Date;
-        let label: string;
+        // Group items by week within the month
+        const weekGroups: Map<number, GalleryItem[]> = new Map();
+        
+        monthItems.forEach(item => {
+          const itemDate = new Date(item.dateOfContact);
+          const weekStart = startOfWeek(itemDate, { weekStartsOn: 1 });
+          const monthStart = startOfMonth(monthDate);
+          
+          // Calculate week number within the month (0-3)
+          const weekNumber = Math.floor((weekStart.getTime() - monthStart.getTime()) / (7 * 24 * 60 * 60 * 1000));
+          const adjustedWeekNumber = Math.max(0, Math.min(3, weekNumber));
+          
+          if (!weekGroups.has(adjustedWeekNumber)) {
+            weekGroups.set(adjustedWeekNumber, []);
+          }
+          weekGroups.get(adjustedWeekNumber)!.push(item);
+        });
 
-        if (groupBy === "week") {
-          startDate = startOfWeek(date, { weekStartsOn: 1 });
-          endDate = endOfWeek(date, { weekStartsOn: 1 });
-          label = `Week of ${format(startDate, "MMM d")}`;
-        } else {
-          startDate = startOfMonth(date);
-          endDate = endOfMonth(date);
-          label = format(startDate, "MMMM yyyy");
+        // Create week decks (ensure we have 4 weeks)
+        const weeks: WeekDeck[] = [];
+        for (let i = 0; i < 4; i++) {
+          const weekItems = weekGroups.get(i) || [];
+          const weekStart = new Date(monthDate);
+          weekStart.setDate(weekStart.getDate() + (i * 7));
+          const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
+          
+          weeks.push({
+            label: `Week ${i + 1}`,
+            items: weekItems.sort((a, b) => new Date(b.dateOfContact).getTime() - new Date(a.dateOfContact).getTime()),
+            weekNumber: i + 1,
+            startDate: weekStart,
+            endDate: weekEnd
+          });
         }
 
         return {
-          label,
-          items: items.sort((a, b) => new Date(b.dateOfContact).getTime() - new Date(a.dateOfContact).getTime()),
-          startDate,
-          endDate
+          month,
+          year,
+          weeks
         };
       })
-      .sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
+      .sort((a, b) => b.year - a.year || (b.month > a.month ? 1 : -1));
   };
 
   // Intelligent search function
@@ -184,6 +203,49 @@ export const GalleryView = () => {
     }
   };
 
+  // Swipe gesture handlers
+  const handleMouseDown = (weekIndex: number, event: React.MouseEvent) => {
+    setDragState({
+      weekIndex,
+      startX: event.clientX,
+      currentX: event.clientX
+    });
+  };
+
+  const handleMouseMove = (event: React.MouseEvent) => {
+    if (dragState) {
+      setDragState(prev => prev ? { ...prev, currentX: event.clientX } : null);
+    }
+  };
+
+  const handleMouseUp = () => {
+    if (dragState) {
+      const deltaX = dragState.currentX - dragState.startX;
+      const threshold = 50; // Minimum swipe distance
+      
+      if (Math.abs(deltaX) > threshold) {
+        const weekIndex = dragState.weekIndex;
+        const currentCardIndex = selectedCardIndex[weekIndex];
+        const currentDeck = currentCardDecks[0]?.weeks[weekIndex];
+        
+        if (currentDeck && currentDeck.items.length > 0) {
+          if (deltaX > 0 && currentCardIndex > 0) {
+            // Swipe right - previous card
+            const newIndices = [...selectedCardIndex];
+            newIndices[weekIndex] = currentCardIndex - 1;
+            setSelectedCardIndex(newIndices);
+          } else if (deltaX < 0 && currentCardIndex < currentDeck.items.length - 1) {
+            // Swipe left - next card
+            const newIndices = [...selectedCardIndex];
+            newIndices[weekIndex] = currentCardIndex + 1;
+            setSelectedCardIndex(newIndices);
+          }
+        }
+      }
+      setDragState(null);
+    }
+  };
+
   // Process items with intelligent search and filtering
   const searchedItems = performIntelligentSearch(galleryItems, searchQuery);
   
@@ -196,37 +258,14 @@ export const GalleryView = () => {
     return matchesCategory;
   });
 
-  // Create grouped cards
-  const cardGroups = createCardGroups(filteredItems);
-  const currentGroup = cardGroups[selectedGroupIndex];
-  const currentCard = currentGroup?.items[selectedCardIndex];
+  // Create card decks
+  const currentCardDecks = createCardDecks(filteredItems);
+  const currentDeck = currentCardDecks[0]; // Show current month
 
-  // Navigation functions
-  const navigateCard = (direction: 'prev' | 'next') => {
-    if (!currentGroup) return;
-
-    if (direction === 'next') {
-      if (selectedCardIndex < currentGroup.items.length - 1) {
-        setSelectedCardIndex(prev => prev + 1);
-      } else if (selectedGroupIndex < cardGroups.length - 1) {
-        setSelectedGroupIndex(prev => prev + 1);
-        setSelectedCardIndex(0);
-      }
-    } else {
-      if (selectedCardIndex > 0) {
-        setSelectedCardIndex(prev => prev - 1);
-      } else if (selectedGroupIndex > 0) {
-        setSelectedGroupIndex(prev => prev - 1);
-        setSelectedCardIndex(cardGroups[selectedGroupIndex - 1].items.length - 1);
-      }
-    }
-  };
-
-  // Reset navigation when filters change
+  // Reset indices when data changes
   useEffect(() => {
-    setSelectedGroupIndex(0);
-    setSelectedCardIndex(0);
-  }, [searchQuery, categoryFilter, groupBy]);
+    setSelectedCardIndex([0, 0, 0, 0]);
+  }, [searchQuery, categoryFilter]);
 
   if (entriesLoading || loading) {
     return (
@@ -250,7 +289,7 @@ export const GalleryView = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Search and Filter Controls */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
@@ -274,174 +313,314 @@ export const GalleryView = () => {
             <SelectItem value="prompts">Has Prompts</SelectItem>
           </SelectContent>
         </Select>
-
-        <Select value={groupBy} onValueChange={(value: "week" | "month") => setGroupBy(value)}>
-          <SelectTrigger className="w-full sm:w-32">
-            <SelectValue placeholder="Group by" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="week">By Week</SelectItem>
-            <SelectItem value="month">By Month</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
-      {/* Card Deck Interface */}
-      {cardGroups.length === 0 ? (
+      {/* Month Header */}
+      {currentDeck && (
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-foreground">{currentDeck.month} {currentDeck.year}</h2>
+          <p className="text-sm text-muted-foreground mt-1">Swipe cards left or right to navigate</p>
+        </div>
+      )}
+
+      {/* Card Deck Interface - 4 Week Layout */}
+      {!currentDeck || currentDeck.weeks.every(week => week.items.length === 0) ? (
         <div className="text-center py-12">
           <Bot className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-foreground mb-2">No Session Insights Yet</h3>
           <p className="text-muted-foreground">
-            No insights match your current search and filter criteria.
+            Your session insights will appear here as beautiful card decks organized by week.
           </p>
         </div>
       ) : (
-        <div className="space-y-6">
-          {/* Group Navigation */}
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-muted-foreground">
-              {currentGroup?.label} • {currentCard && `${selectedCardIndex + 1} of ${currentGroup.items.length}`}
-            </div>
-            <div className="text-xs text-muted-foreground">
-              Group {selectedGroupIndex + 1} of {cardGroups.length}
-            </div>
-          </div>
-
-          {/* Current Card Display */}
-          {currentCard && (
-            <div className="relative">
-              <Card className="max-w-2xl mx-auto shadow-lg">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg">
-                        {format(new Date(currentCard.dateOfContact), "EEEE, MMMM d, yyyy")}
-                      </CardTitle>
-                      <CardDescription className="flex items-center gap-2 mt-1">
-                        <Calendar className="h-4 w-4" />
-                        {currentCard.clientContactHours} hours
-                        {currentCard.analysis && (
-                          <Badge variant="secondary" className="ml-2">
-                            <Sparkles className="h-3 w-3 mr-1" />
-                            AI Analyzed
-                          </Badge>
-                        )}
-                      </CardDescription>
-                    </div>
-                    {currentCard.analysis && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setDeleteDialogItem(currentCard)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                </CardHeader>
-
-                <CardContent className="space-y-6">
-                  {/* Session Notes */}
-                  <div>
-                    <h4 className="font-medium text-sm text-foreground mb-2">Session Notes</h4>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      {currentCard.notes}
-                    </p>
-                  </div>
-
-                  {/* AI Analysis */}
-                  {currentCard.analysis && (
-                    <div className="space-y-4 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg">
-                      <h4 className="font-medium text-blue-900 dark:text-blue-100 flex items-center gap-2">
-                        <Sparkles className="h-4 w-4" />
-                        AI Analysis
-                      </h4>
-                      
-                      {currentCard.analysis.summary && (
-                        <div>
-                          <h5 className="font-medium text-sm mb-2">Summary</h5>
-                          <p className="text-sm text-gray-700 dark:text-gray-300">
-                            {currentCard.analysis.summary}
-                          </p>
-                        </div>
-                      )}
-
-                      {currentCard.analysis.themes && currentCard.analysis.themes.length > 0 && (
-                        <div>
-                          <h5 className="font-medium text-sm mb-2">Key Themes</h5>
-                          <div className="flex flex-wrap gap-2">
-                            {currentCard.analysis.themes.map((theme: string, index: number) => (
-                              <Badge key={index} variant="outline">
-                                {theme}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {currentCard.analysis.reflectivePrompts && currentCard.analysis.reflectivePrompts.length > 0 && (
-                        <div>
-                          <h5 className="font-medium text-sm mb-2">Reflective Questions</h5>
-                          <div className="space-y-2">
-                            {currentCard.analysis.reflectivePrompts.slice(0, 2).map((prompt: string, index: number) => (
-                              <p key={index} className="text-xs text-gray-600 dark:text-gray-400 italic">
-                                • {prompt}
-                              </p>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Navigation Controls */}
-              <div className="absolute top-1/2 -translate-y-1/2 -left-16">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigateCard('prev')}
-                  disabled={selectedGroupIndex === 0 && selectedCardIndex === 0}
-                  className="rounded-full w-12 h-12"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+          {currentDeck.weeks.map((week, weekIndex) => (
+            <div key={weekIndex} className="space-y-4">
+              {/* Week Header */}
+              <div className="text-center">
+                <h3 className="text-lg font-semibold text-foreground">{week.label}</h3>
+                <p className="text-xs text-muted-foreground">
+                  {format(week.startDate, "MMM d")} - {format(week.endDate, "MMM d")}
+                </p>
+                {week.items.length > 0 && (
+                  <Badge variant="outline" className="mt-1">
+                    {selectedCardIndex[weekIndex] + 1} of {week.items.length}
+                  </Badge>
+                )}
               </div>
-              
-              <div className="absolute top-1/2 -translate-y-1/2 -right-16">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigateCard('next')}
-                  disabled={selectedGroupIndex === cardGroups.length - 1 && 
-                           selectedCardIndex === currentGroup.items.length - 1}
-                  className="rounded-full w-12 h-12"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          )}
 
-          {/* Progress Indicators */}
-          <div className="flex justify-center">
-            <div className="flex space-x-1">
-              {currentGroup?.items.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedCardIndex(index)}
-                  className={`w-2 h-2 rounded-full transition-colors ${
-                    index === selectedCardIndex 
-                      ? 'bg-blue-500' 
-                      : 'bg-gray-300 dark:bg-gray-600'
-                  }`}
-                />
-              ))}
+              {/* Card Stack */}
+              <div className="relative h-80">
+                {week.items.length === 0 ? (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center p-6 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
+                      <Calendar className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">No sessions this week</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div 
+                    className="relative w-full h-full cursor-pointer"
+                    onMouseDown={(e) => handleMouseDown(weekIndex, e)}
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={handleMouseUp}
+                    onMouseLeave={handleMouseUp}
+                  >
+                    {/* Stack of Cards - Show up to 3 behind current */}
+                    {week.items.slice(selectedCardIndex[weekIndex], selectedCardIndex[weekIndex] + 4).map((item, stackIndex) => {
+                      const isActive = stackIndex === 0;
+                      const zIndex = 4 - stackIndex;
+                      const opacity = stackIndex === 0 ? 1 : Math.max(0.3, 1 - stackIndex * 0.2);
+                      const scale = stackIndex === 0 ? 1 : Math.max(0.95, 1 - stackIndex * 0.02);
+                      const translateY = stackIndex * 3;
+                      const translateX = stackIndex * 2;
+
+                      return (
+                        <div
+                          key={item.id}
+                          className={`absolute inset-0 transition-all duration-300 ease-out ${
+                            isActive ? 'cursor-pointer hover:shadow-xl' : 'cursor-default'
+                          }`}
+                          style={{
+                            zIndex,
+                            opacity,
+                            transform: `translate(${translateX}px, ${translateY}px) scale(${scale})`,
+                          }}
+                          onClick={() => isActive && setExpandedCard(item)}
+                        >
+                          <Card className={`w-full h-full ${isActive ? 'shadow-lg border-blue-200 dark:border-blue-800' : 'shadow-md'} bg-white dark:bg-gray-900`}>
+                            <CardHeader className="pb-3">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1 min-w-0">
+                                  <CardTitle className="text-sm font-medium truncate">
+                                    {format(new Date(item.dateOfContact), "MMM d, yyyy")}
+                                  </CardTitle>
+                                  <CardDescription className="flex items-center gap-2 mt-1">
+                                    <Calendar className="h-3 w-3" />
+                                    <span className="text-xs">{item.clientContactHours}h</span>
+                                    {item.analysis && (
+                                      <Badge variant="secondary" className="text-xs">
+                                        <Sparkles className="h-2 w-2 mr-1" />
+                                        AI
+                                      </Badge>
+                                    )}
+                                  </CardDescription>
+                                </div>
+                                {isActive && item.analysis && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setDeleteDialogItem(item);
+                                    }}
+                                    className="text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                )}
+                              </div>
+                            </CardHeader>
+
+                            {isActive && (
+                              <CardContent className="space-y-3">
+                                {/* Brief Summary */}
+                                <div>
+                                  <p className="text-xs text-muted-foreground line-clamp-3">
+                                    {item.analysis?.summary 
+                                      ? item.analysis.summary.substring(0, 120) + "..."
+                                      : item.notes.substring(0, 120) + "..."
+                                    }
+                                  </p>
+                                </div>
+
+                                {/* Key Themes Preview */}
+                                {item.analysis?.themes && item.analysis.themes.length > 0 && (
+                                  <div className="flex flex-wrap gap-1">
+                                    {item.analysis.themes.slice(0, 3).map((theme: string, index: number) => (
+                                      <Badge key={index} variant="outline" className="text-xs">
+                                        {theme}
+                                      </Badge>
+                                    ))}
+                                    {item.analysis.themes.length > 3 && (
+                                      <Badge variant="outline" className="text-xs">+{item.analysis.themes.length - 3}</Badge>
+                                    )}
+                                  </div>
+                                )}
+
+                                {/* Tap to expand hint */}
+                                <div className="flex items-center justify-center pt-2 border-t border-gray-100 dark:border-gray-800">
+                                  <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                                    <Eye className="h-3 w-3" />
+                                    <span className="text-xs font-medium">Tap to view details</span>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            )}
+                          </Card>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Card Navigation Dots */}
+              {week.items.length > 1 && (
+                <div className="flex justify-center">
+                  <div className="flex space-x-1">
+                    {week.items.map((_, cardIndex) => (
+                      <button
+                        key={cardIndex}
+                        onClick={() => {
+                          const newIndices = [...selectedCardIndex];
+                          newIndices[weekIndex] = cardIndex;
+                          setSelectedCardIndex(newIndices);
+                        }}
+                        className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                          cardIndex === selectedCardIndex[weekIndex]
+                            ? 'bg-blue-500' 
+                            : 'bg-gray-300 dark:bg-gray-600'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
+          ))}
         </div>
       )}
+
+      {/* Expanded Card Details Dialog */}
+      <Dialog open={!!expandedCard} onOpenChange={() => setExpandedCard(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-blue-500" />
+              Session Details
+            </DialogTitle>
+          </DialogHeader>
+          
+          {expandedCard && (
+            <div className="space-y-6">
+              {/* Session Info */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-6 rounded-lg">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-foreground">
+                      {format(new Date(expandedCard.dateOfContact), "EEEE, MMMM d, yyyy")}
+                    </h3>
+                    <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-4 w-4" />
+                        <span>{expandedCard.clientContactHours} hours</span>
+                      </div>
+                      {expandedCard.analysis && (
+                        <Badge variant="secondary">
+                          <Sparkles className="h-3 w-3 mr-1" />
+                          AI Analyzed
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  {expandedCard.analysis && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setDeleteDialogItem(expandedCard);
+                        setExpandedCard(null);
+                      }}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete Analysis
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {/* Session Notes */}
+              <div>
+                <h4 className="text-lg font-semibold text-foreground mb-3">Session Notes</h4>
+                <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+                  <pre className="text-sm text-muted-foreground whitespace-pre-wrap">
+                    {expandedCard.notes}
+                  </pre>
+                </div>
+              </div>
+
+              {/* AI Analysis Details */}
+              {expandedCard.analysis && (
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+                      <Sparkles className="h-5 w-5 text-blue-500" />
+                      AI Analysis
+                    </h4>
+                  </div>
+
+                  {/* Summary */}
+                  {expandedCard.analysis.summary && (
+                    <div>
+                      <h5 className="font-medium text-foreground mb-2">Summary</h5>
+                      <p className="text-muted-foreground leading-relaxed">
+                        {expandedCard.analysis.summary}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Key Themes */}
+                  {expandedCard.analysis.themes && expandedCard.analysis.themes.length > 0 && (
+                    <div>
+                      <h5 className="font-medium text-foreground mb-3">Key Themes</h5>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {expandedCard.analysis.themes.map((theme: string, index: number) => (
+                          <div key={index} className="bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg">
+                            <p className="text-sm">{theme}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Reflective Prompts */}
+                  {expandedCard.analysis.reflectivePrompts && expandedCard.analysis.reflectivePrompts.length > 0 && (
+                    <div>
+                      <h5 className="font-medium text-foreground mb-3">Reflective Questions</h5>
+                      <div className="space-y-3">
+                        {expandedCard.analysis.reflectivePrompts.map((prompt: string, index: number) => (
+                          <div key={index} className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                            <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
+                              Question {index + 1}:
+                            </p>
+                            <p className="text-sm text-muted-foreground">{prompt}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Key Learnings */}
+                  {expandedCard.analysis.keyLearnings && expandedCard.analysis.keyLearnings.length > 0 && (
+                    <div>
+                      <h5 className="font-medium text-foreground mb-3">Key Learnings</h5>
+                      <div className="space-y-3">
+                        {expandedCard.analysis.keyLearnings.map((learning: string, index: number) => (
+                          <div key={index} className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
+                            <p className="text-sm">{learning}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Deletion Confirmation Dialog */}
       <Dialog open={!!deleteDialogItem} onOpenChange={() => setDeleteDialogItem(null)}>
