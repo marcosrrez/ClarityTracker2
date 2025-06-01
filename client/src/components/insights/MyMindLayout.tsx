@@ -8,6 +8,9 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Calendar, Sparkles, Search, Plus, Bold, Italic, Type, Paperclip, Edit3, Check } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { createInsightCard } from "@/lib/firestore";
+import { useAuth } from "@/hooks/use-auth";
+import type { InsertInsightCard } from "@shared/schema";
 
 interface GalleryItem {
   id: string;
@@ -20,15 +23,18 @@ interface GalleryItem {
 interface MyMindLayoutProps {
   galleryItems: GalleryItem[];
   onItemClick: (item: GalleryItem) => void;
+  onRefresh?: () => void;
 }
 
-export function MyMindLayout({ galleryItems, onItemClick }: MyMindLayoutProps) {
+export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLayoutProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [showNoteEditor, setShowNoteEditor] = useState(false);
   const [noteContent, setNoteContent] = useState("");
   const [noteTitle, setNoteTitle] = useState("");
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // Filter items based on search
   const filteredItems = galleryItems.filter(item => 
@@ -75,6 +81,50 @@ export function MyMindLayout({ galleryItems, onItemClick }: MyMindLayoutProps) {
     return groups;
   };
 
+  // Save note functionality
+  const handleSaveNote = async () => {
+    if (!user || !noteContent.trim()) return;
+
+    try {
+      setIsSaving(true);
+      
+      const finalTitle = noteTitle || (noteContent.split('\n')[0] || "Untitled Note");
+      
+      const newNote: InsertInsightCard = {
+        type: "note",
+        title: finalTitle,
+        content: noteContent,
+        tags: ["reflection", "personal-note"],
+      };
+
+      await createInsightCard(user.uid, newNote);
+      
+      // Refresh the gallery if function provided
+      if (onRefresh) {
+        await onRefresh();
+      }
+      
+      // Reset form
+      setNoteContent("");
+      setNoteTitle("");
+      setShowNoteEditor(false);
+      
+      toast({
+        title: "Note saved",
+        description: "Your reflection has been added to your insights.",
+      });
+    } catch (error) {
+      console.error("Error saving note:", error);
+      toast({
+        title: "Error saving note",
+        description: "Failed to save your note. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Search Bar - MyMind Style */}
@@ -83,7 +133,7 @@ export function MyMindLayout({ galleryItems, onItemClick }: MyMindLayoutProps) {
           <div className="flex-1 relative">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
             <Input
-              placeholder="Search my insights and resources..."
+              placeholder="Search insights and resources..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-full h-14 text-lg"
@@ -103,8 +153,8 @@ export function MyMindLayout({ galleryItems, onItemClick }: MyMindLayoutProps) {
         </div>
       </div>
 
-      {/* Disney-Style Horizontal Scrolling by Time Period */}
-      <div className="px-6 pb-32">
+      {/* Masonry Grid Layout - MyMind Style for Maximum Cards */}
+      <div className="px-4 pb-32">
         {filteredItems.length === 0 ? (
           <div className="text-center py-12">
             <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-lg mx-auto mb-4 flex items-center justify-center">
@@ -112,78 +162,61 @@ export function MyMindLayout({ galleryItems, onItemClick }: MyMindLayoutProps) {
             </div>
             <h3 className="text-lg font-semibold text-foreground mb-2">No Session Insights Yet</h3>
             <p className="text-muted-foreground">
-              Your session insights will appear here organized by time period.
+              Your session insights will appear here as you add notes and analyses.
             </p>
           </div>
         ) : (
-          <div className="space-y-8">
-            {getTimeGroupedItems().map((group, groupIndex) => (
-              <div key={groupIndex} className="space-y-4">
-                {/* Row Header */}
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-semibold text-foreground">{group.label}</h3>
-                  <Badge variant="outline" className="text-xs">
-                    {group.items.length} session{group.items.length !== 1 ? 's' : ''}
-                  </Badge>
-                </div>
-
-                {/* Horizontal Scrolling Cards */}
-                <div className="relative">
-                  <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-4 scroll-smooth">
-                    {group.items.map((item) => (
-                      <div key={item.id} className="flex-shrink-0 w-72">
-                        <Card 
-                          className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-full"
-                          onClick={() => onItemClick(item)}
-                        >
-                          <CardContent className="p-6">
-                            <div className="space-y-4">
-                              {/* Date and Duration */}
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2 text-sm text-gray-500">
-                                  <Calendar className="h-3 w-3" />
-                                  <span>{format(new Date(item.dateOfContact), "MMM d, yyyy")}</span>
-                                </div>
-                                <Badge variant="secondary" className="text-xs">
-                                  {item.clientContactHours}h
-                                </Badge>
-                              </div>
-
-                              {/* Notes Content */}
-                              <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-4">
-                                {item.notes}
-                              </div>
-
-                              {/* AI Analysis Tags */}
-                              {item.analysis && item.analysis.themes && Array.isArray(item.analysis.themes) && (
-                                <div className="flex flex-wrap gap-1">
-                                  {item.analysis.themes.slice(0, 2).map((theme: string, index: number) => (
-                                    <Badge key={index} variant="outline" className="text-xs">
-                                      {theme}
-                                    </Badge>
-                                  ))}
-                                  {item.analysis.themes.length > 2 && (
-                                    <Badge variant="outline" className="text-xs">
-                                      +{item.analysis.themes.length - 2}
-                                    </Badge>
-                                  )}
-                                </div>
-                              )}
-
-                              {/* AI Badge */}
-                              {item.analysis && (
-                                <div className="flex items-center gap-1 text-xs text-blue-600">
-                                  <Sparkles className="h-3 w-3" />
-                                  <span>AI Analysis</span>
-                                </div>
-                              )}
-                            </div>
-                          </CardContent>
-                        </Card>
+          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 gap-4 space-y-4">
+            {filteredItems.map((item) => (
+              <div key={item.id} className="break-inside-avoid mb-4">
+                <Card 
+                  className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.01] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden"
+                  onClick={() => onItemClick(item)}
+                >
+                  <CardContent className="p-4">
+                    <div className="space-y-3">
+                      {/* Date and Duration */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                          <Calendar className="h-3 w-3" />
+                          <span>{format(new Date(item.dateOfContact), "MMM d, yyyy")}</span>
+                        </div>
+                        <Badge variant="secondary" className="text-xs">
+                          {item.clientContactHours}h
+                        </Badge>
                       </div>
-                    ))}
-                  </div>
-                </div>
+
+                      {/* Notes Content */}
+                      <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                        {item.notes.length > 200 ? `${item.notes.substring(0, 200)}...` : item.notes}
+                      </div>
+
+                      {/* AI Analysis Tags */}
+                      {item.analysis && item.analysis.themes && Array.isArray(item.analysis.themes) && (
+                        <div className="flex flex-wrap gap-1">
+                          {item.analysis.themes.slice(0, 2).map((theme: string, index: number) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {theme}
+                            </Badge>
+                          ))}
+                          {item.analysis.themes.length > 2 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{item.analysis.themes.length - 2}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+
+                      {/* AI Badge */}
+                      {item.analysis && (
+                        <div className="flex items-center gap-1 text-xs text-blue-600">
+                          <Sparkles className="h-3 w-3" />
+                          <span>AI Analysis</span>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             ))}
           </div>
