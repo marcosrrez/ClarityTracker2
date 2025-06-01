@@ -25,7 +25,7 @@ interface GalleryViewProps {
 
 export function GalleryView({ userId }: GalleryViewProps) {
   const { user } = useAuth();
-  const { entries: logEntries, loading: isLoading } = useLogEntries();
+  const { entries: logEntries, loading: isLoading, refetch } = useLogEntries();
   const [expandedCard, setExpandedCard] = useState<GalleryItem | null>(null);
   const [deleteDialogItem, setDeleteDialogItem] = useState<GalleryItem | null>(null);
   const { toast } = useToast();
@@ -106,6 +106,7 @@ export function GalleryView({ userId }: GalleryViewProps) {
       <MyMindLayout 
         galleryItems={galleryItems}
         onItemClick={setExpandedCard}
+        onRefresh={refetch}
       />
 
       {/* Expanded card modal */}

@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Calendar, Sparkles, Search, Plus, Bold, Italic, Type, Paperclip, Edit3, Check } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -257,6 +257,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
       {/* Note Editor Modal - MyMind Style */}
       <Dialog open={showNoteEditor} onOpenChange={setShowNoteEditor}>
         <DialogContent className="max-w-none w-full h-full p-0 gap-0 bg-gray-50 dark:bg-gray-900" aria-describedby="note-editor-description">
+          <DialogTitle className="sr-only">Create New Note</DialogTitle>
           <div className="flex flex-col h-full">
             {/* Header - hides on scroll */}
             <div className={`transition-all duration-300 ${isHeaderVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full absolute'}`}>
@@ -276,7 +277,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
               <div className="max-w-4xl mx-auto">
                 {/* Note Header */}
                 <div className="mb-8">
-                  <p className="text-sm font-medium text-orange-500 dark:text-orange-400 mb-2">ADD A NEW NOTE</p>
+                  <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-2">ADD A NEW NOTE</p>
                   <Input
                     placeholder="Start typing here..."
                     value={noteTitle}
@@ -320,15 +321,9 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="p-2 h-auto text-green-600 hover:text-green-700"
-                  onClick={() => {
-                    // TODO: Save note logic
-                    toast({
-                      title: "Note Saved",
-                      description: "Your note has been saved successfully.",
-                    });
-                    setShowNoteEditor(false);
-                  }}
+                  className="p-2 h-auto text-green-600 hover:text-green-700 disabled:opacity-50"
+                  onClick={handleSaveNote}
+                  disabled={isSaving || !noteContent.trim()}
                 >
                   <Check className="h-4 w-4" />
                 </Button>
