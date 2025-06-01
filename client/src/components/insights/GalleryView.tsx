@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
+import { MyMindLayout } from "./MyMindLayout";
 import { format, startOfWeek, endOfWeek, getWeeksInMonth, startOfMonth, endOfMonth } from "date-fns";
 import { useLogEntries } from "@/hooks/use-firestore";
 import { getAiAnalysis, deleteAiAnalysis } from "@/lib/firestore";
@@ -456,9 +457,145 @@ export const GalleryView = () => {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Search and Filter Controls */}
-      <div className="flex items-center justify-between">
+    <>
+      <MyMindLayout 
+        galleryItems={galleryItems}
+        onItemClick={setExpandedCard}
+      />
+
+      {/* Keep expanded card modal for detailed view */}
+      {expandedCard && (
+        <Dialog open={!!expandedCard} onOpenChange={() => setExpandedCard(null)}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Session from {format(new Date(expandedCard.dateOfContact), "MMMM d, yyyy")}
+              </DialogTitle>
+              <DialogDescription>
+                {expandedCard.clientContactHours} hours of client contact
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-6">
+              {/* Session Notes */}
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Session Notes</h3>
+                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                    {expandedCard.notes || "No notes available for this session."}
+                  </p>
+                </div>
+              </div>
+
+              {/* AI Analysis */}
+              {expandedCard.analysis && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-blue-600" />
+                      AI Analysis
+                    </h3>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => setDeleteDialogItem(expandedCard)}
+                    >
+                      Delete Analysis
+                    </Button>
+                  </div>
+
+                  {expandedCard.analysis.summary && (
+                    <div>
+                      <h4 className="font-medium text-blue-600 mb-2">Summary</h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        {expandedCard.analysis.summary}
+                      </p>
+                    </div>
+                  )}
+
+                  {expandedCard.analysis.themes && Array.isArray(expandedCard.analysis.themes) && expandedCard.analysis.themes.length > 0 && (
+                    <div>
+                      <h4 className="font-medium text-green-600 mb-2">Key Themes</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {expandedCard.analysis.themes.map((theme: string, index: number) => (
+                          <Badge key={index} variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                            {theme}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {expandedCard.analysis.insights && Array.isArray(expandedCard.analysis.insights) && expandedCard.analysis.insights.length > 0 && (
+                    <div>
+                      <h4 className="font-medium text-purple-600 mb-2">Clinical Insights</h4>
+                      <ul className="space-y-2">
+                        {expandedCard.analysis.insights.map((insight: string, index: number) => (
+                          <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
+                            <div className="w-1.5 h-1.5 bg-purple-400 rounded-full mt-2 flex-shrink-0"></div>
+                            <span>{insight}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {expandedCard.analysis.recommendations && Array.isArray(expandedCard.analysis.recommendations) && expandedCard.analysis.recommendations.length > 0 && (
+                    <div>
+                      <h4 className="font-medium text-orange-600 mb-2">Recommendations</h4>
+                      <ul className="space-y-2">
+                        {expandedCard.analysis.recommendations.map((rec: string, index: number) => (
+                          <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
+                            <div className="w-1.5 h-1.5 bg-orange-400 rounded-full mt-2 flex-shrink-0"></div>
+                            <span>{rec}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Delete confirmation dialog */}
+      {deleteDialogItem && (
+        <Dialog open={!!deleteDialogItem} onOpenChange={() => setDeleteDialogItem(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-red-500" />
+                Delete AI Analysis
+              </DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete the AI analysis for the session from{" "}
+                {format(new Date(deleteDialogItem.dateOfContact), "MMMM d, yyyy")}?
+                This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-end gap-2 mt-4">
+              <Button variant="outline" onClick={() => setDeleteDialogItem(null)}>
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={async () => {
+                  await handleDeleteAnalysis(deleteDialogItem.id);
+                  setDeleteDialogItem(null);
+                }}
+              >
+                Delete Analysis
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+    </>
+  );
+};
         <div className="flex items-center gap-3">
           {/* Search Box */}
           <div className="relative">
@@ -1234,6 +1371,6 @@ export const GalleryView = () => {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 };
