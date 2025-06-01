@@ -582,36 +582,115 @@ export const GalleryView = () => {
         </Button>
       </div>
 
-      {/* Add Note Card - Always First */}
-      <Card className="border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 transition-colors cursor-pointer">
-        <CardContent className="p-8 text-center">
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-              <Plus className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+      {/* Grid Layout - Pinterest/MyMind Style */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {/* Add Note Card - Always First */}
+        <Card 
+          className="border-2 border-dashed border-orange-300 dark:border-orange-600 hover:border-orange-400 dark:hover:border-orange-500 transition-colors cursor-pointer min-h-[200px] flex items-center justify-center"
+          onClick={() => {
+            // TODO: Open rich text editor modal
+            toast({
+              title: "Rich Text Editor",
+              description: "Note creation with rich text editing coming soon!",
+            });
+          }}
+        >
+          <CardContent className="p-6 text-center">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-12 h-12 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+                <Plus className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-base">Add a New Note</h3>
+                <p className="text-muted-foreground text-xs mt-1">
+                  Start typing here...
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-semibold text-lg">Add New Note</h3>
-              <p className="text-muted-foreground text-sm">
-                Create a new insight, reflection, or resource note with rich text editing
-              </p>
-            </div>
-            <Button 
-              className="bg-blue-600 hover:bg-blue-700 font-bold rounded-xl"
-              onClick={() => {
-                // TODO: Open rich text editor modal
-                toast({
-                  title: "Rich Text Editor",
-                  description: "Note creation with rich text editing coming soon!",
-                });
-              }}
-            >
-              Create Note
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Disney+ Style Card Rows */}
+        {/* Session Insights Cards */}
+        {filteredItems.map((item: GalleryItem) => (
+          <Card 
+            key={item.id}
+            className="group cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 min-h-[200px]"
+            onClick={() => setExpandedCard(item)}
+          >
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between">
+                <div className="flex-1 min-w-0">
+                  <CardTitle className="text-sm font-medium">
+                    {format(new Date(item.dateOfContact), "MMM d, yyyy")}
+                  </CardTitle>
+                  <CardDescription className="flex items-center gap-2 mt-1">
+                    <Calendar className="h-3 w-3" />
+                    <span className="text-xs">{item.clientContactHours}h</span>
+                    {item.analysis && (
+                      <Badge variant="secondary" className="text-xs">
+                        <Sparkles className="h-2 w-2 mr-1" />
+                        AI
+                      </Badge>
+                    )}
+                  </CardDescription>
+                </div>
+                {item.analysis && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeleteDialogItem(item);
+                    }}
+                    className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 opacity-0 group-hover:opacity-100 transition-all duration-200"
+                  >
+                    <MoreHorizontal className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {/* Session Notes Preview */}
+                <p className="text-xs text-muted-foreground line-clamp-3">
+                  {item.notes || "No notes available"}
+                </p>
+                
+                {/* AI Analysis Preview */}
+                {item.analysis && (
+                  <div className="mt-3 space-y-2">
+                    {item.analysis.summary && (
+                      <div className="text-xs">
+                        <span className="font-medium text-blue-600">Summary:</span>
+                        <p className="text-muted-foreground line-clamp-2 mt-1">
+                          {item.analysis.summary}
+                        </p>
+                      </div>
+                    )}
+                    
+                    {item.analysis.themes && Array.isArray(item.analysis.themes) && item.analysis.themes.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {item.analysis.themes.slice(0, 2).map((theme: string, index: number) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {theme}
+                          </Badge>
+                        ))}
+                        {item.analysis.themes.length > 2 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{item.analysis.themes.length - 2}
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Empty State for No Items */}
       {cardRows.length === 0 ? (
         <div className="text-center py-12">
           <Bot className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
