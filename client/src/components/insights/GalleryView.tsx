@@ -725,6 +725,10 @@ export const GalleryView = () => {
       {/* Expanded Card Details Dialog - Clean White Card */}
       <Dialog open={!!expandedCard} onOpenChange={() => setExpandedCard(null)}>
         <DialogContent className="max-w-6xl w-[90vw] h-[90vh] p-0 rounded-xl">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Session Details</DialogTitle>
+            <DialogDescription>Detailed view of session analysis and notes</DialogDescription>
+          </DialogHeader>
           {expandedCard && (
             <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 h-full flex flex-col overflow-hidden">
               {/* Clean Card Header */}
@@ -787,7 +791,7 @@ export const GalleryView = () => {
                         )}
 
                         {/* Key Themes */}
-                        {expandedCard.analysis.themes && expandedCard.analysis.themes.length > 0 && (
+                        {expandedCard.analysis.themes && ((Array.isArray(expandedCard.analysis.themes) && expandedCard.analysis.themes.length > 0) || (typeof expandedCard.analysis.themes === 'object' && Object.keys(expandedCard.analysis.themes).length > 0)) && (
                           <div className="bg-purple-50 dark:bg-purple-900/20 p-5 rounded-xl border border-purple-200 dark:border-purple-800">
                             <h4 className="font-semibold text-purple-900 dark:text-purple-100 mb-4 text-base">
                               Key Themes
