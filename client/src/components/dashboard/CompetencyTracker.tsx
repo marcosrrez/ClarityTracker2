@@ -102,38 +102,49 @@ export const CompetencyTracker = () => {
   const analyzeCompetencies = () => {
     setIsAnalyzing(true);
     
-    // Simulate AI analysis of competencies based on session content
+    // Enhanced Intelligence Hub competency analysis
+    const totalSessions = logEntries.length;
+    const canProvideAdvancedAnalysis = totalSessions >= 25;
+    const canMapCompetencyProgression = totalSessions >= 15;
+    const canIdentifyStrengths = totalSessions >= 10;
+    
     setTimeout(() => {
       const analyzedCompetencies = COUNSELING_COMPETENCIES.map(comp => {
-        // Basic scoring based on available data
+        // Enhanced scoring with Intelligence Hub capabilities
         let evidenceCount = 0;
         let skillsEvidence = 0;
+        let progressionTrend = 0;
         
-        // Analyze session notes for competency keywords
-        logEntries.forEach(entry => {
+        // Analyze session notes for competency keywords with weighted scoring
+        logEntries.forEach((entry, index) => {
           const noteText = entry.notes.toLowerCase();
+          const recentWeight = canMapCompetencyProgression ? (index >= logEntries.length - 10 ? 1.5 : 1.0) : 1.0;
+          
           comp.skills.forEach(skill => {
             if (noteText.includes(skill.toLowerCase().split(' ')[0])) {
               skillsEvidence++;
-              evidenceCount++;
+              evidenceCount += recentWeight;
             }
           });
           
-          // Additional scoring based on specific competency focus
+          // Enhanced competency-specific analysis with Intelligence Hub insights
           switch (comp.id) {
             case "therapeutic-relationship":
               if (noteText.includes("rapport") || noteText.includes("trust") || noteText.includes("alliance")) {
-                evidenceCount += 2;
+                evidenceCount += 2 * recentWeight;
+                if (canIdentifyStrengths && noteText.includes("strong")) progressionTrend += 1;
               }
               break;
             case "assessment-evaluation":
               if (noteText.includes("assessment") || noteText.includes("diagnosis") || noteText.includes("plan")) {
-                evidenceCount += 2;
+                evidenceCount += 2 * recentWeight;
+                if (canIdentifyStrengths && noteText.includes("comprehensive")) progressionTrend += 1;
               }
               break;
             case "intervention-techniques":
               if (noteText.includes("cbt") || noteText.includes("intervention") || noteText.includes("technique")) {
-                evidenceCount += 2;
+                evidenceCount += 2 * recentWeight;
+                if (canProvideAdvancedAnalysis && noteText.includes("effective")) progressionTrend += 1;
               }
               break;
             case "ethical-practice":

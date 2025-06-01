@@ -16,7 +16,9 @@ import {
   RefreshCw,
   Brain,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Award,
+  AlertTriangle
 } from "lucide-react";
 
 interface PersonalizedInsights {
@@ -24,6 +26,9 @@ interface PersonalizedInsights {
   skillDevelopmentTip: string;
   supervisionTopic: string;
   professionalGrowthInsight: string;
+  therapyProfileInsight?: string;
+  competencyFocus?: string;
+  patternAlert?: string;
 }
 
 export const PersonalizedAICoaching = () => {
@@ -155,7 +160,9 @@ export const PersonalizedAICoaching = () => {
                       <Brain className="h-5 w-5 text-purple-600" />
                       <div>
                         <h4 className="font-bold text-gray-900 dark:text-white text-sm">AI Insights Available</h4>
-                        <p className="text-gray-600 dark:text-gray-300 text-xs">4 personalized recommendations ready</p>
+                        <p className="text-gray-600 dark:text-gray-300 text-xs">
+                          {4 + (insights.therapyProfileInsight ? 1 : 0) + (insights.competencyFocus ? 1 : 0) + (insights.patternAlert ? 1 : 0)} personalized recommendations ready
+                        </p>
                       </div>
                     </div>
                     <Button 
@@ -220,6 +227,52 @@ export const PersonalizedAICoaching = () => {
                       {insights.professionalGrowthInsight}
                     </p>
                   </div>
+
+                  {/* Intelligence Hub Enhanced Insights */}
+                  {insights.therapyProfileInsight && (
+                    <div className="bg-indigo-50 border border-indigo-200 p-6 rounded-2xl hover:bg-indigo-100 transition-colors duration-200">
+                      <div className="flex items-center space-x-3 mb-4">
+                        <div className="w-8 h-8 bg-indigo-50 rounded-full flex items-center justify-center">
+                          <Brain className="h-4 w-4 text-indigo-500" />
+                        </div>
+                        <h4 className="font-bold text-gray-900 text-base">Therapy Profile</h4>
+                        <Badge variant="secondary" className="text-xs">Intelligence</Badge>
+                      </div>
+                      <p className="text-gray-700 text-sm leading-relaxed font-medium">
+                        {insights.therapyProfileInsight}
+                      </p>
+                    </div>
+                  )}
+
+                  {insights.competencyFocus && (
+                    <div className="bg-emerald-50 border border-emerald-200 p-6 rounded-2xl hover:bg-emerald-100 transition-colors duration-200">
+                      <div className="flex items-center space-x-3 mb-4">
+                        <div className="w-8 h-8 bg-emerald-50 rounded-full flex items-center justify-center">
+                          <Award className="h-4 w-4 text-emerald-500" />
+                        </div>
+                        <h4 className="font-bold text-gray-900 text-base">Competency Focus</h4>
+                        <Badge variant="secondary" className="text-xs">Intelligence</Badge>
+                      </div>
+                      <p className="text-gray-700 text-sm leading-relaxed font-medium">
+                        {insights.competencyFocus}
+                      </p>
+                    </div>
+                  )}
+
+                  {insights.patternAlert && (
+                    <div className="bg-amber-50 border border-amber-200 p-6 rounded-2xl hover:bg-amber-100 transition-colors duration-200">
+                      <div className="flex items-center space-x-3 mb-4">
+                        <div className="w-8 h-8 bg-amber-50 rounded-full flex items-center justify-center">
+                          <AlertTriangle className="h-4 w-4 text-amber-500" />
+                        </div>
+                        <h4 className="font-bold text-gray-900 text-base">Pattern Alert</h4>
+                        <Badge variant="secondary" className="text-xs">Intelligence</Badge>
+                      </div>
+                      <p className="text-gray-700 text-sm leading-relaxed font-medium">
+                        {insights.patternAlert}
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
 

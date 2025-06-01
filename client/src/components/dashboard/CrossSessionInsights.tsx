@@ -105,13 +105,21 @@ export const CrossSessionInsights = () => {
         analysisData = [...earlySessions, ...recentSessions];
       }
 
-      const result = await generateCrossSessionAnalysis(analysisData, userProfile, insightCards);
+      // Enhanced analysis with Intelligence Hub capabilities
+      const result = await generateCrossSessionAnalysis(analysisData, userProfile, insightCards, {
+        includeTherapyProfile: totalSessions >= 10,
+        includePatternDetection: totalSessions >= 15,
+        includeCompetencyMapping: totalSessions >= 25,
+        includePredictiveInsights: totalSessions >= 50,
+        analysisDepth: currentMilestone.analysisType
+      });
+      
       setAnalysis(result);
       setIsExpanded(true);
       
       toast({
         title: "Analysis Complete!",
-        description: `${currentMilestone.title} insights generated successfully.`,
+        description: `${currentMilestone.title} insights generated with enhanced intelligence.`,
       });
     } catch (error) {
       console.error("Error generating analysis:", error);
