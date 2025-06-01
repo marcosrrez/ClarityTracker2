@@ -549,35 +549,37 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                 setIsHeaderVisible(scrollTop < 50);
               }}
             >
-              <div className="max-w-3xl mx-auto pt-16">
-                {/* Note Title - Large and Elegant */}
-                <div className="mb-12">
-                  <Input
-                    placeholder="Type your headline here."
-                    value={noteTitle}
-                    onChange={(e) => setNoteTitle(e.target.value)}
-                    className="text-4xl font-light border-none bg-transparent p-0 focus-visible:ring-0 placeholder:text-gray-400 dark:placeholder:text-gray-500 mb-8"
-                    autoFocus
-                    style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
-                  />
-                  <div className="text-gray-400 dark:text-gray-500 text-lg font-light mb-6">
-                    Start writing right here...
-                  </div>
+              <div className="max-w-2xl mx-auto pt-20">
+                {/* Note Title - Borderless and Free */}
+                <input
+                  type="text"
+                  placeholder="Type your headline here."
+                  value={noteTitle}
+                  onChange={(e) => setNoteTitle(e.target.value)}
+                  autoFocus
+                  className="w-full text-5xl font-light bg-transparent border-none outline-none placeholder:text-gray-300 dark:placeholder:text-gray-600 text-gray-800 dark:text-gray-200 mb-4"
+                  style={{ 
+                    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    fontWeight: '300'
+                  }}
+                />
+                
+                <div className="text-gray-400 dark:text-gray-500 text-xl font-light mb-16" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  Start writing right here...
                 </div>
 
-                {/* Note Content - Clean and Spacious */}
-                <div className="min-h-[600px]">
-                  <Textarea
-                    value={noteContent}
-                    onChange={(e) => setNoteContent(e.target.value)}
-                    placeholder="💡PRO TIP: You can do some magic while writing a note with our special keyboard and inline shortcuts. For example, try writing [ ] Todo to create a new todo. Or try **I am bold** to make a word bold. Click on the 'Shortcuts' button in the bottom left to see all."
-                    className="min-h-[600px] border-none bg-transparent resize-none focus-visible:ring-0 text-lg leading-relaxed p-0 placeholder:text-gray-400 dark:placeholder:text-gray-500"
-                    style={{ 
-                      fontFamily: 'system-ui, -apple-system, sans-serif',
-                      lineHeight: '1.7'
-                    }}
-                  />
-                </div>
+                {/* Note Content - Completely Borderless */}
+                <textarea
+                  value={noteContent}
+                  onChange={(e) => setNoteContent(e.target.value)}
+                  placeholder="💡PRO TIP: You can do some magic while writing a note with our special keyboard and inline shortcuts. For example, try writing [ ] Todo to create a new todo. Or try **I am bold** to make a word bold. Click on the 'Shortcuts' button in the bottom left to see all."
+                  className="w-full min-h-[700px] bg-transparent border-none outline-none resize-none placeholder:text-gray-300 dark:placeholder:text-gray-600 text-gray-700 dark:text-gray-300 text-xl leading-loose"
+                  style={{ 
+                    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    lineHeight: '1.8',
+                    fontWeight: '400'
+                  }}
+                />
               </div>
             </div>
 
