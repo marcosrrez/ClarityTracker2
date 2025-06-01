@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Check, Lightbulb, Clock, Zap, ChevronDown, ChevronUp, GraduationCap, Users, Heart, BookOpen, Bold, Italic, List, Quote } from "lucide-react";
+import { Calendar as CalendarIcon, Check, Lightbulb, Clock, Zap, ChevronDown, ChevronUp, GraduationCap, Users, Heart, BookOpen, Bold, Italic, List, Quote, Maximize2, Minimize2 } from "lucide-react";
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Highlight from '@tiptap/extension-highlight';
@@ -32,6 +32,7 @@ export const AddEntryForm = () => {
   const [dateCalendarOpen, setDateCalendarOpen] = useState(false);
   const [supervisionCalendarOpen, setSupervisionCalendarOpen] = useState(false);
   const [notesContent, setNotesContent] = useState("");
+  const [isNotesExpanded, setIsNotesExpanded] = useState(false);
 
   // Rich text editor
   const editor = useEditor({
@@ -192,22 +193,25 @@ export const AddEntryForm = () => {
             
             <div className="flex items-center justify-center gap-6">
               
-              {/* Client Session Icon - Jony Ive Style */}
+              {/* Client Session Icon - Vibrant & Active */}
               <div className="group relative">
                 <button
                   type="button"
                   onClick={() => applyTemplate('client')}
                   className={cn(
-                    "w-16 h-16 rounded-full border-0 transition-all duration-300 ease-out hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500/30 flex items-center justify-center shadow-lg",
+                    "w-18 h-18 rounded-full border-0 transition-all duration-300 ease-out hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500/30 flex items-center justify-center shadow-lg relative",
                     showDirectClient
-                      ? "bg-gradient-to-br from-blue-500 to-blue-600 shadow-blue-500/30"
-                      : "bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 hover:from-blue-400 hover:to-blue-500 shadow-gray-300/50 dark:shadow-gray-700/50"
+                      ? "bg-gradient-to-br from-blue-500 to-blue-700 shadow-blue-500/40 shadow-lg ring-4 ring-blue-200 dark:ring-blue-800"
+                      : "bg-gradient-to-br from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700 shadow-blue-400/30"
                   )}
                 >
                   <Heart className={cn(
-                    "w-7 h-7 transition-colors duration-200",
-                    showDirectClient ? "text-white" : "text-gray-600 dark:text-gray-300 group-hover:text-white"
+                    "w-8 h-8 transition-colors duration-200",
+                    showDirectClient ? "text-white drop-shadow-sm" : "text-white/90 group-hover:text-white"
                   )} />
+                  {showDirectClient && (
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>
+                  )}
                 </button>
                 
                 {/* Hover Tooltip */}
@@ -220,22 +224,25 @@ export const AddEntryForm = () => {
                 </div>
               </div>
               
-              {/* Supervision Icon - Jony Ive Style */}
+              {/* Supervision Icon - Vibrant & Active */}
               <div className="group relative">
                 <button
                   type="button"
                   onClick={() => applyTemplate('supervision')}
                   className={cn(
-                    "w-16 h-16 rounded-full border-0 transition-all duration-300 ease-out hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500/30 flex items-center justify-center shadow-lg",
+                    "w-18 h-18 rounded-full border-0 transition-all duration-300 ease-out hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500/30 flex items-center justify-center shadow-lg relative",
                     showSupervision
-                      ? "bg-gradient-to-br from-purple-500 to-purple-600 shadow-purple-500/30"
-                      : "bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 hover:from-purple-400 hover:to-purple-500 shadow-gray-300/50 dark:shadow-gray-700/50"
+                      ? "bg-gradient-to-br from-purple-500 to-purple-700 shadow-purple-500/40 shadow-lg ring-4 ring-purple-200 dark:ring-purple-800"
+                      : "bg-gradient-to-br from-purple-400 to-purple-600 hover:from-purple-500 hover:to-purple-700 shadow-purple-400/30"
                   )}
                 >
                   <Users className={cn(
-                    "w-7 h-7 transition-colors duration-200",
-                    showSupervision ? "text-white" : "text-gray-600 dark:text-gray-300 group-hover:text-white"
+                    "w-8 h-8 transition-colors duration-200",
+                    showSupervision ? "text-white drop-shadow-sm" : "text-white/90 group-hover:text-white"
                   )} />
+                  {showSupervision && (
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>
+                  )}
                 </button>
                 
                 {/* Hover Tooltip */}
@@ -248,22 +255,25 @@ export const AddEntryForm = () => {
                 </div>
               </div>
               
-              {/* Professional Development Icon - Jony Ive Style */}
+              {/* Professional Development Icon - Vibrant & Active */}
               <div className="group relative">
                 <button
                   type="button"
                   onClick={() => applyTemplate('development')}
                   className={cn(
-                    "w-16 h-16 rounded-full border-0 transition-all duration-300 ease-out hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500/30 flex items-center justify-center shadow-lg",
+                    "w-18 h-18 rounded-full border-0 transition-all duration-300 ease-out hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500/30 flex items-center justify-center shadow-lg relative",
                     showProfDev
-                      ? "bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-emerald-500/30"
-                      : "bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 hover:from-emerald-400 hover:to-emerald-500 shadow-gray-300/50 dark:shadow-gray-700/50"
+                      ? "bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-emerald-500/40 shadow-lg ring-4 ring-emerald-200 dark:ring-emerald-800"
+                      : "bg-gradient-to-br from-emerald-400 to-emerald-600 hover:from-emerald-500 hover:to-emerald-700 shadow-emerald-400/30"
                   )}
                 >
                   <GraduationCap className={cn(
-                    "w-7 h-7 transition-colors duration-200",
-                    showProfDev ? "text-white" : "text-gray-600 dark:text-gray-300 group-hover:text-white"
+                    "w-8 h-8 transition-colors duration-200",
+                    showProfDev ? "text-white drop-shadow-sm" : "text-white/90 group-hover:text-white"
                   )} />
+                  {showProfDev && (
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>
+                  )}
                 </button>
                 
                 {/* Hover Tooltip */}
@@ -556,94 +566,117 @@ export const AddEntryForm = () => {
               </div>
             )}
 
-            {/* Rich Text Notes Section */}
-            <div className="bg-white dark:bg-gray-800 p-8 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                  <BookOpen className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+            {/* Luxurious Expandable Notes Section */}
+            <div className={cn(
+              "bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all duration-500 ease-out",
+              isNotesExpanded ? "fixed inset-4 z-50 shadow-2xl" : "p-8"
+            )}>
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                    <BookOpen className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                  </div>
+                  <Label className="text-xl font-medium text-gray-900 dark:text-white">
+                    Session Notes & Reflections
+                  </Label>
                 </div>
-                <Label className="text-xl font-medium text-gray-900 dark:text-white">
-                  Session Notes & Reflections
-                </Label>
-              </div>
-
-              {/* Rich Text Editor Toolbar */}
-              {editor && (
-                <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-900 rounded-xl mb-4 border border-gray-200 dark:border-gray-700">
-                  <button
-                    type="button"
-                    onClick={() => editor.chain().focus().toggleBold().run()}
-                    className={cn(
-                      "p-2 rounded-lg transition-colors duration-200",
-                      editor.isActive('bold')
-                        ? "bg-blue-500 text-white"
-                        : "hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
-                    )}
-                  >
-                    <Bold className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => editor.chain().focus().toggleItalic().run()}
-                    className={cn(
-                      "p-2 rounded-lg transition-colors duration-200",
-                      editor.isActive('italic')
-                        ? "bg-blue-500 text-white"
-                        : "hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
-                    )}
-                  >
-                    <Italic className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => editor.chain().focus().toggleBulletList().run()}
-                    className={cn(
-                      "p-2 rounded-lg transition-colors duration-200",
-                      editor.isActive('bulletList')
-                        ? "bg-blue-500 text-white"
-                        : "hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
-                    )}
-                  >
-                    <List className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => editor.chain().focus().toggleHighlight().run()}
-                    className={cn(
-                      "p-2 rounded-lg transition-colors duration-200",
-                      editor.isActive('highlight')
-                        ? "bg-yellow-500 text-white"
-                        : "hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
-                    )}
-                  >
-                    <Lightbulb className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
-
-              {/* Rich Text Editor */}
-              <div className="relative">
-                <div className="min-h-[200px] p-6 border-0 bg-gray-50 dark:bg-gray-900 rounded-2xl focus-within:bg-white dark:focus-within:bg-gray-800 focus-within:shadow-md transition-all duration-200">
-                  <EditorContent 
-                    editor={editor} 
-                    className="prose prose-sm dark:prose-invert max-w-none focus:outline-none"
-                  />
-                  {!editor?.getText() && (
-                    <div className="absolute top-6 left-6 text-gray-500 dark:text-gray-400 pointer-events-none">
-                      Describe what happened in this session, your interventions, client progress, challenges you faced, insights gained, and your professional reflections. The more detail you provide, the better AI insights you'll receive.
-                    </div>
+                <button
+                  type="button"
+                  onClick={() => setIsNotesExpanded(!isNotesExpanded)}
+                  className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 group"
+                  title={isNotesExpanded ? "Minimize notes" : "Expand notes for full writing experience"}
+                >
+                  {isNotesExpanded ? (
+                    <Minimize2 className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200" />
+                  ) : (
+                    <Maximize2 className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200" />
                   )}
-                </div>
-                <div className="absolute bottom-4 right-4 text-xs text-gray-400 font-medium">
-                  {editor?.getText().length || 0} characters
-                </div>
+                </button>
               </div>
 
-              <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
-                <p className="text-sm text-blue-700 dark:text-blue-300 flex items-center space-x-2">
-                  <Lightbulb className="w-4 h-4 flex-shrink-0" />
-                  <span>AI will analyze your reflections to identify growth patterns and provide personalized insights for your professional development.</span>
-                </p>
+              <div className={cn("space-y-4", isNotesExpanded && "p-8 h-full overflow-y-auto")}>
+                {/* Rich Text Editor Toolbar */}
+                {editor && (
+                  <div className="flex items-center gap-2 p-4 bg-gray-50 dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700">
+                    <button
+                      type="button"
+                      onClick={() => editor.chain().focus().toggleBold().run()}
+                      className={cn(
+                        "p-3 rounded-xl transition-all duration-200",
+                        editor.isActive('bold')
+                          ? "bg-blue-500 text-white shadow-md"
+                          : "hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+                      )}
+                    >
+                      <Bold className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => editor.chain().focus().toggleItalic().run()}
+                      className={cn(
+                        "p-3 rounded-xl transition-all duration-200",
+                        editor.isActive('italic')
+                          ? "bg-blue-500 text-white shadow-md"
+                          : "hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+                      )}
+                    >
+                      <Italic className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => editor.chain().focus().toggleBulletList().run()}
+                      className={cn(
+                        "p-3 rounded-xl transition-all duration-200",
+                        editor.isActive('bulletList')
+                          ? "bg-blue-500 text-white shadow-md"
+                          : "hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+                      )}
+                    >
+                      <List className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => editor.chain().focus().toggleHighlight().run()}
+                      className={cn(
+                        "p-3 rounded-xl transition-all duration-200",
+                        editor.isActive('highlight')
+                          ? "bg-yellow-500 text-white shadow-md"
+                          : "hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+                      )}
+                    >
+                      <Lightbulb className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Rich Text Editor */}
+                <div className="relative">
+                  <div className={cn(
+                    "p-8 border-0 bg-gray-50 dark:bg-gray-900 rounded-2xl focus-within:bg-white dark:focus-within:bg-gray-800 focus-within:shadow-lg transition-all duration-300",
+                    isNotesExpanded ? "min-h-[calc(100vh-320px)]" : "min-h-[300px]"
+                  )}>
+                    <EditorContent 
+                      editor={editor} 
+                      className={cn(
+                        "prose dark:prose-invert max-w-none focus:outline-none",
+                        isNotesExpanded ? "prose-lg" : "prose-sm"
+                      )}
+                    />
+                    {!editor?.getText() && (
+                      <div className="absolute top-8 left-8 text-gray-500 dark:text-gray-400 pointer-events-none leading-relaxed">
+                        Describe what happened in this session, your interventions, client progress, challenges you faced, insights gained, and your professional reflections.
+                        {isNotesExpanded && (
+                          <div className="mt-4 text-sm">
+                            Use this expanded space to capture detailed thoughts, therapeutic process notes, supervision insights, or learning reflections with full formatting support.
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <div className="absolute bottom-6 right-6 text-xs text-gray-400 font-medium bg-white dark:bg-gray-800 px-3 py-1 rounded-full">
+                    {editor?.getText().length || 0} characters
+                  </div>
+                </div>
               </div>
             </div>
 
