@@ -1,28 +1,11 @@
 import { Clock, Users, Calendar, TrendingUp } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useLogEntries, useAppSettings } from "@/hooks/use-firestore";
 import { EnhancedStatsCard } from "./EnhancedStatsCard";
 import { motion } from "framer-motion";
 
 export const QuickStatsGrid = () => {
-  // Use backend API instead of Firebase for consistent data
-  const { data: entries = [], isLoading: entriesLoading } = useQuery({
-    queryKey: ['/api/log-entries'],
-    queryFn: async () => {
-      const response = await fetch('/api/log-entries');
-      if (!response.ok) throw new Error('Failed to fetch entries');
-      return response.json();
-    },
-    refetchInterval: 5000, // Auto-refresh every 5 seconds
-  });
-
-  const { data: settings, isLoading: settingsLoading } = useQuery({
-    queryKey: ['/api/settings'],
-    queryFn: async () => {
-      const response = await fetch('/api/settings');
-      if (!response.ok) return null; // Settings are optional
-      return response.json();
-    },
-  });
+  const { entries, loading: entriesLoading, refetch } = useLogEntries();
+  const { settings, loading: settingsLoading } = useAppSettings();
 
   if (entriesLoading || settingsLoading) {
     return (

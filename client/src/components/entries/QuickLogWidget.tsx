@@ -6,7 +6,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { useAccountType } from "@/hooks/use-account-type";
 import { useLogEntries } from "@/hooks/use-firestore";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
+import { createLogEntry } from "@/lib/firestore";
 
 interface QuickLogTemplate {
   id: string;
@@ -169,40 +170,42 @@ export const QuickLogWidget = () => {
   };
 
   const handleQuickLog = async (template: QuickLogTemplate) => {
-    try {
-      const response = await fetch('/api/log-entries', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...template.data,
-          userId: user?.uid || 'demo-user',
-          dateOfContact: new Date(),
-          supervisionType: template.data.supervisionType || 'none',
-          techAssistedSupervision: false
-        }),
+    if (!user?.uid) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to log sessions.",
+        variant: "destructive",
       });
+      return;
+    }
 
-      if (response.ok) {
-        // Invalidate all dashboard-related queries for immediate refresh
-        queryClient.invalidateQueries({ queryKey: ['/api/log-entries'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/ai/integration-status'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/ai/smart-insights'] });
-        
-        // Force window reload to ensure dashboard updates
-        setTimeout(() => {
-          window.location.reload();
-        }, 500);
+    try {
+      // Create entry data compatible with Firebase schema
+      const entryData = {
+        dateOfContact: new Date(),
+        clientContactHours: template.data.clientContactHours || 0,
+        supervisionHours: template.data.supervisionHours || 0,
+        indirectHours: template.data.indirectHours || false,
+        supervisionType: template.data.supervisionType || 'none',
+        techAssistedSupervision: false,
+        notes: template.data.notes,
+      };
 
-        const hours = template.data.clientContactHours || template.data.supervisionHours || 0;
-        toast({
-          title: "Entry logged!",
-          description: `${hours}h session saved. Dashboard updating...`,
-        });
-        setIsExpanded(false);
-      } else {
-        throw new Error('Failed to save');
-      }
+      // Save to Firebase to maintain data consistency
+      await createLogEntry(user.uid, entryData);
+      
+      // Refresh Firebase data
+      await refetch();
+
+      const hours = template.data.clientContactHours || template.data.supervisionHours || 0;
+      toast({
+        title: "Entry logged!",
+        description: `${hours}h session saved successfully.`,
+      });
+      setIsExpanded(false);
+
     } catch (error) {
+      console.error('Error saving entry:', error);
       toast({
         title: "Error saving entry",
         description: "Please try again or use the full form.",
