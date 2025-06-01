@@ -164,78 +164,91 @@ export const AddEntryForm = () => {
       <Card className="backdrop-blur-sm bg-white/95 dark:bg-gray-800/95 border border-white/20 shadow-2xl rounded-3xl max-w-4xl mx-auto">
         <CardContent className="p-8">
           
-          {/* Quick Templates - Collapsible */}
-          <div className="mb-8">
+          {/* Quick Templates - Minimal Header */}
+          <div className="mb-12">
             <button
               type="button"
               onClick={() => setShowQuickTemplates(!showQuickTemplates)}
-              className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-2xl border border-blue-200 dark:border-blue-800 hover:from-blue-100 hover:to-purple-100 dark:hover:from-blue-900/30 dark:hover:to-purple-900/30 transition-all duration-200"
+              className="w-full flex items-center justify-between p-6 bg-white dark:bg-gray-900 rounded-3xl border-0 shadow-sm hover:shadow-md transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-gray-500/10"
             >
-              <div className="flex items-center space-x-3">
-                <Zap className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                <h3 className="font-semibold text-blue-800 dark:text-blue-200">Quick Start Templates</h3>
+              <div className="flex items-center space-x-4">
+                <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center">
+                  <Zap className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                </div>
+                <h3 className="text-xl font-medium text-gray-900 dark:text-white">Quick Start Templates</h3>
               </div>
-              {showQuickTemplates ? (
-                <ChevronUp className="w-5 h-5 text-blue-500" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-blue-500" />
-              )}
+              <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                {showQuickTemplates ? (
+                  <ChevronUp className="w-4 h-4 text-gray-500" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-gray-500" />
+                )}
+              </div>
             </button>
             
             {showQuickTemplates && (
-              <div className="mt-4 p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-2xl border border-blue-200 dark:border-blue-800">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="mt-6 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   
-                  {/* Client Session Template */}
+                  {/* Client Session Template - Clean, Minimal */}
                   <button
                     type="button"
                     onClick={() => applyTemplate('client')}
-                    className="group p-6 bg-white dark:bg-gray-800 rounded-2xl border border-blue-200 dark:border-blue-700 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-lg transition-all duration-200"
+                    className="group relative bg-white dark:bg-gray-900 rounded-3xl p-8 shadow-sm hover:shadow-lg border-0 transition-all duration-300 ease-out hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                   >
-                    <div className="flex flex-col items-center text-center space-y-3">
-                      <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl group-hover:bg-blue-200 dark:group-hover:bg-blue-900/50 transition-colors">
-                        <Heart className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-blue-600/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="relative space-y-4">
+                      <div className="w-14 h-14 mx-auto bg-blue-50 dark:bg-blue-950 rounded-2xl flex items-center justify-center group-hover:bg-blue-100 dark:group-hover:bg-blue-900 transition-colors duration-200">
+                        <Heart className="w-7 h-7 text-blue-600 dark:text-blue-400" />
                       </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Client Session</h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Individual, group, couples, family therapy</p>
-                        <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">1 hour • Direct contact</div>
+                      <div className="text-center space-y-2">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Client Session</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Individual, group, couples, family therapy</p>
+                        <div className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950 text-xs font-medium text-blue-700 dark:text-blue-300">
+                          1 hour • Direct contact
+                        </div>
                       </div>
                     </div>
                   </button>
                   
-                  {/* Supervision Template */}
+                  {/* Supervision Template - Clean, Minimal */}
                   <button
                     type="button"
                     onClick={() => applyTemplate('supervision')}
-                    className="group p-6 bg-white dark:bg-gray-800 rounded-2xl border border-purple-200 dark:border-purple-700 hover:border-purple-400 dark:hover:border-purple-500 hover:shadow-lg transition-all duration-200"
+                    className="group relative bg-white dark:bg-gray-900 rounded-3xl p-8 shadow-sm hover:shadow-lg border-0 transition-all duration-300 ease-out hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-purple-500/20"
                   >
-                    <div className="flex flex-col items-center text-center space-y-3">
-                      <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl group-hover:bg-purple-200 dark:group-hover:bg-purple-900/50 transition-colors">
-                        <Users className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-purple-600/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="relative space-y-4">
+                      <div className="w-14 h-14 mx-auto bg-purple-50 dark:bg-purple-950 rounded-2xl flex items-center justify-center group-hover:bg-purple-100 dark:group-hover:bg-purple-900 transition-colors duration-200">
+                        <Users className="w-7 h-7 text-purple-600 dark:text-purple-400" />
                       </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Supervision</h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Individual, dyadic, or group supervision</p>
-                        <div className="text-xs text-purple-600 dark:text-purple-400 font-medium">1 hour • Required for licensure</div>
+                      <div className="text-center space-y-2">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Supervision</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Individual, dyadic, or group supervision</p>
+                        <div className="inline-flex items-center px-3 py-1 rounded-full bg-purple-50 dark:bg-purple-950 text-xs font-medium text-purple-700 dark:text-purple-300">
+                          1 hour • Required for licensure
+                        </div>
                       </div>
                     </div>
                   </button>
                   
-                  {/* Professional Development Template */}
+                  {/* Professional Development Template - Clean, Minimal */}
                   <button
                     type="button"
                     onClick={() => applyTemplate('development')}
-                    className="group p-6 bg-white dark:bg-gray-800 rounded-2xl border border-green-200 dark:border-green-700 hover:border-green-400 dark:hover:border-green-500 hover:shadow-lg transition-all duration-200"
+                    className="group relative bg-white dark:bg-gray-900 rounded-3xl p-8 shadow-sm hover:shadow-lg border-0 transition-all duration-300 ease-out hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                   >
-                    <div className="flex flex-col items-center text-center space-y-3">
-                      <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl group-hover:bg-green-200 dark:group-hover:bg-green-900/50 transition-colors">
-                        <GraduationCap className="w-6 h-6 text-green-600 dark:text-green-400" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-emerald-600/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="relative space-y-4">
+                      <div className="w-14 h-14 mx-auto bg-emerald-50 dark:bg-emerald-950 rounded-2xl flex items-center justify-center group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900 transition-colors duration-200">
+                        <GraduationCap className="w-7 h-7 text-emerald-600 dark:text-emerald-400" />
                       </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Learning & Growth</h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Training, workshops, conferences, ethics</p>
-                        <div className="text-xs text-green-600 dark:text-green-400 font-medium">2 hours • Professional development</div>
+                      <div className="text-center space-y-2">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Learning & Growth</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Training, workshops, conferences, ethics</p>
+                        <div className="inline-flex items-center px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950 text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                          2 hours • Professional development
+                        </div>
                       </div>
                     </div>
                   </button>
@@ -522,11 +535,13 @@ export const AddEntryForm = () => {
               </div>
             )}
 
-            {/* Notes Section - Always Visible and Prominent */}
-            <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 p-6 rounded-2xl border border-amber-200 dark:border-amber-800">
-              <div className="flex items-center space-x-3 mb-4">
-                <BookOpen className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                <Label className="text-lg font-semibold text-gray-800 dark:text-white">
+            {/* Notes Section - Clean, Minimalist Design */}
+            <div className="bg-white dark:bg-gray-800 p-8 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                  <BookOpen className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                </div>
+                <Label className="text-xl font-medium text-gray-900 dark:text-white">
                   Session Notes & Reflections
                 </Label>
               </div>
@@ -536,16 +551,18 @@ export const AddEntryForm = () => {
                   onChange={(e) => setNotesContent(e.target.value)}
                   placeholder="Describe what happened in this session, your interventions, client progress, challenges you faced, insights gained, and your professional reflections. The more detail you provide, the better AI insights you'll receive about your growth patterns and areas for development."
                   rows={8}
-                  className="w-full p-4 border border-amber-200 dark:border-amber-700 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-none text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 placeholder-gray-500 dark:placeholder-gray-400"
+                  className="w-full p-6 border-0 bg-gray-50 dark:bg-gray-900 rounded-2xl focus:ring-0 focus:outline-none resize-none text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 text-base leading-relaxed transition-all duration-200 focus:bg-white dark:focus:bg-gray-800 focus:shadow-md"
                 />
-                <div className="absolute bottom-3 right-3 text-xs text-gray-400">
+                <div className="absolute bottom-4 right-4 text-xs text-gray-400 font-medium">
                   {notesContent.length} characters
                 </div>
               </div>
-              <p className="text-sm text-amber-700 dark:text-amber-300 mt-3 flex items-center space-x-2">
-                <Lightbulb className="w-4 h-4" />
-                <span>AI will analyze your notes to identify growth patterns and provide personalized insights.</span>
-              </p>
+              <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
+                <p className="text-sm text-blue-700 dark:text-blue-300 flex items-center space-x-2">
+                  <Lightbulb className="w-4 h-4 flex-shrink-0" />
+                  <span>AI will analyze your reflections to identify growth patterns and provide personalized insights for your professional development.</span>
+                </p>
+              </div>
             </div>
 
             {/* Submit Button */}
