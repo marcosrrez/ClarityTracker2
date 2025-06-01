@@ -164,7 +164,7 @@ Insight ${index + 1} (${new Date(card.createdAt).toLocaleDateString()}):
 Title: ${card.title}
 Content: ${card.content}
 Type: ${card.type}
-Tags: ${card.tags?.join(', ') || 'None'}
+Tags: ${Array.isArray(card.tags) ? card.tags.join(', ') : 'None'}
 `).join('\n')}
 ` : '';
 
