@@ -169,100 +169,94 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md p-0 gap-0 rounded-2xl" aria-describedby="resource-widget-description">
+      <DialogContent className="sm:max-w-sm p-0 gap-0 rounded-3xl bg-gray-900 border-gray-800" aria-describedby="resource-widget-description">
+        <DialogTitle className="sr-only">Add Resource</DialogTitle>
         <div className="p-6">
           {!selectedMode ? (
             <>
-              {/* Compact Header */}
-              <div className="text-center mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Add Resource</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">AI-powered analysis</p>
+              {/* Search Bar Style Input */}
+              <div 
+                className="flex items-center gap-3 p-4 bg-gray-800 rounded-full cursor-pointer hover:bg-gray-750 transition-colors mb-6"
+                onClick={() => setSelectedMode('url')}
+              >
+                <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+                  <Globe className="h-3 w-3 text-white" />
+                </div>
+                <span className="text-gray-300 text-sm flex-1">Paste article URL or search</span>
               </div>
               
-              {/* Compact Mode Cards */}
-              <div className="space-y-3">
-                <div 
-                  className="group flex items-center gap-3 p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/20 transition-all duration-200 cursor-pointer"
+              {/* Icon Actions Row */}
+              <div className="flex justify-center gap-8">
+                <button
                   onClick={() => setSelectedMode('url')}
+                  className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-gray-800 transition-colors group"
                 >
-                  <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white flex-shrink-0">
-                    <Globe className="h-5 w-5" />
+                  <div className="w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center group-hover:bg-blue-600 transition-colors">
+                    <Globe className="h-6 w-6 text-gray-400 group-hover:text-white" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 dark:text-gray-100">Web Article</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate">Auto-extract from URL</p>
-                  </div>
-                  <ExternalLink className="h-4 w-4 text-gray-400 group-hover:text-blue-600 transition-colors flex-shrink-0" />
-                </div>
+                  <span className="text-xs text-gray-400">Web</span>
+                </button>
 
-                <div 
-                  className="group flex items-center gap-3 p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/20 transition-all duration-200 cursor-pointer"
+                <button
                   onClick={() => setSelectedMode('manual')}
+                  className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-gray-800 transition-colors group"
                 >
-                  <div className="w-10 h-10 rounded-lg bg-purple-600 flex items-center justify-center text-white flex-shrink-0">
-                    <FileText className="h-5 w-5" />
+                  <div className="w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center group-hover:bg-purple-600 transition-colors">
+                    <FileText className="h-6 w-6 text-gray-400 group-hover:text-white" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 dark:text-gray-100">Manual Entry</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate">Paste content directly</p>
-                  </div>
-                  <FileText className="h-4 w-4 text-gray-400 group-hover:text-purple-600 transition-colors flex-shrink-0" />
-                </div>
-              </div>
+                  <span className="text-xs text-gray-400">Paste</span>
+                </button>
 
-              {/* Coming Soon - Compact */}
-              <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <div className="flex justify-center gap-4">
-                  <div className="text-center">
-                    <div className="w-8 h-8 mx-auto mb-1 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                      <BookOpen className="h-4 w-4 text-gray-400" />
-                    </div>
-                    <p className="text-xs text-gray-400">PDF</p>
+                <button className="flex flex-col items-center gap-2 p-3 rounded-xl transition-colors group opacity-50">
+                  <div className="w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center">
+                    <BookOpen className="h-6 w-6 text-gray-500" />
                   </div>
-                  <div className="text-center">
-                    <div className="w-8 h-8 mx-auto mb-1 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                      <Video className="h-4 w-4 text-gray-400" />
-                    </div>
-                    <p className="text-xs text-gray-400">Video</p>
+                  <span className="text-xs text-gray-500">PDF</span>
+                </button>
+
+                <button className="flex flex-col items-center gap-2 p-3 rounded-xl transition-colors group opacity-50">
+                  <div className="w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center">
+                    <Video className="h-6 w-6 text-gray-500" />
                   </div>
-                </div>
+                  <span className="text-xs text-gray-500">Video</span>
+                </button>
               </div>
             </>
           ) : selectedMode === 'url' ? (
-            /* Compact URL Input */
+            /* URL Input Mode */
             <div className="space-y-4">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 mb-4">
                 <Button 
                   variant="ghost" 
                   size="sm" 
                   onClick={() => setSelectedMode(null)}
-                  className="p-1 h-8 w-8"
+                  className="p-2 h-8 w-8 text-gray-400 hover:text-white hover:bg-gray-800"
                 >
                   ←
                 </Button>
                 <div className="flex items-center gap-2">
-                  <Globe className="h-4 w-4 text-blue-600" />
-                  <h3 className="font-semibold">Web Article</h3>
+                  <Globe className="h-4 w-4 text-blue-400" />
+                  <h3 className="font-medium text-white">Web Article</h3>
                 </div>
               </div>
 
               <form onSubmit={handleSubmit(onSummarizeUrl)} className="space-y-4">
-                <div>
+                <div className="relative">
                   <Input
                     {...register("url")}
                     placeholder="https://example.com/article"
                     disabled={isSummarizing}
-                    className="font-mono text-sm"
+                    className="bg-gray-800 border-gray-700 text-white placeholder-gray-400 rounded-full pl-4 pr-4 h-12 font-mono text-sm focus:ring-blue-500 focus:border-blue-500"
                   />
                   {errors.url && (
-                    <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.url.message}</p>
+                    <p className="text-xs text-red-400 mt-2 px-4">{errors.url.message}</p>
                   )}
                 </div>
                 
                 <Button 
                   type="submit" 
                   disabled={isSummarizing}
-                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-full h-12"
                 >
                   {isSummarizing ? (
                     <>
@@ -272,27 +266,27 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
                   ) : (
                     <>
                       <ExternalLink className="h-4 w-4 mr-2" />
-                      Analyze
+                      Analyze Article
                     </>
                   )}
                 </Button>
               </form>
             </div>
           ) : (
-            /* Compact Manual Input */
+            /* Manual Input Mode */
             <div className="space-y-4">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 mb-4">
                 <Button 
                   variant="ghost" 
                   size="sm" 
                   onClick={() => setSelectedMode(null)}
-                  className="p-1 h-8 w-8"
+                  className="p-2 h-8 w-8 text-gray-400 hover:text-white hover:bg-gray-800"
                 >
                   ←
                 </Button>
                 <div className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-purple-600" />
-                  <h3 className="font-semibold">Manual Entry</h3>
+                  <FileText className="h-4 w-4 text-purple-400" />
+                  <h3 className="font-medium text-white">Manual Entry</h3>
                 </div>
               </div>
 
@@ -302,21 +296,21 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
                   onChange={(e) => setManualUrl(e.target.value)}
                   placeholder="Source URL (optional)"
                   disabled={isSummarizing}
-                  className="text-sm font-mono"
+                  className="bg-gray-800 border-gray-700 text-white placeholder-gray-400 rounded-full px-4 h-10 text-sm font-mono focus:ring-purple-500 focus:border-purple-500"
                 />
                 
                 <textarea
                   value={manualContent}
                   onChange={(e) => setManualContent(e.target.value)}
                   placeholder="Paste article content here..."
-                  className="w-full h-24 p-3 text-sm border rounded-lg resize-none bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full h-32 p-4 text-sm bg-gray-800 border border-gray-700 rounded-2xl resize-none text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   disabled={isSummarizing}
                 />
                 
                 <Button 
                   onClick={handleManualSubmit}
                   disabled={isSummarizing || !manualContent.trim()}
-                  className="w-full bg-purple-600 hover:bg-purple-700"
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-full h-12"
                 >
                   {isSummarizing ? (
                     <>
@@ -326,7 +320,7 @@ export function ResourceWidget({ open, onOpenChange, onResourceAdded }: Resource
                   ) : (
                     <>
                       <FileText className="h-4 w-4 mr-2" />
-                      Analyze
+                      Analyze Content
                     </>
                   )}
                 </Button>
