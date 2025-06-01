@@ -4,10 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Sparkles, Search, MoreHorizontal, AlertTriangle, Bot, Eye, Filter, Minimize2, Plus } from "lucide-react";
+import { Calendar, Sparkles, Search, MoreHorizontal, AlertTriangle, Bot, Eye, Filter, Minimize2, Plus, Bold, Italic, Type, Paperclip, Edit3, Check } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Textarea } from "@/components/ui/textarea";
 import { format, startOfWeek, endOfWeek, getWeeksInMonth, startOfMonth, endOfMonth } from "date-fns";
 import { useLogEntries } from "@/hooks/use-firestore";
 import { getAiAnalysis, deleteAiAnalysis } from "@/lib/firestore";
@@ -48,6 +49,11 @@ export const GalleryView = () => {
   const [expandedCard, setExpandedCard] = useState<GalleryItem | null>(null);
   const [deleteDialogItem, setDeleteDialogItem] = useState<GalleryItem | null>(null);
   const [dragState, setDragState] = useState<{ weekIndex: number; startX: number; currentX: number } | null>(null);
+  const [showNoteEditor, setShowNoteEditor] = useState(false);
+  const [noteContent, setNoteContent] = useState("");
+  const [noteTitle, setNoteTitle] = useState("");
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [showScrollGuide, setShowScrollGuide] = useState<{[key: string]: boolean}>({});
   const containerRefs = useRef<(HTMLDivElement | null)[]>([]);
 
@@ -715,11 +721,10 @@ export const GalleryView = () => {
         <Card 
           className="border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-orange-400 dark:hover:border-orange-500 transition-colors cursor-pointer"
           onClick={() => {
-            // TODO: Open rich text editor modal
-            toast({
-              title: "Rich Text Editor",
-              description: "Note creation with rich text editing coming soon!",
-            });
+            setShowNoteEditor(true);
+            setNoteContent("");
+            setNoteTitle("");
+            setIsHeaderVisible(true);
           }}
         >
           <CardContent className="p-6">
@@ -737,6 +742,106 @@ export const GalleryView = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Note Editor Modal - MyMind Style */}
+      <Dialog open={showNoteEditor} onOpenChange={setShowNoteEditor}>
+        <DialogContent className="max-w-none w-full h-full p-0 gap-0 bg-gray-50 dark:bg-gray-900">
+          <div className="flex flex-col h-full">
+            {/* Header - hides on scroll */}
+            <div className={`transition-all duration-300 ${isHeaderVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full absolute'}`}>
+              <div className="bg-gray-200 dark:bg-gray-800 px-6 py-4 text-center">
+                <h2 className="text-lg font-medium text-gray-600 dark:text-gray-300">Create a new note</h2>
+              </div>
+            </div>
+
+            {/* Content Area */}
+            <div 
+              className="flex-1 p-8 overflow-y-auto"
+              onScroll={(e) => {
+                const scrollTop = e.currentTarget.scrollTop;
+                setIsHeaderVisible(scrollTop < 50);
+              }}
+            >
+              <div className="max-w-4xl mx-auto">
+                {/* Note Header */}
+                <div className="mb-8">
+                  <p className="text-sm font-medium text-orange-500 dark:text-orange-400 mb-2">ADD A NEW NOTE</p>
+                  <Input
+                    placeholder="Start typing here..."
+                    value={noteTitle}
+                    onChange={(e) => setNoteTitle(e.target.value)}
+                    className="text-lg font-medium border-none bg-transparent p-0 focus-visible:ring-0 placeholder:text-gray-400"
+                    autoFocus
+                  />
+                </div>
+
+                {/* Note Content */}
+                <div className="min-h-[500px]">
+                  <Textarea
+                    ref={textareaRef}
+                    value={noteContent}
+                    onChange={(e) => setNoteContent(e.target.value)}
+                    placeholder="Write your thoughts, insights, or reflections here..."
+                    className="min-h-[500px] border-none bg-transparent resize-none focus-visible:ring-0 text-base leading-relaxed p-0"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Floating Toolbar */}
+            <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2">
+              <div className="bg-white dark:bg-gray-800 shadow-lg rounded-full px-4 py-2 flex items-center gap-4 border border-gray-200 dark:border-gray-700">
+                <Button variant="ghost" size="sm" className="p-2 h-auto">
+                  <Bold className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="sm" className="p-2 h-auto">
+                  <Italic className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="sm" className="p-2 h-auto">
+                  <Type className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="sm" className="p-2 h-auto">
+                  <Paperclip className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="sm" className="p-2 h-auto">
+                  <Edit3 className="h-4 w-4" />
+                </Button>
+                <div className="w-px h-6 bg-gray-200 dark:bg-gray-600"></div>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="p-2 h-auto text-green-600 hover:text-green-700"
+                  onClick={() => {
+                    // TODO: Save note logic
+                    toast({
+                      title: "Note Saved",
+                      description: "Your note has been saved successfully.",
+                    });
+                    setShowNoteEditor(false);
+                  }}
+                >
+                  <Check className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Floating Add Button - appears when header is hidden */}
+            {!isHeaderVisible && (
+              <div className="absolute top-6 right-6">
+                <Button 
+                  className="rounded-full w-12 h-12 bg-orange-500 hover:bg-orange-600 shadow-lg"
+                  onClick={() => {
+                    setShowNoteEditor(false);
+                    setTimeout(() => setShowNoteEditor(true), 100);
+                  }}
+                >
+                  <Plus className="h-5 w-5" />
+                </Button>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Empty State for No Items */}
       {cardRows.length === 0 ? (
