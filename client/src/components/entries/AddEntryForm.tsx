@@ -2,7 +2,12 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Check, Lightbulb, Clock, Zap, ChevronDown, ChevronUp, GraduationCap, Users, Heart, BookOpen } from "lucide-react";
+import { Calendar as CalendarIcon, Check, Lightbulb, Clock, Zap, ChevronDown, ChevronUp, GraduationCap, Users, Heart, BookOpen, Bold, Italic, List, Quote } from "lucide-react";
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Highlight from '@tiptap/extension-highlight';
+import TextStyle from '@tiptap/extension-text-style';
+import { Color } from '@tiptap/extension-color';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,9 +32,23 @@ export const AddEntryForm = () => {
   const [dateCalendarOpen, setDateCalendarOpen] = useState(false);
   const [supervisionCalendarOpen, setSupervisionCalendarOpen] = useState(false);
   const [notesContent, setNotesContent] = useState("");
+
+  // Rich text editor
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Highlight,
+      TextStyle,
+      Color,
+    ],
+    content: '',
+    onUpdate: ({ editor }) => {
+      setNotesContent(editor.getHTML());
+    },
+  });
   
-  // Collapsible sections
-  const [showDirectClient, setShowDirectClient] = useState(false);
+  // Collapsible sections - Default to client session
+  const [showDirectClient, setShowDirectClient] = useState(true);
   const [showSupervision, setShowSupervision] = useState(false);
   const [showProfDev, setShowProfDev] = useState(false);
 
@@ -44,7 +63,7 @@ export const AddEntryForm = () => {
     resolver: zodResolver(insertLogEntrySchema),
     defaultValues: {
       dateOfContact: new Date(),
-      clientContactHours: 0,
+      clientContactHours: 1,
       indirectHours: false,
       supervisionHours: 0,
       supervisionType: "none",
@@ -135,6 +154,7 @@ export const AddEntryForm = () => {
       
       reset();
       setNotesContent("");
+      editor?.commands.clearContent();
     } catch (error) {
       console.error("Error creating entry:", error);
       toast({
@@ -170,64 +190,88 @@ export const AddEntryForm = () => {
               <p className="text-sm text-gray-500 dark:text-gray-400">Choose your activity type to get started</p>
             </div>
             
-            <div className="flex items-center justify-center gap-8">
+            <div className="flex items-center justify-center gap-6">
               
-              {/* Client Session Icon */}
+              {/* Client Session Icon - Jony Ive Style */}
               <div className="group relative">
                 <button
                   type="button"
                   onClick={() => applyTemplate('client')}
-                  className="w-20 h-20 bg-white dark:bg-gray-900 rounded-2xl shadow-sm hover:shadow-md border-0 transition-all duration-300 ease-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500/20 flex items-center justify-center"
+                  className={cn(
+                    "w-16 h-16 rounded-full border-0 transition-all duration-300 ease-out hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500/30 flex items-center justify-center shadow-lg",
+                    showDirectClient
+                      ? "bg-gradient-to-br from-blue-500 to-blue-600 shadow-blue-500/30"
+                      : "bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 hover:from-blue-400 hover:to-blue-500 shadow-gray-300/50 dark:shadow-gray-700/50"
+                  )}
                 >
-                  <Heart className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                  <Heart className={cn(
+                    "w-7 h-7 transition-colors duration-200",
+                    showDirectClient ? "text-white" : "text-gray-600 dark:text-gray-300 group-hover:text-white"
+                  )} />
                 </button>
                 
                 {/* Hover Tooltip */}
-                <div className="absolute top-full mt-3 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
-                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-4 w-64">
+                <div className="absolute top-full mt-4 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10">
+                  <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 p-4 w-56 backdrop-blur-sm">
                     <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Client Session</h4>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Individual, group, couples, family therapy</p>
-                    <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">1 hour • Direct contact</div>
+                    <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">Default • Direct contact</div>
                   </div>
                 </div>
               </div>
               
-              {/* Supervision Icon */}
+              {/* Supervision Icon - Jony Ive Style */}
               <div className="group relative">
                 <button
                   type="button"
                   onClick={() => applyTemplate('supervision')}
-                  className="w-20 h-20 bg-white dark:bg-gray-900 rounded-2xl shadow-sm hover:shadow-md border-0 transition-all duration-300 ease-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500/20 flex items-center justify-center"
+                  className={cn(
+                    "w-16 h-16 rounded-full border-0 transition-all duration-300 ease-out hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500/30 flex items-center justify-center shadow-lg",
+                    showSupervision
+                      ? "bg-gradient-to-br from-purple-500 to-purple-600 shadow-purple-500/30"
+                      : "bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 hover:from-purple-400 hover:to-purple-500 shadow-gray-300/50 dark:shadow-gray-700/50"
+                  )}
                 >
-                  <Users className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+                  <Users className={cn(
+                    "w-7 h-7 transition-colors duration-200",
+                    showSupervision ? "text-white" : "text-gray-600 dark:text-gray-300 group-hover:text-white"
+                  )} />
                 </button>
                 
                 {/* Hover Tooltip */}
-                <div className="absolute top-full mt-3 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
-                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-4 w-64">
+                <div className="absolute top-full mt-4 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10">
+                  <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 p-4 w-56 backdrop-blur-sm">
                     <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Supervision</h4>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Individual, dyadic, or group supervision</p>
-                    <div className="text-xs text-purple-600 dark:text-purple-400 font-medium">1 hour • Required for licensure</div>
+                    <div className="text-xs text-purple-600 dark:text-purple-400 font-medium">Required for licensure</div>
                   </div>
                 </div>
               </div>
               
-              {/* Professional Development Icon */}
+              {/* Professional Development Icon - Jony Ive Style */}
               <div className="group relative">
                 <button
                   type="button"
                   onClick={() => applyTemplate('development')}
-                  className="w-20 h-20 bg-white dark:bg-gray-900 rounded-2xl shadow-sm hover:shadow-md border-0 transition-all duration-300 ease-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 flex items-center justify-center"
+                  className={cn(
+                    "w-16 h-16 rounded-full border-0 transition-all duration-300 ease-out hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500/30 flex items-center justify-center shadow-lg",
+                    showProfDev
+                      ? "bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-emerald-500/30"
+                      : "bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 hover:from-emerald-400 hover:to-emerald-500 shadow-gray-300/50 dark:shadow-gray-700/50"
+                  )}
                 >
-                  <GraduationCap className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
+                  <GraduationCap className={cn(
+                    "w-7 h-7 transition-colors duration-200",
+                    showProfDev ? "text-white" : "text-gray-600 dark:text-gray-300 group-hover:text-white"
+                  )} />
                 </button>
                 
                 {/* Hover Tooltip */}
-                <div className="absolute top-full mt-3 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
-                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-4 w-64">
+                <div className="absolute top-full mt-4 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10">
+                  <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 p-4 w-56 backdrop-blur-sm">
                     <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Learning & Growth</h4>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Training, workshops, conferences, ethics</p>
-                    <div className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">2 hours • Professional development</div>
+                    <div className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Professional development</div>
                   </div>
                 </div>
               </div>
@@ -512,7 +556,7 @@ export const AddEntryForm = () => {
               </div>
             )}
 
-            {/* Notes Section - Clean, Minimalist Design */}
+            {/* Rich Text Notes Section */}
             <div className="bg-white dark:bg-gray-800 p-8 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
               <div className="flex items-center space-x-3 mb-6">
                 <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
@@ -522,18 +566,79 @@ export const AddEntryForm = () => {
                   Session Notes & Reflections
                 </Label>
               </div>
+
+              {/* Rich Text Editor Toolbar */}
+              {editor && (
+                <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-900 rounded-xl mb-4 border border-gray-200 dark:border-gray-700">
+                  <button
+                    type="button"
+                    onClick={() => editor.chain().focus().toggleBold().run()}
+                    className={cn(
+                      "p-2 rounded-lg transition-colors duration-200",
+                      editor.isActive('bold')
+                        ? "bg-blue-500 text-white"
+                        : "hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+                    )}
+                  >
+                    <Bold className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => editor.chain().focus().toggleItalic().run()}
+                    className={cn(
+                      "p-2 rounded-lg transition-colors duration-200",
+                      editor.isActive('italic')
+                        ? "bg-blue-500 text-white"
+                        : "hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+                    )}
+                  >
+                    <Italic className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => editor.chain().focus().toggleBulletList().run()}
+                    className={cn(
+                      "p-2 rounded-lg transition-colors duration-200",
+                      editor.isActive('bulletList')
+                        ? "bg-blue-500 text-white"
+                        : "hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+                    )}
+                  >
+                    <List className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => editor.chain().focus().toggleHighlight().run()}
+                    className={cn(
+                      "p-2 rounded-lg transition-colors duration-200",
+                      editor.isActive('highlight')
+                        ? "bg-yellow-500 text-white"
+                        : "hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+                    )}
+                  >
+                    <Lightbulb className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* Rich Text Editor */}
               <div className="relative">
-                <textarea
-                  value={notesContent}
-                  onChange={(e) => setNotesContent(e.target.value)}
-                  placeholder="Describe what happened in this session, your interventions, client progress, challenges you faced, insights gained, and your professional reflections. The more detail you provide, the better AI insights you'll receive about your growth patterns and areas for development."
-                  rows={8}
-                  className="w-full p-6 border-0 bg-gray-50 dark:bg-gray-900 rounded-2xl focus:ring-0 focus:outline-none resize-none text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 text-base leading-relaxed transition-all duration-200 focus:bg-white dark:focus:bg-gray-800 focus:shadow-md"
-                />
+                <div className="min-h-[200px] p-6 border-0 bg-gray-50 dark:bg-gray-900 rounded-2xl focus-within:bg-white dark:focus-within:bg-gray-800 focus-within:shadow-md transition-all duration-200">
+                  <EditorContent 
+                    editor={editor} 
+                    className="prose prose-sm dark:prose-invert max-w-none focus:outline-none"
+                  />
+                  {!editor?.getText() && (
+                    <div className="absolute top-6 left-6 text-gray-500 dark:text-gray-400 pointer-events-none">
+                      Describe what happened in this session, your interventions, client progress, challenges you faced, insights gained, and your professional reflections. The more detail you provide, the better AI insights you'll receive.
+                    </div>
+                  )}
+                </div>
                 <div className="absolute bottom-4 right-4 text-xs text-gray-400 font-medium">
-                  {notesContent.length} characters
+                  {editor?.getText().length || 0} characters
                 </div>
               </div>
+
               <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
                 <p className="text-sm text-blue-700 dark:text-blue-300 flex items-center space-x-2">
                   <Lightbulb className="w-4 h-4 flex-shrink-0" />
