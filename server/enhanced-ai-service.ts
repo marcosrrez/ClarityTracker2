@@ -37,8 +37,174 @@ interface ResourceSuggestion {
   priority: 'immediate' | 'development' | 'reference';
 }
 
+interface EnhancedSessionAnalysis {
+  summary: string;
+  themes: string[];
+  keyLearnings: string[];
+  reflectivePrompts: string[];
+  therapeuticModalities: string[];
+  clientPresentation: string[];
+  interventionTypes: string[];
+  competencyAreas: string[];
+  emotionalContent: string[];
+  supervisionTopics: string[];
+  professionalGrowthAreas: string[];
+  smartSpaceCategories: string[];
+}
+
+interface SmartSpace {
+  id: string;
+  name: string;
+  description: string;
+  autoTags: string[];
+  sessionIds: string[];
+  category: 'therapeutic-focus' | 'client-population' | 'competency-development' | 'supervision-prep' | 'growth-milestone';
+}
+
 export class EnhancedAIService {
   
+  /**
+   * Enhanced MyMind-style session analysis with auto-tagging
+   */
+  async analyzeSessionEnhanced(sessionData: SessionData): Promise<EnhancedSessionAnalysis> {
+    const analysisPrompt = `
+Analyze this therapy session with comprehensive auto-tagging for professional development tracking:
+
+SESSION CONTENT: ${sessionData.notes}
+DATE: ${sessionData.dateOfContact}
+HOURS: ${sessionData.clientContactHours}
+
+Extract and categorize the following for optimal searchability and professional growth tracking:
+
+1. THERAPEUTIC MODALITIES used (CBT, DBT, psychodynamic, humanistic, solution-focused, etc.)
+2. CLIENT PRESENTATION patterns (anxiety, depression, trauma, relationship issues, etc.)
+3. INTERVENTION TYPES employed (active listening, cognitive restructuring, behavioral activation, etc.)
+4. COMPETENCY AREAS demonstrated (assessment, treatment planning, crisis intervention, etc.)
+5. EMOTIONAL CONTENT themes (grief, anger, joy, fear, hope, etc.)
+6. SUPERVISION TOPICS that should be discussed
+7. PROFESSIONAL GROWTH AREAS identified
+8. SMART SPACE CATEGORIES for auto-organization
+
+Respond in JSON format:
+{
+  "summary": "Brief professional summary",
+  "themes": ["key therapeutic themes"],
+  "keyLearnings": ["insights gained"],
+  "reflectivePrompts": ["questions for reflection"],
+  "therapeuticModalities": ["specific modalities used"],
+  "clientPresentation": ["client presentation patterns"],
+  "interventionTypes": ["specific interventions"],
+  "competencyAreas": ["professional competencies demonstrated"],
+  "emotionalContent": ["emotional themes present"],
+  "supervisionTopics": ["topics for supervision"],
+  "professionalGrowthAreas": ["areas for development"],
+  "smartSpaceCategories": ["auto-organization categories"]
+}`;
+
+    try {
+      if (googleAI) {
+        const model = googleAI.getGenerativeModel({ model: "gemini-pro" });
+        const result = await model.generateContent(analysisPrompt);
+        const response = await result.response;
+        const text = response.text();
+        
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          return JSON.parse(jsonMatch[0]);
+        }
+      }
+      
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [{ role: "user", content: analysisPrompt }],
+        response_format: { type: "json_object" },
+      });
+
+      return JSON.parse(response.choices[0].message.content || '{}');
+    } catch (error) {
+      console.error('Enhanced analysis failed:', error);
+      // Fallback to basic analysis
+      return {
+        summary: "Session analysis completed",
+        themes: ["session-notes"],
+        keyLearnings: [],
+        reflectivePrompts: [],
+        therapeuticModalities: [],
+        clientPresentation: [],
+        interventionTypes: [],
+        competencyAreas: [],
+        emotionalContent: [],
+        supervisionTopics: [],
+        professionalGrowthAreas: [],
+        smartSpaceCategories: ["general-sessions"]
+      };
+    }
+  }
+
+  /**
+   * Generate Smart Spaces based on session patterns
+   */
+  async generateSmartSpaces(userId: string, sessions: SessionData[]): Promise<SmartSpace[]> {
+    const spacesPrompt = `
+Analyze these therapy sessions and create Smart Spaces for auto-organization:
+
+SESSIONS: ${JSON.stringify(sessions.map(s => ({
+  id: s.id,
+  notes: s.notes.substring(0, 200),
+  date: s.dateOfContact,
+  hours: s.clientContactHours
+})))}
+
+Create Smart Spaces that would help a Licensed Associate Counselor organize and find their sessions:
+
+1. THERAPEUTIC FOCUS spaces (e.g., "Anxiety Treatment", "Trauma Work")
+2. CLIENT POPULATION spaces (e.g., "Adolescents", "Couples")
+3. COMPETENCY DEVELOPMENT spaces (e.g., "Crisis Intervention", "Assessment Skills")
+4. SUPERVISION PREP spaces (e.g., "Challenging Cases", "Ethical Dilemmas")
+5. GROWTH MILESTONE spaces (e.g., "Early Career", "Advanced Techniques")
+
+Respond in JSON format with array of spaces:
+{
+  "spaces": [
+    {
+      "id": "unique-id",
+      "name": "Space Name",
+      "description": "What this space contains",
+      "autoTags": ["tags", "that", "match"],
+      "sessionIds": ["session-ids-that-match"],
+      "category": "therapeutic-focus|client-population|competency-development|supervision-prep|growth-milestone"
+    }
+  ]
+}`;
+
+    try {
+      if (googleAI) {
+        const model = googleAI.getGenerativeModel({ model: "gemini-pro" });
+        const result = await model.generateContent(spacesPrompt);
+        const response = await result.response;
+        const text = response.text();
+        
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          return parsed.spaces || [];
+        }
+      }
+      
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [{ role: "user", content: spacesPrompt }],
+        response_format: { type: "json_object" },
+      });
+
+      const parsed = JSON.parse(response.choices[0].message.content || '{"spaces":[]}');
+      return parsed.spaces || [];
+    } catch (error) {
+      console.error('Smart Spaces generation failed:', error);
+      return [];
+    }
+  }
+
   /**
    * Analyze session content and update user's therapy profile progressively
    */

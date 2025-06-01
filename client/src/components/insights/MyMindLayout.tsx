@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Calendar, Sparkles, Search, Plus, Bold, Italic, Type, Paperclip, Edit3, Check } from "lucide-react";
+import { Calendar, Sparkles, Search, Plus, Bold, Italic, Type, Paperclip, Edit3, Check, Filter, Tags } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { createInsightCard } from "@/lib/firestore";
@@ -33,14 +33,57 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
   const [noteTitle, setNoteTitle] = useState("");
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [selectedSmartSpace, setSelectedSmartSpace] = useState<string>("all");
+  const [showSmartSpaces, setShowSmartSpaces] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // Filter items based on search
-  const filteredItems = galleryItems.filter(item => 
-    item.notes.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    format(new Date(item.dateOfContact), "MMM d, yyyy").toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Enhanced MyMind-style search - search across all analysis fields
+  const filteredItems = galleryItems.filter(item => {
+    const query = searchQuery.toLowerCase();
+    if (!query) return true;
+    
+    // Search in notes content
+    if (item.notes.toLowerCase().includes(query)) return true;
+    
+    // Search in date
+    if (format(new Date(item.dateOfContact), "MMM d, yyyy").toLowerCase().includes(query)) return true;
+    
+    // Search in AI analysis fields if available
+    if (item.analysis) {
+      const analysis = item.analysis;
+      
+      // Search in themes
+      if (analysis.themes && Array.isArray(analysis.themes)) {
+        if (analysis.themes.some((theme: string) => theme.toLowerCase().includes(query))) return true;
+      }
+      
+      // Search in therapeutic modalities
+      if (analysis.therapeuticModalities && Array.isArray(analysis.therapeuticModalities)) {
+        if (analysis.therapeuticModalities.some((mod: string) => mod.toLowerCase().includes(query))) return true;
+      }
+      
+      // Search in client presentation
+      if (analysis.clientPresentation && Array.isArray(analysis.clientPresentation)) {
+        if (analysis.clientPresentation.some((pres: string) => pres.toLowerCase().includes(query))) return true;
+      }
+      
+      // Search in competency areas
+      if (analysis.competencyAreas && Array.isArray(analysis.competencyAreas)) {
+        if (analysis.competencyAreas.some((comp: string) => comp.toLowerCase().includes(query))) return true;
+      }
+      
+      // Search in emotional content
+      if (analysis.emotionalContent && Array.isArray(analysis.emotionalContent)) {
+        if (analysis.emotionalContent.some((emo: string) => emo.toLowerCase().includes(query))) return true;
+      }
+      
+      // Search in summary
+      if (analysis.summary && analysis.summary.toLowerCase().includes(query)) return true;
+    }
+    
+    return false;
+  });
 
   // Group items by time period for Disney-style browsing
   const getTimeGroupedItems = () => {
@@ -127,29 +170,107 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Search Bar - MyMind Style */}
+      {/* Search Bar & Smart Spaces - MyMind Style */}
       <div className="sticky top-0 z-40 bg-gray-50 dark:bg-gray-900 p-6">
-        <div className="flex items-center gap-4 max-w-2xl">
-          <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-            <Input
-              placeholder="Search insights and resources..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-full h-14 text-lg"
-            />
+        <div className="space-y-4">
+          {/* Main Search Bar */}
+          <div className="flex items-center gap-4 max-w-4xl">
+            <div className="flex-1 relative">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <Input
+                placeholder="Search by modality, client presentation, competency, emotional content..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-full h-14 text-lg"
+              />
+            </div>
+            <Button 
+              variant="outline"
+              className="rounded-full w-14 h-14 p-0 border-gray-200 dark:border-gray-700"
+              onClick={() => setShowSmartSpaces(!showSmartSpaces)}
+            >
+              <Filter className="h-5 w-5" />
+            </Button>
+            <Button 
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-14 h-14 p-0 shadow-lg"
+              onClick={() => {
+                toast({
+                  title: "Article Scraping",
+                  description: "Web scraping feature coming soon!",
+                });
+              }}
+            >
+              <Plus className="h-6 w-6" />
+            </Button>
           </div>
-          <Button 
-            className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-14 h-14 p-0 shadow-lg"
-            onClick={() => {
-              toast({
-                title: "Article Scraping",
-                description: "Web scraping feature coming soon!",
-              });
-            }}
-          >
-            <Plus className="h-6 w-6" />
-          </Button>
+
+          {/* Smart Spaces - Auto-Organization Categories */}
+          {showSmartSpaces && (
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className="flex items-center gap-2 mb-3">
+                <Tags className="h-4 w-4 text-blue-600" />
+                <span className="text-sm font-medium text-blue-600">Smart Spaces</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant={selectedSmartSpace === "all" ? "default" : "outline"}
+                  size="sm"
+                  className="rounded-full text-xs"
+                  onClick={() => setSelectedSmartSpace("all")}
+                >
+                  All Sessions
+                </Button>
+                <Button
+                  variant={selectedSmartSpace === "anxiety-treatment" ? "default" : "outline"}
+                  size="sm"
+                  className="rounded-full text-xs"
+                  onClick={() => setSelectedSmartSpace("anxiety-treatment")}
+                >
+                  Anxiety Treatment
+                </Button>
+                <Button
+                  variant={selectedSmartSpace === "trauma-work" ? "default" : "outline"}
+                  size="sm"
+                  className="rounded-full text-xs"
+                  onClick={() => setSelectedSmartSpace("trauma-work")}
+                >
+                  Trauma Work
+                </Button>
+                <Button
+                  variant={selectedSmartSpace === "cbt-sessions" ? "default" : "outline"}
+                  size="sm"
+                  className="rounded-full text-xs"
+                  onClick={() => setSelectedSmartSpace("cbt-sessions")}
+                >
+                  CBT Sessions
+                </Button>
+                <Button
+                  variant={selectedSmartSpace === "crisis-intervention" ? "default" : "outline"}
+                  size="sm"
+                  className="rounded-full text-xs"
+                  onClick={() => setSelectedSmartSpace("crisis-intervention")}
+                >
+                  Crisis Intervention
+                </Button>
+                <Button
+                  variant={selectedSmartSpace === "supervision-prep" ? "default" : "outline"}
+                  size="sm"
+                  className="rounded-full text-xs"
+                  onClick={() => setSelectedSmartSpace("supervision-prep")}
+                >
+                  Supervision Prep
+                </Button>
+                <Button
+                  variant={selectedSmartSpace === "challenging-cases" ? "default" : "outline"}
+                  size="sm"
+                  className="rounded-full text-xs"
+                  onClick={() => setSelectedSmartSpace("challenging-cases")}
+                >
+                  Challenging Cases
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -191,18 +312,72 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                       {item.notes.length > 120 ? `${item.notes.substring(0, 120)}...` : item.notes}
                     </div>
 
-                    {/* AI Analysis Tags */}
-                    {item.analysis && item.analysis.themes && Array.isArray(item.analysis.themes) && (
-                      <div className="flex flex-wrap gap-1">
-                        {item.analysis.themes.slice(0, 2).map((theme: string, index: number) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {theme}
-                          </Badge>
-                        ))}
-                        {item.analysis.themes.length > 2 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{item.analysis.themes.length - 2}
-                          </Badge>
+                    {/* Enhanced AI Analysis Tags - MyMind Style */}
+                    {item.analysis && (
+                      <div className="space-y-2">
+                        {/* Therapeutic Modalities */}
+                        {item.analysis.therapeuticModalities && Array.isArray(item.analysis.therapeuticModalities) && item.analysis.therapeuticModalities.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {item.analysis.therapeuticModalities.slice(0, 2).map((mod: string, index: number) => (
+                              <Badge key={index} variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                                {mod}
+                              </Badge>
+                            ))}
+                            {item.analysis.therapeuticModalities.length > 2 && (
+                              <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                                +{item.analysis.therapeuticModalities.length - 2} modalities
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+                        
+                        {/* Client Presentation */}
+                        {item.analysis.clientPresentation && Array.isArray(item.analysis.clientPresentation) && item.analysis.clientPresentation.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {item.analysis.clientPresentation.slice(0, 2).map((pres: string, index: number) => (
+                              <Badge key={index} variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                                {pres}
+                              </Badge>
+                            ))}
+                            {item.analysis.clientPresentation.length > 2 && (
+                              <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                                +{item.analysis.clientPresentation.length - 2} presentations
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+                        
+                        {/* Competency Areas */}
+                        {item.analysis.competencyAreas && Array.isArray(item.analysis.competencyAreas) && item.analysis.competencyAreas.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {item.analysis.competencyAreas.slice(0, 1).map((comp: string, index: number) => (
+                              <Badge key={index} variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+                                {comp}
+                              </Badge>
+                            ))}
+                            {item.analysis.competencyAreas.length > 1 && (
+                              <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+                                +{item.analysis.competencyAreas.length - 1} competencies
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+                        
+                        {/* Fallback to themes if new fields not available */}
+                        {(!item.analysis.therapeuticModalities && !item.analysis.clientPresentation && !item.analysis.competencyAreas) && 
+                         item.analysis.themes && Array.isArray(item.analysis.themes) && (
+                          <div className="flex flex-wrap gap-1">
+                            {item.analysis.themes.slice(0, 2).map((theme: string, index: number) => (
+                              <Badge key={index} variant="outline" className="text-xs">
+                                {theme}
+                              </Badge>
+                            ))}
+                            {item.analysis.themes.length > 2 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{item.analysis.themes.length - 2}
+                              </Badge>
+                            )}
+                          </div>
                         )}
                       </div>
                     )}
@@ -222,33 +397,86 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
         )}
       </div>
 
-      {/* Add Note Card - Connected to Bottom MyMind Style */}
+      {/* Enhanced Add Note Card - MyMind Style with Note Modes */}
       <div className="fixed bottom-0 left-0 right-0 z-30">
         <div className="bg-gradient-to-t from-gray-50 to-transparent dark:from-gray-900 dark:to-transparent pt-8 pb-0">
-          <div className="max-w-md mx-auto px-6">
-            <Card 
-              className="border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 transition-colors cursor-pointer bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-lg"
-              onClick={() => {
-                setShowNoteEditor(true);
-                setNoteContent("");
-                setNoteTitle("");
-                setIsHeaderVisible(true);
-              }}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
-                    <Plus className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          <div className="max-w-2xl mx-auto px-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* Quick Reflection */}
+              <Card 
+                className="border-2 border-dashed border-blue-300 dark:border-blue-600 hover:border-blue-400 dark:hover:border-blue-500 transition-colors cursor-pointer bg-blue-50/80 dark:bg-blue-900/20 backdrop-blur-sm shadow-lg"
+                onClick={() => {
+                  setShowNoteEditor(true);
+                  setNoteContent("");
+                  setNoteTitle("Quick Reflection");
+                  setIsHeaderVisible(true);
+                }}
+              >
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
+                      <Plus className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium text-xs text-blue-600 dark:text-blue-400">QUICK REFLECTION</h3>
+                      <p className="text-muted-foreground text-xs">
+                        Session insights
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-sm text-blue-600 dark:text-blue-400">ADD A NEW NOTE</h3>
-                    <p className="text-muted-foreground text-sm">
-                      Start typing here...
-                    </p>
+                </CardContent>
+              </Card>
+
+              {/* Supervision Prep */}
+              <Card 
+                className="border-2 border-dashed border-purple-300 dark:border-purple-600 hover:border-purple-400 dark:hover:border-purple-500 transition-colors cursor-pointer bg-purple-50/80 dark:bg-purple-900/20 backdrop-blur-sm shadow-lg"
+                onClick={() => {
+                  setShowNoteEditor(true);
+                  setNoteContent("");
+                  setNoteTitle("Supervision Prep");
+                  setIsHeaderVisible(true);
+                }}
+              >
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0">
+                      <Sparkles className="h-3 w-3 text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium text-xs text-purple-600 dark:text-purple-400">SUPERVISION PREP</h3>
+                      <p className="text-muted-foreground text-xs">
+                        Case analysis
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+
+              {/* Focus Mode */}
+              <Card 
+                className="border-2 border-dashed border-green-300 dark:border-green-600 hover:border-green-400 dark:hover:border-green-500 transition-colors cursor-pointer bg-green-50/80 dark:bg-green-900/20 backdrop-blur-sm shadow-lg"
+                onClick={() => {
+                  setShowNoteEditor(true);
+                  setNoteContent("");
+                  setNoteTitle("Deep Reflection");
+                  setIsHeaderVisible(true);
+                }}
+              >
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
+                      <Edit3 className="h-3 w-3 text-green-600 dark:text-green-400" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium text-xs text-green-600 dark:text-green-400">FOCUS MODE</h3>
+                      <p className="text-muted-foreground text-xs">
+                        Deep writing
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </div>
