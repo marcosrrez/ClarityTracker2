@@ -188,13 +188,13 @@ export const AddEntryForm = () => {
       <Card className="backdrop-blur-sm bg-white/80 dark:bg-gray-800/80 border border-white/20 shadow-xl rounded-3xl">
         <CardContent className="p-8">
           
-          {/* Quick Session Templates */}
+          {/* Quick Entry Templates */}
           <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
             <div className="flex items-center space-x-2 mb-3">
               <Zap className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              <h3 className="font-medium text-blue-800 dark:text-blue-200">Quick Session Templates</h3>
+              <h3 className="font-medium text-blue-800 dark:text-blue-200">Quick Entry Templates</h3>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <button
                 type="button"
                 onClick={() => {
@@ -202,55 +202,113 @@ export const AddEntryForm = () => {
                   setValue("indirectHours", false);
                   setValue("supervisionHours", 0);
                   setValue("professionalDevelopmentHours", 0);
+                  setValue("supervisionType", "none");
+                  setValue("professionalDevelopmentType", "none");
+                  setValue("techAssistedSupervision", false);
                 }}
-                className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors text-center"
+                className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors text-center"
               >
-                <div className="font-medium text-sm text-gray-900 dark:text-gray-100">60min Direct</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">Individual session</div>
+                <div className="font-medium text-base text-gray-900 dark:text-gray-100 mb-1">Direct Contact Hours</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Individual, group, couples, family therapy</div>
+                <div className="text-xs text-blue-600 dark:text-blue-400">Sets: 1 hour client contact</div>
               </button>
               
               <button
                 type="button"
                 onClick={() => {
-                  setValue("clientContactHours", 1);
-                  setValue("indirectHours", true);
-                  setValue("supervisionHours", 0);
+                  setValue("clientContactHours", 0);
+                  setValue("indirectHours", false);
+                  setValue("supervisionHours", 1);
                   setValue("professionalDevelopmentHours", 0);
+                  setValue("supervisionType", "individual");
+                  setValue("professionalDevelopmentType", "none");
+                  setValue("techAssistedSupervision", false);
+                  setShowSupervision(true);
                 }}
-                className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors text-center"
+                className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors text-center"
               >
-                <div className="font-medium text-sm text-gray-900 dark:text-gray-100">60min Indirect</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">Case notes/prep</div>
+                <div className="font-medium text-base text-gray-900 dark:text-gray-100 mb-1">Supervision Hours</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Individual, dyadic, or group supervision</div>
+                <div className="text-xs text-blue-600 dark:text-blue-400">Sets: 1 hour supervision</div>
               </button>
               
               <button
                 type="button"
                 onClick={() => {
-                  setValue("clientContactHours", 1.5);
+                  setValue("clientContactHours", 0);
                   setValue("indirectHours", false);
                   setValue("supervisionHours", 0);
-                  setValue("professionalDevelopmentHours", 0);
+                  setValue("professionalDevelopmentHours", 2);
+                  setValue("supervisionType", "none");
+                  setValue("professionalDevelopmentType", "workshop");
+                  setValue("techAssistedSupervision", false);
+                  setShowProfDev(true);
                 }}
-                className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors text-center"
+                className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors text-center"
               >
-                <div className="font-medium text-sm text-gray-900 dark:text-gray-100">90min Group</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">Group therapy</div>
+                <div className="font-medium text-base text-gray-900 dark:text-gray-100 mb-1">Professional Development</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Training, workshops, conferences, ethics</div>
+                <div className="text-xs text-blue-600 dark:text-blue-400">Sets: 2 hours development</div>
               </button>
-              
-              <button
-                type="button"
-                onClick={() => {
-                  setValue("clientContactHours", 1);
-                  setValue("indirectHours", false);
-                  setValue("supervisionHours", 0);
-                  setValue("professionalDevelopmentHours", 0);
-                  setValue("techAssistedSupervision", true);
-                }}
-                className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors text-center"
-              >
-                <div className="font-medium text-sm text-gray-900 dark:text-gray-100">60min Telehealth</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">Remote session</div>
-              </button>
+            </div>
+            
+            {/* Quick Sub-Templates for Direct Hours */}
+            <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-700">
+              <div className="text-xs text-gray-600 dark:text-gray-400 mb-2">Quick direct hour options:</div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setValue("clientContactHours", 1);
+                    setValue("indirectHours", false);
+                    setValue("supervisionHours", 0);
+                    setValue("professionalDevelopmentHours", 0);
+                    setValue("techAssistedSupervision", false);
+                  }}
+                  className="px-3 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+                >
+                  50min Individual
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setValue("clientContactHours", 1.5);
+                    setValue("indirectHours", false);
+                    setValue("supervisionHours", 0);
+                    setValue("professionalDevelopmentHours", 0);
+                    setValue("techAssistedSupervision", false);
+                  }}
+                  className="px-3 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+                >
+                  90min Group
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setValue("clientContactHours", 1);
+                    setValue("indirectHours", false);
+                    setValue("supervisionHours", 0);
+                    setValue("professionalDevelopmentHours", 0);
+                    setValue("techAssistedSupervision", true);
+                  }}
+                  className="px-3 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+                >
+                  Telehealth
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setValue("clientContactHours", 1);
+                    setValue("indirectHours", true);
+                    setValue("supervisionHours", 0);
+                    setValue("professionalDevelopmentHours", 0);
+                    setValue("techAssistedSupervision", false);
+                  }}
+                  className="px-3 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+                >
+                  + Indirect Hours
+                </button>
+              </div>
             </div>
           </div>
           
