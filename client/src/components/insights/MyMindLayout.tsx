@@ -536,46 +536,46 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
         </div>
       </div>
 
-      {/* Note Editor Modal - MyMind Style */}
+      {/* Focus Mode Note Editor - MyMind Style */}
       <Dialog open={showNoteEditor} onOpenChange={setShowNoteEditor}>
-        <DialogContent className="max-w-none w-full h-full p-0 gap-0 bg-gray-50 dark:bg-gray-900" aria-describedby="note-editor-description">
+        <DialogContent className="max-w-none w-full h-full p-0 gap-0 bg-white dark:bg-gray-900" aria-describedby="note-editor-description">
           <DialogTitle className="sr-only">Create New Note</DialogTitle>
           <div className="flex flex-col h-full">
-            {/* Header - hides on scroll */}
-            <div className={`transition-all duration-300 ${isHeaderVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full absolute'}`}>
-              <div className="bg-gray-200 dark:bg-gray-800 px-6 py-4 text-center">
-                <h2 className="text-lg font-medium text-gray-600 dark:text-gray-300">Create a new note</h2>
-              </div>
-            </div>
-
             {/* Content Area */}
             <div 
-              className="flex-1 p-8 overflow-y-auto"
+              className="flex-1 p-12 overflow-y-auto"
               onScroll={(e) => {
                 const scrollTop = e.currentTarget.scrollTop;
                 setIsHeaderVisible(scrollTop < 50);
               }}
             >
-              <div className="max-w-4xl mx-auto">
-                {/* Note Header */}
-                <div className="mb-8">
-                  <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-2">ADD A NEW NOTE</p>
+              <div className="max-w-3xl mx-auto pt-16">
+                {/* Note Title - Large and Elegant */}
+                <div className="mb-12">
                   <Input
-                    placeholder="Start typing here..."
+                    placeholder="Type your headline here."
                     value={noteTitle}
                     onChange={(e) => setNoteTitle(e.target.value)}
-                    className="text-lg font-medium border-none bg-transparent p-0 focus-visible:ring-0 placeholder:text-gray-400"
+                    className="text-4xl font-light border-none bg-transparent p-0 focus-visible:ring-0 placeholder:text-gray-400 dark:placeholder:text-gray-500 mb-8"
                     autoFocus
+                    style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
                   />
+                  <div className="text-gray-400 dark:text-gray-500 text-lg font-light mb-6">
+                    Start writing right here...
+                  </div>
                 </div>
 
-                {/* Note Content */}
-                <div className="min-h-[500px]">
+                {/* Note Content - Clean and Spacious */}
+                <div className="min-h-[600px]">
                   <Textarea
                     value={noteContent}
                     onChange={(e) => setNoteContent(e.target.value)}
-                    placeholder="Write your thoughts, insights, or reflections here..."
-                    className="min-h-[500px] border-none bg-transparent resize-none focus-visible:ring-0 text-base leading-relaxed p-0"
+                    placeholder="💡PRO TIP: You can do some magic while writing a note with our special keyboard and inline shortcuts. For example, try writing [ ] Todo to create a new todo. Or try **I am bold** to make a word bold. Click on the 'Shortcuts' button in the bottom left to see all."
+                    className="min-h-[600px] border-none bg-transparent resize-none focus-visible:ring-0 text-lg leading-relaxed p-0 placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                    style={{ 
+                      fontFamily: 'system-ui, -apple-system, sans-serif',
+                      lineHeight: '1.7'
+                    }}
                   />
                 </div>
               </div>

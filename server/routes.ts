@@ -8,6 +8,7 @@ import { handleTwilioWebhook } from "./sms-service";
 import { sendWelcomeEmail } from "./welcome-email";
 import OpenAI from "openai";
 import { insertKnowledgeEntrySchema } from "@shared/schema";
+import { visualIntelligence } from "./visual-intelligence";
 
 // Email reminder scheduling function
 async function scheduleSessionReminders(session: any, reminderDays: number) {

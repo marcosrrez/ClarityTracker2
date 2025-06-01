@@ -92,11 +92,24 @@ export type InsertAppSettings = z.infer<typeof insertAppSettingsSchema>;
 export const insightCardSchema = z.object({
   id: z.string(),
   userId: z.string(),
-  type: z.enum(["note", "articleSummary"]),
+  type: z.enum(["note", "articleSummary", "image"]),
   title: z.string(),
   content: z.string(), // HTML content from Tiptap
   tags: z.array(z.string()).default([]),
   originalUrl: z.string().optional(), // For article summaries
+  imageData: z.string().optional(), // Base64 encoded image
+  visualAnalysis: z.object({
+    extractedText: z.string(),
+    objects: z.array(z.string()),
+    colors: z.array(z.string()),
+    brands: z.array(z.string()),
+    categories: z.array(z.string()),
+    description: z.string(),
+    keywords: z.array(z.string()),
+    searchableContent: z.string(),
+    confidence: z.number()
+  }).optional(),
+  searchTags: z.array(z.string()).default([]), // Generated search tags
   createdAt: z.date().default(() => new Date()),
   updatedAt: z.date().default(() => new Date()),
 });
