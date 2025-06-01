@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, Sparkles, AlertTriangle, ChevronDown, Trash2, Share2, MoreHorizontal, X, Archive, Edit3, Copy } from "lucide-react";
 import { MyMindLayout } from "./MyMindLayout";
 import { format } from "date-fns";
-import { useLogEntries } from "@/hooks/use-firestore";
+import { useLogEntries, useInsightCards } from "@/hooks/use-firestore";
 import { getAiAnalysis, deleteAiAnalysis } from "@/lib/firestore";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -27,6 +27,7 @@ interface GalleryViewProps {
 export function GalleryView({ userId }: GalleryViewProps) {
   const { user } = useAuth();
   const { entries: logEntries, loading: isLoading, refetch } = useLogEntries();
+  const { cards: insightCards, loading: cardsLoading, refetch: refetchCards } = useInsightCards();
   const [expandedCard, setExpandedCard] = useState<GalleryItem | null>(null);
   const [deleteDialogItem, setDeleteDialogItem] = useState<GalleryItem | null>(null);
   const { toast } = useToast();
@@ -34,29 +35,49 @@ export function GalleryView({ userId }: GalleryViewProps) {
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
 
   useEffect(() => {
-    if (!logEntries) return;
-
     const processItems = async () => {
       const items: GalleryItem[] = [];
 
-      for (const entry of logEntries) {
-        if (!entry.notes || entry.notes.trim().length === 0) continue;
+      // Add session entries with AI analysis
+      if (logEntries) {
+        for (const entry of logEntries) {
+          if (!entry.notes || entry.notes.trim().length === 0) continue;
 
-        try {
-          const analysis = await getAiAnalysis(user?.uid || "", entry.id);
+          try {
+            const analysis = await getAiAnalysis(user?.uid || "", entry.id);
+            items.push({
+              id: entry.id,
+              dateOfContact: new Date(entry.dateOfContact),
+              clientContactHours: entry.clientContactHours,
+              notes: entry.notes,
+              analysis: analysis || undefined,
+            });
+          } catch (error) {
+            items.push({
+              id: entry.id,
+              dateOfContact: new Date(entry.dateOfContact),
+              clientContactHours: entry.clientContactHours,
+              notes: entry.notes,
+            });
+          }
+        }
+      }
+
+      // Add standalone insight cards (notes, article summaries)
+      if (insightCards) {
+        for (const card of insightCards) {
           items.push({
-            id: entry.id,
-            dateOfContact: new Date(entry.dateOfContact),
-            clientContactHours: entry.clientContactHours,
-            notes: entry.notes,
-            analysis: analysis || undefined,
-          });
-        } catch (error) {
-          items.push({
-            id: entry.id,
-            dateOfContact: new Date(entry.dateOfContact),
-            clientContactHours: entry.clientContactHours,
-            notes: entry.notes,
+            id: `card-${card.id}`,
+            dateOfContact: new Date(card.createdAt),
+            clientContactHours: 0, // Not applicable for insight cards
+            notes: card.content,
+            analysis: {
+              type: 'insight-card',
+              cardType: card.type,
+              title: card.title,
+              tags: card.tags,
+              originalUrl: card.originalUrl
+            }
           });
         }
       }
@@ -66,7 +87,7 @@ export function GalleryView({ userId }: GalleryViewProps) {
     };
 
     processItems();
-  }, [logEntries]);
+  }, [logEntries, insightCards, user?.uid]);
 
   const handleDeleteAnalysis = async (itemId: string) => {
     try {
@@ -107,7 +128,10 @@ export function GalleryView({ userId }: GalleryViewProps) {
       <MyMindLayout 
         galleryItems={galleryItems}
         onItemClick={setExpandedCard}
-        onRefresh={refetch}
+        onRefresh={async () => {
+          await refetch();
+          await refetchCards();
+        }}
       />
 
       {/* Full Page MyMind Style Modal */}
