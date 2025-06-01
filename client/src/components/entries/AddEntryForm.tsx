@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Check, Lightbulb, Clock, Zap, ChevronDown, ChevronUp, GraduationCap, Users, Heart, BookOpen, Bold, Italic, List, Quote, Maximize2, Minimize2 } from "lucide-react";
+import { Calendar as CalendarIcon, Check, Lightbulb, Clock, Zap, ChevronDown, ChevronUp, GraduationCap, Users, Heart, BookOpen, Bold, Italic, List, Quote, Maximize2, Minimize2, Type, Palette, Link2, Code, AlignLeft, AlignCenter, AlignRight } from "lucide-react";
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Highlight from '@tiptap/extension-highlight';
@@ -33,6 +33,7 @@ export const AddEntryForm = () => {
   const [supervisionCalendarOpen, setSupervisionCalendarOpen] = useState(false);
   const [notesContent, setNotesContent] = useState("");
   const [isNotesExpanded, setIsNotesExpanded] = useState(false);
+  const [showAdvancedTools, setShowAdvancedTools] = useState(false);
 
   // Rich text editor
   const editor = useEditor({
@@ -193,24 +194,38 @@ export const AddEntryForm = () => {
             
             <div className="flex items-center justify-center gap-6">
               
-              {/* Client Session Icon - Vibrant & Active */}
+              {/* Client Session Icon - Premium & Intuitive */}
               <div className="group relative">
                 <button
                   type="button"
                   onClick={() => applyTemplate('client')}
                   className={cn(
-                    "w-18 h-18 rounded-full border-0 transition-all duration-300 ease-out hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500/30 flex items-center justify-center shadow-lg relative",
+                    "w-20 h-20 rounded-2xl transition-all duration-400 ease-out hover:scale-105 focus:outline-none focus:ring-3 focus:ring-blue-200 dark:focus:ring-blue-700 flex items-center justify-center relative backdrop-blur-sm",
                     showDirectClient
-                      ? "bg-gradient-to-br from-blue-500 to-blue-700 shadow-blue-500/40 shadow-lg ring-4 ring-blue-200 dark:ring-blue-800"
-                      : "bg-gradient-to-br from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700 shadow-blue-400/30"
+                      ? "bg-blue-600/95 shadow-xl shadow-blue-500/30 ring-2 ring-blue-300 dark:ring-blue-600"
+                      : "bg-white/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 shadow-lg hover:shadow-xl hover:border-blue-300 dark:hover:border-blue-600"
                   )}
                 >
-                  <Heart className={cn(
-                    "w-8 h-8 transition-colors duration-200",
-                    showDirectClient ? "text-white drop-shadow-sm" : "text-white/90 group-hover:text-white"
-                  )} />
+                  <div className="flex flex-col items-center space-y-1">
+                    <Heart className={cn(
+                      "w-7 h-7 transition-all duration-200",
+                      showDirectClient 
+                        ? "text-white" 
+                        : "text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300"
+                    )} />
+                    <span className={cn(
+                      "text-xs font-medium transition-colors duration-200",
+                      showDirectClient 
+                        ? "text-white/90" 
+                        : "text-gray-600 dark:text-gray-400 group-hover:text-blue-700 dark:group-hover:text-blue-300"
+                    )}>
+                      Client
+                    </span>
+                  </div>
                   {showDirectClient && (
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>
+                    <div className="absolute -top-2 -right-2 w-5 h-5 bg-emerald-500 rounded-full border-3 border-white dark:border-gray-900 shadow-lg flex items-center justify-center">
+                      <Check className="w-3 h-3 text-white" />
+                    </div>
                   )}
                 </button>
                 
@@ -224,24 +239,38 @@ export const AddEntryForm = () => {
                 </div>
               </div>
               
-              {/* Supervision Icon - Vibrant & Active */}
+              {/* Supervision Icon - Premium & Intuitive */}
               <div className="group relative">
                 <button
                   type="button"
                   onClick={() => applyTemplate('supervision')}
                   className={cn(
-                    "w-18 h-18 rounded-full border-0 transition-all duration-300 ease-out hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500/30 flex items-center justify-center shadow-lg relative",
+                    "w-20 h-20 rounded-2xl transition-all duration-400 ease-out hover:scale-105 focus:outline-none focus:ring-3 focus:ring-purple-200 dark:focus:ring-purple-700 flex items-center justify-center relative backdrop-blur-sm",
                     showSupervision
-                      ? "bg-gradient-to-br from-purple-500 to-purple-700 shadow-purple-500/40 shadow-lg ring-4 ring-purple-200 dark:ring-purple-800"
-                      : "bg-gradient-to-br from-purple-400 to-purple-600 hover:from-purple-500 hover:to-purple-700 shadow-purple-400/30"
+                      ? "bg-purple-600/95 shadow-xl shadow-purple-500/30 ring-2 ring-purple-300 dark:ring-purple-600"
+                      : "bg-white/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-600 hover:bg-purple-50 dark:hover:bg-purple-900/30 shadow-lg hover:shadow-xl hover:border-purple-300 dark:hover:border-purple-600"
                   )}
                 >
-                  <Users className={cn(
-                    "w-8 h-8 transition-colors duration-200",
-                    showSupervision ? "text-white drop-shadow-sm" : "text-white/90 group-hover:text-white"
-                  )} />
+                  <div className="flex flex-col items-center space-y-1">
+                    <Users className={cn(
+                      "w-7 h-7 transition-all duration-200",
+                      showSupervision 
+                        ? "text-white" 
+                        : "text-purple-600 dark:text-purple-400 group-hover:text-purple-700 dark:group-hover:text-purple-300"
+                    )} />
+                    <span className={cn(
+                      "text-xs font-medium transition-colors duration-200",
+                      showSupervision 
+                        ? "text-white/90" 
+                        : "text-gray-600 dark:text-gray-400 group-hover:text-purple-700 dark:group-hover:text-purple-300"
+                    )}>
+                      Supervision
+                    </span>
+                  </div>
                   {showSupervision && (
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>
+                    <div className="absolute -top-2 -right-2 w-5 h-5 bg-emerald-500 rounded-full border-3 border-white dark:border-gray-900 shadow-lg flex items-center justify-center">
+                      <Check className="w-3 h-3 text-white" />
+                    </div>
                   )}
                 </button>
                 
@@ -255,24 +284,38 @@ export const AddEntryForm = () => {
                 </div>
               </div>
               
-              {/* Professional Development Icon - Vibrant & Active */}
+              {/* Professional Development Icon - Premium & Intuitive */}
               <div className="group relative">
                 <button
                   type="button"
                   onClick={() => applyTemplate('development')}
                   className={cn(
-                    "w-18 h-18 rounded-full border-0 transition-all duration-300 ease-out hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500/30 flex items-center justify-center shadow-lg relative",
+                    "w-20 h-20 rounded-2xl transition-all duration-400 ease-out hover:scale-105 focus:outline-none focus:ring-3 focus:ring-emerald-200 dark:focus:ring-emerald-700 flex items-center justify-center relative backdrop-blur-sm",
                     showProfDev
-                      ? "bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-emerald-500/40 shadow-lg ring-4 ring-emerald-200 dark:ring-emerald-800"
-                      : "bg-gradient-to-br from-emerald-400 to-emerald-600 hover:from-emerald-500 hover:to-emerald-700 shadow-emerald-400/30"
+                      ? "bg-emerald-600/95 shadow-xl shadow-emerald-500/30 ring-2 ring-emerald-300 dark:ring-emerald-600"
+                      : "bg-white/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 shadow-lg hover:shadow-xl hover:border-emerald-300 dark:hover:border-emerald-600"
                   )}
                 >
-                  <GraduationCap className={cn(
-                    "w-8 h-8 transition-colors duration-200",
-                    showProfDev ? "text-white drop-shadow-sm" : "text-white/90 group-hover:text-white"
-                  )} />
+                  <div className="flex flex-col items-center space-y-1">
+                    <GraduationCap className={cn(
+                      "w-7 h-7 transition-all duration-200",
+                      showProfDev 
+                        ? "text-white" 
+                        : "text-emerald-600 dark:text-emerald-400 group-hover:text-emerald-700 dark:group-hover:text-emerald-300"
+                    )} />
+                    <span className={cn(
+                      "text-xs font-medium transition-colors duration-200",
+                      showProfDev 
+                        ? "text-white/90" 
+                        : "text-gray-600 dark:text-gray-400 group-hover:text-emerald-700 dark:group-hover:text-emerald-300"
+                    )}>
+                      Learning
+                    </span>
+                  </div>
                   {showProfDev && (
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>
+                    <div className="absolute -top-2 -right-2 w-5 h-5 bg-emerald-500 rounded-full border-3 border-white dark:border-gray-900 shadow-lg flex items-center justify-center">
+                      <Check className="w-3 h-3 text-white" />
+                    </div>
                   )}
                 </button>
                 
@@ -597,55 +640,119 @@ export const AddEntryForm = () => {
               <div className={cn("space-y-4", isNotesExpanded && "p-8 h-full overflow-y-auto")}>
                 {/* Rich Text Editor Toolbar */}
                 {editor && (
-                  <div className="flex items-center gap-2 p-4 bg-gray-50 dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700">
-                    <button
-                      type="button"
-                      onClick={() => editor.chain().focus().toggleBold().run()}
-                      className={cn(
-                        "p-3 rounded-xl transition-all duration-200",
-                        editor.isActive('bold')
-                          ? "bg-blue-500 text-white shadow-md"
-                          : "hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+                  <div className="space-y-3">
+                    {/* Basic Toolbar */}
+                    <div className="flex items-center gap-2 p-4 bg-gray-50 dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700">
+                      <button
+                        type="button"
+                        onClick={() => editor.chain().focus().toggleBold().run()}
+                        className={cn(
+                          "p-3 rounded-xl transition-all duration-200",
+                          editor.isActive('bold')
+                            ? "bg-blue-500 text-white shadow-md"
+                            : "hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+                        )}
+                      >
+                        <Bold className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => editor.chain().focus().toggleItalic().run()}
+                        className={cn(
+                          "p-3 rounded-xl transition-all duration-200",
+                          editor.isActive('italic')
+                            ? "bg-blue-500 text-white shadow-md"
+                            : "hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+                        )}
+                      >
+                        <Italic className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => editor.chain().focus().toggleBulletList().run()}
+                        className={cn(
+                          "p-3 rounded-xl transition-all duration-200",
+                          editor.isActive('bulletList')
+                            ? "bg-blue-500 text-white shadow-md"
+                            : "hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+                        )}
+                      >
+                        <List className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => editor.chain().focus().toggleHighlight().run()}
+                        className={cn(
+                          "p-3 rounded-xl transition-all duration-200",
+                          editor.isActive('highlight')
+                            ? "bg-yellow-500 text-white shadow-md"
+                            : "hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+                        )}
+                      >
+                        <Lightbulb className="w-4 h-4" />
+                      </button>
+
+                      {/* Advanced Tools Toggle - Only in expanded mode */}
+                      {isNotesExpanded && (
+                        <>
+                          <div className="w-px h-8 bg-gray-300 dark:bg-gray-600 mx-2" />
+                          <button
+                            type="button"
+                            onClick={() => setShowAdvancedTools(!showAdvancedTools)}
+                            className="p-3 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 transition-all duration-200"
+                            title="More formatting options"
+                          >
+                            <Type className="w-4 h-4" />
+                          </button>
+                        </>
                       )}
-                    >
-                      <Bold className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => editor.chain().focus().toggleItalic().run()}
-                      className={cn(
-                        "p-3 rounded-xl transition-all duration-200",
-                        editor.isActive('italic')
-                          ? "bg-blue-500 text-white shadow-md"
-                          : "hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
-                      )}
-                    >
-                      <Italic className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => editor.chain().focus().toggleBulletList().run()}
-                      className={cn(
-                        "p-3 rounded-xl transition-all duration-200",
-                        editor.isActive('bulletList')
-                          ? "bg-blue-500 text-white shadow-md"
-                          : "hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
-                      )}
-                    >
-                      <List className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => editor.chain().focus().toggleHighlight().run()}
-                      className={cn(
-                        "p-3 rounded-xl transition-all duration-200",
-                        editor.isActive('highlight')
-                          ? "bg-yellow-500 text-white shadow-md"
-                          : "hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
-                      )}
-                    >
-                      <Lightbulb className="w-4 h-4" />
-                    </button>
+                    </div>
+
+                    {/* Advanced Toolbar - Collapsible */}
+                    {isNotesExpanded && showAdvancedTools && (
+                      <div className="flex items-center gap-2 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-2xl border border-blue-200 dark:border-blue-700">
+                        <button
+                          type="button"
+                          onClick={() => editor.chain().focus().toggleOrderedList().run()}
+                          className={cn(
+                            "p-3 rounded-xl transition-all duration-200",
+                            editor.isActive('orderedList')
+                              ? "bg-blue-500 text-white shadow-md"
+                              : "hover:bg-white dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
+                          )}
+                        >
+                          <span className="text-sm font-mono">1.</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => editor.chain().focus().toggleBlockquote().run()}
+                          className={cn(
+                            "p-3 rounded-xl transition-all duration-200",
+                            editor.isActive('blockquote')
+                              ? "bg-blue-500 text-white shadow-md"
+                              : "hover:bg-white dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
+                          )}
+                        >
+                          <Quote className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+                          className={cn(
+                            "p-3 rounded-xl transition-all duration-200",
+                            editor.isActive('codeBlock')
+                              ? "bg-blue-500 text-white shadow-md"
+                              : "hover:bg-white dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
+                          )}
+                        >
+                          <Code className="w-4 h-4" />
+                        </button>
+                        <div className="w-px h-8 bg-gray-300 dark:bg-gray-600 mx-2" />
+                        <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                          Advanced Formatting
+                        </span>
+                      </div>
+                    )}
                   </div>
                 )}
 
