@@ -63,6 +63,20 @@ export const CrossSessionInsights = () => {
       description: "Comprehensive analysis of your therapeutic identity and expertise areas",
       unlocked: totalSessions >= 50,
       analysisType: 'advanced'
+    },
+    {
+      milestone: 100,
+      title: "Clinical Mastery Assessment",
+      description: "Deep analysis of clinical competencies and specialization patterns",
+      unlocked: totalSessions >= 100,
+      analysisType: 'advanced'
+    },
+    {
+      milestone: 200,
+      title: "Expert Practitioner Profile",
+      description: "Advanced insights into your established therapeutic expertise and mentorship readiness",
+      unlocked: totalSessions >= 200,
+      analysisType: 'advanced'
     }
   ], [totalSessions]);
 
@@ -142,7 +156,7 @@ export const CrossSessionInsights = () => {
 
   return (
     <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-      <Card className="border-0 shadow-lg">
+      <Card className="border-0 shadow-lg rounded-lg">
         <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -176,7 +190,7 @@ export const CrossSessionInsights = () => {
                 </Button>
               )}
               <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="sm" className="text-gray-600">
+                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-gray-600">
                   {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 </Button>
               </CollapsibleTrigger>

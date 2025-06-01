@@ -559,13 +559,57 @@ export const GalleryView = () => {
         )}
       </div>
 
-      {/* Header */}
-      {cardRows.length > 0 && (
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-foreground">Your Session Insights</h2>
-          <p className="text-sm text-muted-foreground mt-1">Scroll horizontally through each time period • {filteredItems.length} sessions available</p>
+      {/* Header and Web Scraping Button */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Insights & Resources</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Create notes, save articles, and organize your professional development resources
+          </p>
         </div>
-      )}
+        <Button 
+          className="bg-blue-600 hover:bg-blue-700 font-bold rounded-xl"
+          onClick={() => {
+            // TODO: Implement web scraping functionality
+            toast({
+              title: "Web Scraping",
+              description: "Article scraping and CEU tagging feature coming soon!",
+            });
+          }}
+        >
+          <Sparkles className="h-4 w-4 mr-2" />
+          Scrape Article
+        </Button>
+      </div>
+
+      {/* Add Note Card - Always First */}
+      <Card className="border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 transition-colors cursor-pointer">
+        <CardContent className="p-8 text-center">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+              <Plus className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-lg">Add New Note</h3>
+              <p className="text-muted-foreground text-sm">
+                Create a new insight, reflection, or resource note with rich text editing
+              </p>
+            </div>
+            <Button 
+              className="bg-blue-600 hover:bg-blue-700 font-bold rounded-xl"
+              onClick={() => {
+                // TODO: Open rich text editor modal
+                toast({
+                  title: "Rich Text Editor",
+                  description: "Note creation with rich text editing coming soon!",
+                });
+              }}
+            >
+              Create Note
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Disney+ Style Card Rows */}
       {cardRows.length === 0 ? (
