@@ -266,7 +266,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
   return (
     <div className="h-screen bg-gray-50 dark:bg-gray-900 flex flex-col overflow-hidden">
       {/* Search Bar & Smart Spaces - Auto-hide on scroll */}
-      <div className={`bg-gray-50 dark:bg-gray-900 p-4 pt-1 flex-shrink-0 transition-transform duration-300 ${showBottomNav ? 'translate-y-0' : '-translate-y-full'}`}>
+      <div className={`absolute top-0 left-0 right-0 z-20 bg-gray-50 dark:bg-gray-900 p-4 pt-1 transition-transform duration-300 ${showBottomNav ? 'translate-y-0' : '-translate-y-full'}`}>
         <div className="space-y-4">
           {/* Main Search Bar */}
           <div className="flex items-center gap-4 max-w-4xl">
@@ -374,7 +374,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
       {/* Masonry Grid Layout - MyMind Style for Maximum Cards */}
       <div 
         ref={scrollContainerRef}
-        className={`flex-1 px-4 pb-20 overflow-y-auto scrollbar-hide ${showBottomNav ? 'pt-0' : '-mt-4 pt-4'}`}
+        className={`flex-1 px-4 pb-20 overflow-y-auto scrollbar-hide ${showBottomNav ? 'pt-24' : 'pt-0'}`}
       >
         {filteredItems.length === 0 ? (
           <div className="text-center py-12">
