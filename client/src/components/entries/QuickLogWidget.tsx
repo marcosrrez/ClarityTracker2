@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { useAccountType } from "@/hooks/use-account-type";
+import { useLogEntries } from "@/hooks/use-firestore";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface QuickLogTemplate {
   id: string;
@@ -22,9 +24,48 @@ export const QuickLogWidget = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { isSupervisor } = useAccountType();
+  const { entries, refetch } = useLogEntries();
+  const queryClient = useQueryClient();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [dragX, setDragX] = useState(0);
+
+  // Analyze user patterns to create intelligent templates
+  const analyzeUserPatterns = () => {
+    if (!entries || entries.length === 0) {
+      return {
+        mostCommonDuration: 1.0,
+        mostCommonSessionType: 'individual',
+        todaysSessionCount: 0,
+        todaysHours: 0
+      };
+    }
+
+    // Get today's sessions
+    const today = new Date().toDateString();
+    const todaysSessions = entries.filter(entry => 
+      new Date(entry.dateOfContact).toDateString() === today
+    );
+
+    // Find most common session duration
+    const durations = entries.map(entry => entry.clientContactHours).filter(Boolean);
+    const durationCounts = durations.reduce((acc, duration) => {
+      acc[duration] = (acc[duration] || 0) + 1;
+      return acc;
+    }, {} as Record<number, number>);
+    
+    const mostCommonDuration = Object.entries(durationCounts)
+      .sort(([,a], [,b]) => b - a)[0]?.[0] || '1.0';
+
+    return {
+      mostCommonDuration: parseFloat(mostCommonDuration),
+      mostCommonSessionType: 'individual',
+      todaysSessionCount: todaysSessions.length,
+      todaysHours: todaysSessions.reduce((sum, entry) => sum + entry.clientContactHours, 0)
+    };
+  };
+
+  const patterns = analyzeUserPatterns();
 
   const templates: QuickLogTemplate[] = isSupervisor ? [
     {
@@ -48,34 +89,57 @@ export const QuickLogWidget = () => {
       }
     }
   ] : [
+    // Standard 60-minute session (most common)
+    {
+      id: 'individual-60',
+      name: '60min Individual',
+      icon: <Clock className="w-4 h-4" />,
+      data: {
+        clientContactHours: 1.0,
+        notes: 'Individual therapy session completed.'
+      }
+    },
+    // User's most common duration (if different from 60min)
+    ...(patterns.mostCommonDuration !== 1.0 ? [{
+      id: 'common-duration',
+      name: `${Math.round(patterns.mostCommonDuration * 60)}min Individual`,
+      icon: <Clock className="w-4 h-4" />,
+      data: {
+        clientContactHours: patterns.mostCommonDuration,
+        notes: 'Individual therapy session completed.'
+      }
+    }] : []),
+    // Today's total hours quick-add (if user has logged sessions today)
+    ...(patterns.todaysHours > 0 ? [{
+      id: 'todays-total',
+      name: `Today's Total (${patterns.todaysHours}h)`,
+      icon: <Plus className="w-4 h-4" />,
+      data: {
+        clientContactHours: patterns.todaysHours,
+        notes: `Batch entry for ${patterns.todaysSessionCount} session${patterns.todaysSessionCount !== 1 ? 's' : ''} today.`
+      }
+    }] : []),
+    // Standard 90-minute session
     {
       id: 'individual-90',
       name: '90min Individual',
       icon: <Clock className="w-4 h-4" />,
       data: {
         clientContactHours: 1.5,
-        notes: 'Individual therapy session completed.'
+        notes: 'Extended individual therapy session completed.'
       }
     },
-    {
-      id: 'group-session',
-      name: 'Group Session',
-      icon: <Users className="w-4 h-4" />,
-      data: {
-        clientContactHours: 1.5,
-        notes: 'Group therapy session completed.'
-      }
-    },
+    // Group/telehealth options
     {
       id: 'phone-session',
-      name: 'Phone Session',
+      name: 'Telehealth',
       icon: <Phone className="w-4 h-4" />,
       data: {
-        clientContactHours: 1,
+        clientContactHours: 1.0,
         notes: 'Telehealth session completed.'
       }
     }
-  ];
+  ].slice(0, 4); // Limit to 4 most relevant options
 
   const handleDragStart = (e: React.PointerEvent) => {
     setIsDragging(true);
@@ -115,9 +179,18 @@ export const QuickLogWidget = () => {
       });
 
       if (response.ok) {
+        // Invalidate and refetch all related data
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ['/api/log-entries'] }),
+          queryClient.invalidateQueries({ queryKey: ['/api/ai/integration-status'] }),
+          queryClient.invalidateQueries({ queryKey: ['/api/ai/smart-insights'] }),
+          refetch() // Firebase entries refetch
+        ]);
+
+        const hours = template.data.clientContactHours || template.data.supervisionHours || 0;
         toast({
           title: "Entry logged!",
-          description: "Your session has been quickly saved.",
+          description: `${hours}h session saved successfully. Dashboard updated.`,
         });
         setIsExpanded(false);
       } else {
