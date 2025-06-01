@@ -97,7 +97,7 @@ export const CrossSessionAnalysisView = () => {
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Cross-Session Pattern Analysis</h2>
           <p className="text-muted-foreground">
-            AI-powered insights across your professional development journey
+            Track your therapeutic identity development over time. Unlike session-by-session coaching, this analyzes patterns spanning weeks and months to prepare you for supervision meetings and identify your emerging professional strengths.
           </p>
         </div>
         <Button 
