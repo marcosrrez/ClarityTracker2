@@ -129,53 +129,43 @@ export function GalleryView({ userId }: GalleryViewProps) {
                 <div className="text-sm text-gray-600 dark:text-gray-400 truncate">
                   Session from {format(new Date(expandedCard.dateOfContact), "MMMM d, yyyy")}
                 </div>
-                <div className="flex items-center gap-2">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="p-2">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem onClick={() => {
-                        toast({
-                          title: "Auto-organize",
-                          description: "This session will be automatically tagged and organized into Smart Spaces based on therapeutic modalities and client presentations.",
-                        });
-                      }}>
-                        <Archive className="h-4 w-4 mr-2" />
-                        Auto-organize to Space
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => {
-                        toast({
-                          title: "Edit mode",
-                          description: "Edit functionality coming soon!",
-                        });
-                      }}>
-                        <Edit3 className="h-4 w-4 mr-2" />
-                        Edit session
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => {
-                        navigator.clipboard.writeText(`Session: ${format(new Date(expandedCard.dateOfContact), "MMMM d, yyyy")}\n\n${expandedCard.notes}`);
-                        toast({
-                          title: "Copied",
-                          description: "Session content copied to clipboard",
-                        });
-                      }}>
-                        <Copy className="h-4 w-4 mr-2" />
-                        Copy content
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => setExpandedCard(null)}
-                    className="p-2"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="p-2">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem onClick={() => {
+                      toast({
+                        title: "Auto-organize",
+                        description: "This session will be automatically tagged and organized into Smart Spaces based on therapeutic modalities and client presentations.",
+                      });
+                    }}>
+                      <Archive className="h-4 w-4 mr-2" />
+                      Auto-organize to Space
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => {
+                      toast({
+                        title: "Edit mode",
+                        description: "Edit functionality coming soon!",
+                      });
+                    }}>
+                      <Edit3 className="h-4 w-4 mr-2" />
+                      Edit session
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => {
+                      navigator.clipboard.writeText(`Session: ${format(new Date(expandedCard.dateOfContact), "MMMM d, yyyy")}\n\n${expandedCard.notes}`);
+                      toast({
+                        title: "Copied",
+                        description: "Session content copied to clipboard",
+                      });
+                    }}>
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copy content
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
 
               {/* Scrollable Content */}
