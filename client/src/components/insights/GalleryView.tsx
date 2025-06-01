@@ -113,8 +113,11 @@ export function GalleryView({ userId }: GalleryViewProps) {
       {/* Full Page MyMind Style Modal */}
       {expandedCard && (
         <Dialog open={!!expandedCard} onOpenChange={() => setExpandedCard(null)}>
-          <DialogContent className="max-w-none w-full h-full p-0 gap-0 bg-gray-50 dark:bg-gray-900 overflow-hidden">
+          <DialogContent className="max-w-none w-full h-full p-0 gap-0 bg-gray-50 dark:bg-gray-900" aria-describedby="session-description">
             <DialogTitle className="sr-only">Session Details</DialogTitle>
+            <DialogDescription id="session-description" className="sr-only">
+              View and manage session details with AI analysis and tags
+            </DialogDescription>
             <div className="flex flex-col h-full">
               {/* Top Navigation Bar */}
               <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
@@ -169,7 +172,7 @@ export function GalleryView({ userId }: GalleryViewProps) {
               </div>
 
               {/* Scrollable Content */}
-              <div className="flex-1 overflow-y-auto">
+              <div className="flex-1 overflow-y-auto" style={{ height: 'calc(100vh - 120px)' }}>
                 <div className="max-w-none p-6 space-y-8">
                   {/* Main Title */}
                   <div>
