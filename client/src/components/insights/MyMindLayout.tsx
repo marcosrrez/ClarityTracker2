@@ -497,12 +497,12 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
         )}
       </div>
 
-      {/* Subtle Bottom Navigation Panel - Replit Style with Auto-Hide */}
+      {/* Compact Bottom Navigation Panel - Replit Style */}
       <div className={`fixed bottom-0 left-0 right-0 z-30 transition-all duration-300 ${showBottomNav ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}`}>
-        <div className="bg-gradient-to-t from-gray-50/90 to-transparent dark:from-gray-900/90 dark:to-transparent pt-4 pb-3">
-          <div className="max-w-sm mx-auto px-3">
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-full border border-gray-200/30 dark:border-gray-700/30 shadow-lg p-2">
-              <div className="flex items-center justify-center gap-1">
+        <div className="bg-gradient-to-t from-gray-50/90 to-transparent dark:from-gray-900/90 dark:to-transparent pt-2 pb-2">
+          <div className="max-w-xs mx-auto px-3">
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-full border border-gray-200/30 dark:border-gray-700/30 shadow-lg px-3 py-1">
+              <div className="flex items-center justify-center gap-0">
                 {/* Add Note Button */}
                 <button
                   onClick={() => {
@@ -511,25 +511,25 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                     setNoteTitle("");
                     setIsHeaderVisible(true);
                   }}
-                  className="flex-1 flex flex-col items-center gap-1 p-3 rounded-full hover:bg-gray-100/50 dark:hover:bg-gray-700/50 transition-all duration-200 group"
+                  className="flex items-center gap-2 px-3 py-2 rounded-full hover:bg-gray-100/50 dark:hover:bg-gray-700/50 transition-all duration-200 group"
                 >
-                  <div className="w-8 h-8 rounded-full bg-blue-500/10 dark:bg-blue-400/10 flex items-center justify-center group-hover:bg-blue-500/20 dark:group-hover:bg-blue-400/20 transition-colors">
-                    <Plus className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  <div className="w-6 h-6 rounded-full bg-blue-500/10 dark:bg-blue-400/10 flex items-center justify-center group-hover:bg-blue-500/20 dark:group-hover:bg-blue-400/20 transition-colors">
+                    <Plus className="h-3 w-3 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <div className="text-xs font-medium text-gray-700 dark:text-gray-300">Add Note</div>
+                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Add Note</span>
                 </button>
 
                 {/* AI Agent Button */}
                 <button
                   onClick={() => setShowAIAgent(true)}
-                  className="flex-1 flex flex-col items-center gap-1 p-3 rounded-full hover:bg-gray-100/50 dark:hover:bg-gray-700/50 transition-all duration-200 group"
+                  className="flex items-center gap-2 px-3 py-2 rounded-full hover:bg-gray-100/50 dark:hover:bg-gray-700/50 transition-all duration-200 group"
                 >
-                  <div className="w-8 h-8 rounded-full bg-purple-500/10 dark:bg-purple-400/10 flex items-center justify-center group-hover:bg-purple-500/20 dark:group-hover:bg-purple-400/20 transition-colors">
-                    <svg className="h-4 w-4 text-purple-600 dark:text-purple-400" viewBox="0 0 24 24" fill="currentColor">
+                  <div className="w-6 h-6 rounded-full bg-purple-500/10 dark:bg-purple-400/10 flex items-center justify-center group-hover:bg-purple-500/20 dark:group-hover:bg-purple-400/20 transition-colors">
+                    <svg className="h-3 w-3 text-purple-600 dark:text-purple-400" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M11 21h-1l1-7H7.5c-.88 0-.33-.75-.31-.78C8.48 10.94 10.42 7.54 13.01 3h1l-1 7h3.51c.4 0 .62.19.4.66C12.97 17.55 11 21 11 21z"/>
                     </svg>
                   </div>
-                  <div className="text-xs font-medium text-gray-700 dark:text-gray-300">AI Agent</div>
+                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300">AI Agent</span>
                 </button>
               </div>
             </div>
