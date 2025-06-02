@@ -28,6 +28,26 @@ interface MyMindLayoutProps {
   onRefresh?: () => void;
 }
 
+// Clean markdown and formatting for better readability
+const cleanText = (text: string): string => {
+  if (!text) return "";
+  
+  return text
+    // Remove markdown bold formatting
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    // Remove markdown italic formatting
+    .replace(/\*(.*?)\*/g, '$1')
+    // Clean up conversation markers
+    .replace(/\*\*You:\*\*/g, 'You:')
+    .replace(/\*\*Assistant:\*\*/g, 'Assistant:')
+    // Remove extra asterisks
+    .replace(/\*/g, '')
+    // Clean up multiple spaces
+    .replace(/\s+/g, ' ')
+    // Trim whitespace
+    .trim();
+};
+
 export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLayoutProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [showNoteEditor, setShowNoteEditor] = useState(false);
@@ -471,7 +491,10 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                         letterSpacing: '0.01em'
                       }}
                     >
-                      {item.notes.length > 100 ? `${item.notes.substring(0, 100)}...` : item.notes}
+                      {(() => {
+                        const cleanedText = cleanText(item.notes);
+                        return cleanedText.length > 100 ? `${cleanedText.substring(0, 100)}...` : cleanedText;
+                      })()}
                     </div>
 
                     {/* Elegant Insights Preview */}

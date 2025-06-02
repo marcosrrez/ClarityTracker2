@@ -33,7 +33,28 @@ export function GalleryView({ userId }: GalleryViewProps) {
   const [deleteDialogItem, setDeleteDialogItem] = useState<GalleryItem | null>(null);
   const [editingCard, setEditingCard] = useState<GalleryItem | null>(null);
   const [editedNotes, setEditedNotes] = useState<string>("");
+  const [isInlineEditing, setIsInlineEditing] = useState(false);
   const { toast } = useToast();
+
+  // Clean markdown and formatting for better readability
+  const cleanText = (text: string): string => {
+    if (!text) return "";
+    
+    return text
+      // Remove markdown bold formatting
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      // Remove markdown italic formatting
+      .replace(/\*(.*?)\*/g, '$1')
+      // Clean up conversation markers
+      .replace(/\*\*You:\*\*/g, 'You:')
+      .replace(/\*\*Assistant:\*\*/g, 'Assistant:')
+      // Remove extra asterisks
+      .replace(/\*/g, '')
+      // Clean up multiple spaces
+      .replace(/\s+/g, ' ')
+      // Trim whitespace
+      .trim();
+  };
 
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
 
@@ -141,7 +162,14 @@ export function GalleryView({ userId }: GalleryViewProps) {
 
   const handleEditNotes = (item: GalleryItem) => {
     setEditingCard(item);
-    setEditedNotes(item.notes);
+    setEditedNotes(cleanText(item.notes));
+    setIsInlineEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCard(null);
+    setEditedNotes("");
+    setIsInlineEditing(false);
   };
 
   const handleSaveEdit = async () => {
@@ -174,8 +202,17 @@ export function GalleryView({ userId }: GalleryViewProps) {
         )
       );
 
+      // Update the expanded card display
+      if (expandedCard?.id === editingCard.id) {
+        setExpandedCard({
+          ...expandedCard,
+          notes: editedNotes
+        });
+      }
+
       setEditingCard(null);
       setEditedNotes("");
+      setIsInlineEditing(false);
       
       toast({
         title: "Notes updated",
@@ -564,21 +601,65 @@ export function GalleryView({ userId }: GalleryViewProps) {
 
                   {/* Original Session Note */}
                   <div className="space-y-4">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-500 uppercase tracking-wide font-medium">ORIGINAL SESSION NOTE</span>
+                      {!isInlineEditing && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditNotes(expandedCard)}
+                          className="text-gray-500 hover:text-gray-700"
+                        >
+                          <Edit3 className="h-4 w-4 mr-1" />
+                          Edit
+                        </Button>
+                      )}
                     </div>
                     <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                      <div 
-                        className="text-gray-700 dark:text-gray-300 leading-relaxed"
-                        style={{ 
-                          fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", serif',
-                          lineHeight: '1.75',
-                          fontWeight: '400',
-                          letterSpacing: '0.015em'
-                        }}
-                      >
-                        {expandedCard.notes || "No notes available for this session."}
-                      </div>
+                      {isInlineEditing && editingCard?.id === expandedCard.id ? (
+                        <div className="space-y-3">
+                          <Textarea
+                            value={editedNotes}
+                            onChange={(e) => setEditedNotes(e.target.value)}
+                            className="min-h-[200px] border-none resize-none focus:ring-0 p-0 text-base"
+                            style={{ 
+                              fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", serif',
+                              lineHeight: '1.75',
+                              fontWeight: '400',
+                              letterSpacing: '0.015em'
+                            }}
+                            placeholder="Enter your session notes..."
+                          />
+                          <div className="flex justify-end gap-2 pt-3 border-t border-gray-200">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handleCancelEdit}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={handleSaveEdit}
+                            >
+                              Save
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div 
+                          className="text-gray-700 dark:text-gray-300 leading-relaxed cursor-text"
+                          style={{ 
+                            fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", serif',
+                            lineHeight: '1.75',
+                            fontWeight: '400',
+                            letterSpacing: '0.015em'
+                          }}
+                          onClick={() => handleEditNotes(expandedCard)}
+                        >
+                          {cleanText(expandedCard.notes) || "No notes available for this session."}
+                        </div>
+                      )}
                     </div>
                   </div>
 
