@@ -390,75 +390,61 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
             {filteredItems.map((item) => (
               <Card 
                 key={item.id}
-                className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden h-fit"
+                className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-white dark:bg-gray-800 border-0 rounded-2xl overflow-hidden h-fit shadow-sm"
                 onClick={() => onItemClick(item)}
               >
-                <CardContent className="p-4">
-                  <div className="space-y-3">
-                    {/* Date and Duration */}
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    {/* Date and Duration - Minimal */}
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1 text-xs text-gray-500">
-                        <Calendar className="h-3 w-3" />
-                        <span className="truncate">{format(new Date(item.dateOfContact), "MMM d")}</span>
-                      </div>
-                      <Badge variant="secondary" className="text-xs">
+                      <span className="text-xs font-medium text-gray-400 dark:text-gray-500 tracking-wide">
+                        {format(new Date(item.dateOfContact), "MMM d")}
+                      </span>
+                      <span className="text-xs text-gray-400 dark:text-gray-500">
                         {item.clientContactHours}h
-                      </Badge>
+                      </span>
                     </div>
 
-                    {/* Notes Content */}
-                    <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                      {item.notes.length > 120 ? `${item.notes.substring(0, 120)}...` : item.notes}
+                    {/* Notes Content - Premium Typography */}
+                    <div 
+                      className="text-gray-800 dark:text-gray-200 leading-relaxed"
+                      style={{ 
+                        fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
+                        fontSize: '0.9rem',
+                        lineHeight: '1.6',
+                        letterSpacing: '0.01em'
+                      }}
+                    >
+                      {item.notes.length > 100 ? `${item.notes.substring(0, 100)}...` : item.notes}
                     </div>
 
-                    {/* Enhanced AI Analysis Tags - MyMind Style */}
+                    {/* Elegant Insights Preview */}
                     {item.analysis && (
-                      <div className="space-y-2">
-                        {/* Therapeutic Modalities */}
-                        {item.analysis.therapeuticModalities && Array.isArray(item.analysis.therapeuticModalities) && item.analysis.therapeuticModalities.length > 0 && (
-                          <div className="flex flex-wrap gap-1">
-                            {item.analysis.therapeuticModalities.slice(0, 2).map((mod: string, index: number) => (
-                              <Badge key={index} variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
-                                {mod}
-                              </Badge>
+                      <div className="space-y-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                        {/* Primary Themes - Clean and Minimal */}
+                        {item.analysis.themes && Array.isArray(item.analysis.themes) && item.analysis.themes.length > 0 && (
+                          <div className="flex flex-wrap gap-2">
+                            {item.analysis.themes.slice(0, 2).map((theme: string, index: number) => (
+                              <span 
+                                key={index} 
+                                className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full"
+                              >
+                                {theme}
+                              </span>
                             ))}
-                            {item.analysis.therapeuticModalities.length > 2 && (
-                              <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
-                                +{item.analysis.therapeuticModalities.length - 2} modalities
-                              </Badge>
+                            {item.analysis.themes.length > 2 && (
+                              <span className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-full">
+                                +{item.analysis.themes.length - 2}
+                              </span>
                             )}
                           </div>
                         )}
                         
-                        {/* Client Presentation */}
-                        {item.analysis.clientPresentation && Array.isArray(item.analysis.clientPresentation) && item.analysis.clientPresentation.length > 0 && (
-                          <div className="flex flex-wrap gap-1">
-                            {item.analysis.clientPresentation.slice(0, 2).map((pres: string, index: number) => (
-                              <Badge key={index} variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                                {pres}
-                              </Badge>
-                            ))}
-                            {item.analysis.clientPresentation.length > 2 && (
-                              <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                                +{item.analysis.clientPresentation.length - 2} presentations
-                              </Badge>
-                            )}
-                          </div>
-                        )}
-                        
-                        {/* Competency Areas */}
-                        {item.analysis.competencyAreas && Array.isArray(item.analysis.competencyAreas) && item.analysis.competencyAreas.length > 0 && (
-                          <div className="flex flex-wrap gap-1">
-                            {item.analysis.competencyAreas.slice(0, 1).map((comp: string, index: number) => (
-                              <Badge key={index} variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
-                                {comp}
-                              </Badge>
-                            ))}
-                            {item.analysis.competencyAreas.length > 1 && (
-                              <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
-                                +{item.analysis.competencyAreas.length - 1} competencies
-                              </Badge>
-                            )}
+                        {/* Key Learning Indicator */}
+                        {item.analysis.keyLearnings && Array.isArray(item.analysis.keyLearnings) && item.analysis.keyLearnings.length > 0 && (
+                          <div className="flex items-center gap-2 text-xs text-blue-600 dark:text-blue-400">
+                            <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
+                            <span className="font-medium">{item.analysis.keyLearnings.length} insight{item.analysis.keyLearnings.length !== 1 ? 's' : ''}</span>
                           </div>
                         )}
                         
