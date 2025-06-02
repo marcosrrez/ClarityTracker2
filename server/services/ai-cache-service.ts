@@ -182,7 +182,8 @@ export class AiCacheService {
    * Get cache statistics
    */
   static getCacheStats() {
-    const validEntries = Array.from(this.cache.values()).filter(this.isValidEntry);
+    const allEntries = Array.from(this.cache.values());
+    const validEntries = allEntries.filter(entry => this.isValidEntry(entry));
     const totalUsage = validEntries.reduce((sum, entry) => sum + entry.usageCount, 0);
     
     const typeStats = validEntries.reduce((stats, entry) => {
@@ -230,7 +231,8 @@ export class AiCacheService {
     const now = new Date();
     let removedCount = 0;
     
-    for (const [hash, entry] of this.cache) {
+    const entries = Array.from(this.cache.entries());
+    for (const [hash, entry] of entries) {
       if (!this.isValidEntry(entry)) {
         this.cache.delete(hash);
         removedCount++;

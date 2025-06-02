@@ -9,6 +9,11 @@ import { sendWelcomeEmail } from "./welcome-email";
 import OpenAI from "openai";
 import { insertKnowledgeEntrySchema } from "@shared/schema";
 import { visualIntelligence } from "./visual-intelligence";
+import { IntelligenceHub } from "./services/intelligence-hub";
+import { SmartProgressTracker } from "./services/smart-progress-tracker";
+import { StateRequirementsEngine } from "./services/state-requirements-engine";
+import { ComplianceMonitoringService } from "./services/compliance-monitoring-service";
+import { ResourceRecommendationEngine } from "./services/resource-recommendation-engine";
 
 // Email reminder scheduling function
 async function scheduleSessionReminders(session: any, reminderDays: number) {
