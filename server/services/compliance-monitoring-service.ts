@@ -87,7 +87,9 @@ export class ComplianceMonitoringService {
   }
 
   private static checkEthicsCompliance(logEntries: LogEntry[]): any {
-    const ethicsHours = logEntries.reduce((sum, entry) => sum + (entry.ethicsHours || 0), 0);
+    const ethicsHours = logEntries.reduce((sum, entry) => {
+      return sum + (entry.professionalDevelopmentType === 'ethics' ? entry.professionalDevelopmentHours : 0);
+    }, 0);
     
     return {
       isCompliant: ethicsHours >= 6, // Assuming 6 hours minimum

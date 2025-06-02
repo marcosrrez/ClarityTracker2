@@ -1305,6 +1305,7 @@ Please provide a helpful, professional response that's personalized to their sit
       
       const userProfile = await storage.getUserProfile(userId);
       const logEntries = await storage.getEntriesByUserId(userId) || [];
+      const insightCards = await storage.getInsightCardsByUserId(userId) || [];
       
       if (!userProfile) {
         return res.status(404).json({ error: 'User profile not found' });
@@ -1313,7 +1314,8 @@ Please provide a helpful, professional response that's personalized to their sit
       const report = await IntelligenceHub.generateIntelligenceReport(
         userId, 
         userProfile, 
-        logEntries
+        logEntries,
+        insightCards
       );
       res.json(report);
     } catch (error) {

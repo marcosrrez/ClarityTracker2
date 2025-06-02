@@ -80,7 +80,7 @@ export class LearningProfileEngine {
     
     insightCards.forEach(card => {
       const competencies = card.analysis?.competencyAreas || [];
-      competencies.forEach(comp => {
+      competencies.forEach((comp: string) => {
         competencyMap.set(comp, (competencyMap.get(comp) || 0) + 1);
       });
     });
@@ -120,7 +120,7 @@ export class LearningProfileEngine {
     
     insightCards.forEach(card => {
       const modalities = card.analysis?.therapeuticModalities || [];
-      modalities.forEach(modality => {
+      modalities.forEach((modality: string) => {
         modalityMap.set(modality, (modalityMap.get(modality) || 0) + 1);
       });
     });
@@ -138,7 +138,7 @@ export class LearningProfileEngine {
     
     insightCards.forEach(card => {
       const challenges = card.analysis?.professionalGrowthAreas || [];
-      challenges.forEach(challenge => {
+      challenges.forEach((challenge: string) => {
         challengeMap.set(challenge, (challengeMap.get(challenge) || 0) + 1);
       });
     });

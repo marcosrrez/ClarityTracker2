@@ -75,7 +75,7 @@ export class CommunityIntelligenceService {
     const uniqueCompetencies = new Set();
     insightCards.forEach(card => {
       const competencies = card.analysis?.competencyAreas || [];
-      competencies.forEach(comp => uniqueCompetencies.add(comp));
+      competencies.forEach((comp: string) => uniqueCompetencies.add(comp));
     });
     
     return uniqueCompetencies.size;
@@ -86,7 +86,7 @@ export class CommunityIntelligenceService {
     
     cards.forEach(card => {
       const modalities = card.analysis?.therapeuticModalities || [];
-      modalities.forEach(modality => {
+      modalities.forEach((modality: string) => {
         modalityCount.set(modality, (modalityCount.get(modality) || 0) + 1);
       });
     });
