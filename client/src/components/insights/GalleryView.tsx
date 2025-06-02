@@ -244,7 +244,7 @@ export function GalleryView({ userId }: GalleryViewProps) {
       {/* Full Page Open Card Modal */}
       {expandedCard && (
         <Dialog open={!!expandedCard} onOpenChange={() => setExpandedCard(null)}>
-          <DialogContent className="max-w-none w-full h-full p-0 gap-0 bg-gray-50 dark:bg-gray-900 [&>button]:hidden overflow-hidden" aria-describedby="session-description">
+          <DialogContent className="max-w-none w-full h-full p-0 gap-0 bg-gray-100 dark:bg-gray-900 [&>button]:hidden overflow-hidden" aria-describedby="session-description">
             <DialogTitle className="sr-only">Session Details</DialogTitle>
             <DialogDescription id="session-description" className="sr-only">
               View and manage session details with AI analysis and tags
@@ -252,7 +252,7 @@ export function GalleryView({ userId }: GalleryViewProps) {
             
             {/* Full Screen Content Area */}
             <div className="flex-1 overflow-y-auto pt-4">
-              <div className="w-full bg-white dark:bg-gray-800 min-h-full rounded-t-3xl pt-8 px-6 pb-8 space-y-16">
+              <div className="w-full bg-white dark:bg-gray-800 min-h-full rounded-t-3xl shadow-lg pt-8 px-6 pb-8 space-y-16">
                 
                 {/* Header with Dropdown - No Divider */}
                 <div className="flex items-center justify-between">
