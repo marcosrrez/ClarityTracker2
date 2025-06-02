@@ -569,21 +569,33 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                 </div>
 
                 {/* Note Content - Premium Writing Experience */}
-                <textarea
-                  value={noteContent}
-                  onChange={(e) => setNoteContent(e.target.value)}
-                  placeholder="💡PRO TIP: You can use markdown! Try **bold**, *italic*, # headings, - lists, and more. Write naturally and let your thoughts flow."
-                  className="w-full min-h-[700px] bg-transparent border-none outline-none resize-none placeholder:text-gray-300 dark:placeholder:text-gray-600 text-gray-800 dark:text-gray-200 text-xl leading-loose tracking-wide"
-                  style={{ 
-                    fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", "Droid Serif", Times, "Source Serif Pro", serif',
-                    lineHeight: '1.75',
-                    fontWeight: '400',
-                    letterSpacing: '0.015em',
-                    textRendering: 'optimizeLegibility',
-                    WebkitFontSmoothing: 'antialiased',
-                    MozOsxFontSmoothing: 'grayscale'
-                  }}
-                />
+                <div className="relative">
+                  <textarea
+                    value={noteContent}
+                    onChange={(e) => setNoteContent(e.target.value)}
+                    placeholder=""
+                    className="w-full min-h-[700px] bg-transparent border-none outline-none resize-none text-gray-800 dark:text-gray-200 text-xl leading-loose tracking-wide"
+                    style={{ 
+                      fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", "Droid Serif", Times, "Source Serif Pro", serif',
+                      lineHeight: '1.75',
+                      fontWeight: '400',
+                      letterSpacing: '0.015em',
+                      textRendering: 'optimizeLegibility',
+                      WebkitFontSmoothing: 'antialiased',
+                      MozOsxFontSmoothing: 'grayscale'
+                    }}
+                    autoFocus={!noteTitle}
+                  />
+                  {!noteContent && (
+                    <div className="absolute top-0 left-0 text-gray-300 dark:text-gray-600 pointer-events-none text-xl leading-loose" style={{ 
+                      fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
+                      lineHeight: '1.75',
+                      letterSpacing: '0.015em'
+                    }}>
+                      💡PRO TIP: You can use markdown! Try **bold**, *italic*, # headings, - lists, and more. Write naturally and let your thoughts flow.
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
