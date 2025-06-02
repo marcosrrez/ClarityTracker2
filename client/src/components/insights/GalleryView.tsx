@@ -62,32 +62,27 @@ export function GalleryView({ userId }: GalleryViewProps) {
     const processItems = async () => {
       const items: GalleryItem[] = [];
 
-      // Add session entries with AI analysis
+      // Add log entries with their analyses
       if (logEntries) {
         for (const entry of logEntries) {
-          if (!entry.notes || entry.notes.trim().length === 0) continue;
+          let analysis = null;
           
-          // Filter out entries with insufficient content for meaningful insights
-          const wordCount = entry.notes.trim().split(/\s+/).length;
-          if (wordCount < 10) continue;
-
           try {
-            const analysis = await getAiAnalysis(user?.uid || "", entry.id);
-            items.push({
-              id: entry.id,
-              dateOfContact: new Date(entry.dateOfContact),
-              clientContactHours: entry.clientContactHours,
-              notes: entry.notes,
-              analysis: analysis || undefined,
-            });
+            const analysisData = await getAiAnalysis(user?.uid || "", entry.id);
+            if (analysisData) {
+              analysis = analysisData;
+            }
           } catch (error) {
-            items.push({
-              id: entry.id,
-              dateOfContact: new Date(entry.dateOfContact),
-              clientContactHours: entry.clientContactHours,
-              notes: entry.notes,
-            });
+            console.log("No analysis found for entry:", entry.id);
           }
+
+          items.push({
+            id: entry.id,
+            dateOfContact: new Date(entry.dateOfContact),
+            clientContactHours: entry.clientContactHours,
+            notes: entry.notes || "",
+            analysis
+          });
         }
       }
 
@@ -141,7 +136,7 @@ export function GalleryView({ userId }: GalleryViewProps) {
         variant: "destructive",
       });
     }
-  }
+  };
 
   const handleDeleteInsightCard = async (cardId: string) => {
     try {
@@ -246,7 +241,7 @@ export function GalleryView({ userId }: GalleryViewProps) {
         }}
       />
 
-      {/* Full Page MyMind Style Modal */}
+      {/* Full Page Open Card Modal */}
       {expandedCard && (
         <Dialog open={!!expandedCard} onOpenChange={() => setExpandedCard(null)}>
           <DialogContent className="max-w-none w-full h-full p-0 gap-0 bg-gray-50 dark:bg-gray-900 [&>button]:hidden overflow-hidden" aria-describedby="session-description">
@@ -254,465 +249,209 @@ export function GalleryView({ userId }: GalleryViewProps) {
             <DialogDescription id="session-description" className="sr-only">
               View and manage session details with AI analysis and tags
             </DialogDescription>
-            <div className="flex flex-col h-full">
-              {/* Top Navigation Bar */}
-              <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => setExpandedCard(null)}
-                  className="p-2"
-                >
-                  <ChevronDown className="h-4 w-4" />
-                </Button>
-                <div className="text-sm text-gray-600 dark:text-gray-400 truncate">
-                  Session from {format(new Date(expandedCard.dateOfContact), "MMMM d, yyyy")}
+            
+            {/* Spacious Content Area with Rounded Card Feel */}
+            <div className="flex-1 overflow-y-auto p-8 pt-12">
+              <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-3xl shadow-sm p-12 space-y-16">
+                
+                {/* Header with Dropdown - No Divider */}
+                <div className="flex items-center justify-between">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => setExpandedCard(null)}
+                    className="p-2 -ml-2"
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="p-2">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem onClick={() => handleEditNotes(expandedCard)}>
+                        <Edit3 className="h-4 w-4 mr-2" />
+                        Edit notes
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => setDeleteDialogItem(expandedCard)}
+                        className="text-red-600 focus:text-red-600"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete card
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="p-2">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem onClick={() => {
-                      toast({
-                        title: "Auto-organize",
-                        description: "This session will be automatically tagged and organized into Smart Spaces based on therapeutic modalities and client presentations.",
-                      });
-                    }}>
-                      <Archive className="h-4 w-4 mr-2" />
-                      Auto-organize to Space
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleEditNotes(expandedCard)}>
-                      <Edit3 className="h-4 w-4 mr-2" />
-                      Edit notes
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => setDeleteDialogItem(expandedCard)}
-                      className="text-red-600 focus:text-red-600"
+
+                {/* Key Insights Summary */}
+                {expandedCard.analysis && expandedCard.analysis.summary && (
+                  <div className="space-y-6">
+                    <h2 
+                      className="text-2xl font-light text-gray-900 dark:text-gray-100"
+                      style={{ 
+                        fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", serif'
+                      }}
                     >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete card
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => {
-                      navigator.clipboard.writeText(`Session: ${format(new Date(expandedCard.dateOfContact), "MMMM d, yyyy")}\n\n${expandedCard.notes}`);
-                      toast({
-                        title: "Copied",
-                        description: "Session content copied to clipboard",
-                      });
-                    }}>
-                      <Copy className="h-4 w-4 mr-2" />
-                      Copy content
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              {/* Scrollable Content */}
-              <div className="flex-1 overflow-y-auto overscroll-y-contain" style={{ maxHeight: 'calc(100vh - 80px)' }}>
-                <div className="max-w-none p-6 space-y-8 pb-20">
-                  {/* Main Title */}
-                  <div>
-                    <h1 className="text-3xl font-bold text-black dark:text-white mb-6 leading-tight">
-                      Session: {format(new Date(expandedCard.dateOfContact), "MMMM d, yyyy")}
-                    </h1>
+                      Key Insights
+                    </h2>
+                    <div 
+                      className="text-gray-700 dark:text-gray-300 leading-relaxed text-lg"
+                      style={{ 
+                        fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", serif',
+                        lineHeight: '1.75',
+                        fontWeight: '400',
+                        letterSpacing: '0.015em'
+                      }}
+                    >
+                      {cleanText(expandedCard.analysis.summary)}
+                    </div>
                   </div>
+                )}
 
-                  {/* Key Insights Summary */}
-                  {expandedCard.analysis && expandedCard.analysis.summary && (
+                {/* Session Notes - Free from Boxes */}
+                <div className="space-y-6">
+                  <h2 
+                    className="text-2xl font-light text-gray-900 dark:text-gray-100"
+                    style={{ 
+                      fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", serif'
+                    }}
+                  >
+                    {expandedCard.analysis?.type === "ai-conversation" ? "Reflection Notes" : "Session Notes"}
+                  </h2>
+                  
+                  {!isInlineEditing && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEditNotes(expandedCard)}
+                      className="text-gray-500 hover:text-gray-700 -ml-2"
+                    >
+                      <Edit3 className="h-4 w-4 mr-1" />
+                      Edit
+                    </Button>
+                  )}
+
+                  {isInlineEditing && editingCard?.id === expandedCard.id ? (
                     <div className="space-y-4">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-500 uppercase tracking-wide font-medium">KEY INSIGHTS</span>
-                      </div>
-                      <div 
-                        className="text-gray-700 dark:text-gray-300 leading-relaxed"
+                      <Textarea
+                        value={editedNotes}
+                        onChange={(e) => setEditedNotes(e.target.value)}
+                        className="min-h-[300px] border-none resize-none focus:ring-0 p-0 text-lg"
                         style={{ 
                           fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", serif',
                           lineHeight: '1.75',
                           fontWeight: '400',
-                          letterSpacing: '0.015em',
-                          fontSize: '1.1rem'
+                          letterSpacing: '0.015em'
                         }}
-                      >
-                        {cleanText(expandedCard.analysis.summary)}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Professional Development Insights */}
-                  {expandedCard.analysis && expandedCard.analysis.type === "ai-conversation" && (
-                    <div className="space-y-16">
-                      {/* Section Header */}
-                      <div className="space-y-2">
-                        <span className="text-sm text-purple-600 dark:text-purple-400 uppercase tracking-wide font-medium">PROFESSIONAL CONSULTATION</span>
-                        <p className="text-gray-600 dark:text-gray-400">
-                          Key insights from your conversation for professional development
-                        </p>
-                      </div>
-
-                      {/* Consultation Topics */}
-                      {expandedCard.analysis.consultationTopics && expandedCard.analysis.consultationTopics.length > 0 && (
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-500 uppercase tracking-wide font-medium">CONSULTATION TOPICS</span>
-                          </div>
-                          <div className="flex flex-wrap gap-3">
-                            {expandedCard.analysis.consultationTopics.map((topic: string, index: number) => (
-                              <Badge key={index} variant="secondary" className="text-sm px-4 py-2 bg-purple-50 text-purple-700 border-0 rounded-full">
-                                {topic}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Learning Themes */}
-                      {expandedCard.analysis.learningThemes && expandedCard.analysis.learningThemes.length > 0 && (
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-500 uppercase tracking-wide font-medium">LEARNING THEMES</span>
-                          </div>
-                          <div 
-                            className="space-y-3 text-gray-700 dark:text-gray-300"
-                            style={{ 
-                              fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", serif',
-                              lineHeight: '1.6',
-                              fontWeight: '400',
-                              letterSpacing: '0.015em'
-                            }}
-                          >
-                            {expandedCard.analysis.learningThemes.map((theme: string, index: number) => (
-                              <div key={index}>• {cleanText(theme)}</div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Knowledge Areas */}
-                      {expandedCard.analysis.knowledgeAreas && expandedCard.analysis.knowledgeAreas.length > 0 && (
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-500 uppercase tracking-wide font-medium">KNOWLEDGE AREAS</span>
-                          </div>
-                          <div className="flex flex-wrap gap-3">
-                            {expandedCard.analysis.knowledgeAreas.map((area: string, index: number) => (
-                              <Badge key={index} variant="secondary" className="text-sm px-4 py-2 bg-blue-50 text-blue-700 border-0 rounded-full">
-                                {area}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Competency Focus */}
-                      {expandedCard.analysis.competencyFocus && expandedCard.analysis.competencyFocus.length > 0 && (
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-500 uppercase tracking-wide font-medium">COMPETENCY DEVELOPMENT</span>
-                          </div>
-                          <div 
-                            className="space-y-3 text-gray-700 dark:text-gray-300"
-                            style={{ 
-                              fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", serif',
-                              lineHeight: '1.6',
-                              fontWeight: '400',
-                              letterSpacing: '0.015em'
-                            }}
-                          >
-                            {expandedCard.analysis.competencyFocus.map((comp: string, index: number) => (
-                              <div key={index}>• {cleanText(comp)}</div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Growth Indicators */}
-                      {expandedCard.analysis.growthIndicators && expandedCard.analysis.growthIndicators.length > 0 && (
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-500 uppercase tracking-wide font-medium">PROFESSIONAL GROWTH</span>
-                          </div>
-                          <div 
-                            className="space-y-3 text-gray-700 dark:text-gray-300"
-                            style={{ 
-                              fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", serif',
-                              lineHeight: '1.6',
-                              fontWeight: '400',
-                              letterSpacing: '0.015em'
-                            }}
-                          >
-                            {expandedCard.analysis.growthIndicators.map((indicator: string, index: number) => (
-                              <div key={index}>• {cleanText(indicator)}</div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Therapeutic Insights - For Session Notes */}
-                  {expandedCard.analysis && expandedCard.analysis.type !== "ai-conversation" && (
-                    <div className="space-y-16">
-                      <div className="space-y-2">
-                        <span className="text-sm text-green-600 dark:text-green-400 uppercase tracking-wide font-medium">THERAPEUTIC INSIGHTS</span>
-                        <p className="text-gray-600 dark:text-gray-400">
-                          Professional analysis from your session notes
-                        </p>
-                      </div>
-
-                      {/* Therapeutic Modalities */}
-                      {expandedCard.analysis.therapeuticModalities && Array.isArray(expandedCard.analysis.therapeuticModalities) && expandedCard.analysis.therapeuticModalities.length > 0 && (
-                        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                          <h3 className="text-lg font-semibold text-black dark:text-white mb-3">Therapeutic Modalities</h3>
-                          <div className="flex flex-wrap gap-2">
-                            {expandedCard.analysis.therapeuticModalities.map((mod: string, index: number) => (
-                              <Badge key={index} variant="secondary" className="bg-green-100 text-green-800">
-                                {mod}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Client Presentation */}
-                      {expandedCard.analysis.clientPresentation && Array.isArray(expandedCard.analysis.clientPresentation) && expandedCard.analysis.clientPresentation.length > 0 && (
-                        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                          <h3 className="text-lg font-semibold text-black dark:text-white mb-3">Client Presentation</h3>
-                          <ul className="space-y-2">
-                            {expandedCard.analysis.clientPresentation.map((item: string, index: number) => (
-                              <li key={index} className="text-gray-700 dark:text-gray-300">• {item}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-
-                      {/* Competency Areas */}
-                      {expandedCard.analysis.competencyAreas && Array.isArray(expandedCard.analysis.competencyAreas) && expandedCard.analysis.competencyAreas.length > 0 && (
-                        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                          <h3 className="text-lg font-semibold text-black dark:text-white mb-3">Competency Development</h3>
-                          <div className="flex flex-wrap gap-2">
-                            {expandedCard.analysis.competencyAreas.map((comp: string, index: number) => (
-                              <Badge key={index} variant="secondary" className="bg-blue-100 text-blue-800">
-                                {comp}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Key Learnings */}
-                      {expandedCard.analysis.keyLearnings && Array.isArray(expandedCard.analysis.keyLearnings) && expandedCard.analysis.keyLearnings.length > 0 && (
-                        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                          <h3 className="text-lg font-semibold text-black dark:text-white mb-3">Key Learnings</h3>
-                          <ul className="space-y-2">
-                            {expandedCard.analysis.keyLearnings.map((learning: string, index: number) => (
-                              <li key={index} className="text-gray-700 dark:text-gray-300">• {learning}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-
-                      {/* Supervision Topics */}
-                      {expandedCard.analysis.supervisionTopics && Array.isArray(expandedCard.analysis.supervisionTopics) && expandedCard.analysis.supervisionTopics.length > 0 && (
-                        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                          <h3 className="text-lg font-semibold text-black dark:text-white mb-3">Supervision Topics</h3>
-                          <ul className="space-y-2">
-                            {expandedCard.analysis.supervisionTopics.map((topic: string, index: number) => (
-                              <li key={index} className="text-gray-700 dark:text-gray-300">• {topic}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-
-                      {/* Reflective Prompts */}
-                      {expandedCard.analysis.reflectivePrompts && Array.isArray(expandedCard.analysis.reflectivePrompts) && expandedCard.analysis.reflectivePrompts.length > 0 && (
-                        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                          <h3 className="text-lg font-semibold text-black dark:text-white mb-3">Reflective Questions</h3>
-                          <ul className="space-y-2">
-                            {expandedCard.analysis.reflectivePrompts.map((prompt: string, index: number) => (
-                              <li key={index} className="text-gray-700 dark:text-gray-300 italic">• {prompt}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Mind Tags Section */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-500 uppercase tracking-wide font-medium">MIND TAGS</span>
-                    </div>
-                    <div className="flex flex-wrap gap-3">
-                      <Button 
-                        size="sm" 
-                        className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 py-2"
-                        onClick={() => {
-                          toast({
-                            title: "Add tag",
-                            description: "Tag functionality coming soon!",
-                          });
-                        }}
-                      >
-                        + Add tag
-                      </Button>
-                      
-                      {/* Auto-generated tags */}
-                      {expandedCard.analysis?.therapeuticModalities && Array.isArray(expandedCard.analysis.therapeuticModalities) && 
-                        expandedCard.analysis.therapeuticModalities.map((mod: string, index: number) => (
-                          <Badge key={index} variant="secondary" className="text-sm px-3 py-1 bg-gray-200 text-gray-700 hover:bg-gray-300 cursor-pointer">
-                            # {mod}
-                          </Badge>
-                        ))
-                      }
-                      
-                      {expandedCard.analysis?.clientPresentation && Array.isArray(expandedCard.analysis.clientPresentation) && 
-                        expandedCard.analysis.clientPresentation.map((pres: string, index: number) => (
-                          <Badge key={index} variant="secondary" className="text-sm px-3 py-1 bg-gray-200 text-gray-700 hover:bg-gray-300 cursor-pointer">
-                            # {pres}
-                          </Badge>
-                        ))
-                      }
-                      
-                      {expandedCard.analysis?.competencyAreas && Array.isArray(expandedCard.analysis.competencyAreas) && 
-                        expandedCard.analysis.competencyAreas.map((comp: string, index: number) => (
-                          <Badge key={index} variant="secondary" className="text-sm px-3 py-1 bg-gray-200 text-gray-700 hover:bg-gray-300 cursor-pointer">
-                            # {comp}
-                          </Badge>
-                        ))
-                      }
-                      
-                      {/* Fallback to themes */}
-                      {(!expandedCard.analysis?.therapeuticModalities && !expandedCard.analysis?.clientPresentation && !expandedCard.analysis?.competencyAreas) && 
-                       expandedCard.analysis?.themes && Array.isArray(expandedCard.analysis.themes) && 
-                        expandedCard.analysis.themes.map((theme: string, index: number) => (
-                          <Badge key={index} variant="secondary" className="text-sm px-3 py-1 bg-gray-200 text-gray-700 hover:bg-gray-300 cursor-pointer">
-                            # {theme}
-                          </Badge>
-                        ))
-                      }
-                      
-                      {/* Session metadata tags */}
-                      <Badge variant="secondary" className="text-sm px-3 py-1 bg-gray-200 text-gray-700">
-                        # {expandedCard.clientContactHours}h Session
-                      </Badge>
-                      <Badge variant="secondary" className="text-sm px-3 py-1 bg-gray-200 text-gray-700">
-                        # {format(new Date(expandedCard.dateOfContact), "MMMM yyyy")}
-                      </Badge>
-                      <Badge variant="secondary" className="text-sm px-3 py-1 bg-gray-200 text-gray-700">
-                        # Professional Development
-                      </Badge>
-                      <Badge variant="secondary" className="text-sm px-3 py-1 bg-gray-200 text-gray-700">
-                        # Therapy Session
-                      </Badge>
-                      <Badge variant="secondary" className="text-sm px-3 py-1 bg-gray-200 text-gray-700">
-                        # Counseling
-                      </Badge>
-                    </div>
-                  </div>
-
-                  {/* Original Session Note */}
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500 uppercase tracking-wide font-medium">ORIGINAL SESSION NOTE</span>
-                      {!isInlineEditing && (
+                        placeholder="Enter your notes..."
+                      />
+                      <div className="flex justify-end gap-3">
                         <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditNotes(expandedCard)}
-                          className="text-gray-500 hover:text-gray-700"
+                          variant="outline"
+                          onClick={handleCancelEdit}
                         >
-                          <Edit3 className="h-4 w-4 mr-1" />
-                          Edit
+                          Cancel
                         </Button>
-                      )}
+                        <Button onClick={handleSaveEdit}>
+                          Save
+                        </Button>
+                      </div>
                     </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                      {isInlineEditing && editingCard?.id === expandedCard.id ? (
-                        <div className="space-y-3">
-                          <Textarea
-                            value={editedNotes}
-                            onChange={(e) => setEditedNotes(e.target.value)}
-                            className="min-h-[200px] border-none resize-none focus:ring-0 p-0 text-base"
-                            style={{ 
-                              fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", serif',
-                              lineHeight: '1.75',
-                              fontWeight: '400',
-                              letterSpacing: '0.015em'
-                            }}
-                            placeholder="Enter your session notes..."
-                          />
-                          <div className="flex justify-end gap-2 pt-3 border-t border-gray-200">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={handleCancelEdit}
-                            >
-                              Cancel
-                            </Button>
-                            <Button
-                              size="sm"
-                              onClick={handleSaveEdit}
-                            >
-                              Save
-                            </Button>
-                          </div>
+                  ) : (
+                    <div 
+                      className="text-gray-700 dark:text-gray-300 leading-relaxed text-lg cursor-text"
+                      style={{ 
+                        fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", serif',
+                        lineHeight: '1.75',
+                        fontWeight: '400',
+                        letterSpacing: '0.015em'
+                      }}
+                      onClick={() => handleEditNotes(expandedCard)}
+                    >
+                      {cleanText(expandedCard.notes) || "No notes available for this session."}
+                    </div>
+                  )}
+                </div>
+
+                {/* Professional Development Insights */}
+                {expandedCard.analysis && expandedCard.analysis.type === "ai-conversation" && (
+                  <div className="space-y-12">
+                    {/* Consultation Topics */}
+                    {expandedCard.analysis.consultationTopics && expandedCard.analysis.consultationTopics.length > 0 && (
+                      <div className="space-y-6">
+                        <h2 
+                          className="text-2xl font-light text-gray-900 dark:text-gray-100"
+                          style={{ 
+                            fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", serif'
+                          }}
+                        >
+                          Consultation Topics
+                        </h2>
+                        <div className="flex flex-wrap gap-3">
+                          {expandedCard.analysis.consultationTopics.map((topic: string, index: number) => (
+                            <Badge key={index} variant="secondary" className="text-sm px-4 py-2 bg-purple-50 text-purple-700 border-0 rounded-full">
+                              {topic}
+                            </Badge>
+                          ))}
                         </div>
-                      ) : (
+                      </div>
+                    )}
+
+                    {/* Learning Themes */}
+                    {expandedCard.analysis.learningThemes && expandedCard.analysis.learningThemes.length > 0 && (
+                      <div className="space-y-6">
+                        <h2 
+                          className="text-2xl font-light text-gray-900 dark:text-gray-100"
+                          style={{ 
+                            fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", serif'
+                          }}
+                        >
+                          Learning Themes
+                        </h2>
                         <div 
-                          className="text-gray-700 dark:text-gray-300 leading-relaxed cursor-text"
+                          className="space-y-4 text-gray-700 dark:text-gray-300 text-lg"
                           style={{ 
                             fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", serif',
-                            lineHeight: '1.75',
+                            lineHeight: '1.6',
                             fontWeight: '400',
                             letterSpacing: '0.015em'
                           }}
-                          onClick={() => handleEditNotes(expandedCard)}
                         >
-                          {cleanText(expandedCard.notes) || "No notes available for this session."}
+                          {expandedCard.analysis.learningThemes.map((theme: string, index: number) => (
+                            <div key={index}>• {cleanText(theme)}</div>
+                          ))}
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
+                )}
 
-                  {/* Additional space for content */}
-                  <div className="h-32"></div>
-                </div>
-              </div>
-
-              {/* Bottom Action Bar */}
-              <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4">
-                <div className="flex items-center justify-center gap-8">
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => setDeleteDialogItem(expandedCard)}
-                    className="p-3 hover:bg-gray-100 dark:hover:bg-gray-700"
-                  >
-                    <Trash2 className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => {
-                      toast({
-                        title: "Share",
-                        description: "Share functionality coming soon!",
-                      });
+                {/* Mind Tags at Bottom - Smaller */}
+                <div className="space-y-4 pt-8">
+                  <h3 
+                    className="text-lg font-light text-gray-500 dark:text-gray-400"
+                    style={{ 
+                      fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", serif'
                     }}
-                    className="p-3 hover:bg-gray-100 dark:hover:bg-gray-700"
                   >
-                    <Share2 className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    className="p-3 hover:bg-gray-100 dark:hover:bg-gray-700"
-                  >
-                    <MoreHorizontal className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-                  </Button>
+                    Mind Tags
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="secondary" className="text-xs px-3 py-1 bg-gray-100 text-gray-600 rounded-full">
+                      #{expandedCard.clientContactHours}h Session
+                    </Badge>
+                    <Badge variant="secondary" className="text-xs px-3 py-1 bg-gray-100 text-gray-600 rounded-full">
+                      #{format(new Date(expandedCard.dateOfContact), "MMM yyyy")}
+                    </Badge>
+                    <Badge variant="secondary" className="text-xs px-3 py-1 bg-gray-100 text-gray-600 rounded-full">
+                      #Counseling
+                    </Badge>
+                  </div>
                 </div>
+
               </div>
             </div>
           </DialogContent>
