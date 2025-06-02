@@ -222,6 +222,26 @@ export function GalleryView({ userId }: GalleryViewProps) {
                   {/* Comprehensive AI Analysis */}
                   {expandedCard.analysis && (
                     <div className="space-y-6">
+                      {/* AI Analysis Header */}
+                      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                        <h3 className="text-lg font-semibold text-black dark:text-white mb-3">AI Analysis</h3>
+                        <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                          Generated insights from your session notes
+                        </div>
+                        
+                        {/* Show raw analysis if specific sections aren't available */}
+                        {(!expandedCard.analysis.therapeuticModalities?.length && 
+                          !expandedCard.analysis.clientPresentation?.length && 
+                          !expandedCard.analysis.competencyAreas?.length &&
+                          !expandedCard.analysis.themes?.length &&
+                          !expandedCard.analysis.keyLearnings?.length) && (
+                          <div className="bg-gray-50 dark:bg-gray-700 rounded p-4">
+                            <pre className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                              {JSON.stringify(expandedCard.analysis, null, 2)}
+                            </pre>
+                          </div>
+                        )}
+                      </div>
                       {/* Therapeutic Insights */}
                       {expandedCard.analysis.therapeuticModalities && Array.isArray(expandedCard.analysis.therapeuticModalities) && expandedCard.analysis.therapeuticModalities.length > 0 && (
                         <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
