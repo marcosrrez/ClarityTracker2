@@ -250,9 +250,9 @@ export function GalleryView({ userId }: GalleryViewProps) {
               View and manage session details with AI analysis and tags
             </DialogDescription>
             
-            {/* Spacious Content Area with Rounded Card Feel */}
-            <div className="flex-1 overflow-y-auto p-8 pt-12">
-              <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-3xl shadow-sm p-12 space-y-16">
+            {/* Full Screen Content Area */}
+            <div className="flex-1 overflow-y-auto">
+              <div className="w-full bg-white dark:bg-gray-800 min-h-full pt-12 px-8 pb-8 space-y-16">
                 
                 {/* Header with Dropdown - No Divider */}
                 <div className="flex items-center justify-between">
@@ -335,11 +335,11 @@ export function GalleryView({ userId }: GalleryViewProps) {
                   )}
 
                   {isInlineEditing && editingCard?.id === expandedCard.id ? (
-                    <div className="space-y-4">
+                    <div className="space-y-4 w-full">
                       <Textarea
                         value={editedNotes}
                         onChange={(e) => setEditedNotes(e.target.value)}
-                        className="min-h-[300px] border-none resize-none focus:ring-0 p-0 text-lg"
+                        className="min-h-[300px] border-none resize-none focus:ring-0 p-0 text-lg w-full bg-transparent"
                         style={{ 
                           fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", serif',
                           lineHeight: '1.75',
@@ -362,7 +362,7 @@ export function GalleryView({ userId }: GalleryViewProps) {
                     </div>
                   ) : (
                     <div 
-                      className="text-gray-700 dark:text-gray-300 leading-relaxed text-lg cursor-text"
+                      className="text-gray-700 dark:text-gray-300 leading-relaxed text-lg cursor-text w-full"
                       style={{ 
                         fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", serif',
                         lineHeight: '1.75',
