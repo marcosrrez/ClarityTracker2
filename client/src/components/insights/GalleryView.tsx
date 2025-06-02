@@ -7,7 +7,7 @@ import { Calendar, Sparkles, AlertTriangle, ChevronDown, Trash2, Share2, MoreHor
 import { MyMindLayout } from "./MyMindLayout";
 import { format } from "date-fns";
 import { useLogEntries, useInsightCards } from "@/hooks/use-firestore";
-import { getAiAnalysis, deleteAiAnalysis } from "@/lib/firestore";
+import { getAiAnalysis, deleteAiAnalysis, updateLogEntry, deleteInsightCard, updateInsightCard } from "@/lib/firestore";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -30,6 +30,8 @@ export function GalleryView({ userId }: GalleryViewProps) {
   const { cards: insightCards, loading: cardsLoading, refetch: refetchCards } = useInsightCards();
   const [expandedCard, setExpandedCard] = useState<GalleryItem | null>(null);
   const [deleteDialogItem, setDeleteDialogItem] = useState<GalleryItem | null>(null);
+  const [editingCard, setEditingCard] = useState<GalleryItem | null>(null);
+  const [editedNotes, setEditedNotes] = useState<string>("");
   const { toast } = useToast();
 
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
@@ -117,6 +119,74 @@ export function GalleryView({ userId }: GalleryViewProps) {
         variant: "destructive",
       });
     }
+  }
+
+  const handleDeleteInsightCard = async (cardId: string) => {
+    try {
+      await deleteInsightCard(user?.uid || '', cardId);
+      await refetchCards();
+      toast({
+        title: "Card deleted",
+        description: "The insight card has been permanently removed. Your hour tracking data remains intact.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete insight card.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditNotes = (item: GalleryItem) => {
+    setEditingCard(item);
+    setEditedNotes(item.notes);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingCard) return;
+
+    try {
+      // Check if this is an insight card or log entry
+      const isInsightCard = insightCards?.some(card => card.id === editingCard.id);
+      
+      if (isInsightCard) {
+        // Update insight card content
+        await updateInsightCard(user?.uid || '', editingCard.id, {
+          content: editedNotes
+        });
+        await refetchCards();
+      } else {
+        // Update log entry notes - this preserves all hour tracking data
+        await updateLogEntry(user?.uid || '', editingCard.id, {
+          notes: editedNotes
+        });
+        await refetch();
+      }
+
+      // Update local state
+      setGalleryItems(prev => 
+        prev.map(item => 
+          item.id === editingCard.id 
+            ? { ...item, notes: editedNotes }
+            : item
+        )
+      );
+
+      setEditingCard(null);
+      setEditedNotes("");
+      
+      toast({
+        title: "Notes updated",
+        description: "Your changes have been saved. Hour tracking data is preserved.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save changes.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (isLoading || cardsLoading) {
@@ -176,14 +246,16 @@ export function GalleryView({ userId }: GalleryViewProps) {
                       <Archive className="h-4 w-4 mr-2" />
                       Auto-organize to Space
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => {
-                      toast({
-                        title: "Edit mode",
-                        description: "Edit functionality coming soon!",
-                      });
-                    }}>
+                    <DropdownMenuItem onClick={() => handleEditNotes(expandedCard)}>
                       <Edit3 className="h-4 w-4 mr-2" />
-                      Edit session
+                      Edit notes
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => setDeleteDialogItem(expandedCard)}
+                      className="text-red-600 focus:text-red-600"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete card
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => {
                       navigator.clipboard.writeText(`Session: ${format(new Date(expandedCard.dateOfContact), "MMMM d, yyyy")}\n\n${expandedCard.notes}`);
