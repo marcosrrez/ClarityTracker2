@@ -17,6 +17,12 @@ export interface AiAnalysisResult {
 
 export const analyzeSessionNotes = async (notes: string, userProfile?: any): Promise<AiAnalysisResult> => {
   try {
+    // Check minimum word count to ensure meaningful analysis
+    const wordCount = notes.trim().split(/\s+/).length;
+    if (wordCount < 10) {
+      throw new Error("Session notes must contain at least 10 words for meaningful AI analysis. Please add more detail to your notes.");
+    }
+    
     // Get user's therapeutic modalities and growth areas from localStorage for personalized analysis
     const therapeuticModalitiesText = localStorage.getItem('therapeuticModalities') || '';
     const growthAreasText = localStorage.getItem('growthAreas') || '';

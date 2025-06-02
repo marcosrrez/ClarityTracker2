@@ -42,6 +42,10 @@ export function GalleryView({ userId }: GalleryViewProps) {
       if (logEntries) {
         for (const entry of logEntries) {
           if (!entry.notes || entry.notes.trim().length === 0) continue;
+          
+          // Filter out entries with insufficient content for meaningful insights
+          const wordCount = entry.notes.trim().split(/\s+/).length;
+          if (wordCount < 10) continue;
 
           try {
             const analysis = await getAiAnalysis(user?.uid || "", entry.id);
@@ -203,9 +207,6 @@ export function GalleryView({ userId }: GalleryViewProps) {
                     <h1 className="text-3xl font-bold text-black dark:text-white mb-6 leading-tight">
                       Session: {format(new Date(expandedCard.dateOfContact), "MMMM d, yyyy")}
                     </h1>
-                    <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-lg">
-                      {expandedCard.notes || "No notes available for this session."}
-                    </p>
                   </div>
 
                   {/* TL;DR Box */}
@@ -215,6 +216,87 @@ export function GalleryView({ userId }: GalleryViewProps) {
                       <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                         {expandedCard.analysis.summary}
                       </p>
+                    </div>
+                  )}
+
+                  {/* Comprehensive AI Analysis */}
+                  {expandedCard.analysis && (
+                    <div className="space-y-6">
+                      {/* Therapeutic Insights */}
+                      {expandedCard.analysis.therapeuticModalities && Array.isArray(expandedCard.analysis.therapeuticModalities) && expandedCard.analysis.therapeuticModalities.length > 0 && (
+                        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                          <h3 className="text-lg font-semibold text-black dark:text-white mb-3">Therapeutic Modalities</h3>
+                          <div className="flex flex-wrap gap-2">
+                            {expandedCard.analysis.therapeuticModalities.map((mod: string, index: number) => (
+                              <Badge key={index} variant="secondary" className="bg-green-100 text-green-800">
+                                {mod}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Client Presentation */}
+                      {expandedCard.analysis.clientPresentation && Array.isArray(expandedCard.analysis.clientPresentation) && expandedCard.analysis.clientPresentation.length > 0 && (
+                        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                          <h3 className="text-lg font-semibold text-black dark:text-white mb-3">Client Presentation</h3>
+                          <ul className="space-y-2">
+                            {expandedCard.analysis.clientPresentation.map((item: string, index: number) => (
+                              <li key={index} className="text-gray-700 dark:text-gray-300">• {item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* Competency Areas */}
+                      {expandedCard.analysis.competencyAreas && Array.isArray(expandedCard.analysis.competencyAreas) && expandedCard.analysis.competencyAreas.length > 0 && (
+                        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                          <h3 className="text-lg font-semibold text-black dark:text-white mb-3">Competency Development</h3>
+                          <div className="flex flex-wrap gap-2">
+                            {expandedCard.analysis.competencyAreas.map((comp: string, index: number) => (
+                              <Badge key={index} variant="secondary" className="bg-blue-100 text-blue-800">
+                                {comp}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Key Learnings */}
+                      {expandedCard.analysis.keyLearnings && Array.isArray(expandedCard.analysis.keyLearnings) && expandedCard.analysis.keyLearnings.length > 0 && (
+                        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                          <h3 className="text-lg font-semibold text-black dark:text-white mb-3">Key Learnings</h3>
+                          <ul className="space-y-2">
+                            {expandedCard.analysis.keyLearnings.map((learning: string, index: number) => (
+                              <li key={index} className="text-gray-700 dark:text-gray-300">• {learning}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* Supervision Topics */}
+                      {expandedCard.analysis.supervisionTopics && Array.isArray(expandedCard.analysis.supervisionTopics) && expandedCard.analysis.supervisionTopics.length > 0 && (
+                        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                          <h3 className="text-lg font-semibold text-black dark:text-white mb-3">Supervision Topics</h3>
+                          <ul className="space-y-2">
+                            {expandedCard.analysis.supervisionTopics.map((topic: string, index: number) => (
+                              <li key={index} className="text-gray-700 dark:text-gray-300">• {topic}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* Reflective Prompts */}
+                      {expandedCard.analysis.reflectivePrompts && Array.isArray(expandedCard.analysis.reflectivePrompts) && expandedCard.analysis.reflectivePrompts.length > 0 && (
+                        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                          <h3 className="text-lg font-semibold text-black dark:text-white mb-3">Reflective Questions</h3>
+                          <ul className="space-y-2">
+                            {expandedCard.analysis.reflectivePrompts.map((prompt: string, index: number) => (
+                              <li key={index} className="text-gray-700 dark:text-gray-300 italic">• {prompt}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -291,17 +373,23 @@ export function GalleryView({ userId }: GalleryViewProps) {
                     </div>
                   </div>
 
-                  {/* Mind Notes Section */}
+                  {/* Original Session Note */}
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-500 uppercase tracking-wide font-medium">MIND NOTES</span>
+                      <span className="text-sm text-gray-500 uppercase tracking-wide font-medium">ORIGINAL SESSION NOTE</span>
                     </div>
                     <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                      <input 
-                        type="text"
-                        placeholder="Type here to add a note..."
-                        className="w-full bg-transparent border-none outline-none text-gray-700 dark:text-gray-300 placeholder-gray-400"
-                      />
+                      <div 
+                        className="text-gray-700 dark:text-gray-300 leading-relaxed"
+                        style={{ 
+                          fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", serif',
+                          lineHeight: '1.75',
+                          fontWeight: '400',
+                          letterSpacing: '0.015em'
+                        }}
+                      >
+                        {expandedCard.notes || "No notes available for this session."}
+                      </div>
                     </div>
                   </div>
 
