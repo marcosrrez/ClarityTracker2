@@ -229,16 +229,29 @@ export function GalleryView({ userId }: GalleryViewProps) {
                           Generated insights from your session notes
                         </div>
                         
-                        {/* Show raw analysis if specific sections aren't available */}
+                        {/* Check if this is metadata instead of actual analysis */}
+                        {(expandedCard.analysis.type === "insight-card" || expandedCard.analysis.cardType) && (
+                          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-yellow-600 dark:text-yellow-400 text-sm font-medium">Processing</span>
+                            </div>
+                            <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                              This card is being processed for AI analysis. The insights will appear once the analysis is complete.
+                            </p>
+                          </div>
+                        )}
+                        
+                        {/* Show message if no structured analysis is available */}
                         {(!expandedCard.analysis.therapeuticModalities?.length && 
                           !expandedCard.analysis.clientPresentation?.length && 
                           !expandedCard.analysis.competencyAreas?.length &&
                           !expandedCard.analysis.themes?.length &&
-                          !expandedCard.analysis.keyLearnings?.length) && (
-                          <div className="bg-gray-50 dark:bg-gray-700 rounded p-4">
-                            <pre className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                              {JSON.stringify(expandedCard.analysis, null, 2)}
-                            </pre>
+                          !expandedCard.analysis.keyLearnings?.length &&
+                          !expandedCard.analysis.type) && (
+                          <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                            <p className="text-gray-600 dark:text-gray-400 text-sm italic">
+                              No structured analysis available for this session yet.
+                            </p>
                           </div>
                         )}
                       </div>
