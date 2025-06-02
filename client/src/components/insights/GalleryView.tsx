@@ -141,6 +141,15 @@ export function GalleryView({ userId }: GalleryViewProps) {
   const handleDeleteInsightCard = async (cardId: string) => {
     try {
       await deleteInsightCard(user?.uid || '', cardId);
+      
+      // Remove from local state immediately
+      setGalleryItems(prev => prev.filter(item => item.id !== cardId));
+      
+      // Close expanded card if it was the deleted one
+      if (expandedCard?.id === cardId) {
+        setExpandedCard(null);
+      }
+      
       await refetchCards();
       toast({
         title: "Card deleted",
