@@ -14,6 +14,7 @@ import { SmartProgressTracker } from "./services/smart-progress-tracker";
 import { StateRequirementsEngine } from "./services/state-requirements-engine";
 import { ComplianceMonitoringService } from "./services/compliance-monitoring-service";
 import { ResourceRecommendationEngine } from "./services/resource-recommendation-engine";
+import { ConversationAnalysisService } from "./services/conversation-analysis-service";
 
 // Email reminder scheduling function
 async function scheduleSessionReminders(session: any, reminderDays: number) {
@@ -1204,6 +1205,29 @@ Please provide a helpful, professional response that's personalized to their sit
     } catch (error) {
       console.error('AI chat error:', error);
       res.status(500).json({ error: 'Failed to process AI request' });
+    }
+  });
+
+  // AI Conversation Analysis endpoint
+  app.post('/api/ai/analyze-conversation', express.json(), async (req, res) => {
+    try {
+      const { userId, conversationContent, title } = req.body;
+      
+      if (!conversationContent || !userId) {
+        return res.status(400).json({ error: 'Missing required fields' });
+      }
+      
+      // Analyze the conversation for professional development insights
+      const analysis = await ConversationAnalysisService.analyzeConversation(conversationContent);
+      
+      res.json({
+        success: true,
+        analysis,
+        type: 'ai-conversation'
+      });
+    } catch (error) {
+      console.error('Error analyzing conversation:', error);
+      res.status(500).json({ error: 'Failed to analyze conversation' });
     }
   });
 

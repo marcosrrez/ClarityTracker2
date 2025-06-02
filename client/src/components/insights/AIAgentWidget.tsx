@@ -86,18 +86,38 @@ export function AIAgentWidget({ open, onOpenChange, onResourceAdded }: AIAgentWi
         .map(msg => `**${msg.role === 'user' ? 'You' : 'Assistant'}:** ${msg.content}`)
         .join('\n\n');
 
+      // Get professional development analysis for the conversation
+      const analysisResponse = await fetch('/api/ai/analyze-conversation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user?.uid,
+          conversationContent: conversationText,
+          title: `AI Conversation - ${new Date().toLocaleDateString()}`
+        }),
+      });
+
+      let analysis = null;
+      if (analysisResponse.ok) {
+        const data = await analysisResponse.json();
+        analysis = data.analysis;
+      }
+
       const conversationCard: InsertInsightCard = {
         type: 'note',
         title: `AI Conversation - ${new Date().toLocaleDateString()}`,
         content: conversationText,
-        tags: ['conversation', 'ai-assistant', 'saved-chat'],
+        tags: ['conversation', 'ai-assistant', 'professional-consultation'],
+        analysis: analysis || undefined,
       };
 
       await createInsightCard(user?.uid || '', conversationCard);
       
       toast({
         title: "Conversation Saved",
-        description: "Your entire conversation has been saved to your insights.",
+        description: "Your professional consultation has been saved with development insights.",
       });
       
       if (onResourceAdded) {
