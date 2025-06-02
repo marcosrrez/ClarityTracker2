@@ -1330,13 +1330,16 @@ Please provide a helpful, professional response that's personalized to their sit
       const { userId } = req.params;
       
       const userProfile = await storage.getUserProfile(userId);
+      const logEntries = await storage.getEntriesByUserId(userId) || [];
+      const insightCards = await storage.getInsightCardsByUserId(userId) || [];
+      
       if (!userProfile) {
         return res.status(404).json({ error: 'User profile not found' });
       }
 
-      const progress = await SmartProgressTracker.calculateProgress(userId, userProfile);
-      const milestones = await SmartProgressTracker.checkMilestones(userId, userProfile);
-      const recommendations = await SmartProgressTracker.generateRecommendations(userId, userProfile);
+      const progress = await SmartProgressTracker.calculateProgress(userId, userProfile, logEntries, insightCards);
+      const milestones = await SmartProgressTracker.checkMilestones(userId, userProfile, logEntries, insightCards);
+      const recommendations = await SmartProgressTracker.generateRecommendations(userId, userProfile, logEntries, insightCards);
 
       res.json({ progress, milestones, recommendations });
     } catch (error) {

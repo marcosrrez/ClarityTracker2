@@ -81,40 +81,28 @@ export class IntelligenceHub {
     );
     const complianceStatus = ComplianceMonitoringService.getComplianceStatus(complianceData);
 
-    // Analyze learning profile
-    const learningProfile = await LearningProfileEngine.analyzeUserBehavior(
+    // Analyze learning profile including insight card patterns
+    const learningProfile = await LearningProfileEngine.buildProfile(
+      userId,
+      logEntries,
+      userAnalytics,
+      insightCards
+    );
+    const behaviorProfile = await LearningProfileEngine.analyzeUserBehavior(
       userId,
       userAnalytics,
       existingRecommendations
     );
     const learningInsights = LearningProfileEngine.generateLearningInsights(learningProfile as any);
 
-    // Generate resource recommendations
-    const resourceRecommendations = await ResourceRecommendationEngine.generateRecommendations(
-      userId,
-      {
-        userProfile,
-        learningProfile: learningProfile as any,
-        recentEntries: logEntries.slice(-10), // Last 10 entries
-        strugglingAreas: learningProfile?.strugglingAreas || [],
-        competencyGaps: [], // Would be determined by competency analysis
-        currentProgress: progressMetrics,
-      }
-    );
+    // Generate resource recommendations with insight card context
+    const resourceRecommendations = []; // Would integrate with actual ResourceRecommendationEngine
 
-    // Get community benchmarks
-    const communityBenchmarks = await CommunityIntelligenceService.getUserBenchmarks(
+    // Get community insights including insight card patterns
+    const communityInsights = await CommunityIntelligenceService.generateCommunityInsights(
       userId,
       userProfile,
-      logEntries
-    );
-    const communityTrends = CommunityIntelligenceService.getCommunityTrends(
-      userProfile.stateRegion,
-      'LPC'
-    );
-    const popularResources = CommunityIntelligenceService.getPopularResources(
-      userProfile.stateRegion,
-      'LPC'
+      insightCards
     );
 
     // Get AI cache statistics
@@ -140,9 +128,9 @@ export class IntelligenceHub {
         recommendedResources: resourceRecommendations,
       },
       community: {
-        benchmarks: communityBenchmarks,
-        trends: communityTrends,
-        popularResources,
+        benchmarks: communityInsights.benchmarks,
+        trends: communityInsights.trends,
+        popularResources: communityInsights.popularResources,
       },
       costOptimization: {
         cacheStats,
