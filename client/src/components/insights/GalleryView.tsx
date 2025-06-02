@@ -744,7 +744,6 @@ export function GalleryView({ userId }: GalleryViewProps) {
               <Button
                 variant="destructive"
                 onClick={async () => {
-                  // Check if this is an insight card
                   const isInsightCard = insightCards?.some(card => card.id === deleteDialogItem.id);
                   
                   if (isInsightCard) {
@@ -754,7 +753,7 @@ export function GalleryView({ userId }: GalleryViewProps) {
                   }
                   
                   setDeleteDialogItem(null);
-                  setExpandedCard(null); // Close the expanded view
+                  setExpandedCard(null);
                 }}
               >
                 Delete Card
