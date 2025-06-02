@@ -251,8 +251,8 @@ export function GalleryView({ userId }: GalleryViewProps) {
             </DialogDescription>
             
             {/* Full Screen Content Area */}
-            <div className="flex-1 overflow-y-auto">
-              <div className="w-full bg-white dark:bg-gray-800 min-h-full pt-12 px-8 pb-8 space-y-16">
+            <div className="flex-1 overflow-y-auto pt-4 px-4">
+              <div className="w-full bg-white dark:bg-gray-800 min-h-full rounded-t-3xl pt-8 px-6 pb-8 space-y-16">
                 
                 {/* Header with Dropdown - No Divider */}
                 <div className="flex items-center justify-between">
@@ -339,23 +339,28 @@ export function GalleryView({ userId }: GalleryViewProps) {
                       <Textarea
                         value={editedNotes}
                         onChange={(e) => setEditedNotes(e.target.value)}
-                        className="min-h-[300px] border-none resize-none focus:ring-0 p-0 text-lg w-full bg-transparent"
+                        className="min-h-[300px] border-none resize-none focus:ring-0 focus:outline-none p-0 text-lg w-full bg-transparent"
                         style={{ 
                           fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", serif',
                           lineHeight: '1.75',
                           fontWeight: '400',
-                          letterSpacing: '0.015em'
+                          letterSpacing: '0.015em',
+                          boxShadow: 'none'
                         }}
                         placeholder="Enter your notes..."
                       />
                       <div className="flex justify-end gap-3">
                         <Button
-                          variant="outline"
+                          variant="ghost"
                           onClick={handleCancelEdit}
+                          className="text-gray-600 hover:text-gray-800 hover:bg-transparent"
                         >
                           Cancel
                         </Button>
-                        <Button onClick={handleSaveEdit}>
+                        <Button 
+                          onClick={handleSaveEdit}
+                          className="bg-blue-500 hover:bg-blue-600 text-white border-none shadow-none"
+                        >
                           Save
                         </Button>
                       </div>
