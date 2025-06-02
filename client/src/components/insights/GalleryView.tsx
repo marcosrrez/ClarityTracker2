@@ -319,137 +319,150 @@ export function GalleryView({ userId }: GalleryViewProps) {
                     </h1>
                   </div>
 
-                  {/* TL;DR Box */}
+                  {/* Key Insights Summary */}
                   {expandedCard.analysis && expandedCard.analysis.summary && (
-                    <div className="border border-blue-300 rounded-lg p-6 bg-blue-50 dark:bg-blue-900/20">
-                      <div className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-3 uppercase tracking-wide">TL;DR</div>
-                      <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                        {expandedCard.analysis.summary}
-                      </p>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-500 uppercase tracking-wide font-medium">KEY INSIGHTS</span>
+                      </div>
+                      <div 
+                        className="text-gray-700 dark:text-gray-300 leading-relaxed"
+                        style={{ 
+                          fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", serif',
+                          lineHeight: '1.75',
+                          fontWeight: '400',
+                          letterSpacing: '0.015em',
+                          fontSize: '1.1rem'
+                        }}
+                      >
+                        {cleanText(expandedCard.analysis.summary)}
+                      </div>
                     </div>
                   )}
 
-                  {/* Comprehensive AI Analysis */}
-                  {expandedCard.analysis && (
-                    <div className="space-y-6">
-                      {/* AI Analysis Header */}
-                      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                        <h3 className="text-lg font-semibold text-black dark:text-white mb-3">AI Analysis</h3>
-                        <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                          Generated insights from your session notes
-                        </div>
-                        
-                        {/* Check if this is metadata instead of actual analysis */}
-                        {(expandedCard.analysis.type === "insight-card" || expandedCard.analysis.cardType) && (
-                          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="text-yellow-600 dark:text-yellow-400 text-sm font-medium">Processing</span>
-                            </div>
-                            <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                              This card is being processed for AI analysis. The insights will appear once the analysis is complete.
-                            </p>
-                          </div>
-                        )}
-
-                        {/* AI Conversation Analysis */}
-                        {expandedCard.analysis.type === "ai-conversation" && (
-                          <div className="space-y-4">
-                            <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="text-purple-600 dark:text-purple-400 text-sm font-medium">Professional Consultation</span>
-                              </div>
-                              <p className="text-sm text-purple-700 dark:text-purple-300">
-                                This conversation has been analyzed for professional development insights and learning opportunities.
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                        
-                        {/* Show message if no structured analysis is available */}
-                        {(!expandedCard.analysis.therapeuticModalities?.length && 
-                          !expandedCard.analysis.clientPresentation?.length && 
-                          !expandedCard.analysis.competencyAreas?.length &&
-                          !expandedCard.analysis.themes?.length &&
-                          !expandedCard.analysis.keyLearnings?.length &&
-                          !expandedCard.analysis.type) && (
-                          <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                            <p className="text-gray-600 dark:text-gray-400 text-sm italic">
-                              No structured analysis available for this session yet.
-                            </p>
-                          </div>
-                        )}
+                  {/* Professional Development Insights */}
+                  {expandedCard.analysis && expandedCard.analysis.type === "ai-conversation" && (
+                    <div className="space-y-16">
+                      {/* Section Header */}
+                      <div className="space-y-2">
+                        <span className="text-sm text-purple-600 dark:text-purple-400 uppercase tracking-wide font-medium">PROFESSIONAL CONSULTATION</span>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Key insights from your conversation for professional development
+                        </p>
                       </div>
-                      {/* Conversation Analysis - Professional Development Insights */}
-                      {expandedCard.analysis.type === "ai-conversation" && (
-                        <div className="space-y-6">
-                          {/* Consultation Topics */}
-                          {expandedCard.analysis.consultationTopics && expandedCard.analysis.consultationTopics.length > 0 && (
-                            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                              <h3 className="text-lg font-semibold text-black dark:text-white mb-3">Consultation Topics</h3>
-                              <div className="flex flex-wrap gap-2">
-                                {expandedCard.analysis.consultationTopics.map((topic: string, index: number) => (
-                                  <Badge key={index} variant="secondary" className="bg-purple-100 text-purple-800">
-                                    {topic}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </div>
-                          )}
 
-                          {/* Learning Themes */}
-                          {expandedCard.analysis.learningThemes && expandedCard.analysis.learningThemes.length > 0 && (
-                            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                              <h3 className="text-lg font-semibold text-black dark:text-white mb-3">Learning Themes</h3>
-                              <ul className="space-y-2">
-                                {expandedCard.analysis.learningThemes.map((theme: string, index: number) => (
-                                  <li key={index} className="text-gray-700 dark:text-gray-300">• {theme}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-
-                          {/* Knowledge Areas */}
-                          {expandedCard.analysis.knowledgeAreas && expandedCard.analysis.knowledgeAreas.length > 0 && (
-                            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                              <h3 className="text-lg font-semibold text-black dark:text-white mb-3">Knowledge Areas</h3>
-                              <div className="flex flex-wrap gap-2">
-                                {expandedCard.analysis.knowledgeAreas.map((area: string, index: number) => (
-                                  <Badge key={index} variant="secondary" className="bg-blue-100 text-blue-800">
-                                    {area}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Competency Focus */}
-                          {expandedCard.analysis.competencyFocus && expandedCard.analysis.competencyFocus.length > 0 && (
-                            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                              <h3 className="text-lg font-semibold text-black dark:text-white mb-3">Competency Development</h3>
-                              <ul className="space-y-2">
-                                {expandedCard.analysis.competencyFocus.map((comp: string, index: number) => (
-                                  <li key={index} className="text-gray-700 dark:text-gray-300">• {comp}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-
-                          {/* Growth Indicators */}
-                          {expandedCard.analysis.growthIndicators && expandedCard.analysis.growthIndicators.length > 0 && (
-                            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                              <h3 className="text-lg font-semibold text-black dark:text-white mb-3">Professional Growth Indicators</h3>
-                              <ul className="space-y-2">
-                                {expandedCard.analysis.growthIndicators.map((indicator: string, index: number) => (
-                                  <li key={index} className="text-gray-700 dark:text-gray-300">• {indicator}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
+                      {/* Consultation Topics */}
+                      {expandedCard.analysis.consultationTopics && expandedCard.analysis.consultationTopics.length > 0 && (
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-500 uppercase tracking-wide font-medium">CONSULTATION TOPICS</span>
+                          </div>
+                          <div className="flex flex-wrap gap-3">
+                            {expandedCard.analysis.consultationTopics.map((topic: string, index: number) => (
+                              <Badge key={index} variant="secondary" className="text-sm px-4 py-2 bg-purple-50 text-purple-700 border-0 rounded-full">
+                                {topic}
+                              </Badge>
+                            ))}
+                          </div>
                         </div>
                       )}
 
-                      {/* Therapeutic Insights - For Session Notes */}
-                      {expandedCard.analysis.type !== "ai-conversation" && expandedCard.analysis.therapeuticModalities && Array.isArray(expandedCard.analysis.therapeuticModalities) && expandedCard.analysis.therapeuticModalities.length > 0 && (
+                      {/* Learning Themes */}
+                      {expandedCard.analysis.learningThemes && expandedCard.analysis.learningThemes.length > 0 && (
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-500 uppercase tracking-wide font-medium">LEARNING THEMES</span>
+                          </div>
+                          <div 
+                            className="space-y-3 text-gray-700 dark:text-gray-300"
+                            style={{ 
+                              fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", serif',
+                              lineHeight: '1.6',
+                              fontWeight: '400',
+                              letterSpacing: '0.015em'
+                            }}
+                          >
+                            {expandedCard.analysis.learningThemes.map((theme: string, index: number) => (
+                              <div key={index}>• {cleanText(theme)}</div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Knowledge Areas */}
+                      {expandedCard.analysis.knowledgeAreas && expandedCard.analysis.knowledgeAreas.length > 0 && (
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-500 uppercase tracking-wide font-medium">KNOWLEDGE AREAS</span>
+                          </div>
+                          <div className="flex flex-wrap gap-3">
+                            {expandedCard.analysis.knowledgeAreas.map((area: string, index: number) => (
+                              <Badge key={index} variant="secondary" className="text-sm px-4 py-2 bg-blue-50 text-blue-700 border-0 rounded-full">
+                                {area}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Competency Focus */}
+                      {expandedCard.analysis.competencyFocus && expandedCard.analysis.competencyFocus.length > 0 && (
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-500 uppercase tracking-wide font-medium">COMPETENCY DEVELOPMENT</span>
+                          </div>
+                          <div 
+                            className="space-y-3 text-gray-700 dark:text-gray-300"
+                            style={{ 
+                              fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", serif',
+                              lineHeight: '1.6',
+                              fontWeight: '400',
+                              letterSpacing: '0.015em'
+                            }}
+                          >
+                            {expandedCard.analysis.competencyFocus.map((comp: string, index: number) => (
+                              <div key={index}>• {cleanText(comp)}</div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Growth Indicators */}
+                      {expandedCard.analysis.growthIndicators && expandedCard.analysis.growthIndicators.length > 0 && (
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-500 uppercase tracking-wide font-medium">PROFESSIONAL GROWTH</span>
+                          </div>
+                          <div 
+                            className="space-y-3 text-gray-700 dark:text-gray-300"
+                            style={{ 
+                              fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", serif',
+                              lineHeight: '1.6',
+                              fontWeight: '400',
+                              letterSpacing: '0.015em'
+                            }}
+                          >
+                            {expandedCard.analysis.growthIndicators.map((indicator: string, index: number) => (
+                              <div key={index}>• {cleanText(indicator)}</div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Therapeutic Insights - For Session Notes */}
+                  {expandedCard.analysis && expandedCard.analysis.type !== "ai-conversation" && (
+                    <div className="space-y-16">
+                      <div className="space-y-2">
+                        <span className="text-sm text-green-600 dark:text-green-400 uppercase tracking-wide font-medium">THERAPEUTIC INSIGHTS</span>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Professional analysis from your session notes
+                        </p>
+                      </div>
+
+                      {/* Therapeutic Modalities */}
+                      {expandedCard.analysis.therapeuticModalities && Array.isArray(expandedCard.analysis.therapeuticModalities) && expandedCard.analysis.therapeuticModalities.length > 0 && (
                         <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
                           <h3 className="text-lg font-semibold text-black dark:text-white mb-3">Therapeutic Modalities</h3>
                           <div className="flex flex-wrap gap-2">
@@ -705,8 +718,6 @@ export function GalleryView({ userId }: GalleryViewProps) {
           </DialogContent>
         </Dialog>
       )}
-
-
 
       {/* Delete confirmation dialog */}
       {deleteDialogItem && (
