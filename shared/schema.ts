@@ -110,6 +110,7 @@ export const insightCardSchema = z.object({
     confidence: z.number()
   }).optional(),
   searchTags: z.array(z.string()).optional(), // Generated search tags
+  analysis: z.any().optional(), // AI analysis results (session or conversation)
   createdAt: z.date().default(() => new Date()),
   updatedAt: z.date().default(() => new Date()),
 });

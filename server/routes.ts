@@ -1267,6 +1267,42 @@ Please provide a helpful, professional response that's personalized to their sit
     }
   });
 
+  // Conversation Patterns Analysis
+  app.get('/api/ai/conversation-patterns/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      // Get insight cards that are AI conversations
+      const insightCards = await storage.getInsightCardsByUserId(userId);
+      const conversations = insightCards.filter(card => 
+        card.analysis?.type === 'ai-conversation' && 
+        card.tags?.includes('conversation')
+      );
+      
+      if (conversations.length === 0) {
+        return res.json({
+          topConsultationAreas: [],
+          developingCompetencies: [],
+          identifiedGaps: [],
+          totalConsultations: 0,
+          recommendations: []
+        });
+      }
+      
+      // Analyze conversation patterns
+      const patterns = ConversationAnalysisService.analyzeConversationPatterns(conversations);
+      const recommendations = ConversationAnalysisService.generateConversationRecommendations(patterns);
+      
+      res.json({
+        ...patterns,
+        recommendations
+      });
+    } catch (error) {
+      console.error('Error analyzing conversation patterns:', error);
+      res.status(500).json({ error: 'Failed to analyze conversation patterns' });
+    }
+  });
+
   // Resource Suggestion Route
   app.post('/api/ai/suggest-resources', express.json(), async (req, res) => {
     try {
