@@ -79,9 +79,32 @@ export class SmartProgressTracker {
   /**
    * Generate milestone alerts and notifications
    */
-  static async checkMilestones(userId: string, userProfile: UserProfile): Promise<MilestoneAlert[]> {
-    const progress = await this.calculateProgress(userId, userProfile);
+  static async checkMilestones(
+    userId: string, 
+    userProfile: UserProfile, 
+    logEntries?: LogEntry[], 
+    insightCards?: any[]
+  ): Promise<MilestoneAlert[]> {
+    const progress = await this.calculateProgress(userId, userProfile, logEntries, insightCards);
     const alerts: MilestoneAlert[] = [];
+
+    // Analyze insight cards for additional milestone context
+    if (insightCards && insightCards.length > 0) {
+      // Check for competency growth patterns in insight cards
+      const competencyInsights = insightCards.filter(card => 
+        card.analysis?.competencyAreas?.length > 0 || 
+        card.analysis?.therapeuticModalities?.length > 0
+      );
+      
+      if (competencyInsights.length >= 5) {
+        alerts.push({
+          type: 'celebration',
+          title: 'Professional Growth Milestone',
+          message: `You've accumulated ${competencyInsights.length} valuable professional insights, showing strong reflective practice development.`,
+          percentage: Math.min(100, (competencyInsights.length / 10) * 100),
+        });
+      }
+    }
 
     // Check major milestones
     const milestones = [25, 50, 75, 90, 95];
@@ -268,9 +291,34 @@ export class SmartProgressTracker {
   /**
    * Generate personalized recommendations based on progress
    */
-  static async generateRecommendations(userId: string, userProfile: UserProfile): Promise<string[]> {
-    const progress = await this.calculateProgress(userId, userProfile);
+  static async generateRecommendations(
+    userId: string, 
+    userProfile: UserProfile, 
+    logEntries?: LogEntry[], 
+    insightCards?: any[]
+  ): Promise<string[]> {
+    const progress = await this.calculateProgress(userId, userProfile, logEntries, insightCards);
     const recommendations: string[] = [];
+
+    // Analyze insight cards for personalized recommendations
+    if (insightCards && insightCards.length > 0) {
+      const recentInsights = insightCards.slice(-5); // Last 5 insights
+      const strugglingAreas = recentInsights
+        .flatMap(card => card.analysis?.professionalGrowthAreas || [])
+        .filter((area, index, self) => self.indexOf(area) === index);
+      
+      if (strugglingAreas.length > 0) {
+        recommendations.push(`Focus on developing skills in: ${strugglingAreas.slice(0, 3).join(', ')}. Your recent reflections show growth opportunities in these areas.`);
+      }
+
+      const therapeuticModalities = recentInsights
+        .flatMap(card => card.analysis?.therapeuticModalities || [])
+        .filter((modality, index, self) => self.indexOf(modality) === index);
+      
+      if (therapeuticModalities.length >= 3) {
+        recommendations.push(`Continue expanding your therapeutic toolkit. You've been working with ${therapeuticModalities.join(', ')} - consider deepening expertise in your strongest modalities.`);
+      }
+    }
 
     // Pace recommendations
     if (progress.weeklyAverage < 10) {
