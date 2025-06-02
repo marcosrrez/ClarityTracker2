@@ -49,6 +49,27 @@
   h4 { @apply text-lg; }
 }
 
+/* Full screen dialog override */
+[data-radix-popper-content-wrapper] {
+  transform: none !important;
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+[data-state="open"][role="dialog"] {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  transform: none !important;
+}
+
 @layer components {
   /* Production-ready card styling with enhanced visual hierarchy */
   .clarity-card {
