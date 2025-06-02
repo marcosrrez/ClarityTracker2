@@ -3,6 +3,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { Calendar, Sparkles, AlertTriangle, ChevronDown, Trash2, Share2, MoreHorizontal, X, Archive, Edit3, Copy } from "lucide-react";
 import { MyMindLayout } from "./MyMindLayout";
 import { format } from "date-fns";
@@ -624,6 +625,40 @@ export function GalleryView({ userId }: GalleryViewProps) {
         </Dialog>
       )}
 
+      {/* Edit notes dialog */}
+      {editingCard && (
+        <Dialog open={!!editingCard} onOpenChange={() => setEditingCard(null)}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Edit3 className="h-5 w-5 text-blue-500" />
+                Edit Notes
+              </DialogTitle>
+              <DialogDescription>
+                Edit the notes for {format(new Date(editingCard.dateOfContact), "MMMM d, yyyy")}. 
+                Your hour tracking data will remain unchanged.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <Textarea
+                value={editedNotes}
+                onChange={(e) => setEditedNotes(e.target.value)}
+                placeholder="Enter your session notes..."
+                className="min-h-[200px]"
+              />
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <Button variant="outline" onClick={() => setEditingCard(null)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSaveEdit}>
+                Save Changes
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
       {/* Delete confirmation dialog */}
       {deleteDialogItem && (
         <Dialog open={!!deleteDialogItem} onOpenChange={() => setDeleteDialogItem(null)}>
@@ -631,11 +666,14 @@ export function GalleryView({ userId }: GalleryViewProps) {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-red-500" />
-                Delete AI Analysis
+                Delete Card
               </DialogTitle>
               <DialogDescription>
-                Are you sure you want to delete the AI analysis for the session from{" "}
+                Are you sure you want to delete this card from{" "}
                 {format(new Date(deleteDialogItem.dateOfContact), "MMMM d, yyyy")}?
+                <br />
+                <strong className="text-green-600">Your hour tracking data will remain completely intact.</strong>
+                <br />
                 This action cannot be undone.
               </DialogDescription>
             </DialogHeader>
@@ -646,11 +684,20 @@ export function GalleryView({ userId }: GalleryViewProps) {
               <Button
                 variant="destructive"
                 onClick={async () => {
-                  await handleDeleteAnalysis(deleteDialogItem.id);
+                  // Check if this is an insight card
+                  const isInsightCard = insightCards?.some(card => card.id === deleteDialogItem.id);
+                  
+                  if (isInsightCard) {
+                    await handleDeleteInsightCard(deleteDialogItem.id);
+                  } else {
+                    await handleDeleteAnalysis(deleteDialogItem.id);
+                  }
+                  
                   setDeleteDialogItem(null);
+                  setExpandedCard(null); // Close the expanded view
                 }}
               >
-                Delete Analysis
+                Delete Card
               </Button>
             </div>
           </DialogContent>
