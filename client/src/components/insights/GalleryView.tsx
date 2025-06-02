@@ -200,8 +200,8 @@ export function GalleryView({ userId }: GalleryViewProps) {
               </div>
 
               {/* Scrollable Content */}
-              <div className="flex-1 overflow-y-auto overscroll-y-contain">
-                <div className="max-w-none p-6 space-y-8 min-h-full">
+              <div className="flex-1 overflow-y-auto overscroll-y-contain" style={{ maxHeight: 'calc(100vh - 80px)' }}>
+                <div className="max-w-none p-6 space-y-8 pb-20">
                   {/* Main Title */}
                   <div>
                     <h1 className="text-3xl font-bold text-black dark:text-white mb-6 leading-tight">
