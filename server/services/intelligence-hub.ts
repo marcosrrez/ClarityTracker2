@@ -48,32 +48,36 @@ export class IntelligenceHub {
     userId: string,
     userProfile: UserProfile,
     logEntries: LogEntry[],
+    insightCards: any[] = [],
     userAnalytics: UserAnalytics[] = [],
     existingRecommendations: ResourceRecommendation[] = []
   ): Promise<IntelligenceReport> {
     
-    // Calculate smart progress metrics
-    const progressMetrics = await SmartProgressTracker.calculateProgress(userId, userProfile);
-    const milestoneAlerts = await SmartProgressTracker.checkMilestones(userId, userProfile);
-    const progressRecommendations = await SmartProgressTracker.generateRecommendations(userId, userProfile);
+    // Calculate smart progress metrics including insight card data
+    const progressMetrics = await SmartProgressTracker.calculateProgress(userId, userProfile, logEntries, insightCards);
+    const milestoneAlerts = await SmartProgressTracker.checkMilestones(userId, userProfile, logEntries, insightCards);
+    const progressRecommendations = await SmartProgressTracker.generateRecommendations(userId, userProfile, logEntries, insightCards);
 
-    // Generate predictive milestones
+    // Generate predictive milestones including insight card patterns
     const predictiveMilestones = await PredictiveMilestoneService.calculateMilestones(
       userId, 
       userProfile, 
-      logEntries
+      logEntries,
+      insightCards
     );
 
-    // Monitor compliance
+    // Monitor compliance including insight card reflections and learning
     const complianceData = await ComplianceMonitoringService.monitorCompliance(
       userId, 
       userProfile, 
-      logEntries
+      logEntries,
+      insightCards
     );
     const complianceAlerts = await ComplianceMonitoringService.generateAlerts(
       userId, 
       userProfile, 
-      complianceData
+      complianceData,
+      insightCards
     );
     const complianceStatus = ComplianceMonitoringService.getComplianceStatus(complianceData);
 

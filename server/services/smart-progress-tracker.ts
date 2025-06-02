@@ -32,12 +32,17 @@ export class SmartProgressTracker {
   /**
    * Calculate comprehensive progress metrics for a user
    */
-  static async calculateProgress(userId: string, userProfile: UserProfile): Promise<ProgressMetrics> {
+  static async calculateProgress(
+    userId: string, 
+    userProfile: UserProfile, 
+    logEntries?: LogEntry[], 
+    insightCards?: any[]
+  ): Promise<ProgressMetrics> {
     // Get state requirements
     const stateReqs = await this.getStateRequirements(userProfile.stateRegion, 'LPC');
     
-    // Get all log entries for the user
-    const entries = await this.getUserLogEntries(userId);
+    // Use provided log entries or fetch them
+    const entries = logEntries || await this.getUserLogEntries(userId);
     
     // Calculate current totals
     const totals = this.calculateCurrentTotals(entries);
