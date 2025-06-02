@@ -368,6 +368,237 @@ export const insertCompetencyAssessmentSchema = competencyAssessmentSchema.omit(
 export type CompetencyAssessment = z.infer<typeof competencyAssessmentSchema>;
 export type InsertCompetencyAssessment = z.infer<typeof insertCompetencyAssessmentSchema>;
 
+// State Requirements Schema - for licensure requirements by state
+export const stateRequirementsTable = pgTable('state_requirements', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  state: varchar('state', { length: 50 }).notNull(),
+  licenseType: varchar('license_type', { length: 50 }).notNull(), // LPC, LMFT, LCDC, etc.
+  totalCCH: integer('total_cch').notNull(),
+  directCCH: integer('direct_cch').notNull(),
+  supervisionHours: integer('supervision_hours').notNull(),
+  ethicsHours: integer('ethics_hours').notNull(),
+  groupSupervisionRatio: real('group_supervision_ratio').default(2), // group to individual ratio
+  maxGroupParticipants: integer('max_group_participants').default(6),
+  renewalCEHours: integer('renewal_ce_hours').default(40),
+  renewalPeriodMonths: integer('renewal_period_months').default(24),
+  specialRequirements: text('special_requirements'), // JSON array of special requirements
+  lastUpdated: timestamp('last_updated').defaultNow().notNull(),
+});
+
+export const stateRequirementsSchema = z.object({
+  id: z.string(),
+  state: z.string(),
+  licenseType: z.string(),
+  totalCCH: z.number(),
+  directCCH: z.number(),
+  supervisionHours: z.number(),
+  ethicsHours: z.number(),
+  groupSupervisionRatio: z.number().default(2),
+  maxGroupParticipants: z.number().default(6),
+  renewalCEHours: z.number().default(40),
+  renewalPeriodMonths: z.number().default(24),
+  specialRequirements: z.array(z.string()).default([]),
+  lastUpdated: z.date(),
+});
+
+export type StateRequirements = z.infer<typeof stateRequirementsSchema>;
+
+// User Learning Profile Schema - tracks how users learn and engage
+export const userLearningProfileTable = pgTable('user_learning_profiles', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  learningStyle: varchar('learning_style', { length: 50 }), // visual, auditory, kinesthetic, reading
+  preferredResourceTypes: text('preferred_resource_types'), // JSON array
+  engagementPatterns: text('engagement_patterns'), // JSON object with usage patterns
+  optimalNotificationTiming: text('optimal_notification_timing'), // JSON object
+  responseToCoachingStyles: text('response_to_coaching_styles'), // JSON object
+  completionRates: text('completion_rates'), // JSON object with completion rates by type
+  strugglingAreas: text('struggling_areas'), // JSON array
+  strengthAreas: text('strength_areas'), // JSON array
+  lastAnalyzed: timestamp('last_analyzed').defaultNow(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const userLearningProfileSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  learningStyle: z.enum(['visual', 'auditory', 'kinesthetic', 'reading']).optional(),
+  preferredResourceTypes: z.array(z.string()).default([]),
+  engagementPatterns: z.record(z.any()).default({}),
+  optimalNotificationTiming: z.record(z.any()).default({}),
+  responseToCoachingStyles: z.record(z.any()).default({}),
+  completionRates: z.record(z.number()).default({}),
+  strugglingAreas: z.array(z.string()).default([]),
+  strengthAreas: z.array(z.string()).default([]),
+  lastAnalyzed: z.date(),
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date()),
+});
+
+export type UserLearningProfile = z.infer<typeof userLearningProfileSchema>;
+
+// AI Analysis Cache Schema - stores and reuses AI results
+export const aiAnalysisCacheTable = pgTable('ai_analysis_cache', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  contentHash: varchar('content_hash', { length: 255 }).notNull(), // Hash of input content
+  analysisType: varchar('analysis_type', { length: 50 }).notNull(), // session_analysis, pattern_detection, etc.
+  inputData: text('input_data').notNull(), // Original input
+  result: text('result').notNull(), // JSON result from AI
+  usageCount: integer('usage_count').default(1),
+  lastUsed: timestamp('last_used').defaultNow(),
+  expiresAt: timestamp('expires_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const aiAnalysisCacheSchema = z.object({
+  id: z.string(),
+  contentHash: z.string(),
+  analysisType: z.string(),
+  inputData: z.string(),
+  result: z.string(),
+  usageCount: z.number().default(1),
+  lastUsed: z.date(),
+  expiresAt: z.date().optional(),
+  createdAt: z.date().default(() => new Date()),
+});
+
+export type AiAnalysisCache = z.infer<typeof aiAnalysisCacheSchema>;
+
+// Predictive Milestones Schema - tracks predicted completion dates and bottlenecks
+export const predictiveMilestonesTable = pgTable('predictive_milestones', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  milestoneType: varchar('milestone_type', { length: 50 }).notNull(), // cch_completion, supervision_completion, etc.
+  currentProgress: real('current_progress').notNull(), // percentage complete
+  projectedCompletionDate: timestamp('projected_completion_date'),
+  confidenceLevel: real('confidence_level').default(0.7), // 0-1 confidence in prediction
+  identifiedBottlenecks: text('identified_bottlenecks'), // JSON array of potential issues
+  suggestedActions: text('suggested_actions'), // JSON array of recommended steps
+  lastCalculated: timestamp('last_calculated').defaultNow(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const predictiveMilestonesSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  milestoneType: z.string(),
+  currentProgress: z.number().min(0).max(1),
+  projectedCompletionDate: z.date().optional(),
+  confidenceLevel: z.number().min(0).max(1).default(0.7),
+  identifiedBottlenecks: z.array(z.string()).default([]),
+  suggestedActions: z.array(z.string()).default([]),
+  lastCalculated: z.date(),
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date()),
+});
+
+export type PredictiveMilestones = z.infer<typeof predictiveMilestonesSchema>;
+
+// Compliance Monitoring Schema - tracks ongoing compliance requirements
+export const complianceMonitoringTable = pgTable('compliance_monitoring', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  requirementType: varchar('requirement_type', { length: 50 }).notNull(), // ce_credits, supervision_hours, etc.
+  currentStatus: varchar('current_status', { length: 20 }).notNull(), // compliant, warning, overdue
+  dueDate: timestamp('due_date'),
+  completedAmount: real('completed_amount').default(0),
+  requiredAmount: real('required_amount').notNull(),
+  lastAlertSent: timestamp('last_alert_sent'),
+  alertFrequency: varchar('alert_frequency', { length: 20 }).default('weekly'),
+  autoAlerts: varchar('auto_alerts', { length: 10 }).default('true'),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const complianceMonitoringSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  requirementType: z.string(),
+  currentStatus: z.enum(['compliant', 'warning', 'overdue']),
+  dueDate: z.date().optional(),
+  completedAmount: z.number().default(0),
+  requiredAmount: z.number(),
+  lastAlertSent: z.date().optional(),
+  alertFrequency: z.enum(['daily', 'weekly', 'monthly']).default('weekly'),
+  autoAlerts: z.boolean().default(true),
+  notes: z.string().optional(),
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date()),
+});
+
+export type ComplianceMonitoring = z.infer<typeof complianceMonitoringSchema>;
+
+// Community Intelligence Schema - aggregate insights without personal data
+export const communityIntelligenceTable = pgTable('community_intelligence', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  metric: varchar('metric', { length: 100 }).notNull(), // avg_completion_time, popular_resources, etc.
+  state: varchar('state', { length: 50 }), // optional state filter
+  licenseType: varchar('license_type', { length: 50 }), // optional license type filter
+  timeframe: varchar('timeframe', { length: 20 }).notNull(), // week, month, quarter, year
+  value: text('value').notNull(), // JSON value of the metric
+  sampleSize: integer('sample_size').notNull(),
+  lastUpdated: timestamp('last_updated').defaultNow(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const communityIntelligenceSchema = z.object({
+  id: z.string(),
+  metric: z.string(),
+  state: z.string().optional(),
+  licenseType: z.string().optional(),
+  timeframe: z.enum(['week', 'month', 'quarter', 'year']),
+  value: z.any(), // Flexible for different metric types
+  sampleSize: z.number(),
+  lastUpdated: z.date(),
+  createdAt: z.date().default(() => new Date()),
+});
+
+export type CommunityIntelligence = z.infer<typeof communityIntelligenceSchema>;
+
+// Resource Recommendation Schema - tracks and optimizes resource suggestions
+export const resourceRecommendationTable = pgTable('resource_recommendations', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  resourceType: varchar('resource_type', { length: 50 }).notNull(), // article, course, tool, etc.
+  resourceId: varchar('resource_id', { length: 255 }), // external resource identifier
+  title: text('title').notNull(),
+  description: text('description'),
+  url: text('url'),
+  relevanceScore: real('relevance_score').notNull(), // 0-1 relevance
+  recommendationReason: text('recommendation_reason'), // why this was recommended
+  recommendedAt: timestamp('recommended_at').defaultNow(),
+  viewedAt: timestamp('viewed_at'),
+  completedAt: timestamp('completed_at'),
+  userRating: integer('user_rating'), // 1-5 star rating
+  wasHelpful: varchar('was_helpful', { length: 10 }), // true, false, null
+  tags: text('tags'), // JSON array of tags
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const resourceRecommendationSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  resourceType: z.string(),
+  resourceId: z.string().optional(),
+  title: z.string(),
+  description: z.string().optional(),
+  url: z.string().optional(),
+  relevanceScore: z.number().min(0).max(1),
+  recommendationReason: z.string().optional(),
+  recommendedAt: z.date(),
+  viewedAt: z.date().optional(),
+  completedAt: z.date().optional(),
+  userRating: z.number().min(1).max(5).optional(),
+  wasHelpful: z.boolean().optional(),
+  tags: z.array(z.string()).default([]),
+  createdAt: z.date().default(() => new Date()),
+});
+
+export type ResourceRecommendation = z.infer<typeof resourceRecommendationSchema>;
+
 // Compliance Alert Schema - for automated supervision alerts
 export const complianceAlertTable = pgTable('compliance_alerts', {
   id: varchar('id', { length: 255 }).primaryKey(),
