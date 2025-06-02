@@ -1264,5 +1264,288 @@ Please provide a helpful, professional response that's personalized to their sit
     }
   });
 
+  // ===== INTELLIGENCE FOUNDATION API ENDPOINTS =====
+  
+  // Initialize Intelligence Hub
+  app.post('/api/intelligence/initialize', async (req, res) => {
+    try {
+      await IntelligenceHub.initialize();
+      res.json({ success: true, message: 'Intelligence systems initialized' });
+    } catch (error) {
+      console.error('Error initializing intelligence systems:', error);
+      res.status(500).json({ error: 'Failed to initialize intelligence systems' });
+    }
+  });
+
+  // Intelligence Dashboard - Main hub for all intelligence data
+  app.get('/api/intelligence/dashboard/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      // Get user data from existing storage
+      const userProfile = await storage.getUserProfile(userId);
+      const logEntries = await storage.getEntriesByUserId(userId) || [];
+      
+      if (!userProfile) {
+        return res.status(404).json({ error: 'User profile not found' });
+      }
+
+      const insights = await IntelligenceHub.getDashboardInsights(userId, userProfile, logEntries);
+      res.json(insights);
+    } catch (error) {
+      console.error('Error fetching intelligence dashboard:', error);
+      res.status(500).json({ error: 'Failed to fetch dashboard insights' });
+    }
+  });
+
+  // Comprehensive Intelligence Report
+  app.get('/api/intelligence/report/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      const userProfile = await storage.getUserProfile(userId);
+      const logEntries = await storage.getEntriesByUserId(userId) || [];
+      
+      if (!userProfile) {
+        return res.status(404).json({ error: 'User profile not found' });
+      }
+
+      const report = await IntelligenceHub.generateIntelligenceReport(
+        userId, 
+        userProfile, 
+        logEntries
+      );
+      res.json(report);
+    } catch (error) {
+      console.error('Error generating intelligence report:', error);
+      res.status(500).json({ error: 'Failed to generate intelligence report' });
+    }
+  });
+
+  // Smart Progress Tracking
+  app.get('/api/intelligence/progress/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      const userProfile = await storage.getUserProfile(userId);
+      if (!userProfile) {
+        return res.status(404).json({ error: 'User profile not found' });
+      }
+
+      const progress = await SmartProgressTracker.calculateProgress(userId, userProfile);
+      const milestones = await SmartProgressTracker.checkMilestones(userId, userProfile);
+      const recommendations = await SmartProgressTracker.generateRecommendations(userId, userProfile);
+
+      res.json({ progress, milestones, recommendations });
+    } catch (error) {
+      console.error('Error calculating progress:', error);
+      res.status(500).json({ error: 'Failed to calculate progress' });
+    }
+  });
+
+  // State Requirements and Validation
+  app.get('/api/intelligence/requirements/:state/:licenseType?', async (req, res) => {
+    try {
+      const { state, licenseType = 'LPC' } = req.params;
+      const guidance = IntelligenceHub.getStateGuidance(state, licenseType);
+      res.json(guidance);
+    } catch (error) {
+      console.error('Error fetching state requirements:', error);
+      res.status(500).json({ error: 'Failed to fetch state requirements' });
+    }
+  });
+
+  app.post('/api/intelligence/validate-progress', express.json(), async (req, res) => {
+    try {
+      const { state, licenseType, currentHours } = req.body;
+      const validation = IntelligenceHub.validateUserProgress(state, licenseType, currentHours);
+      res.json(validation);
+    } catch (error) {
+      console.error('Error validating progress:', error);
+      res.status(500).json({ error: 'Failed to validate progress' });
+    }
+  });
+
+  // Compliance Monitoring
+  app.get('/api/intelligence/compliance/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      const userProfile = await storage.getUserProfile(userId);
+      const logEntries = await storage.getEntriesByUserId(userId) || [];
+      
+      if (!userProfile) {
+        return res.status(404).json({ error: 'User profile not found' });
+      }
+
+      const complianceData = await ComplianceMonitoringService.monitorCompliance(
+        userId, 
+        userProfile, 
+        logEntries
+      );
+      const alerts = await ComplianceMonitoringService.generateAlerts(
+        userId, 
+        userProfile, 
+        complianceData
+      );
+      const status = ComplianceMonitoringService.getComplianceStatus(complianceData);
+
+      res.json({ complianceData, alerts, status });
+    } catch (error) {
+      console.error('Error monitoring compliance:', error);
+      res.status(500).json({ error: 'Failed to monitor compliance' });
+    }
+  });
+
+  // Resource Recommendations
+  app.post('/api/intelligence/recommendations', express.json(), async (req, res) => {
+    try {
+      const { userId, maxRecommendations = 5 } = req.body;
+      
+      const userProfile = await storage.getUserProfile(userId);
+      const logEntries = await storage.getEntriesByUserId(userId) || [];
+      
+      if (!userProfile) {
+        return res.status(404).json({ error: 'User profile not found' });
+      }
+
+      const recommendations = await ResourceRecommendationEngine.generateRecommendations(
+        userId,
+        {
+          userProfile,
+          recentEntries: logEntries.slice(-10),
+          strugglingAreas: [],
+          competencyGaps: [],
+          currentProgress: await SmartProgressTracker.calculateProgress(userId, userProfile),
+        },
+        maxRecommendations
+      );
+
+      res.json(recommendations);
+    } catch (error) {
+      console.error('Error generating recommendations:', error);
+      res.status(500).json({ error: 'Failed to generate recommendations' });
+    }
+  });
+
+  // Intelligence System Status
+  app.get('/api/intelligence/status', async (req, res) => {
+    try {
+      const status = IntelligenceHub.getSystemStatus();
+      res.json(status);
+    } catch (error) {
+      console.error('Error fetching system status:', error);
+      res.status(500).json({ error: 'Failed to fetch system status' });
+    }
+  });
+
+  // Optimized AI Analysis with Caching
+  app.post('/api/intelligence/ai-analysis', express.json(), async (req, res) => {
+    try {
+      const { content, analysisType } = req.body;
+      
+      if (!content || !analysisType) {
+        return res.status(400).json({ error: 'Content and analysisType are required' });
+      }
+
+      // Use the optimized AI analysis with caching
+      const result = await IntelligenceHub.optimizedAiAnalysis(
+        content,
+        analysisType,
+        async (content: string, type: string) => {
+          // This would call your existing AI analysis
+          // For now, return a basic analysis structure
+          return {
+            summary: 'AI analysis completed',
+            themes: ['professional development'],
+            insights: ['Continue current progress'],
+            timestamp: new Date(),
+          };
+        }
+      );
+
+      res.json(result);
+    } catch (error) {
+      console.error('Error in AI analysis:', error);
+      res.status(500).json({ error: 'Failed to complete AI analysis' });
+    }
+  });
+
+  // Batch AI Processing
+  app.post('/api/intelligence/batch-analysis', express.json(), async (req, res) => {
+    try {
+      const { requests } = req.body;
+      
+      if (!Array.isArray(requests)) {
+        return res.status(400).json({ error: 'Requests must be an array' });
+      }
+
+      const results = await IntelligenceHub.batchAiAnalysis(
+        requests,
+        async (content: string, type: string) => {
+          return {
+            summary: 'Batch analysis completed',
+            type,
+            timestamp: new Date(),
+          };
+        }
+      );
+
+      res.json({ results, processed: results.length });
+    } catch (error) {
+      console.error('Error in batch analysis:', error);
+      res.status(500).json({ error: 'Failed to complete batch analysis' });
+    }
+  });
+
+  // Weekly Intelligence Summary
+  app.get('/api/intelligence/weekly-summary/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      const userProfile = await storage.getUserProfile(userId);
+      if (!userProfile) {
+        return res.status(404).json({ error: 'User profile not found' });
+      }
+
+      // Get entries from the last week
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+      
+      const allEntries = await storage.getEntriesByUserId(userId) || [];
+      const weeklyEntries = allEntries.filter(entry => 
+        entry.dateOfContact >= oneWeekAgo
+      );
+
+      const summary = await IntelligenceHub.generateWeeklySummary(
+        userId,
+        userProfile,
+        weeklyEntries
+      );
+
+      res.json(summary);
+    } catch (error) {
+      console.error('Error generating weekly summary:', error);
+      res.status(500).json({ error: 'Failed to generate weekly summary' });
+    }
+  });
+
+  // State Comparison Tool
+  app.post('/api/intelligence/compare-states', express.json(), async (req, res) => {
+    try {
+      const { licenseType = 'LPC', states } = req.body;
+      
+      if (!Array.isArray(states) || states.length === 0) {
+        return res.status(400).json({ error: 'States array is required' });
+      }
+
+      const comparison = StateRequirementsEngine.compareStates(licenseType, states);
+      res.json(comparison);
+    } catch (error) {
+      console.error('Error comparing states:', error);
+      res.status(500).json({ error: 'Failed to compare states' });
+    }
+  });
+
   return httpServer;
 }
