@@ -564,20 +564,24 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                   }}
                 />
                 
-                <div className="text-gray-400 dark:text-gray-500 text-xl font-light mb-16" style={{ fontFamily: 'Inter, sans-serif' }}>
+                <div className="text-gray-400 dark:text-gray-500 text-xl font-light mb-16 pointer-events-none select-none" style={{ fontFamily: 'Inter, sans-serif' }}>
                   Start writing right here...
                 </div>
 
-                {/* Note Content - Completely Borderless */}
+                {/* Note Content - Premium Writing Experience */}
                 <textarea
                   value={noteContent}
                   onChange={(e) => setNoteContent(e.target.value)}
-                  placeholder="💡PRO TIP: You can do some magic while writing a note with our special keyboard and inline shortcuts. For example, try writing [ ] Todo to create a new todo. Or try **I am bold** to make a word bold. Click on the 'Shortcuts' button in the bottom left to see all."
-                  className="w-full min-h-[700px] bg-transparent border-none outline-none resize-none placeholder:text-gray-300 dark:placeholder:text-gray-600 text-gray-700 dark:text-gray-300 text-xl leading-loose"
+                  placeholder="💡PRO TIP: You can use markdown! Try **bold**, *italic*, # headings, - lists, and more. Write naturally and let your thoughts flow."
+                  className="w-full min-h-[700px] bg-transparent border-none outline-none resize-none placeholder:text-gray-300 dark:placeholder:text-gray-600 text-gray-800 dark:text-gray-200 text-xl leading-loose tracking-wide"
                   style={{ 
-                    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                    lineHeight: '1.8',
-                    fontWeight: '400'
+                    fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", "Droid Serif", Times, "Source Serif Pro", serif',
+                    lineHeight: '1.75',
+                    fontWeight: '400',
+                    letterSpacing: '0.015em',
+                    textRendering: 'optimizeLegibility',
+                    WebkitFontSmoothing: 'antialiased',
+                    MozOsxFontSmoothing: 'grayscale'
                   }}
                 />
               </div>

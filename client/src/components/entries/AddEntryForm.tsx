@@ -868,24 +868,29 @@ export const AddEntryForm = () => {
                   </div>
                 )}
 
-                {/* Rich Text Editor */}
+                {/* Premium Writing Experience - Rich Text Editor */}
                 <div className="relative">
                   <div className={cn(
-                    "p-8 border-0 bg-gray-50 dark:bg-gray-900 rounded-2xl focus-within:bg-white dark:focus-within:bg-gray-800 focus-within:shadow-lg transition-all duration-300",
-                    isNotesExpanded ? "min-h-[calc(100vh-320px)]" : "min-h-[300px]"
+                    "p-12 border-0 bg-white dark:bg-gray-900 transition-all duration-300",
+                    isNotesExpanded ? "min-h-[calc(100vh-320px)]" : "min-h-[400px]"
                   )}>
                     <EditorContent 
                       editor={editor} 
                       className={cn(
-                        "prose dark:prose-invert max-w-none focus:outline-none",
-                        isNotesExpanded ? "prose-lg" : "prose-sm"
+                        "prose dark:prose-invert max-w-none focus:outline-none premium-writing",
+                        isNotesExpanded ? "prose-xl" : "prose-lg",
+                        "[&_.ProseMirror]:min-h-[300px] [&_.ProseMirror]:outline-none [&_.ProseMirror]:border-none"
                       )}
                     />
                     {!editor?.getText() && (
-                      <div className="absolute top-8 left-8 text-gray-500 dark:text-gray-400 pointer-events-none leading-relaxed">
+                      <div className="absolute top-12 left-12 text-gray-400 dark:text-gray-500 pointer-events-none leading-relaxed select-none" style={{
+                        fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
+                        fontSize: isNotesExpanded ? '1.125rem' : '1rem',
+                        lineHeight: '1.75'
+                      }}>
                         Describe what happened in this session, your interventions, client progress, challenges you faced, insights gained, and your professional reflections.
                         {isNotesExpanded && (
-                          <div className="mt-4 text-sm">
+                          <div className="mt-6 text-base opacity-75">
                             Use this expanded space to capture detailed thoughts, therapeutic process notes, supervision insights, or learning reflections with full formatting support.
                           </div>
                         )}
