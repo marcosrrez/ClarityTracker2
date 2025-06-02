@@ -251,7 +251,7 @@ export function GalleryView({ userId }: GalleryViewProps) {
             </DialogDescription>
             
             {/* Full Screen Content Area */}
-            <div className="flex-1 overflow-y-auto pt-4 px-4">
+            <div className="flex-1 overflow-y-auto pt-4">
               <div className="w-full bg-white dark:bg-gray-800 min-h-full rounded-t-3xl pt-8 px-6 pb-8 space-y-16">
                 
                 {/* Header with Dropdown - No Divider */}
