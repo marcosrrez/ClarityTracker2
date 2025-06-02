@@ -228,14 +228,68 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
       
       const finalTitle = noteTitle || (noteContent.split('\n')[0] || "Untitled Note");
       
+      // Check if note meets minimum length for AI analysis
+      const wordCount = noteContent.trim().split(/\s+/).length;
+      let analysisData = null;
+      
+      if (wordCount >= 10) {
+        try {
+          // Import AI analysis function
+          const { analyzeSessionNotes } = await import("@/lib/ai");
+          analysisData = await analyzeSessionNotes(noteContent);
+        } catch (aiError) {
+          console.log("AI analysis skipped for note:", aiError);
+          // Continue saving note even if AI analysis fails
+        }
+      }
+      
       const newNote: InsertInsightCard = {
         type: "note",
         title: finalTitle,
         content: noteContent,
-        tags: ["reflection", "personal-note"],
+        tags: analysisData ? 
+          ["reflection", "personal-note", "ai-analyzed", ...analysisData.themes.slice(0, 3)] : 
+          ["reflection", "personal-note"],
       };
 
       await createInsightCard(user.uid, newNote);
+      
+      // If AI analysis was successful, also create a log entry for pattern tracking
+      if (analysisData && wordCount >= 10) {
+        try {
+          const { createLogEntry, createAiAnalysis } = await import("@/lib/firestore");
+          
+          const logEntry = {
+            dateOfContact: new Date(),
+            clientContactHours: 0,
+            indirectHours: false,
+            supervisionHours: 0,
+            supervisionType: "none" as const,
+            techAssistedSupervision: false,
+            professionalDevelopmentHours: 0,
+            professionalDevelopmentType: "none" as const,
+            notes: noteContent
+          };
+
+          const logEntryId = await createLogEntry(user.uid, logEntry);
+
+          const aiAnalysisEntry = {
+            logEntryId: logEntryId,
+            summary: analysisData.summary,
+            themes: analysisData.themes,
+            potentialBlindSpots: analysisData.potentialBlindSpots || [],
+            reflectivePrompts: analysisData.reflectivePrompts,
+            keyLearnings: analysisData.keyLearnings || [],
+            ccsrCategory: analysisData.ccsrCategory || "Personal Reflection",
+            originalNotesSnapshot: noteContent
+          };
+
+          await createAiAnalysis(user.uid, aiAnalysisEntry);
+        } catch (logError) {
+          console.log("Log entry creation skipped:", logError);
+          // Note is still saved as insight card
+        }
+      }
       
       // Refresh the gallery if function provided
       if (onRefresh) {
@@ -248,8 +302,10 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
       setShowNoteEditor(false);
       
       toast({
-        title: "Note saved",
-        description: "Your reflection has been added to your insights.",
+        title: analysisData ? "Note analyzed and saved" : "Note saved",
+        description: analysisData ? 
+          "Your reflection has been analyzed and added to your insights for growth tracking." :
+          "Your reflection has been added to your insights.",
       });
     } catch (error) {
       console.error("Error saving note:", error);
