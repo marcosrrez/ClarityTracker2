@@ -706,39 +706,7 @@ export function GalleryView({ userId }: GalleryViewProps) {
         </Dialog>
       )}
 
-      {/* Edit notes dialog */}
-      {editingCard && (
-        <Dialog open={!!editingCard} onOpenChange={() => setEditingCard(null)}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Edit3 className="h-5 w-5 text-blue-500" />
-                Edit Notes
-              </DialogTitle>
-              <DialogDescription>
-                Edit the notes for {format(new Date(editingCard.dateOfContact), "MMMM d, yyyy")}. 
-                Your hour tracking data will remain unchanged.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <Textarea
-                value={editedNotes}
-                onChange={(e) => setEditedNotes(e.target.value)}
-                placeholder="Enter your session notes..."
-                className="min-h-[200px]"
-              />
-            </div>
-            <div className="flex justify-end gap-2 mt-4">
-              <Button variant="outline" onClick={() => setEditingCard(null)}>
-                Cancel
-              </Button>
-              <Button onClick={handleSaveEdit}>
-                Save Changes
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+
 
       {/* Delete confirmation dialog */}
       {deleteDialogItem && (
