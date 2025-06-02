@@ -153,48 +153,73 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
     }
   };
 
-  // Enhanced MyMind-style search - search across all analysis fields
+  // Super smart search - incredibly easy and intuitive
   const filteredItems = galleryItems.filter(item => {
-    const query = searchQuery.toLowerCase();
+    const query = searchQuery.toLowerCase().trim();
     if (!query) return true;
     
-    // Search in notes content
-    if (item.notes.toLowerCase().includes(query)) return true;
+    // Search in notes content - exact and partial matches
+    const notesText = cleanText(item.notes).toLowerCase();
+    if (notesText.includes(query)) return true;
     
-    // Search in date
-    if (format(new Date(item.dateOfContact), "MMM d, yyyy").toLowerCase().includes(query)) return true;
+    // Enhanced date search - multiple formats
+    const itemDate = new Date(item.dateOfContact);
+    const dateFormats = [
+      format(itemDate, "MMMM").toLowerCase(), // "June"
+      format(itemDate, "MMM").toLowerCase(),  // "Jun"  
+      format(itemDate, "MMMM yyyy").toLowerCase(), // "June 2024"
+      format(itemDate, "MMM yyyy").toLowerCase(),  // "Jun 2024"
+      format(itemDate, "MMMM d").toLowerCase(),    // "June 15"
+      format(itemDate, "MMM d").toLowerCase(),     // "Jun 15"
+      format(itemDate, "MMMM d, yyyy").toLowerCase(), // "June 15, 2024"
+      format(itemDate, "MMM d, yyyy").toLowerCase(),  // "Jun 15, 2024"
+      format(itemDate, "yyyy").toLowerCase(),      // "2024"
+      format(itemDate, "M/d/yyyy").toLowerCase(),  // "6/15/2024"
+      format(itemDate, "M-d-yyyy").toLowerCase(),  // "6-15-2024"
+    ];
+    
+    if (dateFormats.some(dateStr => dateStr.includes(query))) return true;
+    
+    // Search by session duration
+    const hourStr = `${item.clientContactHours}h`;
+    const hoursStr = `${item.clientContactHours} hour`;
+    if (hourStr.includes(query) || hoursStr.includes(query)) return true;
+    
+    // Word-based search in all content
+    const queryWords = query.split(' ').filter(word => word.length > 2);
+    const allContent = [
+      notesText,
+      ...dateFormats,
+      hourStr,
+      hoursStr
+    ].join(' ');
+    
+    if (queryWords.length > 0 && queryWords.every(word => allContent.includes(word))) return true;
     
     // Search in AI analysis fields if available
     if (item.analysis) {
       const analysis = item.analysis;
+      const analysisContent = [];
       
-      // Search in themes
-      if (analysis.themes && Array.isArray(analysis.themes)) {
-        if (analysis.themes.some((theme: string) => theme.toLowerCase().includes(query))) return true;
-      }
+      // Collect all analysis text
+      if (analysis.summary) analysisContent.push(cleanText(analysis.summary).toLowerCase());
+      if (analysis.themes) analysisContent.push(...analysis.themes.map((t: string) => cleanText(t).toLowerCase()));
+      if (analysis.therapeuticModalities) analysisContent.push(...analysis.therapeuticModalities.map((t: string) => cleanText(t).toLowerCase()));
+      if (analysis.clientPresentation) analysisContent.push(...analysis.clientPresentation.map((t: string) => cleanText(t).toLowerCase()));
+      if (analysis.competencyAreas) analysisContent.push(...analysis.competencyAreas.map((t: string) => cleanText(t).toLowerCase()));
+      if (analysis.emotionalContent) analysisContent.push(...analysis.emotionalContent.map((t: string) => cleanText(t).toLowerCase()));
+      if (analysis.keyLearnings) analysisContent.push(...analysis.keyLearnings.map((t: string) => cleanText(t).toLowerCase()));
+      if (analysis.reflectivePrompts) analysisContent.push(...analysis.reflectivePrompts.map((t: string) => cleanText(t).toLowerCase()));
+      if (analysis.supervisionTopics) analysisContent.push(...analysis.supervisionTopics.map((t: string) => cleanText(t).toLowerCase()));
+      if (analysis.professionalGrowthAreas) analysisContent.push(...analysis.professionalGrowthAreas.map((t: string) => cleanText(t).toLowerCase()));
       
-      // Search in therapeutic modalities
-      if (analysis.therapeuticModalities && Array.isArray(analysis.therapeuticModalities)) {
-        if (analysis.therapeuticModalities.some((mod: string) => mod.toLowerCase().includes(query))) return true;
-      }
+      const analysisText = analysisContent.join(' ');
       
-      // Search in client presentation
-      if (analysis.clientPresentation && Array.isArray(analysis.clientPresentation)) {
-        if (analysis.clientPresentation.some((pres: string) => pres.toLowerCase().includes(query))) return true;
-      }
+      // Direct search in analysis content
+      if (analysisText.includes(query)) return true;
       
-      // Search in competency areas
-      if (analysis.competencyAreas && Array.isArray(analysis.competencyAreas)) {
-        if (analysis.competencyAreas.some((comp: string) => comp.toLowerCase().includes(query))) return true;
-      }
-      
-      // Search in emotional content
-      if (analysis.emotionalContent && Array.isArray(analysis.emotionalContent)) {
-        if (analysis.emotionalContent.some((emo: string) => emo.toLowerCase().includes(query))) return true;
-      }
-      
-      // Search in summary
-      if (analysis.summary && analysis.summary.toLowerCase().includes(query)) return true;
+      // Word-based search in analysis
+      if (queryWords.length > 0 && queryWords.every(word => analysisText.includes(word))) return true;
     }
     
     return false;

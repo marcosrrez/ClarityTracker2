@@ -116,23 +116,25 @@ export function GalleryView({ userId }: GalleryViewProps) {
     try {
       await deleteAiAnalysis(user?.uid || "", itemId);
       
-      setGalleryItems(prev => 
-        prev.map(item => 
-          item.id === itemId 
-            ? { ...item, analysis: undefined }
-            : item
-        )
-      );
+      // Remove the entire item from the gallery since this deletes the log entry
+      setGalleryItems(prev => prev.filter(item => item.id !== itemId));
 
+      // Close expanded card if it was the deleted one
+      if (expandedCard?.id === itemId) {
+        setExpandedCard(null);
+      }
+
+      await refetch(); // Refresh log entries
+      
       toast({
-        title: "Analysis Deleted",
-        description: "The AI analysis has been successfully deleted.",
+        title: "Session Deleted",
+        description: "The session and its analysis have been successfully deleted.",
       });
     } catch (error) {
-      console.error("Error deleting analysis:", error);
+      console.error("Error deleting session:", error);
       toast({
         title: "Error",
-        description: "Failed to delete the analysis. Please try again.",
+        description: "Failed to delete the session. Please try again.",
         variant: "destructive",
       });
     }
