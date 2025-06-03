@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -10,9 +10,14 @@ import { LoadingQuoteCompact } from "@/components/ui/loading-quote";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { createInsightCard } from "@/lib/firestore";
-import { useAuth } from "@/hooks/use-auth";
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Underline from '@tiptap/extension-underline';
+import BulletList from '@tiptap/extension-bullet-list';
+import ListItem from '@tiptap/extension-list-item';
+import OrderedList from '@tiptap/extension-ordered-list';
+import Placeholder from '@tiptap/extension-placeholder';
 import { ResourceWidget } from "./ResourceWidget";
-import { CustomRichEditor } from "@/components/ui/custom-rich-editor";
 import type { InsertInsightCard } from "@shared/schema";
 
 interface GalleryItem {
@@ -29,571 +34,108 @@ interface MyMindLayoutProps {
   onRefresh?: () => void;
 }
 
-// Clean markdown and formatting for better readability
-const cleanText = (text: string): string => {
-  if (!text) return "";
-  
-  return text
-    // Remove markdown bold formatting
-    .replace(/\*\*(.*?)\*\*/g, '$1')
-    // Remove markdown italic formatting
-    .replace(/\*(.*?)\*/g, '$1')
-    // Clean up conversation markers
-    .replace(/\*\*You:\*\*/g, 'You:')
-    .replace(/\*\*Assistant:\*\*/g, 'Assistant:')
-    // Remove extra asterisks
-    .replace(/\*/g, '')
-    // Clean up multiple spaces
-    .replace(/\s+/g, ' ')
-    // Trim whitespace
-    .trim();
-};
-
 export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLayoutProps) {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchValue, setSearchValue] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
+  const [filterTag, setFilterTag] = useState<string | null>(null);
   const [showNoteEditor, setShowNoteEditor] = useState(false);
   const [noteContent, setNoteContent] = useState("");
   const [noteTitle, setNoteTitle] = useState("");
-  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [selectedSmartSpace, setSelectedSmartSpace] = useState<string>("all");
-  const [showSmartSpaces, setShowSmartSpaces] = useState(false);
-  const [showResourceWidget, setShowResourceWidget] = useState(false);
-  const [showAIAgent, setShowAIAgent] = useState(false);
-  const [showThreads, setShowThreads] = useState(false);
-  const [currentThreadId, setCurrentThreadId] = useState('default');
-  const [threads, setThreads] = useState<{[key: string]: any[]}>({
-    'default': [
-      {
-        id: '1',
-        content: "Hey there, great to meet you. I'm Dinger, your personal AI.",
-        isUser: false,
-        timestamp: new Date()
-      },
-      {
-        id: '2', 
-        content: "My goal is to be useful, friendly and fun. Ask me for advice, for answers, or let's talk about whatever's on your mind.",
-        isUser: false,
-        timestamp: new Date()
-      },
-      {
-        id: '3',
-        content: "How's your day going?",
-        isUser: false,
-        timestamp: new Date()
-      }
-    ]
-  });
-  const [threadTitles, setThreadTitles] = useState<{[key: string]: string}>({
-    'default': 'Conversation with Dinger'
-  });
-  const [aiInputValue, setAiInputValue] = useState('');
-  const [isAiLoading, setIsAiLoading] = useState(false);
-  const aiMessagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Get current thread messages
-  const aiMessages = threads[currentThreadId] || [];
-
-  // Handle AI Coach message sending
-  const handleSendAiMessage = async () => {
-    if (!aiInputValue.trim() || isAiLoading) return;
-
-    const userMessage = {
-      id: Date.now().toString(),
-      content: aiInputValue.trim(),
-      isUser: true,
-      timestamp: new Date()
-    };
-
-    setThreads(prev => ({
-      ...prev,
-      [currentThreadId]: [...(prev[currentThreadId] || []), userMessage]
-    }));
-    setAiInputValue('');
-    setIsAiLoading(true);
-
-    try {
-      const response = await fetch('/api/ai/coaching-chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: userMessage.content,
-          userId: user?.uid,
-          conversationHistory: aiMessages.slice(-10)
-        }),
-      });
-
-      if (!response.ok) throw new Error('Failed to get response');
-
-      const data = await response.json();
-      
-      const aiMessage = {
-        id: (Date.now() + 1).toString(),
-        content: data.response,
-        isUser: false,
-        timestamp: new Date()
-      };
-
-      setThreads(prev => ({
-        ...prev,
-        [currentThreadId]: [...(prev[currentThreadId] || []), aiMessage]
-      }));
-    } catch (error) {
-      console.error('Error sending message:', error);
-      
-      // Try to get a relevant response from counseling dataset
-      let fallbackResponse = "I'm having trouble connecting right now. Please try again in a moment.";
-      
-      try {
-        const fallbackResp = await fetch('/api/ai/counseling-fallback', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ query: userMessage.content }),
-        });
-        
-        if (fallbackResp.ok) {
-          const fallbackData = await fallbackResp.json();
-          fallbackResponse = fallbackData.response;
-        }
-      } catch (fallbackError) {
-        console.error('Fallback also failed:', fallbackError);
-      }
-      
-      const errorMessage = {
-        id: (Date.now() + 1).toString(),
-        content: fallbackResponse,
-        isUser: false,
-        timestamp: new Date()
-      };
-      setThreads(prev => ({
-        ...prev,
-        [currentThreadId]: [...(prev[currentThreadId] || []), errorMessage]
-      }));
-    } finally {
-      setIsAiLoading(false);
-    }
-  };
-
-  // Auto-scroll to bottom of AI chat
-  useEffect(() => {
-    if (aiMessagesEndRef.current) {
-      aiMessagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [aiMessages]);
-
-  // Create new thread
-  const createNewThread = () => {
-    const newThreadId = `thread_${Date.now()}`;
-    const greeting = user?.displayName ? `Hey ${user.displayName}, great to meet you. I'm Dinger, your personal AI.` : "Hey there, great to meet you. I'm Dinger, your personal AI.";
-    
-    setThreads(prev => ({
-      ...prev,
-      [newThreadId]: [
-        {
-          id: '1',
-          content: greeting,
-          isUser: false,
-          timestamp: new Date()
-        },
-        {
-          id: '2', 
-          content: "My goal is to be useful, friendly and fun. Ask me for advice, for answers, or let's talk about whatever's on your mind.",
-          isUser: false,
-          timestamp: new Date()
-        },
-        {
-          id: '3',
-          content: "How's your day going?",
-          isUser: false,
-          timestamp: new Date()
-        }
-      ]
-    }));
-    
-    setThreadTitles(prev => ({
-      ...prev,
-      [newThreadId]: 'New conversation'
-    }));
-    
-    setCurrentThreadId(newThreadId);
-    setShowThreads(false);
-  };
-  const [showBottomNav, setShowBottomNav] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
-  const [isProcessingSmartSearch, setIsProcessingSmartSearch] = useState(false);
-  const [historicalInsights, setHistoricalInsights] = useState<any[]>([]);
-  const [editorInstance, setEditorInstance] = useState<any>(null);
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const [showBottomNav, setShowBottomNav] = useState(false);
   const [isToolbarExpanded, setIsToolbarExpanded] = useState(false);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [showAIAgent, setShowAIAgent] = useState(false);
+  const [showResourceWidget, setShowResourceWidget] = useState(false);
+
   const { toast } = useToast();
-  const { user } = useAuth();
 
-
-
-  // Handle scroll to hide/show bottom navigation
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = scrollContainerRef.current?.scrollTop || 0;
-      
-      if (currentScrollY > lastScrollY && currentScrollY > 100) {
-        // Scrolling down
-        setShowBottomNav(false);
-      } else {
-        // Scrolling up or at top
-        setShowBottomNav(true);
-      }
-      
-      setLastScrollY(currentScrollY);
-    };
-
-    const scrollElement = scrollContainerRef.current;
-    if (scrollElement) {
-      scrollElement.addEventListener('scroll', handleScroll);
-      return () => scrollElement.removeEventListener('scroll', handleScroll);
-    }
-  }, [lastScrollY]);
-
-  // Fetch historical AI insights when AI insights filter is selected
-  useEffect(() => {
-    const fetchHistoricalInsights = async () => {
-      if (selectedSmartSpace === "ai-insights" && user?.uid) {
-        try {
-          const response = await fetch(`/api/ai/insights-history/${user.uid}`);
-          if (response.ok) {
-            const insights = await response.json();
-            setHistoricalInsights(insights);
-          }
-        } catch (error) {
-          console.error('Error fetching historical insights:', error);
-        }
-      }
-    };
-
-    fetchHistoricalInsights();
-  }, [selectedSmartSpace, user?.uid]);
-
-  // Export historical insights to CSV
-  const handleExportInsights = () => {
-    if (selectedSmartSpace !== "ai-insights" || historicalInsights.length === 0) return;
-
-    const headers = ['Date', 'Type', 'Title', 'Content', 'Action Taken', 'Helpful'];
-    const csvData = historicalInsights.map(insight => [
-      new Date(insight.createdAt).toLocaleDateString(),
-      insight.type,
-      insight.title,
-      insight.content.replace(/"/g, '""'),
-      insight.actionTaken || '',
-      insight.helpful ? 'Yes' : 'No'
-    ]);
-
-    const csvContent = [headers, ...csvData]
-      .map(row => row.map(field => `"${field}"`).join(','))
-      .join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `ai-insights-history-${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
-    window.URL.revokeObjectURL(url);
-
-    toast({
-      title: "Export Complete",
-      description: "Your AI insights history has been downloaded as CSV.",
-    });
-  };
-
-  // Email historical insights
-  const handleEmailInsights = async () => {
-    if (selectedSmartSpace !== "ai-insights" || historicalInsights.length === 0) return;
-
-    try {
-      const response = await fetch('/api/insights/email-history', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user?.uid,
-          insights: historicalInsights,
-          userEmail: user?.email
-        }),
-      });
-
-      if (response.ok) {
-        toast({
-          title: "Email Sent",
-          description: "Your AI insights history has been emailed to you.",
-        });
-      } else {
-        throw new Error('Failed to send email');
-      }
-    } catch (error) {
-      toast({
-        title: "Email Failed",
-        description: "Failed to send email. Please try again or use the export feature.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Smart search functionality for URLs and content
-  const handleSmartSearch = async (query: string) => {
-    if (!user || !query.trim()) return;
-
-    // Check if it's a URL
-    const urlPattern = /^(https?:\/\/[^\s]+)/i;
-    const isUrl = urlPattern.test(query.trim());
-
-    // Check if it's a large content paste (more than 100 characters)
-    const isLargeContent = query.length > 100;
-
-    if (isUrl || isLargeContent) {
-      setIsProcessingSmartSearch(true);
-      
-      try {
-        let content = query;
-        let title = "Smart Search Entry";
-        
-        if (isUrl) {
-          // For URL scraping, we'd need to add a backend endpoint
-          title = `Web Content: ${query}`;
-          content = `URL: ${query}\n\nNote: URL content scraping feature coming soon.`;
-        } else {
-          title = `Pasted Content - ${new Date().toLocaleDateString()}`;
-        }
-
-        const newCard: InsertInsightCard = {
-          type: 'note',
-          title,
-          content,
-          tags: ['smart-search', isUrl ? 'url-content' : 'pasted-content'],
-        };
-
-        await createInsightCard(user.uid, newCard);
-        
-        if (onRefresh) {
-          await onRefresh();
-        }
-
-        setSearchQuery("");
-        
-        toast({
-          title: "Content Added",
-          description: isUrl ? "URL saved as insight card" : "Content saved as insight card",
-        });
-        
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to save content",
-          variant: "destructive",
-        });
-      } finally {
-        setIsProcessingSmartSearch(false);
-      }
-    }
-  };
-
-  const handleSearchSubmit = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSmartSearch(searchQuery);
-    }
-  };
-
-  // Get items to display based on selected Smart Space
-  const getDisplayItems = () => {
-    if (selectedSmartSpace === "ai-insights") {
-      // Return historical insights when AI insights filter is selected
-      return historicalInsights.map(insight => ({
-        id: insight.id,
-        dateOfContact: new Date(insight.createdAt),
-        clientContactHours: 0, // AI insights don't have contact hours
-        notes: insight.content,
-        analysis: {
-          summary: insight.title,
-          type: insight.type,
-          helpful: insight.helpful,
-          actionTaken: insight.actionTaken
-        }
-      }));
-    }
-    return galleryItems;
-  };
-
-  // Super smart search - incredibly easy and intuitive
-  const filteredItems = getDisplayItems().filter(item => {
-    const query = searchQuery.toLowerCase().trim();
-    if (!query) return true;
+  // Filter gallery items based on search and filters
+  const filteredItems = galleryItems.filter(item => {
+    const matchesSearch = !searchValue || 
+      item.notes.toLowerCase().includes(searchValue.toLowerCase()) ||
+      (item.analysis?.themes && item.analysis.themes.some((theme: string) => 
+        theme.toLowerCase().includes(searchValue.toLowerCase())
+      ));
     
-    // Search in notes content - exact and partial matches
-    const notesText = cleanText(item.notes).toLowerCase();
-    if (notesText.includes(query)) return true;
+    const matchesFilter = !filterTag || 
+      (item.analysis?.themes && item.analysis.themes.includes(filterTag));
     
-    // Enhanced date search - multiple formats
-    const itemDate = new Date(item.dateOfContact);
-    const dateFormats = [
-      format(itemDate, "MMMM").toLowerCase(), // "June"
-      format(itemDate, "MMM").toLowerCase(),  // "Jun"  
-      format(itemDate, "MMMM yyyy").toLowerCase(), // "June 2024"
-      format(itemDate, "MMM yyyy").toLowerCase(),  // "Jun 2024"
-      format(itemDate, "MMMM d").toLowerCase(),    // "June 15"
-      format(itemDate, "MMM d").toLowerCase(),     // "Jun 15"
-      format(itemDate, "MMMM d, yyyy").toLowerCase(), // "June 15, 2024"
-      format(itemDate, "MMM d, yyyy").toLowerCase(),  // "Jun 15, 2024"
-      format(itemDate, "yyyy").toLowerCase(),      // "2024"
-      format(itemDate, "M/d/yyyy").toLowerCase(),  // "6/15/2024"
-      format(itemDate, "M-d-yyyy").toLowerCase(),  // "6-15-2024"
-    ];
-    
-    if (dateFormats.some(dateStr => dateStr.includes(query))) return true;
-    
-    // Search by session duration
-    const hourStr = `${item.clientContactHours}h`;
-    const hoursStr = `${item.clientContactHours} hour`;
-    if (hourStr.includes(query) || hoursStr.includes(query)) return true;
-    
-    // Word-based search in all content
-    const queryWords = query.split(' ').filter(word => word.length > 2);
-    const allContent = [
-      notesText,
-      ...dateFormats,
-      hourStr,
-      hoursStr
-    ].join(' ');
-    
-    if (queryWords.length > 0 && queryWords.every(word => allContent.includes(word))) return true;
-    
-    // Search in AI analysis fields if available
-    if (item.analysis) {
-      const analysis = item.analysis;
-      const analysisContent = [];
-      
-      // Collect all analysis text
-      if (analysis.summary) analysisContent.push(cleanText(analysis.summary).toLowerCase());
-      if (analysis.themes) analysisContent.push(...analysis.themes.map((t: string) => cleanText(t).toLowerCase()));
-      if (analysis.therapeuticModalities) analysisContent.push(...analysis.therapeuticModalities.map((t: string) => cleanText(t).toLowerCase()));
-      if (analysis.clientPresentation) analysisContent.push(...analysis.clientPresentation.map((t: string) => cleanText(t).toLowerCase()));
-      if (analysis.competencyAreas) analysisContent.push(...analysis.competencyAreas.map((t: string) => cleanText(t).toLowerCase()));
-      if (analysis.emotionalContent) analysisContent.push(...analysis.emotionalContent.map((t: string) => cleanText(t).toLowerCase()));
-      if (analysis.keyLearnings) analysisContent.push(...analysis.keyLearnings.map((t: string) => cleanText(t).toLowerCase()));
-      if (analysis.reflectivePrompts) analysisContent.push(...analysis.reflectivePrompts.map((t: string) => cleanText(t).toLowerCase()));
-      if (analysis.supervisionTopics) analysisContent.push(...analysis.supervisionTopics.map((t: string) => cleanText(t).toLowerCase()));
-      if (analysis.professionalGrowthAreas) analysisContent.push(...analysis.professionalGrowthAreas.map((t: string) => cleanText(t).toLowerCase()));
-      
-      const analysisText = analysisContent.join(' ');
-      
-      // Direct search in analysis content
-      if (analysisText.includes(query)) return true;
-      
-      // Word-based search in analysis
-      if (queryWords.length > 0 && queryWords.every(word => analysisText.includes(word))) return true;
-    }
-    
-    return false;
+    return matchesSearch && matchesFilter;
   });
 
-  // Group items by time period for Disney-style browsing
-  const getTimeGroupedItems = () => {
-    const now = new Date();
-    const thisWeek = [];
-    const thisMonth = [];
-    const earlier = [];
+  // Get all unique themes for filter options
+  const allThemes = Array.from(new Set(
+    galleryItems.flatMap(item => item.analysis?.themes || [])
+  ));
 
-    const startOfThisWeek = new Date(now);
-    startOfThisWeek.setDate(now.getDate() - now.getDay());
-    startOfThisWeek.setHours(0, 0, 0, 0);
-
-    const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-    for (const item of filteredItems) {
-      const itemDate = new Date(item.dateOfContact);
-      
-      if (itemDate >= startOfThisWeek) {
-        thisWeek.push(item);
-      } else if (itemDate >= startOfThisMonth) {
-        thisMonth.push(item);
-      } else {
-        earlier.push(item);
+  // Rich text editor setup
+  const editorInstance = useEditor({
+    extensions: [
+      StarterKit,
+      Underline,
+      BulletList,
+      ListItem,
+      OrderedList,
+      Placeholder.configure({
+        placeholder: 'Start writing your note...'
+      })
+    ],
+    content: noteContent,
+    onUpdate: ({ editor }) => {
+      setNoteContent(editor.getHTML());
+    },
+    editorProps: {
+      attributes: {
+        class: 'prose prose-sm max-w-none focus:outline-none min-h-[200px] p-4'
       }
     }
+  });
 
-    const groups = [];
-    if (thisWeek.length > 0) {
-      groups.push({ label: "This Week", items: thisWeek });
+  useEffect(() => {
+    if (editorInstance && noteContent !== editorInstance.getHTML()) {
+      editorInstance.commands.setContent(noteContent);
     }
-    if (thisMonth.length > 0) {
-      groups.push({ label: "This Month", items: thisMonth });
-    }
-    if (earlier.length > 0) {
-      groups.push({ label: "Earlier", items: earlier });
-    }
+  }, [noteContent, editorInstance]);
 
-    return groups;
-  };
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowBottomNav(true);
+    }, 500);
 
-  // Save note functionality
+    return () => clearTimeout(timer);
+  }, []);
+
   const handleSaveNote = async () => {
-    if (!user || !noteContent.trim()) return;
-
+    if (!noteContent.trim()) return;
+    
+    setIsSaving(true);
     try {
-      setIsSaving(true);
-      
-      const finalTitle = noteTitle || "Untitled Note";
-      
-      // Check if note meets minimum length for AI analysis
-      const wordCount = noteContent.trim().split(/\s+/).length;
-      let analysisData = null;
-      
-      if (wordCount >= 10) {
-        try {
-          // Import AI analysis function
-          const { analyzeSessionNotes } = await import("@/lib/ai");
-          analysisData = await analyzeSessionNotes(noteContent);
-        } catch (aiError) {
-          console.log("AI analysis skipped for note:", aiError);
-          // Continue saving note even if AI analysis fails
-        }
-      }
-      
-      // Create a single note without duplicating content
       const newNote: InsertInsightCard = {
-        type: "note",
-        title: finalTitle,
-        content: noteContent, // Store rich text content directly
-        tags: analysisData ? 
-          ["reflection", "personal-note", "ai-analyzed", ...analysisData.themes.slice(0, 3)] : 
-          ["reflection", "personal-note"],
+        userId: 'current-user',
+        type: 'note',
+        title: noteTitle || 'Untitled Note',
+        content: noteContent,
+        tags: [],
+        createdAt: new Date(),
+        updatedAt: new Date()
       };
 
-      await createInsightCard(user.uid, newNote);
+      await createInsightCard(newNote);
       
-      // Refresh the gallery if function provided
-      if (onRefresh) {
-        await onRefresh();
-      }
-      
-      // Reset form
+      toast({
+        title: "Note saved",
+        description: "Your note has been saved successfully.",
+      });
+
+      setShowNoteEditor(false);
       setNoteContent("");
       setNoteTitle("");
-      setShowNoteEditor(false);
-      
-      toast({
-        title: analysisData ? "Note analyzed and saved" : "Note saved",
-        description: analysisData ? 
-          "Your reflection has been analyzed and added to your insights for growth tracking." :
-          "Your reflection has been added to your insights.",
-      });
+      onRefresh?.();
     } catch (error) {
-      console.error("Error saving note:", error);
       toast({
-        title: "Error saving note",
-        description: "Failed to save your note. Please try again.",
+        title: "Error",
+        description: "Failed to save note. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -602,217 +144,112 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
   };
 
   return (
-    <div className="h-screen bg-gray-50 dark:bg-gray-900 flex flex-col overflow-hidden">
-      {/* Search Bar & Smart Spaces - Auto-hide on scroll */}
-      <div className={`bg-gray-50 dark:bg-gray-900 p-4 pt-1 flex-shrink-0 transition-transform duration-300 ${showBottomNav ? 'translate-y-0' : '-translate-y-full'}`}>
-        <div className="space-y-4">
-          {/* Main Search Bar */}
-          <div className="flex items-center gap-3 max-w-5xl">
-            <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <Input
-                placeholder="Search insights, paste content, or add URLs..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={handleSearchSubmit}
-                disabled={isProcessingSmartSearch}
-                className="pl-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-full h-12 text-base"
-              />
-              {isProcessingSmartSearch && (
-                <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                  <div className="w-5 h-5 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 dark:from-gray-900 dark:via-slate-800/50 dark:to-indigo-900/10">
+      {/* Header */}
+      <div className={`sticky top-0 z-20 transition-all duration-300 ${isHeaderVisible ? 'translate-y-0' : '-translate-y-full'}`}>
+        <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50">
+          <div className="px-6 py-4">
+            <div className="flex items-center justify-between">
+              {/* Title */}
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center">
+                  <Sparkles className="h-4 w-4 text-white" />
                 </div>
-              )}
-            </div>
-            <button 
-              className="w-8 h-8 rounded-full bg-white/80 dark:bg-gray-800/80 border border-gray-200/30 dark:border-gray-700/30 flex items-center justify-center hover:bg-gray-100/50 dark:hover:bg-gray-700/50 transition-colors"
-              onClick={() => setShowSmartSpaces(!showSmartSpaces)}
-            >
-              <Filter className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-            </button>
-            <button 
-              className="w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shadow-lg transition-colors"
-              onClick={() => setShowResourceWidget(true)}
-            >
-              <Plus className="h-4 w-4" />
-            </button>
-          </div>
+                <div>
+                  <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                    Insights & Resources
+                  </h1>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {filteredItems.length} insights
+                  </p>
+                </div>
+              </div>
 
-          {/* Smart Spaces - Auto-Organization Categories */}
-          {showSmartSpaces && (
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
-              <div className="flex items-center gap-2 mb-3">
-                <Tags className="h-4 w-4 text-blue-600" />
-                <span className="text-sm font-medium text-blue-600">Smart Spaces</span>
-              </div>
-              <div className="flex flex-wrap gap-2">
+              {/* Header Actions */}
+              <div className="flex items-center gap-2">
                 <Button
-                  variant={selectedSmartSpace === "all" ? "default" : "outline"}
+                  variant="ghost"
                   size="sm"
-                  className="rounded-full text-xs"
-                  onClick={() => {
-                    setSelectedSmartSpace("all");
-                    setShowSmartSpaces(false);
-                  }}
+                  onClick={() => setShowSearch(!showSearch)}
+                  className="text-gray-600 dark:text-gray-400"
                 >
-                  All Sessions
+                  <Search className="h-4 w-4" />
                 </Button>
                 <Button
-                  variant={selectedSmartSpace === "ai-insights" ? "default" : "outline"}
+                  variant="ghost"
                   size="sm"
-                  className="rounded-full text-xs"
-                  onClick={() => {
-                    setSelectedSmartSpace("ai-insights");
-                    setShowSmartSpaces(false);
-                  }}
+                  onClick={() => setShowResourceWidget(true)}
+                  className="text-gray-600 dark:text-gray-400"
                 >
-                  AI Insights History
-                </Button>
-                <Button
-                  variant={selectedSmartSpace === "anxiety-treatment" ? "default" : "outline"}
-                  size="sm"
-                  className="rounded-full text-xs"
-                  onClick={() => {
-                    setSelectedSmartSpace("anxiety-treatment");
-                    setShowSmartSpaces(false);
-                  }}
-                >
-                  Anxiety Treatment
-                </Button>
-                <Button
-                  variant={selectedSmartSpace === "trauma-work" ? "default" : "outline"}
-                  size="sm"
-                  className="rounded-full text-xs"
-                  onClick={() => {
-                    setSelectedSmartSpace("trauma-work");
-                    setShowSmartSpaces(false);
-                  }}
-                >
-                  Trauma Work
-                </Button>
-                <Button
-                  variant={selectedSmartSpace === "cbt-sessions" ? "default" : "outline"}
-                  size="sm"
-                  className="rounded-full text-xs"
-                  onClick={() => {
-                    setSelectedSmartSpace("cbt-sessions");
-                    setShowSmartSpaces(false);
-                  }}
-                >
-                  CBT Sessions
-                </Button>
-                <Button
-                  variant={selectedSmartSpace === "crisis-intervention" ? "default" : "outline"}
-                  size="sm"
-                  className="rounded-full text-xs"
-                  onClick={() => {
-                    setSelectedSmartSpace("crisis-intervention");
-                    setShowSmartSpaces(false);
-                  }}
-                >
-                  Crisis Intervention
-                </Button>
-                <Button
-                  variant={selectedSmartSpace === "supervision-prep" ? "default" : "outline"}
-                  size="sm"
-                  className="rounded-full text-xs"
-                  onClick={() => {
-                    setSelectedSmartSpace("supervision-prep");
-                    setShowSmartSpaces(false);
-                  }}
-                >
-                  Supervision Prep
-                </Button>
-                <Button
-                  variant={selectedSmartSpace === "challenging-cases" ? "default" : "outline"}
-                  size="sm"
-                  className="rounded-full text-xs"
-                  onClick={() => {
-                    setSelectedSmartSpace("challenging-cases");
-                    setShowSmartSpaces(false);
-                  }}
-                >
-                  Challenging Cases
+                  <Plus className="h-4 w-4" />
                 </Button>
               </div>
-              
-              {/* Export/Email buttons for AI Insights History */}
-              {selectedSmartSpace === "ai-insights" && historicalInsights.length > 0 && (
-                <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleExportInsights}
-                      className="text-xs flex items-center gap-1"
-                    >
-                      <Download className="h-3 w-3" />
-                      Export CSV
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleEmailInsights}
-                      className="text-xs flex items-center gap-1"
-                    >
-                      <Mail className="h-3 w-3" />
-                      Email Report
-                    </Button>
-                  </div>
-                </div>
-              )}
             </div>
-          )}
+
+            {/* Search Bar */}
+            {showSearch && (
+              <div className="mt-4 flex gap-2">
+                <div className="flex-1">
+                  <Input
+                    placeholder="Search insights..."
+                    value={searchValue}
+                    onChange={(e) => setSearchValue(e.target.value)}
+                    className="w-full"
+                  />
+                </div>
+                <select
+                  value={filterTag || ""}
+                  onChange={(e) => setFilterTag(e.target.value || null)}
+                  className="px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-md text-sm bg-white dark:bg-gray-800"
+                >
+                  <option value="">All themes</option>
+                  {allThemes.map(theme => (
+                    <option key={theme} value={theme}>{theme}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Masonry Grid Layout - MyMind Style for Maximum Cards */}
-      <div 
-        ref={scrollContainerRef}
-        className={`flex-1 px-4 pb-20 overflow-y-auto scrollbar-hide ${showBottomNav ? 'pt-0' : '-mt-16 pt-16'}`}
-      >
+      {/* Content Area */}
+      <div className="px-6 py-6 pb-24">
         {filteredItems.length === 0 ? (
           <div className="text-center py-12">
-            <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-lg mx-auto mb-4 flex items-center justify-center">
-              <Sparkles className="h-6 w-6 text-gray-400" />
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+              <Sparkles className="h-8 w-8 text-gray-400" />
             </div>
-            <h3 className="text-lg font-semibold text-foreground mb-2">No Session Insights Yet</h3>
-            <p className="text-muted-foreground">
-              Your session insights will appear here as you add notes and analyses.
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+              No insights found
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-6">
+              {searchValue || filterTag ? "Try adjusting your search or filters" : "Start by adding your first note or session"}
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid gap-6">
             {filteredItems.map((item) => (
               <Card 
-                key={item.id}
-                className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-white dark:bg-gray-800 border-0 rounded-2xl overflow-hidden h-fit shadow-sm"
+                key={item.id} 
+                className="group cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.01] bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border-gray-200/50 dark:border-gray-700/50"
                 onClick={() => onItemClick(item)}
               >
                 <CardContent className="p-6">
                   <div className="space-y-4">
-                    {/* Date and Duration - Minimal */}
+                    {/* Header */}
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium text-gray-400 dark:text-gray-500 tracking-wide">
-                        {format(new Date(item.dateOfContact), "MMM d")}
+                      <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                        {format(item.dateOfContact, 'MMM d, yyyy')}
                       </span>
-                      <span className="text-xs text-gray-400 dark:text-gray-500">
+                      <span className="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">
                         {item.clientContactHours}h
                       </span>
                     </div>
 
-                    {/* Notes Content - Premium Typography */}
-                    <div 
-                      className="text-gray-800 dark:text-gray-200 leading-relaxed"
-                      style={{ 
-                        fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
-                        fontSize: '0.9rem',
-                        lineHeight: '1.6',
-                        letterSpacing: '0.01em'
-                      }}
-                    >
+                    {/* Notes Content */}
+                    <div className="text-gray-800 dark:text-gray-200 leading-relaxed">
                       {(() => {
-                        // Create a temporary div to strip HTML tags properly
                         const tempDiv = document.createElement('div');
                         tempDiv.innerHTML = item.notes || '';
                         const plainText = tempDiv.textContent || tempDiv.innerText || '';
@@ -821,10 +258,9 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                       })()}
                     </div>
 
-                    {/* Elegant Insights Preview */}
+                    {/* Insights Preview */}
                     {item.analysis && (
                       <div className="space-y-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-                        {/* Primary Themes - Clean and Minimal */}
                         {item.analysis.themes && Array.isArray(item.analysis.themes) && item.analysis.themes.length > 0 && (
                           <div className="flex flex-wrap gap-2">
                             {item.analysis.themes.slice(0, 2).map((theme: string, index: number) => (
@@ -843,28 +279,10 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                           </div>
                         )}
                         
-                        {/* Key Learning Indicator */}
                         {item.analysis.keyLearnings && Array.isArray(item.analysis.keyLearnings) && item.analysis.keyLearnings.length > 0 && (
                           <div className="flex items-center gap-2 text-xs text-blue-600 dark:text-blue-400">
                             <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
                             <span className="font-medium">{item.analysis.keyLearnings.length} insight{item.analysis.keyLearnings.length !== 1 ? 's' : ''}</span>
-                          </div>
-                        )}
-                        
-                        {/* Fallback to themes if new fields not available */}
-                        {(!item.analysis.therapeuticModalities && !item.analysis.clientPresentation && !item.analysis.competencyAreas) && 
-                         item.analysis.themes && Array.isArray(item.analysis.themes) && (
-                          <div className="flex flex-wrap gap-1">
-                            {item.analysis.themes.slice(0, 2).map((theme: string, index: number) => (
-                              <Badge key={index} variant="outline" className="text-xs">
-                                {theme}
-                              </Badge>
-                            ))}
-                            {item.analysis.themes.length > 2 && (
-                              <Badge variant="outline" className="text-xs">
-                                +{item.analysis.themes.length - 2}
-                              </Badge>
-                            )}
                           </div>
                         )}
                       </div>
@@ -885,7 +303,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
         )}
       </div>
 
-      {/* Compact Bottom Navigation Panel - Replit Style */}
+      {/* Bottom Navigation Panel */}
       <div className={`fixed bottom-0 left-0 right-0 z-30 transition-all duration-300 ${showBottomNav ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}`}>
         <div className="bg-gradient-to-t from-gray-50/90 to-transparent dark:from-gray-900/90 dark:to-transparent pt-2 pb-2">
           <div className="max-w-xs mx-auto px-3">
@@ -929,454 +347,45 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
         onClose={() => setShowAIAgent(false)} 
       />
 
-      {/* Note Editor - Bear-style */}
-            <div className="flex-1 overflow-y-auto px-6 pb-6">
-              <div className="max-w-lg mx-auto">
-                <div className="space-y-6 pt-4">
-                  {aiMessages.map((message, index) => (
-                    <div key={message.id}>
-                      {!message.isUser ? (
-                        <div className="text-[#2B2B2B] dark:text-gray-300 leading-relaxed text-base font-['Georgia',serif] tracking-wide">
-                          {message.content}
-                        </div>
-                      ) : (
-                        <div className="text-[#4A4A4A] dark:text-gray-300 leading-relaxed text-base italic">
-                          {message.content}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                  
-                  {isAiLoading && (
-                    <div className="my-4">
-                      <LoadingQuoteCompact 
-                        context={['therapeutic alliance', 'professional development', 'counseling skills']}
-                        skillLevel="intermediate"
-                        className="max-w-lg"
-                      />
-                    </div>
-                  )}
-                </div>
-                
-                <div ref={aiMessagesEndRef} />
-              </div>
-            </div>
-
-            {/* Pi-style Input - Exact Pi design */}
-            <div className="px-6 pb-6">
-              <div className="max-w-lg mx-auto">
-                <div className="relative">
-                  <textarea
-                    value={aiInputValue}
-                    onChange={(e) => setAiInputValue(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSendAiMessage();
-                      }
-                    }}
-                    placeholder="Talk with Dinger"
-                    className="w-full min-h-[48px] max-h-[120px] px-4 py-3 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 resize-none focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
-                    disabled={isAiLoading}
-                    rows={1}
-                  />
-                  <Button
-                    onClick={handleSendAiMessage}
-                    disabled={!aiInputValue.trim() || isAiLoading}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-transparent hover:bg-gray-100 dark:hover:bg-gray-700 disabled:bg-transparent disabled:cursor-not-allowed p-0 border-0"
-                  >
-                    <Send className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                  </Button>
-                </div>
-                
-                <div className="text-center mt-4 text-xs text-gray-500 dark:text-gray-400">
-                  By using AI Coach, you agree to our Terms and Privacy Policy.
-                </div>
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Threads Panel - Exact Pi AI Style */}
-      <Dialog open={showThreads} onOpenChange={setShowThreads}>
-        <DialogContent className="max-w-none w-full h-full p-0 gap-0 bg-[#F4F1EA] dark:bg-[#1a1a1a]">
-          <DialogTitle className="sr-only">Conversation Threads</DialogTitle>
-          <div className="flex flex-col h-full">
-            
-            {/* Threads Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200/30">
-              <div className="flex items-center gap-2">
+      {/* Note Editor */}
+      <Dialog open={showNoteEditor} onOpenChange={setShowNoteEditor}>
+        <DialogContent className="max-w-none w-full h-full p-0 gap-0 overflow-hidden">
+          <DialogTitle className="sr-only">Note Editor</DialogTitle>
+          <div className="flex flex-col h-full bg-white dark:bg-gray-900">
+            {/* Editor Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+              <div className="flex items-center gap-3">
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setShowThreads(false)}
-                  className="text-sm text-gray-600 hover:bg-gray-200/50 px-2 py-1 rounded"
+                  onClick={() => setShowNoteEditor(false)}
+                  className="text-gray-600 dark:text-gray-400"
                 >
-                  Back
+                  <X className="h-4 w-4" />
                 </Button>
-                <h2 className="text-xl font-normal text-gray-800 dark:text-gray-200">Threads</h2>
+                <Input
+                  placeholder="Note title..."
+                  value={noteTitle}
+                  onChange={(e) => setNoteTitle(e.target.value)}
+                  className="border-none bg-transparent text-lg font-semibold focus-visible:ring-0 px-0"
+                />
               </div>
-              
               <Button
-                onClick={createNewThread}
-                className="flex items-center gap-2 px-4 py-2 bg-[#2D5A27] hover:bg-[#234521] text-white rounded-full text-sm"
+                onClick={handleSaveNote}
+                disabled={isSaving || !noteContent.trim()}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
               >
-                <Plus className="h-3 w-3" />
-                New thread
+                {isSaving ? "Saving..." : "Save"}
               </Button>
             </div>
 
-            {/* Threads List */}
-            <div className="flex-1 overflow-y-auto px-6 py-4">
-              <div className="space-y-3">
-                {Object.entries(threads).map(([threadId, messages]) => {
-                  const lastMessage = messages[messages.length - 1];
-                  const threadTitle = threadTitles[threadId] || 'Conversation';
-                  const isActive = threadId === currentThreadId;
-                  
-                  return (
-                    <div
-                      key={threadId}
-                      onClick={() => {
-                        setCurrentThreadId(threadId);
-                        setShowThreads(false);
-                      }}
-                      className={`p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                        isActive 
-                          ? 'bg-white dark:bg-gray-800 shadow-sm border border-gray-200/50' 
-                          : 'hover:bg-white/50 dark:hover:bg-gray-800/50'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-gray-800 dark:text-gray-200 truncate">
-                            {threadTitle}
-                          </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
-                            {lastMessage?.content || 'No messages'}
-                          </p>
-                          <div className="text-xs text-gray-500 mt-2">
-                            {lastMessage?.timestamp ? new Date(lastMessage.timestamp).toLocaleDateString() : ''}
-                          </div>
-                        </div>
-                        
-                        {isActive && (
-                          <div className="w-2 h-2 bg-[#2D5A27] rounded-full flex-shrink-0 ml-3 mt-2" />
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-                
-                {Object.keys(threads).length === 0 && (
-                  <div className="text-center py-12">
-                    <MessageCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-500">No conversations yet</p>
-                    <p className="text-sm text-gray-400 mt-1">Start a new thread to begin chatting with Dinger</p>
-                  </div>
-                )}
-              </div>
+            {/* Editor Content */}
+            <div className="flex-1 overflow-hidden">
+              <EditorContent 
+                editor={editorInstance}
+                className="h-full overflow-y-auto"
+              />
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Focus Mode Note Editor - MyMind Style */}
-      <Dialog open={showNoteEditor} onOpenChange={setShowNoteEditor}>
-        <DialogContent className="max-w-none w-full h-full p-0 gap-0 bg-white dark:bg-gray-900" aria-describedby="note-editor-description">
-          <DialogTitle className="sr-only">Create New Note</DialogTitle>
-          <div className="flex flex-col h-full">
-            {/* Content Area */}
-            <div 
-              className="flex-1 p-12 overflow-y-auto"
-              onScroll={(e) => {
-                const scrollTop = e.currentTarget.scrollTop;
-                setIsHeaderVisible(scrollTop < 50);
-              }}
-            >
-              <div className="max-w-2xl mx-auto pt-20">
-                {/* Note Title - Borderless and Free */}
-                <input
-                  ref={(el) => {
-                    if (el && !noteTitle && !noteContent) {
-                      setTimeout(() => el.focus(), 100);
-                    }
-                  }}
-                  type="text"
-                  placeholder="Type your headline here."
-                  value={noteTitle}
-                  onChange={(e) => setNoteTitle(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      const textarea = e.currentTarget.parentElement?.querySelector('textarea');
-                      if (textarea) {
-                        textarea.focus();
-                        textarea.setSelectionRange(0, 0);
-                      }
-                    }
-                  }}
-                  className="w-full text-4xl font-light bg-transparent border-none outline-none placeholder:text-gray-400 dark:placeholder:text-gray-600 text-gray-900 dark:text-gray-100 mb-4"
-                  style={{ 
-                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                    fontWeight: '300',
-                    lineHeight: '1.2',
-                    letterSpacing: '-0.02em'
-                  }}
-                />
-                
-                {/* Content Editor - Premium Writing Experience */}
-                <div className="flex-1 min-h-[500px] relative">
-                  <CustomRichEditor
-                    content={noteContent}
-                    onChange={setNoteContent}
-                    placeholder="Start writing right here...
-
-💡PRO TIP: Use the formatting toolbar below to style your text. Write naturally and let your thoughts flow."
-                    className="h-full min-h-[500px] border-none shadow-none bg-transparent"
-                    minHeight="500px"
-                    onEditorReady={setEditorInstance}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Vertically Expandable Floating Toolbar */}
-            <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2">
-              <div className={`bg-white dark:bg-gray-800 shadow-xl border border-gray-100 dark:border-gray-700 transition-all duration-300 ${
-                isToolbarExpanded 
-                  ? 'rounded-2xl px-4 py-4 flex flex-col gap-3' 
-                  : 'rounded-full px-6 py-3 flex flex-row gap-2'
-              }`}>
-                
-                {/* Core Tools Row - Always Visible */}
-                <div className="flex items-center gap-2">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700 w-8 h-8 rounded-full flex items-center justify-center"
-                    onClick={() => {
-                      if (editorInstance) {
-                        editorInstance.chain().focus().toggleBold().run();
-                      }
-                    }}
-                    title="Bold"
-                  >
-                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300">B</span>
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700 w-8 h-8 rounded-full flex items-center justify-center"
-                    onClick={() => {
-                      if (editorInstance) {
-                        editorInstance.chain().focus().toggleItalic().run();
-                      }
-                    }}
-                    title="Italic"
-                  >
-                    <span className="text-sm italic text-gray-700 dark:text-gray-300">I</span>
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700 w-8 h-8 rounded-full flex items-center justify-center"
-                    onClick={() => {
-                      if (editorInstance) {
-                        editorInstance.chain().focus().toggleUnderline().run();
-                      }
-                    }}
-                    title="Underline"
-                  >
-                    <span className="text-sm underline text-gray-700 dark:text-gray-300">U</span>
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700 w-8 h-8 rounded-full flex items-center justify-center"
-                    onClick={() => {
-                      if (editorInstance) {
-                        editorInstance.chain().focus().toggleBulletList().run();
-                      }
-                    }}
-                    title="List"
-                  >
-                    <svg className="w-4 h-4 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
-                    </svg>
-                  </Button>
-                  
-                  <div className="w-px h-4 bg-gray-200 dark:bg-gray-600"></div>
-                  
-                  {/* Expand/Collapse Button */}
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700 w-8 h-8 rounded-full flex items-center justify-center"
-                    onClick={() => setIsToolbarExpanded(!isToolbarExpanded)}
-                    title={isToolbarExpanded ? "Collapse Tools" : "More Tools"}
-                  >
-                    <svg 
-                      className={`w-4 h-4 text-gray-700 dark:text-gray-300 transition-transform duration-200 ${
-                        isToolbarExpanded ? 'rotate-180' : ''
-                      }`} 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </Button>
-                  
-                  <div className="w-px h-4 bg-gray-200 dark:bg-gray-600"></div>
-                  
-                  {/* Save Button - Always Visible */}
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="p-2 h-auto text-green-600 hover:text-green-700 disabled:opacity-50 w-8 h-8 rounded-full flex items-center justify-center"
-                    onClick={handleSaveNote}
-                    disabled={isSaving || !noteContent.trim()}
-                    title="Save Note"
-                  >
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </Button>
-                </div>
-
-                {/* Expanded Tools - Show when expanded */}
-                {isToolbarExpanded && (
-                  <>
-                    {/* Divider */}
-                    <div className="h-px bg-gray-200 dark:bg-gray-600"></div>
-                    
-                    {/* Headings Row */}
-                    <div className="flex items-center gap-2">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700 w-8 h-8 rounded-full flex items-center justify-center"
-                        onClick={() => {
-                          if (editorInstance) {
-                            editorInstance.chain().focus().toggleHeading({ level: 1 }).run();
-                          }
-                        }}
-                        title="Heading 1"
-                      >
-                        <span className="text-xs font-bold text-gray-700 dark:text-gray-300">H1</span>
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700 w-8 h-8 rounded-full flex items-center justify-center"
-                        onClick={() => {
-                          if (editorInstance) {
-                            editorInstance.chain().focus().toggleHeading({ level: 2 }).run();
-                          }
-                        }}
-                        title="Heading 2"
-                      >
-                        <span className="text-xs font-bold text-gray-700 dark:text-gray-300">H2</span>
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700 w-8 h-8 rounded-full flex items-center justify-center"
-                        onClick={() => {
-                          if (editorInstance) {
-                            editorInstance.chain().focus().toggleHeading({ level: 3 }).run();
-                          }
-                        }}
-                        title="Heading 3"
-                      >
-                        <span className="text-xs font-bold text-gray-700 dark:text-gray-300">H3</span>
-                      </Button>
-                    </div>
-                    
-                    {/* Lists and Formatting Row */}
-                    <div className="flex items-center gap-2">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700 w-8 h-8 rounded-full flex items-center justify-center"
-                        onClick={() => {
-                          if (editorInstance) {
-                            editorInstance.chain().focus().toggleHighlight().run();
-                          }
-                        }}
-                        title="Highlight"
-                      >
-                        <svg className="w-4 h-4 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
-                        </svg>
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700 w-8 h-8 rounded-full flex items-center justify-center"
-                        onClick={() => {
-                          if (editorInstance) {
-                            editorInstance.chain().focus().toggleOrderedList().run();
-                          }
-                        }}
-                        title="Numbered List"
-                      >
-                        <svg className="w-4 h-4 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h18M3 8h18M3 12h18m-9 4h9" />
-                        </svg>
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700 w-8 h-8 rounded-full flex items-center justify-center"
-                        onClick={() => {
-                          if (editorInstance) {
-                            editorInstance.chain().focus().toggleBlockquote().run();
-                          }
-                        }}
-                        title="Quote"
-                      >
-                        <svg className="w-4 h-4 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10m0 0V6a2 2 0 00-2-2H9a2 2 0 00-2 2v2m10 0v10a2 2 0 01-2 2H9a2 2 0 01-2-2V8m10 0H7" />
-                        </svg>
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700 w-8 h-8 rounded-full flex items-center justify-center"
-                        onClick={() => {
-                          if (editorInstance) {
-                            editorInstance.chain().focus().setHorizontalRule().run();
-                          }
-                        }}
-                        title="Divider"
-                      >
-                        <svg className="w-4 h-4 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                        </svg>
-                      </Button>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Floating Add Button - appears when header is hidden */}
-            {!isHeaderVisible && (
-              <div className="absolute top-6 right-6">
-                <Button 
-                  className="rounded-full w-12 h-12 bg-orange-500 hover:bg-orange-600 shadow-lg"
-                  onClick={() => {
-                    setShowNoteEditor(false);
-                    setTimeout(() => setShowNoteEditor(true), 100);
-                  }}
-                >
-                  <Plus className="h-5 w-5" />
-                </Button>
-              </div>
-            )}
           </div>
         </DialogContent>
       </Dialog>
@@ -1387,8 +396,6 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
         onOpenChange={setShowResourceWidget}
         onResourceAdded={onRefresh}
       />
-
-
     </div>
   );
 }
