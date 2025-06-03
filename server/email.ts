@@ -132,3 +132,34 @@ export async function sendFeedbackNotification(feedbackData: FeedbackEmailData):
     return false;
   }
 }
+
+interface EmailParams {
+  to: string;
+  subject: string;
+  html: string;
+  text?: string;
+}
+
+export async function sendEmail(params: EmailParams): Promise<boolean> {
+  try {
+    if (!process.env.RESEND_API_KEY) {
+      console.error('RESEND_API_KEY is not configured');
+      return false;
+    }
+
+    const result = await resend.emails.send({
+      from: 'ClarityLog <insights@claritylog.net>',
+      to: params.to,
+      subject: params.subject,
+      html: params.html,
+      text: params.text
+    });
+
+    console.log('Email sent successfully:', result);
+    return true;
+
+  } catch (error) {
+    console.error('Error sending email:', error);
+    return false;
+  }
+}
