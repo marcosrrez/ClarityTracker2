@@ -3,15 +3,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Calendar, Sparkles, Search, Plus, Bold, Italic, Type, Paperclip, Edit3, Check, Filter, Tags, Upload, Download, Mail } from "lucide-react";
+import { Calendar, Sparkles, Search, Plus, Filter, Tags, Upload, Download, Mail } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { createInsightCard } from "@/lib/firestore";
 import { useAuth } from "@/hooks/use-auth";
 import { ResourceWidget } from "./ResourceWidget";
 import { AIAgentWidget } from "./AIAgentWidget";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import type { InsertInsightCard } from "@shared/schema";
 
 interface GalleryItem {
@@ -67,44 +67,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // Text formatting helper function
-  const handleFormatting = (type: string) => {
-    const textarea = document.querySelector('textarea') as HTMLTextAreaElement;
-    if (!textarea) return;
 
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = noteContent.substring(start, end);
-    let replacement = '';
-
-    switch (type) {
-      case 'bold':
-        replacement = selectedText ? `**${selectedText}**` : '**bold text**';
-        break;
-      case 'italic':
-        replacement = selectedText ? `*${selectedText}*` : '*italic text*';
-        break;
-      case 'heading1':
-        replacement = selectedText ? `# ${selectedText}` : '# Heading 1';
-        break;
-      case 'heading2':
-        replacement = selectedText ? `## ${selectedText}` : '## Heading 2';
-        break;
-      case 'heading3':
-        replacement = selectedText ? `### ${selectedText}` : '### Heading 3';
-        break;
-    }
-
-    const newContent = noteContent.substring(0, start) + replacement + noteContent.substring(end);
-    setNoteContent(newContent);
-
-    // Restore focus and cursor position
-    setTimeout(() => {
-      textarea.focus();
-      const newCursorPos = start + replacement.length;
-      textarea.setSelectionRange(newCursorPos, newCursorPos);
-    }, 0);
-  };
 
   // Handle scroll to hide/show bottom navigation
   useEffect(() => {
@@ -416,7 +379,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
     try {
       setIsSaving(true);
       
-      const finalTitle = noteTitle || (noteContent.split('\n')[0] || "Untitled Note");
+      const finalTitle = noteTitle || "Untitled Note";
       
       // Check if note meets minimum length for AI analysis
       const wordCount = noteContent.trim().split(/\s+/).length;
@@ -433,56 +396,17 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
         }
       }
       
-      // Combine title and content with proper formatting
-      const fullContent = noteTitle ? `# ${noteTitle}\n\n${noteContent}` : noteContent;
-      
+      // Create a single note without duplicating content
       const newNote: InsertInsightCard = {
         type: "note",
         title: finalTitle,
-        content: fullContent,
+        content: noteContent, // Store rich text content directly
         tags: analysisData ? 
           ["reflection", "personal-note", "ai-analyzed", ...analysisData.themes.slice(0, 3)] : 
           ["reflection", "personal-note"],
       };
 
       await createInsightCard(user.uid, newNote);
-      
-      // If AI analysis was successful, also create a log entry for pattern tracking
-      if (analysisData && wordCount >= 10) {
-        try {
-          const { createLogEntry, createAiAnalysis } = await import("@/lib/firestore");
-          
-          const logEntry = {
-            dateOfContact: new Date(),
-            clientContactHours: 0,
-            indirectHours: false,
-            supervisionHours: 0,
-            supervisionType: "none" as const,
-            techAssistedSupervision: false,
-            professionalDevelopmentHours: 0,
-            professionalDevelopmentType: "none" as const,
-            notes: noteContent
-          };
-
-          const logEntryId = await createLogEntry(user.uid, logEntry);
-
-          const aiAnalysisEntry = {
-            logEntryId: logEntryId,
-            summary: analysisData.summary,
-            themes: analysisData.themes,
-            potentialBlindSpots: analysisData.potentialBlindSpots || [],
-            reflectivePrompts: analysisData.reflectivePrompts,
-            keyLearnings: analysisData.keyLearnings || [],
-            ccsrCategory: analysisData.ccsrCategory || "Personal Reflection",
-            originalNotesSnapshot: noteContent
-          };
-
-          await createAiAnalysis(user.uid, aiAnalysisEntry);
-        } catch (logError) {
-          console.log("Log entry creation skipped:", logError);
-          // Note is still saved as insight card
-        }
-      }
       
       // Refresh the gallery if function provided
       if (onRefresh) {
@@ -874,151 +798,27 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                   }}
                 />
                 
-                {/* Note Content - Premium Writing Experience */}
-                <textarea
-                  ref={(el) => {
-                    if (el && noteTitle && !noteContent) {
-                      setTimeout(() => {
-                        el.focus();
-                        el.setSelectionRange(0, 0);
-                      }, 100);
-                    }
-                  }}
-                  value={noteContent}
-                  onChange={(e) => setNoteContent(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      // Allow natural line breaks
-                      return;
-                    }
-                    
-                    // Handle keyboard shortcuts for formatting
-                    if (e.ctrlKey || e.metaKey) {
-                      switch (e.key) {
-                        case 'b':
-                          e.preventDefault();
-                          handleFormatting('bold');
-                          break;
-                        case 'i':
-                          e.preventDefault();
-                          handleFormatting('italic');
-                          break;
-                        case '1':
-                          e.preventDefault();
-                          handleFormatting('heading1');
-                          break;
-                        case '2':
-                          e.preventDefault();
-                          handleFormatting('heading2');
-                          break;
-                        case '3':
-                          e.preventDefault();
-                          handleFormatting('heading3');
-                          break;
-                      }
-                    }
-                  }}
-                  placeholder="Start writing right here...
-
-💡PRO TIP: You can use markdown! Try **bold**, *italic*, # headings, - lists, and more. Write naturally and let your thoughts flow."
-                  className="w-full min-h-[700px] bg-transparent border-none outline-none resize-none text-gray-800 dark:text-gray-200 text-xl leading-loose tracking-wide placeholder:text-gray-400 dark:placeholder:text-gray-500"
-                  style={{ 
-                    fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", "Droid Serif", Times, "Source Serif Pro", serif',
-                    lineHeight: '1.75',
-                    fontWeight: '400',
-                    letterSpacing: '0.015em',
-                    textRendering: 'optimizeLegibility',
-                    WebkitFontSmoothing: 'antialiased',
-                    MozOsxFontSmoothing: 'grayscale'
-                  }}
-                />
+                {/* Rich Text Editor */}
+                <div className="flex-1 min-h-[500px]">
+                  <RichTextEditor
+                    content={noteContent}
+                    onChange={setNoteContent}
+                    placeholder="Start writing your reflection..."
+                    className="h-full min-h-[500px]"
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Floating Toolbar */}
-            <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2">
-              <div className="bg-white dark:bg-gray-800 shadow-lg rounded-full px-4 py-2 flex items-center gap-4 border border-gray-200 dark:border-gray-700">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700"
-                  onClick={() => handleFormatting('bold')}
-                  title="Bold (Ctrl+B)"
-                >
-                  <Bold className="h-4 w-4" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700"
-                  onClick={() => handleFormatting('italic')}
-                  title="Italic (Ctrl+I)"
-                >
-                  <Italic className="h-4 w-4" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700"
-                  onClick={() => handleFormatting('heading1')}
-                  title="Heading (Ctrl+1)"
-                >
-                  <Type className="h-4 w-4" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700"
-                  onClick={() => {
-                    const textarea = document.querySelector('textarea') as HTMLTextAreaElement;
-                    if (textarea) {
-                      const start = textarea.selectionStart;
-                      const end = textarea.selectionEnd;
-                      const newContent = noteContent.substring(0, start) + '\n- ' + noteContent.substring(end);
-                      setNoteContent(newContent);
-                      setTimeout(() => {
-                        textarea.focus();
-                        textarea.setSelectionRange(start + 3, start + 3);
-                      }, 0);
-                    }
-                  }}
-                  title="Bullet List"
-                >
-                  <Paperclip className="h-4 w-4" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700"
-                  onClick={() => {
-                    const textarea = document.querySelector('textarea') as HTMLTextAreaElement;
-                    if (textarea) {
-                      const start = textarea.selectionStart;
-                      const end = textarea.selectionEnd;
-                      const newContent = noteContent.substring(0, start) + '\n\n---\n\n' + noteContent.substring(end);
-                      setNoteContent(newContent);
-                      setTimeout(() => {
-                        textarea.focus();
-                        textarea.setSelectionRange(start + 6, start + 6);
-                      }, 0);
-                    }
-                  }}
-                  title="Add Separator"
-                >
-                  <Edit3 className="h-4 w-4" />
-                </Button>
-                <div className="w-px h-6 bg-gray-200 dark:bg-gray-600"></div>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="p-2 h-auto text-green-600 hover:text-green-700 disabled:opacity-50"
-                  onClick={handleSaveNote}
-                  disabled={isSaving || !noteContent.trim()}
-                  title="Save Note"
-                >
-                  <Check className="h-4 w-4" />
-                </Button>
-              </div>
+            {/* Save Button */}
+            <div className="absolute bottom-6 right-6">
+              <Button 
+                onClick={handleSaveNote}
+                disabled={isSaving || !noteContent.trim()}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 shadow-lg"
+              >
+                {isSaving ? "Saving..." : "Save Note"}
+              </Button>
             </div>
 
             {/* Floating Add Button - appears when header is hidden */}
