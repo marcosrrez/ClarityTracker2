@@ -1247,6 +1247,28 @@ ${content}`;
       .set(updates)
       .where(eq(aiInsightsHistoryTable.id, id));
   }
+
+  async getAiInsightsHistory(userId: string, type?: string): Promise<AiInsightsHistory[]> {
+    let query = db.select().from(aiInsightsHistoryTable).where(eq(aiInsightsHistoryTable.userId, userId));
+    
+    if (type) {
+      query = query.where(eq(aiInsightsHistoryTable.insightType, type));
+    }
+    
+    const results = await query.orderBy(desc(aiInsightsHistoryTable.createdAt));
+    return results;
+  }
+
+  async createAiInsight(data: InsertAiInsightsHistory): Promise<AiInsightsHistory> {
+    const [insight] = await db.insert(aiInsightsHistoryTable).values(data).returning();
+    return insight;
+  }
+
+  async updateAiInsight(id: string, updates: Partial<InsertAiInsightsHistory>): Promise<void> {
+    await db.update(aiInsightsHistoryTable)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(aiInsightsHistoryTable.id, id));
+  }
 }
 
 export const storage = new DatabaseStorage();
