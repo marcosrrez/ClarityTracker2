@@ -37,7 +37,7 @@ export const CustomRichEditor = ({
     editorProps: {
       attributes: {
         class: `prose prose-sm max-w-none focus:outline-none ${className}`,
-        style: `min-height: ${minHeight}; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 18px; line-height: 1.6; color: rgb(55, 65, 81); font-weight: 400; letter-spacing: normal;`,
+        style: `min-height: ${minHeight}; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 20px; line-height: 1.7; color: rgb(55, 65, 81); font-weight: 400; letter-spacing: 0.01em;`,
       },
     },
   });

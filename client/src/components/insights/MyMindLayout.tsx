@@ -819,7 +819,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
 
             {/* Beautiful Floating Toolbar - Exact Original Design */}
             <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2">
-              <div className="bg-white dark:bg-gray-800 shadow-xl rounded-2xl px-6 py-3 flex items-center gap-6 border border-gray-100 dark:border-gray-700">
+              <div className="bg-white dark:bg-gray-800 shadow-xl rounded-full px-8 py-4 flex items-center gap-2 border border-gray-100 dark:border-gray-700">
                 <Button 
                   variant="ghost" 
                   size="sm" 
