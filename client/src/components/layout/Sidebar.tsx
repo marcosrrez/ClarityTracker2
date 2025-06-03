@@ -115,12 +115,7 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
           </SheetTitle>
         </SheetHeader>
 
-        {/* Clean Notifications Section */}
-        <div className="p-6 border-b border-gray-100 dark:border-gray-800">
-          <NotificationCenter />
-        </div>
-
-        <nav className="flex-1 p-4 space-y-6">
+        <nav className="flex-1 p-4 space-y-6 mt-6">
           {/* Group navigation items by category like Routine */}
           {['main', 'tracking', 'supervision', 'admin'].map((group) => {
             const groupItems = navigationItems.filter(item => item.group === group);
