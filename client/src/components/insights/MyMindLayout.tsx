@@ -648,7 +648,11 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                       }}
                     >
                       {(() => {
-                        const cleanedText = cleanText(item.notes);
+                        // Create a temporary div to strip HTML tags properly
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = item.notes || '';
+                        const plainText = tempDiv.textContent || tempDiv.innerText || '';
+                        const cleanedText = plainText.trim();
                         return cleanedText.length > 100 ? `${cleanedText.substring(0, 100)}...` : cleanedText;
                       })()}
                     </div>
