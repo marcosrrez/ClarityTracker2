@@ -56,6 +56,70 @@ export function GalleryView({ userId }: GalleryViewProps) {
       .trim();
   };
 
+  // Format session notes with proper headings and paragraphs
+  const formatSessionNotes = (text: string) => {
+    if (!text) return <p className="text-gray-500">No notes available for this session.</p>;
+    
+    // Common section headings to look for
+    const headings = [
+      'Focus:', 'Skill Development:', 'Supervision Topic:', 'Resources:', 
+      'Notes:', 'Interventions:', 'Progress:', 'Goals:', 'Observations:',
+      'Client Presentation:', 'Therapeutic Techniques:', 'Session Goals:',
+      'Homework:', 'Next Steps:', 'Reflection:'
+    ];
+    
+    let formattedText = text;
+    
+    // Add paragraph breaks before each heading
+    headings.forEach(heading => {
+      const regex = new RegExp(`(${heading.replace(':', '\\:')})`, 'gi');
+      formattedText = formattedText.replace(regex, `\n\n$1`);
+    });
+    
+    // Split into sections
+    const sections = formattedText.split('\n\n').filter(section => section.trim());
+    
+    return (
+      <div className="space-y-4">
+        {sections.map((section, index) => {
+          const trimmedSection = section.trim();
+          
+          // Check if this section starts with a heading
+          const foundHeading = headings.find(heading => 
+            trimmedSection.toLowerCase().startsWith(heading.toLowerCase())
+          );
+          
+          if (foundHeading) {
+            // Extract heading and content
+            const headingLength = foundHeading.length;
+            const headingText = trimmedSection.substring(0, headingLength);
+            const content = trimmedSection.substring(headingLength).trim();
+            
+            return (
+              <div key={index} className="space-y-2">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-lg">
+                  {headingText}
+                </h3>
+                {content && (
+                  <p className="text-gray-700 dark:text-gray-300 ml-4">
+                    {content}
+                  </p>
+                )}
+              </div>
+            );
+          }
+          
+          // Regular paragraph
+          return (
+            <p key={index} className="text-gray-700 dark:text-gray-300">
+              {trimmedSection}
+            </p>
+          );
+        })}
+      </div>
+    );
+  };
+
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
 
   useEffect(() => {
