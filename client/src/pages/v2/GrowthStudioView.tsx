@@ -208,10 +208,9 @@ export default function GrowthStudioView() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="competencies">Competencies</TabsTrigger>
-            <TabsTrigger value="insights">AI Insights</TabsTrigger>
             <TabsTrigger value="resources">Resources</TabsTrigger>
           </TabsList>
 
@@ -367,71 +366,6 @@ export default function GrowthStudioView() {
                       >
                         View Details <ChevronRight className="h-3 w-3 ml-1" />
                       </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="insights" className="space-y-6">
-            <div className="space-y-4">
-              {aiInsights.map((insight) => (
-                <Card key={insight.id} className="border-0 shadow-lg">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-black font-bold text-lg">{insight.title}</CardTitle>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge variant="outline" className="text-xs">
-                            {insight.type.replace('_', ' ')}
-                          </Badge>
-                          <Badge variant="secondary" className="text-xs">
-                            {insight.competencyArea}
-                          </Badge>
-                          <span className="text-xs text-gray-500">
-                            {insight.createdAt.toLocaleDateString()}
-                          </span>
-                        </div>
-                      </div>
-                      <Brain className="h-5 w-5 text-blue-600" />
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-6 pt-0">
-                    <div className="space-y-4">
-                      <p className="text-gray-700">{insight.content}</p>
-                      
-                      <div>
-                        <h4 className="font-medium text-black text-sm mb-2">Actionable Steps:</h4>
-                        <div className="space-y-1">
-                          {insight.actionableSteps.map((step, idx) => (
-                            <div key={idx} className="flex items-start gap-2">
-                              <Lightbulb className="h-3 w-3 mt-0.5 text-yellow-600" />
-                              <span className="text-sm text-gray-700">{step}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between pt-3 border-t">
-                        <span className="text-sm text-gray-600">Was this insight helpful?</span>
-                        <div className="flex gap-2">
-                          <Button
-                            variant={insight.helpful === true ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => handleInsightFeedback(insight.id, true)}
-                          >
-                            <ThumbsUp className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant={insight.helpful === false ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => handleInsightFeedback(insight.id, false)}
-                          >
-                            <ThumbsDown className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
                     </div>
                   </CardContent>
                 </Card>

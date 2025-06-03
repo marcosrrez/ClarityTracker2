@@ -1249,13 +1249,15 @@ ${content}`;
   }
 
   async getAiInsightsHistory(userId: string, type?: string): Promise<AiInsightsHistory[]> {
-    let query = db.select().from(aiInsightsHistoryTable).where(eq(aiInsightsHistoryTable.userId, userId));
+    let whereCondition = eq(aiInsightsHistoryTable.userId, userId);
     
     if (type) {
-      query = query.where(eq(aiInsightsHistoryTable.insightType, type));
+      whereCondition = and(whereCondition, eq(aiInsightsHistoryTable.insightType, type));
     }
     
-    const results = await query.orderBy(desc(aiInsightsHistoryTable.createdAt));
+    const results = await db.select().from(aiInsightsHistoryTable)
+      .where(whereCondition)
+      .orderBy(desc(aiInsightsHistoryTable.createdAt));
     return results;
   }
 
