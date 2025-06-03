@@ -1153,6 +1153,20 @@ Source: ${entry.sourceTitle} (${entry.sourceType})`;
     }
   });
 
+  // Usage statistics endpoint
+  app.get('/api/ai/usage-stats/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { UsageLimiter } = await import('./usage-limiter');
+      
+      const stats = UsageLimiter.getUsageStats(userId);
+      res.json(stats);
+    } catch (error) {
+      console.error('Error fetching usage stats:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
 // AI Coaching Chat Route
   app.post('/api/ai/coaching-chat', async (req, res) => {
     try {
@@ -1160,6 +1174,23 @@ Source: ${entry.sourceTitle} (${entry.sourceType})`;
 
       if (!message || !userId) {
         return res.status(400).json({ error: 'Message and userId are required' });
+      }
+
+      // Import usage limiter
+      const { UsageLimiter } = await import('./usage-limiter');
+      
+      // Check if user has remaining AI calls
+      if (!UsageLimiter.canUseAI(userId)) {
+        // Switch to counseling dataset
+        const { getCounselingResponse } = await import('./counseling-dataset');
+        const fallbackResponse = getCounselingResponse(message);
+        const stats = UsageLimiter.getUsageStats(userId);
+        
+        return res.json({ 
+          response: `${fallbackResponse}\n\n💡 You've reached your daily AI limit (${stats.limit} messages). I'm now using my counseling knowledge base. Your limit resets in ${Math.ceil((new Date(stats.resetTime).getTime() - Date.now()) / (1000 * 60 * 60))} hours.`,
+          usedFallback: true,
+          usageStats: stats
+        });
       }
 
       // Build conversation context for empathetic coaching
@@ -1219,7 +1250,14 @@ Respond as if you're having a genuine conversation with a colleague who trusts y
       const data = await response.json();
       const aiResponse = data.choices[0]?.message?.content || "I'm having trouble processing that right now. Could you try rephrasing your question?";
 
-      res.json({ response: aiResponse });
+      // Record successful AI call
+      UsageLimiter.recordAICall(userId);
+      const stats = UsageLimiter.getUsageStats(userId);
+
+      res.json({ 
+        response: aiResponse,
+        usageStats: stats
+      });
     } catch (error) {
       console.error('AI coaching chat error:', error);
       res.status(500).json({ 
