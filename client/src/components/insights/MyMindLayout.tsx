@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Calendar, Sparkles, Search, Plus, Filter, Tags, Upload, Download, Mail, X, Send } from "lucide-react";
+import { Calendar, Sparkles, Search, Plus, Filter, Tags, Upload, Download, Mail, X, Send, MessageCircle } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { createInsightCard } from "@/lib/firestore";
