@@ -576,6 +576,38 @@ export const SettingsView = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
+      {/* Appearance Preferences Section */}
+      <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2 text-purple-700 dark:text-purple-300">
+            <Palette className="h-5 w-5" />
+            <span>Appearance</span>
+          </CardTitle>
+          <CardDescription>
+            Customize the visual appearance of your ClarityLog experience.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <Label className="font-medium">Theme</Label>
+              <p className="text-sm text-muted-foreground">
+                Choose between light and dark mode for a comfortable viewing experience.
+              </p>
+            </div>
+            <div className="flex items-center space-x-3">
+              <Sun className="h-4 w-4 text-yellow-500" />
+              <Switch
+                checked={theme === 'dark'}
+                onCheckedChange={toggleTheme}
+                className="data-[state=checked]:bg-purple-600"
+              />
+              <Moon className="h-4 w-4 text-blue-500" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         {/* Licensure Goals Section */}
         <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20">
