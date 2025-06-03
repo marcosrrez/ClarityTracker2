@@ -928,65 +928,47 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
           <DialogTitle className="sr-only">AI Coach Conversation</DialogTitle>
           <div className="flex flex-col h-full">
             
-            {/* Refined Header - Premium Typography */}
-            <div className="flex items-center justify-between px-8 py-6 border-b border-gray-100/50 dark:border-gray-800/50">
-              <div className="flex items-center gap-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowThreads(true)}
-                  className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-xl transition-colors"
-                >
-                  <div className="flex flex-col gap-1">
-                    <div className="w-3 h-0.5 bg-current rounded-full opacity-70"></div>
-                    <div className="w-3 h-0.5 bg-current rounded-full"></div>
-                    <div className="w-3 h-0.5 bg-current rounded-full opacity-70"></div>
-                  </div>
-                  <span className="font-medium">Conversations</span>
-                </Button>
-                
-                <div className="flex items-center gap-3 ml-2">
-                  <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 via-purple-500 to-blue-600 rounded-xl flex items-center justify-center shadow-sm">
-                    <MessageCircle className="h-4 w-4 text-white" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span 
-                      className="text-xl font-light text-gray-900 dark:text-gray-100"
-                      style={{ 
-                        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                        letterSpacing: '-0.01em'
-                      }}
-                    >
-                      Dinger
-                    </span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Professional Development Coach</span>
-                  </div>
+            {/* Minimal Header - Expansive Feel */}
+            <div className="flex items-center justify-between px-8 py-4 border-b border-gray-100/30 dark:border-gray-800/30">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowThreads(true)}
+                className="flex items-center gap-3 px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-xl transition-colors"
+              >
+                <div className="flex items-center gap-0.5">
+                  <div className="w-1 h-1 bg-current rounded-full"></div>
+                  <div className="w-1 h-1 bg-current rounded-full"></div>
+                  <div className="w-1 h-1 bg-current rounded-full"></div>
+                  <div className="w-1 h-1 bg-current rounded-full"></div>
+                  <div className="w-1 h-1 bg-current rounded-full"></div>
                 </div>
-              </div>
+                <span className="font-medium">History</span>
+              </Button>
               
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowAIAgent(false)}
-                className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800/50 px-3 py-1.5 rounded-lg transition-colors"
+                className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800/50 px-3 py-1.5 rounded-xl transition-colors"
               >
                 Close
               </Button>
             </div>
 
-            {/* Enhanced Messages - Premium Reading Experience */}
-            <div className="flex-1 overflow-y-auto px-8 pb-8">
-              <div className="max-w-2xl mx-auto">
-                <div className="space-y-8 pt-8">
+            {/* Expansive Messages - Full Width Experience */}
+            <div className="flex-1 overflow-y-auto px-12 pb-8">
+              <div className="max-w-4xl mx-auto">
+                <div className="space-y-12 pt-12">
                   {aiMessages.map((message, index) => (
                     <div key={message.id}>
                       {!message.isUser ? (
                         <div 
-                          className="text-gray-800 dark:text-gray-200"
+                          className="text-gray-800 dark:text-gray-200 max-w-none"
                           style={{ 
                             fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
-                            fontSize: '1rem',
-                            lineHeight: '1.7',
+                            fontSize: '1.125rem',
+                            lineHeight: '1.8',
                             letterSpacing: '0.01em',
                             fontWeight: '400'
                           }}
@@ -995,10 +977,10 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                         </div>
                       ) : (
                         <div 
-                          className="text-gray-600 dark:text-gray-400 border-l-2 border-gray-200 dark:border-gray-700 pl-4 ml-2"
+                          className="text-gray-600 dark:text-gray-400 bg-gray-50/50 dark:bg-gray-800/30 rounded-2xl px-6 py-4 ml-8"
                           style={{ 
                             fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                            fontSize: '0.95rem',
+                            fontSize: '1rem',
                             lineHeight: '1.6',
                             letterSpacing: '0.005em',
                             fontWeight: '400'
@@ -1011,11 +993,11 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                   ))}
                   
                   {isAiLoading && (
-                    <div className="my-8">
+                    <div className="my-12">
                       <LoadingQuoteCompact 
                         context={['therapeutic alliance', 'professional development', 'counseling skills']}
                         skillLevel="intermediate"
-                        className="max-w-2xl"
+                        className="max-w-4xl"
                       />
                     </div>
                   )}
@@ -1025,10 +1007,10 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
               </div>
             </div>
 
-            {/* Enhanced Input - Premium Writing Experience */}
-            <div className="px-8 pb-8 border-t border-gray-100/50 dark:border-gray-800/50 bg-gray-50/30 dark:bg-gray-900/30">
-              <div className="max-w-2xl mx-auto pt-6">
-                <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
+            {/* Refined Input - Integrated Send Button */}
+            <div className="px-8 pb-8">
+              <div className="max-w-3xl mx-auto">
+                <div className="relative bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-200/50 dark:border-gray-700/50">
                   <textarea
                     value={aiInputValue}
                     onChange={(e) => setAiInputValue(e.target.value)}
@@ -1038,33 +1020,28 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                         handleSendAiMessage();
                       }
                     }}
-                    placeholder="Share your thoughts with Dinger..."
-                    className="w-full min-h-[64px] max-h-[160px] px-6 py-4 border-none bg-transparent resize-none focus:outline-none text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+                    placeholder="What would you like to explore today?"
+                    className="w-full min-h-[80px] max-h-[200px] px-6 py-5 pr-16 border-none bg-transparent resize-none focus:outline-none text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 rounded-3xl"
                     style={{ 
                       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                      fontSize: '0.95rem',
+                      fontSize: '1rem',
                       lineHeight: '1.6',
                       letterSpacing: '0.005em'
                     }}
                     disabled={isAiLoading}
-                    rows={2}
+                    rows={3}
                   />
-                  <div className="flex items-center justify-between px-6 py-3 border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
-                      Press Enter to send, Shift+Enter for new line
-                    </div>
-                    <Button
-                      onClick={handleSendAiMessage}
-                      disabled={!aiInputValue.trim() || isAiLoading}
-                      className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-blue-600 hover:from-indigo-600 hover:via-purple-600 hover:to-blue-700 disabled:from-gray-300 disabled:via-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed text-white shadow-sm transition-all duration-200 flex items-center justify-center p-0 border-0"
-                    >
-                      <Send className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <Button
+                    onClick={handleSendAiMessage}
+                    disabled={!aiInputValue.trim() || isAiLoading}
+                    className="absolute right-3 bottom-3 w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-blue-600 hover:from-indigo-600 hover:via-purple-600 hover:to-blue-700 disabled:from-gray-300 disabled:via-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed text-white shadow-sm transition-all duration-200 flex items-center justify-center p-0 border-0"
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
                 </div>
                 
-                <div className="text-center mt-4 text-xs text-gray-500 dark:text-gray-400">
-                  By using AI Coach, you agree to our Terms and Privacy Policy
+                <div className="text-center mt-6 text-xs text-gray-400 dark:text-gray-500">
+                  Press Enter to send • Shift+Enter for new line
                 </div>
               </div>
             </div>
