@@ -12,7 +12,6 @@ import { createInsightCard } from "@/lib/firestore";
 import { useAuth } from "@/hooks/use-auth";
 import { ResourceWidget } from "./ResourceWidget";
 import { AIAgentWidget } from "./AIAgentWidget";
-import { SupervisionMetrics } from "./SupervisionMetrics";
 import type { InsertInsightCard } from "@shared/schema";
 
 interface GalleryItem {
@@ -370,9 +369,6 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
       {/* Search Bar & Smart Spaces - Auto-hide on scroll */}
       <div className={`bg-gray-50 dark:bg-gray-900 p-4 pt-1 flex-shrink-0 transition-transform duration-300 ${showBottomNav ? 'translate-y-0' : '-translate-y-full'}`}>
         <div className="space-y-4">
-          {/* Supervision Metrics */}
-          <SupervisionMetrics />
-          
           {/* Main Search Bar */}
           <div className="flex items-center gap-3 max-w-5xl">
             <div className="flex-1 relative">

@@ -13,6 +13,7 @@ import { MilestoneCelebration } from "./MilestoneCelebration";
 import { SupervisorDashboard } from "./SupervisorDashboard";
 import { WelcomeOverlay } from "./WelcomeOverlay";
 import { ErrorBoundary } from "./ErrorBoundary";
+import { SupervisionMetrics } from "../insights/SupervisionMetrics";
 import { useMilestoneDetection } from "@/hooks/use-milestone-detection";
 import { useAppSettings } from "@/hooks/use-firestore";
 import { useAccountType } from "@/hooks/use-account-type";
@@ -112,6 +113,13 @@ export const Dashboard = () => {
             </ErrorBoundary>
           </div>
         )}
+        
+        {/* Supervision tracking - always shown */}
+        <ErrorBoundary>
+          <div>
+            <SupervisionMetrics />
+          </div>
+        </ErrorBoundary>
         
         {/* Progress tracking - always shown */}
         <ErrorBoundary>
