@@ -62,6 +62,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
   const [showBottomNav, setShowBottomNav] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isProcessingSmartSearch, setIsProcessingSmartSearch] = useState(false);
+  const [historicalInsights, setHistoricalInsights] = useState<any[]>([]);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -416,6 +417,14 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                   onClick={() => setSelectedSmartSpace("all")}
                 >
                   All Sessions
+                </Button>
+                <Button
+                  variant={selectedSmartSpace === "ai-insights" ? "default" : "outline"}
+                  size="sm"
+                  className="rounded-full text-xs"
+                  onClick={() => setSelectedSmartSpace("ai-insights")}
+                >
+                  AI Insights History
                 </Button>
                 <Button
                   variant={selectedSmartSpace === "anxiety-treatment" ? "default" : "outline"}
