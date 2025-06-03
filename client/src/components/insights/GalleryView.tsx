@@ -442,7 +442,7 @@ export function GalleryView({ userId }: GalleryViewProps) {
                     </div>
                   ) : (
                     <div 
-                      className="leading-relaxed text-lg cursor-text w-full"
+                      className="leading-relaxed text-lg cursor-text w-full prose prose-lg max-w-none"
                       style={{ 
                         fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", serif',
                         lineHeight: '1.75',
@@ -450,9 +450,8 @@ export function GalleryView({ userId }: GalleryViewProps) {
                         letterSpacing: '0.015em'
                       }}
                       onClick={() => handleEditNotes(expandedCard)}
-                    >
-                      {formatSessionNotes(expandedCard.notes)}
-                    </div>
+                      dangerouslySetInnerHTML={{ __html: expandedCard.notes || expandedCard.content || '' }}
+                    />
                   )}
                 </div>
 
