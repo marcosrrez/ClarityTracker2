@@ -107,30 +107,16 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-80 p-0">
-        <SheetHeader className="p-6 border-b">
-          <div className="flex items-center justify-between">
-            <SheetTitle className="flex items-center space-x-3">
-              <Sprout className="h-6 w-6 text-primary" />
-              <span>ClarityLog</span>
-            </SheetTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleTheme}
-              className="ive-button h-8 w-8 rounded-full p-0"
-            >
-              {theme === 'dark' ? (
-                <Sun className="h-4 w-4" />
-              ) : (
-                <Moon className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
+      <SheetContent side="right" className="w-80 p-0 rounded-2xl">
+        <SheetHeader className="p-6 border-b border-gray-100 dark:border-gray-800">
+          <SheetTitle className="flex items-center space-x-3">
+            <Sprout className="h-6 w-6 text-primary" />
+            <span className="text-lg font-semibold">ClarityLog</span>
+          </SheetTitle>
         </SheetHeader>
 
-        {/* Notifications Section */}
-        <div className="p-6 border-b">
+        {/* Clean Notifications Section */}
+        <div className="p-6 border-b border-gray-100 dark:border-gray-800">
           <NotificationCenter />
         </div>
 
@@ -199,41 +185,42 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
               })}
             </div>
           </div>
-
-          <Separator className="my-4" />
-
-          <Button
-            variant="ghost"
-            className="w-full justify-start space-x-3 text-muted-foreground hover:text-foreground"
-            onClick={handleDownload}
-          >
-            <Download className="h-5 w-5" />
-            <span>Download Data</span>
-          </Button>
         </nav>
 
-        <div className="p-6 border-t space-y-3">
+        {/* Clean footer section - Routine inspired */}
+        <div className="p-6 border-t border-gray-100 dark:border-gray-800 space-y-2">
           <Button
             variant="ghost"
-            className="w-full justify-start space-x-3"
+            className="w-full justify-start gap-3 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl h-10"
             onClick={toggleTheme}
           >
             {theme === "light" ? (
-              <Moon className="h-5 w-5" />
+              <Moon className="h-4 w-4" />
             ) : (
-              <Sun className="h-5 w-5" />
+              <Sun className="h-4 w-4" />
             )}
             <span>{theme === "light" ? "Dark Mode" : "Light Mode"}</span>
           </Button>
 
           <Button
             variant="ghost"
-            className="w-full justify-start space-x-3 text-destructive hover:text-destructive"
-            onClick={handleLogout}
+            className="w-full justify-start gap-3 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl h-10"
+            onClick={handleDownload}
           >
-            <LogOut className="h-5 w-5" />
-            <span>Logout</span>
+            <Download className="h-4 w-4" />
+            <span>Download Data</span>
           </Button>
+
+          <div className="pt-2 border-t border-gray-100 dark:border-gray-800 mt-3">
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-3 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950 rounded-xl h-10"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Logout</span>
+            </Button>
+          </div>
         </div>
       </SheetContent>
     </Sheet>
