@@ -1008,42 +1008,45 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
               </div>
             </div>
 
-            {/* Refined Input - Integrated Send Button */}
-            <div className="px-8 pb-8">
-              <div className="max-w-3xl mx-auto">
-                <div className="relative bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-200/50 dark:border-gray-700/50">
-                  <textarea
-                    value={aiInputValue}
-                    onChange={(e) => setAiInputValue(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSendAiMessage();
-                      }
-                    }}
-                    placeholder="What would you like to explore today?"
-                    className="w-full min-h-[80px] max-h-[200px] px-6 py-5 pr-16 border-none bg-transparent resize-none focus:outline-none text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 rounded-3xl"
-                    style={{ 
-                      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                      fontSize: '1rem',
-                      lineHeight: '1.6',
-                      letterSpacing: '0.005em'
-                    }}
-                    disabled={isAiLoading}
-                    rows={3}
-                  />
-                  <Button
-                    onClick={handleSendAiMessage}
-                    disabled={!aiInputValue.trim() || isAiLoading}
-                    className="absolute right-3 bottom-3 w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-blue-600 hover:from-indigo-600 hover:via-purple-600 hover:to-blue-700 disabled:from-gray-300 disabled:via-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center p-0 border-0"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                  </Button>
+            {/* Premium Text Entry - Ultra Elegant */}
+            <div className="px-8 pb-8 pt-4">
+              <div className="max-w-4xl mx-auto">
+                <div className="relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-[2rem] shadow-lg border border-gray-200/30 dark:border-gray-700/30 hover:shadow-xl transition-all duration-300">
+                  <div className="p-1.5">
+                    <textarea
+                      value={aiInputValue}
+                      onChange={(e) => setAiInputValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendAiMessage();
+                        }
+                      }}
+                      placeholder="What would you like to explore today?"
+                      className="w-full min-h-[100px] max-h-[240px] px-8 py-6 pr-20 border-none bg-transparent resize-none focus:outline-none text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 rounded-[1.75rem]"
+                      style={{ 
+                        fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
+                        fontSize: '1.125rem',
+                        lineHeight: '1.7',
+                        letterSpacing: '0.01em',
+                        fontWeight: '400'
+                      }}
+                      disabled={isAiLoading}
+                      rows={3}
+                    />
+                    <Button
+                      onClick={handleSendAiMessage}
+                      disabled={!aiInputValue.trim() || isAiLoading}
+                      className="absolute right-4 bottom-4 w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-blue-600 hover:from-indigo-600 hover:via-purple-600 hover:to-blue-700 disabled:from-gray-300 disabled:via-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed text-white shadow-lg hover:shadow-2xl transition-all duration-300 flex items-center justify-center p-0 border-0 hover:scale-105"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                      </svg>
+                    </Button>
+                  </div>
                 </div>
                 
-                <div className="text-center mt-6 text-xs text-gray-400 dark:text-gray-500">
+                <div className="text-center mt-8 text-xs text-gray-400 dark:text-gray-500 tracking-wide">
                   Press Enter to send • Shift+Enter for new line
                 </div>
               </div>
