@@ -40,13 +40,35 @@ export const PersonalizedAICoaching = () => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const generateInsights = async () => {
-    if (!logEntries.length) return;
+    if (!logEntries.length || !user) return;
     
     setIsLoading(true);
     try {
       const result = await generatePersonalizedDashboardInsights(logEntries, userProfile);
       setInsights(result);
       setLastUpdated(new Date());
+      
+      // Store insights in history for future reference
+      try {
+        await fetch('/api/ai/insights-history', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.uid,
+            insightType: 'coaching',
+            title: 'Weekly AI Coaching Insights',
+            content: `Focus: ${result.weeklyFocus} | Skill Development: ${result.skillDevelopmentTip} | Supervision Topic: ${result.supervisionTopic}`,
+            sourceType: 'dashboard_coaching',
+            sourceData: result,
+            metadata: {
+              sessionsAnalyzed: logEntries.length,
+              triggerConditions: ['dashboard_refresh']
+            }
+          })
+        });
+      } catch (storageError) {
+        console.log('Note: Insights generated but not stored for history viewing');
+      }
     } catch (error) {
       console.error("Error generating insights:", error);
     } finally {

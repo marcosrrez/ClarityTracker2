@@ -938,7 +938,7 @@ export const aiInsightsHistoryTable = pgTable('ai_insights_history', {
   sourceType: varchar('source_type', { length: 50 }).notNull(),
   sourceData: jsonb('source_data'),
   metadata: jsonb('metadata'),
-  helpful: varchar('helpful', { length: 10 }),
+  helpful: varchar('helpful', { length: 10 }), // stores 'true', 'false', or null
   actionTaken: text('action_taken'),
   userFeedback: text('user_feedback'),
   createdAt: timestamp('created_at').defaultNow().notNull(),

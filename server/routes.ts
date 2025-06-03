@@ -1272,55 +1272,10 @@ Please provide a helpful, professional response that's personalized to their sit
   app.get('/api/ai/insights-history/:userId', async (req, res) => {
     try {
       const { userId } = req.params;
-      const insights: any[] = [];
+      const { type } = req.query;
       
-      // Get competency analysis insights
-      const competencyAnalyses = await storage.getCompetencyAnalysis(userId);
-      competencyAnalyses.forEach((analysis) => {
-        insights.push({
-          id: `competency-${analysis.id}`,
-          type: 'competency-analysis',
-          title: 'Competency Assessment',
-          content: `Professional competency analysis covering development areas and supervision discussion points`,
-          createdAt: analysis.analyzedAt,
-          helpful: null,
-          actionTaken: null,
-          data: analysis
-        });
-      });
-      
-      // Get pattern analysis insights
-      const patternAnalyses = await storage.getPatternAnalysis(userId);
-      patternAnalyses.forEach((pattern) => {
-        insights.push({
-          id: `pattern-${pattern.id}`,
-          type: 'pattern-alert',
-          title: `${pattern.alertType.charAt(0).toUpperCase() + pattern.alertType.slice(1)} Pattern Alert`,
-          content: pattern.description,
-          createdAt: pattern.createdAt,
-          helpful: null,
-          actionTaken: null,
-          data: pattern
-        });
-      });
-      
-      // Get supervision intelligence insights
-      const supervisionIntelligence = await storage.getSupervisionIntelligence(userId);
-      supervisionIntelligence.forEach((intel) => {
-        insights.push({
-          id: `supervision-${intel.id}`,
-          type: 'supervision-prep',
-          title: `Weekly Supervision Preparation - ${new Date(intel.weekStartDate).toLocaleDateString()}`,
-          content: `AI-generated supervision agenda and weekly analysis based on ${intel.sessionDataAnalyzed} sessions`,
-          createdAt: intel.generatedAt,
-          helpful: null,
-          actionTaken: null,
-          data: intel
-        });
-      });
-      
-      // Sort insights by date (newest first)
-      insights.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      // Get stored AI insights from database
+      const insights = await storage.getAiInsightsHistory(userId, type as string);
       
       res.json(insights);
     } catch (error) {
@@ -1328,6 +1283,31 @@ Please provide a helpful, professional response that's personalized to their sit
       res.status(500).json({ error: 'Failed to fetch AI insights history' });
     }
   });
+
+  // Create new AI insight (for storing dashboard coaching insights)
+  app.post('/api/ai/insights-history', async (req, res) => {
+    try {
+      const insight = await storage.createAiInsight(req.body);
+      res.json(insight);
+    } catch (error) {
+      console.error('Error creating AI insight:', error);
+      res.status(500).json({ error: 'Failed to create AI insight' });
+    }
+  });
+
+  // Update AI insight feedback
+  app.patch('/api/ai/insights-history/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.updateAiInsight(id, req.body);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error updating AI insight:', error);
+      res.status(500).json({ error: 'Failed to update AI insight' });
+    }
+  });
+
+
 
   // Email AI insights history
   app.post('/api/insights/email-history', async (req, res) => {
