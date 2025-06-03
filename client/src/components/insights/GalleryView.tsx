@@ -373,7 +373,7 @@ export function GalleryView({ userId }: GalleryViewProps) {
                       Key Insights
                     </h2>
                     <div 
-                      className="text-gray-700 dark:text-gray-300 leading-relaxed text-lg"
+                      className="leading-relaxed text-lg"
                       style={{ 
                         fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", serif',
                         lineHeight: '1.75',
@@ -381,7 +381,7 @@ export function GalleryView({ userId }: GalleryViewProps) {
                         letterSpacing: '0.015em'
                       }}
                     >
-                      {cleanText(expandedCard.analysis.summary)}
+                      {formatSessionNotes(expandedCard.analysis.summary)}
                     </div>
                   </div>
                 )}
@@ -501,7 +501,7 @@ export function GalleryView({ userId }: GalleryViewProps) {
                           }}
                         >
                           {expandedCard.analysis.learningThemes.map((theme: string, index: number) => (
-                            <div key={index}>• {cleanText(theme)}</div>
+                            <div key={index}>• {formatSessionNotes(theme)}</div>
                           ))}
                         </div>
                       </div>
