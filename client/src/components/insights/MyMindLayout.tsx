@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Calendar, Sparkles, Search, Plus, Bold, Italic, Type, Paperclip, Edit3, Check, Filter, Tags, Upload } from "lucide-react";
+import { Calendar, Sparkles, Search, Plus, Bold, Italic, Type, Paperclip, Edit3, Check, Filter, Tags, Upload, Download, Mail } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { createInsightCard } from "@/lib/firestore";
@@ -90,6 +90,91 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
     }
   }, [lastScrollY]);
 
+  // Fetch historical AI insights when AI insights filter is selected
+  useEffect(() => {
+    const fetchHistoricalInsights = async () => {
+      if (selectedSmartSpace === "ai-insights" && user?.uid) {
+        try {
+          const response = await fetch(`/api/ai/insights-history/${user.uid}`);
+          if (response.ok) {
+            const insights = await response.json();
+            setHistoricalInsights(insights);
+          }
+        } catch (error) {
+          console.error('Error fetching historical insights:', error);
+        }
+      }
+    };
+
+    fetchHistoricalInsights();
+  }, [selectedSmartSpace, user?.uid]);
+
+  // Export historical insights to CSV
+  const handleExportInsights = () => {
+    if (selectedSmartSpace !== "ai-insights" || historicalInsights.length === 0) return;
+
+    const headers = ['Date', 'Type', 'Title', 'Content', 'Action Taken', 'Helpful'];
+    const csvData = historicalInsights.map(insight => [
+      new Date(insight.createdAt).toLocaleDateString(),
+      insight.type,
+      insight.title,
+      insight.content.replace(/"/g, '""'),
+      insight.actionTaken || '',
+      insight.helpful ? 'Yes' : 'No'
+    ]);
+
+    const csvContent = [headers, ...csvData]
+      .map(row => row.map(field => `"${field}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `ai-insights-history-${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+
+    toast({
+      title: "Export Complete",
+      description: "Your AI insights history has been downloaded as CSV.",
+    });
+  };
+
+  // Email historical insights
+  const handleEmailInsights = async () => {
+    if (selectedSmartSpace !== "ai-insights" || historicalInsights.length === 0) return;
+
+    try {
+      const response = await fetch('/api/insights/email-history', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user?.uid,
+          insights: historicalInsights,
+          userEmail: user?.email
+        }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Email Sent",
+          description: "Your AI insights history has been emailed to you.",
+        });
+      } else {
+        throw new Error('Failed to send email');
+      }
+    } catch (error) {
+      toast({
+        title: "Email Failed",
+        description: "Failed to send email. Please try again or use the export feature.",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Smart search functionality for URLs and content
   const handleSmartSearch = async (query: string) => {
     if (!user || !query.trim()) return;
@@ -154,8 +239,28 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
     }
   };
 
+  // Get items to display based on selected Smart Space
+  const getDisplayItems = () => {
+    if (selectedSmartSpace === "ai-insights") {
+      // Return historical insights when AI insights filter is selected
+      return historicalInsights.map(insight => ({
+        id: insight.id,
+        dateOfContact: new Date(insight.createdAt),
+        clientContactHours: 0, // AI insights don't have contact hours
+        notes: insight.content,
+        analysis: {
+          summary: insight.title,
+          type: insight.type,
+          helpful: insight.helpful,
+          actionTaken: insight.actionTaken
+        }
+      }));
+    }
+    return galleryItems;
+  };
+
   // Super smart search - incredibly easy and intuitive
-  const filteredItems = galleryItems.filter(item => {
+  const filteredItems = getDisplayItems().filter(item => {
     const query = searchQuery.toLowerCase().trim();
     if (!query) return true;
     
@@ -475,6 +580,32 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                   Challenging Cases
                 </Button>
               </div>
+              
+              {/* Export/Email buttons for AI Insights History */}
+              {selectedSmartSpace === "ai-insights" && historicalInsights.length > 0 && (
+                <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleExportInsights}
+                      className="text-xs flex items-center gap-1"
+                    >
+                      <Download className="h-3 w-3" />
+                      Export CSV
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleEmailInsights}
+                      className="text-xs flex items-center gap-1"
+                    >
+                      <Mail className="h-3 w-3" />
+                      Email Report
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
