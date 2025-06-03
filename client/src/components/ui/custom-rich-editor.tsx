@@ -37,7 +37,7 @@ export const CustomRichEditor = ({
     editorProps: {
       attributes: {
         class: `prose prose-sm max-w-none focus:outline-none ${className}`,
-        style: `min-height: ${minHeight}; padding: 16px; font-family: Charter, Georgia, serif; font-size: 18px; line-height: 1.7; color: rgb(31, 41, 55);`,
+        style: `min-height: ${minHeight}; padding: 0; font-family: Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", "Droid Serif", Times, "Source Serif Pro", serif; font-size: 18px; line-height: 1.75; color: rgb(31, 41, 55); font-weight: 400; letter-spacing: 0.015em;`,
       },
     },
   });

@@ -792,10 +792,12 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                       }
                     }
                   }}
-                  className="w-full text-5xl font-light bg-transparent border-none outline-none placeholder:text-gray-300 dark:placeholder:text-gray-600 text-gray-800 dark:text-gray-200 mb-4"
+                  className="w-full text-4xl font-normal bg-transparent border-none outline-none placeholder:text-gray-300 dark:placeholder:text-gray-600 text-gray-800 dark:text-gray-200 mb-6"
                   style={{ 
-                    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                    fontWeight: '300'
+                    fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", "Droid Serif", Times, "Source Serif Pro", serif',
+                    fontWeight: '400',
+                    lineHeight: '1.2',
+                    letterSpacing: '0.015em'
                   }}
                 />
                 
@@ -821,7 +823,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700"
+                  className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700 w-8 h-8 rounded-full"
                   onClick={() => {
                     if (editorInstance) {
                       editorInstance.chain().focus().toggleBold().run();
@@ -829,14 +831,12 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                   }}
                   title="Bold (Ctrl+B)"
                 >
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 6h4a4 4 0 014 4 4 4 0 01-4 4H8m0-8v8m0-8V4a2 2 0 012-2h2.172a2 2 0 011.414.586l.414.414A2 2 0 0114.828 4H17a2 2 0 012 2v2.172a2 2 0 01-.586 1.414l-.414.414A2 2 0 0117 10.828V12a2 2 0 01-2 2h-2.172a2 2 0 01-1.414-.586l-.414-.414A2 2 0 0110.828 12H8" />
-                  </svg>
+                  <span className="text-sm font-bold">B</span>
                 </Button>
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700"
+                  className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700 w-8 h-8 rounded-full"
                   onClick={() => {
                     if (editorInstance) {
                       editorInstance.chain().focus().toggleItalic().run();
@@ -844,14 +844,12 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                   }}
                   title="Italic (Ctrl+I)"
                 >
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 4v16m4-16l-4 16" />
-                  </svg>
+                  <span className="text-sm font-serif italic">I</span>
                 </Button>
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700"
+                  className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700 w-8 h-8 rounded-full"
                   onClick={() => {
                     if (editorInstance) {
                       editorInstance.chain().focus().toggleHeading({ level: 2 }).run();
@@ -859,14 +857,12 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                   }}
                   title="Heading"
                 >
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
-                  </svg>
+                  <span className="text-sm font-bold">T</span>
                 </Button>
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700"
+                  className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700 w-8 h-8 rounded-full"
                   onClick={() => {
                     if (editorInstance) {
                       editorInstance.chain().focus().toggleBulletList().run();
@@ -875,19 +871,20 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                   title="Bullet List"
                 >
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v6a2 2 0 002 2h6a2 2 0 002-2V7a2 2 0 00-2-2H9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 9h6m-6 4h6" />
                   </svg>
                 </Button>
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700"
+                  className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700 w-8 h-8 rounded-full"
                   onClick={() => {
                     if (editorInstance) {
                       editorInstance.chain().focus().setHorizontalRule().run();
                     }
                   }}
-                  title="Add Separator"
+                  title="Add Line"
                 >
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
