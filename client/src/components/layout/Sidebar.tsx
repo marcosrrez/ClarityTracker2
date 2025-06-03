@@ -36,47 +36,45 @@ import {
 } from "lucide-react";
 
 const getNavigationItems = (accountType: string, permissions: any) => {
-  const baseItems = [
-    { href: "/dashboard", label: "Dashboard", icon: ChartLine },
-    { href: "/add-entry", label: "Add Entry", icon: Plus },
+  // Routine-inspired organization: Primary navigation first, admin/settings separated
+  const primaryItems = [
+    { href: "/dashboard", label: "Dashboard", icon: ChartLine, group: "main" },
+    { href: "/add-entry", label: "Add Entry", icon: Plus, group: "main" },
+    { href: "/ai", label: "AI Assistant", icon: Brain, group: "main" },
   ];
 
-  const individualItems = [
-    { href: "/insights", label: "Insights & Resources", icon: Lightbulb },
-    { href: "/summary", label: "Summary", icon: BarChart3 },
-    { href: "/requirements", label: "Requirements", icon: ClipboardList },
+  const trackingItems = [
+    { href: "/insights", label: "Insights", icon: Lightbulb, group: "tracking" },
+    { href: "/summary", label: "Summary", icon: BarChart3, group: "tracking" },
+    { href: "/requirements", label: "Requirements", icon: ClipboardList, group: "tracking" },
   ];
 
   const supervisorItems = [
-    { href: "/supervisees", label: "Supervisees", icon: Users },
-    { href: "/compliance", label: "Compliance", icon: Shield },
-    { href: "/reports", label: "Reports", icon: FileText },
-    ...individualItems,
+    { href: "/supervisees", label: "Supervisees", icon: Users, group: "supervision" },
+    { href: "/compliance", label: "Compliance", icon: Shield, group: "supervision" },
+    { href: "/reports", label: "Reports", icon: FileText, group: "supervision" },
   ];
 
   const enterpriseItems = [
-    { href: "/organization", label: "Organization", icon: Building2 },
-    { href: "/user-management", label: "User Management", icon: Users },
-    ...supervisorItems,
+    { href: "/organization", label: "Organization", icon: Building2, group: "admin" },
+    { href: "/user-management", label: "User Management", icon: Users, group: "admin" },
   ];
 
-  const commonItems = [
-    { href: "/settings", label: "Settings", icon: Settings },
-    { href: "/feedback", label: "Feedback", icon: MessageSquare },
-    { href: "/help", label: "Help", icon: HelpCircle },
+  const settingsItems = [
+    { href: "/settings", label: "Settings", icon: Settings, group: "settings" },
+    { href: "/feedback", label: "Feedback", icon: MessageSquare, group: "settings" },
+    { href: "/help", label: "Help", icon: HelpCircle, group: "settings" },
   ];
 
-  let items = [...baseItems];
+  let items = [...primaryItems, ...trackingItems];
 
   if (accountType === 'enterprise') {
-    items = [...items, ...enterpriseItems];
+    items = [...items, ...supervisorItems, ...enterpriseItems];
   } else if (accountType === 'supervisor') {
     items = [...items, ...supervisorItems];
-  } else {
-    items = [...items, ...individualItems];
   }
 
-  return [...items, ...commonItems];
+  return [...items, ...settingsItems];
 };
 
 interface SidebarProps {
@@ -136,37 +134,71 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
           <NotificationCenter />
         </div>
 
-        <nav className="flex-1 p-4 space-y-2">
-          {navigationItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location === item.href;
+        <nav className="flex-1 p-4 space-y-6">
+          {/* Group navigation items by category like Routine */}
+          {['main', 'tracking', 'supervision', 'admin'].map((group) => {
+            const groupItems = navigationItems.filter(item => item.group === group);
+            if (groupItems.length === 0) return null;
             
             return (
-              <Link key={item.href} href={item.href}>
-                <div
-                  className={`group flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
-                    isActive
-                      ? 'bg-blue-600 text-white shadow-lg'
-                      : 'text-gray-700 hover:text-black hover:bg-gray-100'
-                  }`}
-                  onClick={() => onOpenChange(false)}
-                >
-                  <div className={`flex-shrink-0 p-2 rounded-lg ${
-                    isActive 
-                      ? 'bg-white/20' 
-                      : 'bg-gray-200 group-hover:bg-gray-300'
-                  }`}>
-                    <Icon className={`h-4 w-4 ${
-                      isActive 
-                        ? 'text-white' 
-                        : 'text-gray-600 group-hover:text-gray-700'
-                    }`} />
-                  </div>
-                  <span className="truncate font-medium">{item.label}</span>
-                </div>
-              </Link>
+              <div key={group} className="space-y-1">
+                {groupItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = location === item.href;
+                  
+                  return (
+                    <Link key={item.href} href={item.href}>
+                      <div
+                        className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer ${
+                          isActive
+                            ? 'bg-blue-600 text-white shadow-sm'
+                            : 'text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
+                        }`}
+                        onClick={() => onOpenChange(false)}
+                      >
+                        <Icon className={`h-4 w-4 flex-shrink-0 ${
+                          isActive 
+                            ? 'text-white' 
+                            : 'text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300'
+                        }`} />
+                        <span className="truncate">{item.label}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
             );
           })}
+          
+          {/* Settings section separated like Routine */}
+          <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="space-y-1">
+              {navigationItems.filter(item => item.group === 'settings').map((item) => {
+                const Icon = item.icon;
+                const isActive = location === item.href;
+                
+                return (
+                  <Link key={item.href} href={item.href}>
+                    <div
+                      className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer ${
+                        isActive
+                          ? 'bg-blue-600 text-white shadow-sm'
+                          : 'text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
+                      }`}
+                      onClick={() => onOpenChange(false)}
+                    >
+                      <Icon className={`h-4 w-4 flex-shrink-0 ${
+                        isActive 
+                          ? 'text-white' 
+                          : 'text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300'
+                      }`} />
+                      <span className="truncate">{item.label}</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
 
           <Separator className="my-4" />
 

@@ -53,66 +53,6 @@ export const WelcomeSection = () => {
     }
     
     setPersonalizedMessage(message);
-    
-    if (accountType === 'supervisor' || accountType === 'enterprise') {
-      // Supervisor-specific messaging focused on managing supervisees
-      if (sessionCount === 0) {
-        message = `${greeting}! Ready to start managing your supervisees? Begin tracking supervision sessions and supporting their professional development.`;
-      } else if (daysSinceLastSession === 0) {
-        message = `${greeting}! Great to see you back today. Your continued supervision is helping shape the next generation of counselors.`;
-      } else if (daysSinceLastSession === 1) {
-        message = `${greeting}! Welcome back from yesterday. Ready to continue your important supervision work?`;
-      } else if (daysSinceLastSession && daysSinceLastSession <= 3) {
-        message = `${greeting}! Good to have you back. Let's check on your supervisees' progress and schedule any needed sessions.`;
-      } else if (daysSinceLastSession && daysSinceLastSession <= 7) {
-        message = `${greeting}! It's been a week since your last supervision session. Time to reconnect with your supervisees.`;
-      } else if (daysSinceLastSession && daysSinceLastSession > 7) {
-        message = `${greeting}! Welcome back! Let's get your supervision schedule back on track.`;
-      } else if (isWeekend && timeOfDay < 12) {
-        message = `${greeting}! Taking time on the weekend for supervision planning - your supervisees are fortunate to have you.`;
-      } else if (timeOfDay >= 22) {
-        message = `${greeting}! Working late on supervision? Don't forget to document today's supervisory activities.`;
-      } else if (timeOfDay < 6) {
-        message = `${greeting}, early bird! Early supervision planning sets a strong foundation for the day.`;
-      }
-    } else {
-      // Individual user messaging focused on personal LPC journey
-      if (sessionCount === 0) {
-        message = `${greeting}! Ready to start your professional journey? Let's log your first session and begin tracking your path to LPC licensure.`;
-      } else if (daysSinceLastSession === 0) {
-        message = `${greeting}! Great to see you back today. You're building excellent momentum in your professional development.`;
-      } else if (daysSinceLastSession === 1) {
-        message = `${greeting}! Welcome back from yesterday. Ready to continue documenting your growth and insights?`;
-      } else if (daysSinceLastSession && daysSinceLastSession <= 3) {
-        message = `${greeting}! Good to have you back. Let's catch up on your recent sessions and keep that progress flowing.`;
-      } else if (daysSinceLastSession && daysSinceLastSession <= 7) {
-        message = `${greeting}! It's been a week since your last entry. Ready to document this week's professional experiences?`;
-      } else if (daysSinceLastSession && daysSinceLastSession > 7) {
-        message = `${greeting}! Welcome back! Let's get your professional development tracking back on track.`;
-      } else if (isWeekend && timeOfDay < 12) {
-        message = `${greeting}! Taking time on the weekend to reflect on your professional growth - that's dedication!`;
-      } else if (timeOfDay >= 22) {
-        message = `${greeting}! Burning the midnight oil? Don't forget to capture today's insights while they're fresh.`;
-      } else if (timeOfDay < 6) {
-        message = `${greeting}, early bird! Starting your day with professional reflection sets a powerful tone.`;
-      }
-    }
-    
-    // Add milestone celebrations
-    if (totalHours >= 1000 && totalHours < 1010) {
-      message += " 🎉 Congratulations on reaching 1,000+ hours - a major milestone in your journey!";
-    } else if (totalHours >= 500 && totalHours < 510) {
-      message += " 🌟 You've hit 500+ hours! You're making incredible progress toward your goals.";
-    } else if (sessionCount % 50 === 0 && sessionCount > 0) {
-      message += ` 🎯 Impressive! You've logged ${sessionCount} sessions - your consistency is paying off.`;
-    }
-    
-    // Default fallback if no specific condition matched
-    if (!message) {
-      message = `${greeting}! Ready to continue your professional development journey?`;
-    }
-    
-    setPersonalizedMessage(message);
   };
 
   return (
