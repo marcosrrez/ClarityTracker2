@@ -442,7 +442,7 @@ export function GalleryView({ userId }: GalleryViewProps) {
                     </div>
                   ) : (
                     <div 
-                      className="text-gray-700 dark:text-gray-300 leading-relaxed text-lg cursor-text w-full"
+                      className="leading-relaxed text-lg cursor-text w-full"
                       style={{ 
                         fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", serif',
                         lineHeight: '1.75',
@@ -451,7 +451,7 @@ export function GalleryView({ userId }: GalleryViewProps) {
                       }}
                       onClick={() => handleEditNotes(expandedCard)}
                     >
-                      {cleanText(expandedCard.notes) || "No notes available for this session."}
+                      {formatSessionNotes(expandedCard.notes)}
                     </div>
                   )}
                 </div>
