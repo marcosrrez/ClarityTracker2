@@ -39,11 +39,10 @@ const getNavigationItems = (accountType: string, permissions: any) => {
   const primaryItems = [
     { href: "/dashboard", label: "Dashboard", icon: ChartLine, group: "main" },
     { href: "/add-entry", label: "Add Entry", icon: Plus, group: "main" },
-    { href: "/ai", label: "AI Assistant", icon: Brain, group: "main" },
   ];
 
   const trackingItems = [
-    { href: "/insights", label: "Insights", icon: Lightbulb, group: "tracking" },
+    { href: "/insights", label: "AI Coach & Insights", icon: Brain, group: "tracking" },
     { href: "/summary", label: "Summary", icon: BarChart3, group: "tracking" },
     { href: "/requirements", label: "Requirements", icon: ClipboardList, group: "tracking" },
   ];
