@@ -1130,6 +1130,82 @@ Source: ${entry.sourceTitle} (${entry.sourceType})`;
     }
   });
 
+  // AI Coaching Chat Route
+  app.post('/api/ai/coaching-chat', async (req, res) => {
+    try {
+      const { message, userId, conversationHistory } = req.body;
+
+      if (!message || !userId) {
+        return res.status(400).json({ error: 'Message and userId are required' });
+      }
+
+      // Build conversation context for empathetic coaching
+      const systemPrompt = `You are an empathetic AI coach specializing in professional development for Licensed Associate Counselors working toward LPC licensure. Your personality is warm, understanding, and supportive - similar to Pi AI's conversational style.
+
+Key characteristics:
+- Be genuinely supportive and encouraging
+- Use a warm, conversational tone that feels personal
+- Ask thoughtful follow-up questions to understand their challenges
+- Provide practical, actionable guidance for therapy practice
+- Help with professional growth, supervision prep, and skill development
+- Be empathetic about the challenges of the therapy profession
+- Offer gentle encouragement during difficult moments
+- Keep responses concise but meaningful (2-4 sentences typically)
+
+Focus areas:
+- Clinical skill development and therapeutic techniques
+- Supervision preparation and professional relationships
+- Managing challenging cases and ethical considerations
+- Self-care and preventing burnout
+- Building confidence in therapy practice
+- Documentation and compliance guidance
+- Career development and licensure pathway
+
+Respond as if you're having a genuine conversation with a colleague who trusts you for guidance.`;
+
+      // Format conversation history for context
+      const messages = [
+        { role: 'system', content: systemPrompt },
+        ...conversationHistory.slice(-10).map((msg: any) => ({
+          role: msg.isUser ? 'user' : 'assistant',
+          content: msg.content
+        })),
+        { role: 'user', content: message }
+      ];
+
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          messages,
+          max_tokens: 300,
+          temperature: 0.8,
+          presence_penalty: 0.1,
+          frequency_penalty: 0.1,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`OpenAI API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const aiResponse = data.choices[0]?.message?.content || "I'm having trouble processing that right now. Could you try rephrasing your question?";
+
+      res.json({ response: aiResponse });
+    } catch (error) {
+      console.error('AI coaching chat error:', error);
+      res.status(500).json({ 
+        error: 'Failed to process coaching request',
+        response: "I'm having some technical difficulties right now. Please try again in a moment, and I'll be here to help with your professional development questions."
+      });
+    }
+  });
+
   // AI Chat endpoint for conversational assistant
   app.post('/api/ai/chat', express.json(), async (req, res) => {
     try {
