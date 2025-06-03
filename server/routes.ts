@@ -1233,41 +1233,6 @@ Please provide a helpful, professional response that's personalized to their sit
   });
 
   // Insights History endpoint
-  app.get('/api/ai/insights-history/:userId', async (req, res) => {
-    try {
-      const { userId } = req.params;
-      
-      // Get user's actual session data to generate historical insights
-      const entries = await storage.getEntriesByUserId(userId);
-      const historicalInsights = [];
-      
-      if (entries && entries.length > 0) {
-        entries.forEach((entry, index) => {
-          if (index % 2 === 0) { // Generate insight for every other session
-            historicalInsights.push({
-              id: `insight-${entry.id}`,
-              type: index % 3 === 0 ? 'growth_observation' : 
-                    index % 3 === 1 ? 'pattern_alert' : 'competency_update',
-              title: `Session Analysis: ${entry.dateOfContact ? new Date(entry.dateOfContact).toLocaleDateString() : 'Recent Session'}`,
-              content: `Analysis of ${entry.clientContactHours} hour session${entry.clientContactHours !== 1 ? 's' : ''} with focus on professional development.`,
-              helpful: Math.random() > 0.3 ? true : undefined,
-              createdAt: entry.createdAt || new Date(),
-              relatedSessionId: entry.id
-            });
-          }
-        });
-      }
-      
-      // Sort by creation date, newest first
-      historicalInsights.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-      
-      res.json(historicalInsights);
-    } catch (error) {
-      console.error('Error fetching insights history:', error);
-      res.status(500).json({ error: 'Failed to fetch insights history' });
-    }
-  });
-
   // Get AI insights history for a user
   app.get('/api/ai/insights-history/:userId', async (req, res) => {
     try {
