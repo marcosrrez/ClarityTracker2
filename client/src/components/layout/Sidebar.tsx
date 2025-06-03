@@ -192,19 +192,6 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
           <Button
             variant="ghost"
             className="w-full justify-start gap-3 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl h-10"
-            onClick={toggleTheme}
-          >
-            {theme === "light" ? (
-              <Moon className="h-4 w-4" />
-            ) : (
-              <Sun className="h-4 w-4" />
-            )}
-            <span>{theme === "light" ? "Dark Mode" : "Light Mode"}</span>
-          </Button>
-
-          <Button
-            variant="ghost"
-            className="w-full justify-start gap-3 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl h-10"
             onClick={handleDownload}
           >
             <Download className="h-4 w-4" />

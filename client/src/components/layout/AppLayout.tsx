@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { Button } from "@/components/ui/button";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
-import { Sprout, Menu, Eye, Moon, Sun } from "lucide-react";
-import { useTheme } from "@/contexts/ThemeContext";
+import { NotificationBadge } from "@/components/notifications/NotificationBadge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Sprout, Menu, Eye } from "lucide-react";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -12,7 +13,6 @@ interface AppLayoutProps {
 export const AppLayout = ({ children }: AppLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
-  const { theme, toggleTheme } = useTheme();
 
   if (focusMode) {
     return (
@@ -50,15 +50,26 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
             <h1 className="text-xl font-semibold text-foreground tracking-tight">ClarityLog</h1>
           </div>
           <div className="flex items-center space-x-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setFocusMode(true)}
-              className="ive-button text-muted-foreground hover:text-foreground"
-            >
-              <Eye className="h-4 w-4 mr-2" />
-              Focus
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setFocusMode(true)}
+                    className="ive-button text-muted-foreground hover:text-foreground"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Enter Focus Mode</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <NotificationBadge />
+
             <Button
               variant="ghost"
               size="sm"

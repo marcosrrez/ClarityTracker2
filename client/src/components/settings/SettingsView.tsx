@@ -13,8 +13,9 @@ import { SMSSettings } from "./SMSSettings";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { Calendar as CalendarIcon, Save, AlertTriangle, Shield, Download, Upload, FileSpreadsheet, Target, User, Palette, Settings } from "lucide-react";
+import { Calendar as CalendarIcon, Save, AlertTriangle, Shield, Download, Upload, FileSpreadsheet, Target, User, Palette, Settings, Moon, Sun } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { useTheme } from "@/contexts/ThemeContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
 import { useAppSettings, useLogEntries } from "@/hooks/use-firestore";
@@ -29,6 +30,7 @@ export const SettingsView = () => {
   const { settings, loading, refetch } = useAppSettings();
   const { entries } = useLogEntries();
   const { toast } = useToast();
+  const { theme, toggleTheme } = useTheme();
   
   const [isSaving, setIsSaving] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
