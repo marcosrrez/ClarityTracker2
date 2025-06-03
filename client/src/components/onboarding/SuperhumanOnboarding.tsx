@@ -26,6 +26,13 @@ export function SuperhumanOnboarding({ onComplete, userType }: SuperhumanOnboard
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [firstSessionData, setFirstSessionData] = useState({
+    date: new Date().toISOString().split('T')[0],
+    hours: 1.5,
+    sessionType: 'Individual Therapy',
+    notes: ''
+  });
+  const [isCreatingEntry, setIsCreatingEntry] = useState(false);
   const { user } = useAuth();
   const quote = getRandomQuote(['professional development'], 'intermediate');
 
@@ -97,8 +104,46 @@ export function SuperhumanOnboarding({ onComplete, userType }: SuperhumanOnboard
           </div>
         </div>
       )
+    },
+    {
+      id: 'first-session',
+      title: 'Create Your First Entry',
+      subtitle: 'Start your LPC journey today',
+      description: 'Log your most recent session to see ClarityLog in action and begin tracking your progress.',
+      icon: <Target className="h-12 w-12 text-orange-500" />,
+      benefit: 'Immediate progress tracking',
+      isInteractive: true
     }
   ];
+
+  const handleCreateFirstEntry = async () => {
+    setIsCreatingEntry(true);
+    
+    try {
+      const response = await fetch('/api/entries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dateOfContact: firstSessionData.date,
+          clientContactHours: firstSessionData.hours,
+          sessionType: firstSessionData.sessionType,
+          notes: firstSessionData.notes,
+          isOnboardingEntry: true
+        })
+      });
+
+      if (response.ok) {
+        setCompletedSteps(prev => [...prev, currentStep]);
+        setTimeout(() => {
+          onComplete();
+        }, 800);
+      }
+    } catch (error) {
+      console.error('Error creating first entry:', error);
+    } finally {
+      setIsCreatingEntry(false);
+    }
+  };
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
@@ -109,6 +154,8 @@ export function SuperhumanOnboarding({ onComplete, userType }: SuperhumanOnboard
         setCurrentStep(currentStep + 1);
         setIsAnimating(false);
       }, 200);
+    } else if (steps[currentStep].isInteractive) {
+      handleCreateFirstEntry();
     } else {
       setCompletedSteps(prev => [...prev, currentStep]);
       setTimeout(onComplete, 800);
@@ -187,34 +234,96 @@ export function SuperhumanOnboarding({ onComplete, userType }: SuperhumanOnboard
                 </p>
               </motion.div>
 
-              {/* Feature Demo */}
+              {/* Feature Demo or Interactive Form */}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5, duration: 0.4 }}
                 className="max-w-md mx-auto mb-8"
               >
-                {currentStepData.demo}
+                {currentStepData.isInteractive ? (
+                  <Card className="p-6 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 border-orange-200 dark:border-orange-800">
+                    <CardContent className="space-y-4 p-0">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Session Date
+                          </label>
+                          <input
+                            type="date"
+                            value={firstSessionData.date}
+                            onChange={(e) => setFirstSessionData(prev => ({ ...prev, date: e.target.value }))}
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Hours
+                          </label>
+                          <input
+                            type="number"
+                            step="0.25"
+                            value={firstSessionData.hours}
+                            onChange={(e) => setFirstSessionData(prev => ({ ...prev, hours: parseFloat(e.target.value) }))}
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Session Type
+                        </label>
+                        <select
+                          value={firstSessionData.sessionType}
+                          onChange={(e) => setFirstSessionData(prev => ({ ...prev, sessionType: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                        >
+                          <option>Individual Therapy</option>
+                          <option>Group Therapy</option>
+                          <option>Family Therapy</option>
+                          <option>Assessment</option>
+                          <option>Crisis Intervention</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Brief Notes (Optional)
+                        </label>
+                        <textarea
+                          value={firstSessionData.notes}
+                          onChange={(e) => setFirstSessionData(prev => ({ ...prev, notes: e.target.value }))}
+                          placeholder="Focus areas, interventions used, client response..."
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-none"
+                          rows={3}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  currentStepData.demo
+                )}
               </motion.div>
 
-              {/* Keyboard Shortcut & Benefit */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.6, duration: 0.4 }}
-                className="flex items-center justify-center gap-6 mb-8"
-              >
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                  <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
-                    {currentStepData.keyboardShortcut}
-                  </kbd>
-                  <span>Quick access</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Sparkles className="h-4 w-4 text-yellow-500" />
-                  <span className="text-gray-600 dark:text-gray-400">{currentStepData.benefit}</span>
-                </div>
-              </motion.div>
+              {/* Keyboard Shortcut & Benefit - only for non-interactive steps */}
+              {!currentStepData.isInteractive && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.6, duration: 0.4 }}
+                  className="flex items-center justify-center gap-6 mb-8"
+                >
+                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                    <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
+                      {currentStepData.keyboardShortcut}
+                    </kbd>
+                    <span>Quick access</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Sparkles className="h-4 w-4 text-yellow-500" />
+                    <span className="text-gray-600 dark:text-gray-400">{currentStepData.benefit}</span>
+                  </div>
+                </motion.div>
+              )}
             </div>
 
             {/* Action Button */}
@@ -227,10 +336,12 @@ export function SuperhumanOnboarding({ onComplete, userType }: SuperhumanOnboard
                 onClick={handleNext}
                 size="lg"
                 className="px-8 py-3 text-lg font-medium"
-                disabled={isAnimating}
+                disabled={isAnimating || isCreatingEntry}
               >
-                {isLastStep ? 'Start Using ClarityLog' : 'Next'}
-                <ArrowRight className="ml-2 h-5 w-5" />
+                {isCreatingEntry ? 'Creating Your First Entry...' : 
+                 currentStepData.isInteractive ? 'Create Entry & Continue' :
+                 isLastStep ? 'Start Using ClarityLog' : 'Next'}
+                {!isCreatingEntry && <ArrowRight className="ml-2 h-5 w-5" />}
               </Button>
             </motion.div>
 
