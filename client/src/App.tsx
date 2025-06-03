@@ -34,6 +34,7 @@ import SpacedRepetition from "@/pages/SpacedRepetition";
 import AIInsights from "@/pages/AIInsights";
 import IntelligenceHub from "@/pages/IntelligenceHub";
 import AICoachPage from "@/pages/AICoachPage";
+import { AIPage } from "@/pages/ai";
 
 import NotFound from "@/pages/not-found";
 
@@ -49,6 +50,7 @@ function Router() {
       {/* V1 Legacy Pages */}
       <Route path="/dashboard" component={DashboardPage} />
       <Route path="/add-entry" component={AddEntryPage} />
+      <Route path="/ai" component={AIPage} />
       <Route path="/insights">
         <InsightsPage />
       </Route>
