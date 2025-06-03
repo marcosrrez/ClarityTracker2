@@ -1,7 +1,7 @@
 import { db } from "../db";
 import { supervisionSessionTable } from "@shared/schema";
 import { eq, desc, and, gte, lte, count } from "drizzle-orm";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 
 export interface SupervisionMetrics {
   totalHours: number;
@@ -99,7 +99,7 @@ export class SupervisionService {
     }
   ): Promise<string> {
     try {
-      const sessionId = uuidv4();
+      const sessionId = randomUUID();
 
       const newSession = {
         id: sessionId,

@@ -15,6 +15,7 @@ import { StateRequirementsEngine } from "./services/state-requirements-engine";
 import { ComplianceMonitoringService } from "./services/compliance-monitoring-service";
 import { ResourceRecommendationEngine } from "./services/resource-recommendation-engine";
 import { ConversationAnalysisService } from "./services/conversation-analysis-service";
+import { SupervisionService } from "./services/supervision-service";
 
 // Email reminder scheduling function
 async function scheduleSessionReminders(session: any, reminderDays: number) {

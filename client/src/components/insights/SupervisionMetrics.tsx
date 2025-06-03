@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Users, Clock, Calendar, TrendingUp, PenTool, Plus } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { format } from "date-fns";
 
 interface SupervisionRecord {
@@ -38,37 +39,76 @@ export function SupervisionMetrics() {
     topics: '',
     notes: ''
   });
+  const [metrics, setMetrics] = useState({
+    totalHours: 0,
+    sessionsThisMonth: 0,
+    activeSupervisors: 0,
+    progressPercentage: 0
+  });
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
 
-  // This would come from your API
-  const supervisionRecords: SupervisionRecord[] = [];
-  const recentSessions: SupervisionSession[] = [];
+  // Fetch supervision metrics
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      if (!user?.uid) return;
+      
+      try {
+        const response = await fetch(`/api/supervision/metrics/${user.uid}`);
+        if (response.ok) {
+          const data = await response.json();
+          setMetrics(data);
+        }
+      } catch (error) {
+        console.error('Error fetching supervision metrics:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const totalHours = supervisionRecords.reduce((sum, record) => sum + record.completedHours, 0);
-  const activeSuperviors = supervisionRecords.filter(r => r.status === 'active').length;
-  const thisMonthSessions = recentSessions.filter(s => 
-    s.date.getMonth() === new Date().getMonth() && 
-    s.date.getFullYear() === new Date().getFullYear()
-  ).length;
-
-  const totalRequired = supervisionRecords.reduce((sum, record) => sum + record.requiredHours, 0);
-  const progressPercentage = totalRequired > 0 ? Math.round((totalHours / totalRequired) * 100) : 0;
+    fetchMetrics();
+  }, [user?.uid]);
 
   const handleLogSession = async () => {
+    if (!user?.uid) return;
+
     try {
-      // Add API call to save session
-      toast({
-        title: "Session logged",
-        description: "Your supervision session has been recorded.",
+      const response = await fetch('/api/supervision/sessions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.uid,
+          sessionData
+        }),
       });
-      setShowSessionDialog(false);
-      setSessionData({
-        date: new Date().toISOString().split('T')[0],
-        duration: 1,
-        supervisorId: '',
-        topics: '',
-        notes: ''
-      });
+
+      if (response.ok) {
+        toast({
+          title: "Session logged",
+          description: "Your supervision session has been recorded.",
+        });
+        
+        // Refresh metrics
+        const metricsResponse = await fetch(`/api/supervision/metrics/${user.uid}`);
+        if (metricsResponse.ok) {
+          const updatedMetrics = await metricsResponse.json();
+          setMetrics(updatedMetrics);
+        }
+        
+        setShowSessionDialog(false);
+        setSessionData({
+          date: new Date().toISOString().split('T')[0],
+          duration: 1,
+          supervisorId: '',
+          topics: '',
+          notes: ''
+        });
+      } else {
+        throw new Error('Failed to save session');
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -85,7 +125,7 @@ export function SupervisionMetrics() {
         <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-sm">
           <CardContent className="p-4 text-center">
             <Users className="h-5 w-5 text-blue-600 mx-auto mb-2" />
-            <p className="text-xl font-semibold text-gray-900">{activeSuperviors}</p>
+            <p className="text-xl font-semibold text-gray-900">{metrics.activeSupervisors}</p>
             <p className="text-xs text-gray-600">Active Supervisors</p>
           </CardContent>
         </Card>
@@ -93,7 +133,7 @@ export function SupervisionMetrics() {
         <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-sm">
           <CardContent className="p-4 text-center">
             <Clock className="h-5 w-5 text-green-600 mx-auto mb-2" />
-            <p className="text-xl font-semibold text-gray-900">{totalHours}</p>
+            <p className="text-xl font-semibold text-gray-900">{metrics.totalHours}</p>
             <p className="text-xs text-gray-600">Total Hours</p>
           </CardContent>
         </Card>
@@ -101,7 +141,7 @@ export function SupervisionMetrics() {
         <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-sm">
           <CardContent className="p-4 text-center">
             <Calendar className="h-5 w-5 text-purple-600 mx-auto mb-2" />
-            <p className="text-xl font-semibold text-gray-900">{thisMonthSessions}</p>
+            <p className="text-xl font-semibold text-gray-900">{metrics.sessionsThisMonth}</p>
             <p className="text-xs text-gray-600">This Month</p>
           </CardContent>
         </Card>
@@ -109,7 +149,7 @@ export function SupervisionMetrics() {
         <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-sm">
           <CardContent className="p-4 text-center">
             <TrendingUp className="h-5 w-5 text-orange-600 mx-auto mb-2" />
-            <p className="text-xl font-semibold text-gray-900">{progressPercentage}%</p>
+            <p className="text-xl font-semibold text-gray-900">{metrics.progressPercentage}%</p>
             <p className="text-xs text-gray-600">Progress</p>
           </CardContent>
         </Card>
