@@ -901,6 +901,50 @@ export const insertPatternAnalysisSchema = patternAnalysisSchema.omit({
   createdAt: true
 });
 
+// AI Insights History Schema - stores generated AI coaching insights
+export const aiInsightsHistorySchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  insightType: z.enum(['coaching', 'competency', 'pattern', 'supervision_prep', 'cross_session']),
+  title: z.string(),
+  content: z.string(),
+  sourceType: z.enum(['dashboard_coaching', 'competency_analysis', 'pattern_detection', 'supervision_intelligence', 'cross_session_analysis']),
+  sourceData: z.record(z.any()).optional(), // Original AI response data
+  metadata: z.object({
+    sessionsAnalyzed: z.number().optional(),
+    triggerConditions: z.array(z.string()).optional(),
+    confidenceScore: z.number().optional()
+  }).optional(),
+  helpful: z.boolean().optional(),
+  actionTaken: z.string().optional(),
+  userFeedback: z.string().optional(),
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date())
+});
+
+export const insertAiInsightsHistorySchema = aiInsightsHistorySchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+
+// AI Insights History Table
+export const aiInsightsHistoryTable = pgTable('ai_insights_history', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  insightType: varchar('insight_type', { length: 50 }).notNull(),
+  title: text('title').notNull(),
+  content: text('content').notNull(),
+  sourceType: varchar('source_type', { length: 50 }).notNull(),
+  sourceData: jsonb('source_data'),
+  metadata: jsonb('metadata'),
+  helpful: varchar('helpful', { length: 10 }),
+  actionTaken: text('action_taken'),
+  userFeedback: text('user_feedback'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
 export type UserTherapyProfile = z.infer<typeof userTherapyProfileSchema>;
 export type InsertUserTherapyProfile = z.infer<typeof insertUserTherapyProfileSchema>;
 export type SupervisionIntelligence = z.infer<typeof supervisionIntelligenceSchema>;
@@ -909,6 +953,8 @@ export type CompetencyAnalysis = z.infer<typeof competencyAnalysisSchema>;
 export type InsertCompetencyAnalysis = z.infer<typeof insertCompetencyAnalysisSchema>;
 export type PatternAnalysis = z.infer<typeof patternAnalysisSchema>;
 export type InsertPatternAnalysis = z.infer<typeof insertPatternAnalysisSchema>;
+export type AiInsightsHistory = z.infer<typeof aiInsightsHistorySchema>;
+export type InsertAiInsightsHistory = z.infer<typeof insertAiInsightsHistorySchema>;
 
 // Database Tables for AI Features
 export const userTherapyProfileTable = pgTable('user_therapy_profiles', {

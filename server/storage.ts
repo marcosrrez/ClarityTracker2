@@ -13,6 +13,7 @@ import {
   supervisionIntelligenceTable,
   competencyAnalysisTable,
   patternAnalysisTable,
+  aiInsightsHistoryTable,
   type Feedback, 
   type InsertFeedback, 
   type UserAnalytics, 
@@ -40,7 +41,9 @@ import {
   type CompetencyAnalysis,
   type InsertCompetencyAnalysis,
   type PatternAnalysis,
-  type InsertPatternAnalysis
+  type InsertPatternAnalysis,
+  type AiInsightsHistory,
+  type InsertAiInsightsHistory
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, asc, and, gte, lte, isNull, sql } from "drizzle-orm";
@@ -113,6 +116,11 @@ export interface IStorage {
   getPatternAnalysis(userId: string, alertType?: string): Promise<PatternAnalysis[]>;
   createPatternAnalysis(pattern: InsertPatternAnalysis): Promise<PatternAnalysis>;
   updatePatternAnalysis(id: string, updates: Partial<PatternAnalysis>): Promise<void>;
+  
+  // AI Insights History
+  getAiInsightsHistory(userId: string, insightType?: string): Promise<AiInsightsHistory[]>;
+  createAiInsight(insight: InsertAiInsightsHistory): Promise<AiInsightsHistory>;
+  updateAiInsight(id: string, updates: Partial<AiInsightsHistory>): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1196,6 +1204,48 @@ ${content}`;
       .update(patternAnalysisTable)
       .set(updates)
       .where(eq(patternAnalysisTable.id, id));
+  }
+
+  // AI Insights History methods
+  async getAiInsightsHistory(userId: string, insightType?: string): Promise<AiInsightsHistory[]> {
+    const { db } = await import("./db");
+    const query = db
+      .select()
+      .from(aiInsightsHistoryTable)
+      .where(eq(aiInsightsHistoryTable.userId, userId))
+      .orderBy(desc(aiInsightsHistoryTable.createdAt));
+    
+    if (insightType) {
+      query.where(and(
+        eq(aiInsightsHistoryTable.userId, userId),
+        eq(aiInsightsHistoryTable.insightType, insightType)
+      ));
+    }
+    
+    return await query;
+  }
+
+  async createAiInsight(insight: InsertAiInsightsHistory): Promise<AiInsightsHistory> {
+    const { db } = await import("./db");
+    const id = `insight_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    const [created] = await db
+      .insert(aiInsightsHistoryTable)
+      .values({
+        id,
+        ...insight,
+      })
+      .returning();
+    
+    return created;
+  }
+
+  async updateAiInsight(id: string, updates: Partial<AiInsightsHistory>): Promise<void> {
+    const { db } = await import("./db");
+    await db
+      .update(aiInsightsHistoryTable)
+      .set(updates)
+      .where(eq(aiInsightsHistoryTable.id, id));
   }
 }
 
