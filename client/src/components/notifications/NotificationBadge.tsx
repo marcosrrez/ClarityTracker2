@@ -2,7 +2,10 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLogEntries } from "@/hooks/use-firestore";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Bell } from "lucide-react";
+import { NotificationCenter } from "./NotificationCenter";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 
 export const NotificationBadge = () => {
   const { userProfile } = useAuth();
@@ -41,14 +44,26 @@ export const NotificationBadge = () => {
     }
   }, [logEntries.length, loading, userProfile]);
 
-  if (unreadCount === 0) return null;
-
   return (
-    <Badge 
-      variant="destructive" 
-      className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
-    >
-      {unreadCount}
-    </Badge>
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="ive-button text-muted-foreground hover:text-foreground relative"
+        >
+          <Bell className="h-4 w-4" />
+          {unreadCount > 0 && (
+            <Badge 
+              variant="destructive" 
+              className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+            >
+              {unreadCount}
+            </Badge>
+          )}
+        </Button>
+      </DialogTrigger>
+      <NotificationCenter />
+    </Dialog>
   );
 };
