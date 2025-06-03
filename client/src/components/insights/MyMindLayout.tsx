@@ -928,13 +928,13 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
           <DialogTitle className="sr-only">AI Coach Conversation</DialogTitle>
           <div className="flex flex-col h-full">
             
-            {/* Minimal Header - Expansive Feel */}
+            {/* Ultra Minimal Header */}
             <div className="flex items-center justify-between px-8 py-4 border-b border-gray-100/30 dark:border-gray-800/30">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowThreads(true)}
-                className="flex items-center gap-3 px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-xl transition-colors"
+                className="flex items-center justify-center w-10 h-10 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-xl transition-colors"
               >
                 <div className="flex items-center gap-0.5">
                   <div className="w-1 h-1 bg-current rounded-full"></div>
@@ -943,16 +943,17 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                   <div className="w-1 h-1 bg-current rounded-full"></div>
                   <div className="w-1 h-1 bg-current rounded-full"></div>
                 </div>
-                <span className="font-medium">History</span>
               </Button>
               
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowAIAgent(false)}
-                className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800/50 px-3 py-1.5 rounded-xl transition-colors"
+                className="flex items-center justify-center w-10 h-10 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-xl transition-colors"
               >
-                Close
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
               </Button>
             </div>
 
@@ -1034,9 +1035,11 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                   <Button
                     onClick={handleSendAiMessage}
                     disabled={!aiInputValue.trim() || isAiLoading}
-                    className="absolute right-3 bottom-3 w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-blue-600 hover:from-indigo-600 hover:via-purple-600 hover:to-blue-700 disabled:from-gray-300 disabled:via-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed text-white shadow-sm transition-all duration-200 flex items-center justify-center p-0 border-0"
+                    className="absolute right-3 bottom-3 w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-blue-600 hover:from-indigo-600 hover:via-purple-600 hover:to-blue-700 disabled:from-gray-300 disabled:via-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center p-0 border-0"
                   >
-                    <Send className="h-4 w-4" />
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
                   </Button>
                 </div>
                 
