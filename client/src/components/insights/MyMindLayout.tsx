@@ -10,7 +10,6 @@ import { useToast } from "@/hooks/use-toast";
 import { createInsightCard } from "@/lib/firestore";
 import { useAuth } from "@/hooks/use-auth";
 import { ResourceWidget } from "./ResourceWidget";
-import { AIAgentWidget } from "./AIAgentWidget";
 import { CustomRichEditor } from "@/components/ui/custom-rich-editor";
 import type { InsertInsightCard } from "@shared/schema";
 
@@ -1242,12 +1241,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
         onResourceAdded={onRefresh}
       />
 
-      {/* AI Agent Widget */}
-      <AIAgentWidget 
-        open={showAIAgent}
-        onOpenChange={setShowAIAgent}
-        onResourceAdded={onRefresh}
-      />
+
     </div>
   );
 }
