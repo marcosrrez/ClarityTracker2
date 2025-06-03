@@ -930,7 +930,7 @@ export const insertAiInsightsHistorySchema = aiInsightsHistorySchema.omit({
 
 // AI Insights History Table
 export const aiInsightsHistoryTable = pgTable('ai_insights_history', {
-  id: varchar('id', { length: 255 }).primaryKey(),
+  id: varchar('id', { length: 255 }).primaryKey().notNull().$defaultFn(() => `insight_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`),
   userId: varchar('user_id', { length: 255 }).notNull(),
   insightType: varchar('insight_type', { length: 50 }).notNull(),
   title: text('title').notNull(),

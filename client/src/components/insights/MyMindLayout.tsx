@@ -519,7 +519,10 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                   variant={selectedSmartSpace === "all" ? "default" : "outline"}
                   size="sm"
                   className="rounded-full text-xs"
-                  onClick={() => setSelectedSmartSpace("all")}
+                  onClick={() => {
+                    setSelectedSmartSpace("all");
+                    setShowSmartSpaces(false);
+                  }}
                 >
                   All Sessions
                 </Button>
@@ -527,7 +530,10 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                   variant={selectedSmartSpace === "ai-insights" ? "default" : "outline"}
                   size="sm"
                   className="rounded-full text-xs"
-                  onClick={() => setSelectedSmartSpace("ai-insights")}
+                  onClick={() => {
+                    setSelectedSmartSpace("ai-insights");
+                    setShowSmartSpaces(false);
+                  }}
                 >
                   AI Insights History
                 </Button>
@@ -535,7 +541,10 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                   variant={selectedSmartSpace === "anxiety-treatment" ? "default" : "outline"}
                   size="sm"
                   className="rounded-full text-xs"
-                  onClick={() => setSelectedSmartSpace("anxiety-treatment")}
+                  onClick={() => {
+                    setSelectedSmartSpace("anxiety-treatment");
+                    setShowSmartSpaces(false);
+                  }}
                 >
                   Anxiety Treatment
                 </Button>
@@ -543,7 +552,10 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                   variant={selectedSmartSpace === "trauma-work" ? "default" : "outline"}
                   size="sm"
                   className="rounded-full text-xs"
-                  onClick={() => setSelectedSmartSpace("trauma-work")}
+                  onClick={() => {
+                    setSelectedSmartSpace("trauma-work");
+                    setShowSmartSpaces(false);
+                  }}
                 >
                   Trauma Work
                 </Button>
@@ -551,7 +563,10 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                   variant={selectedSmartSpace === "cbt-sessions" ? "default" : "outline"}
                   size="sm"
                   className="rounded-full text-xs"
-                  onClick={() => setSelectedSmartSpace("cbt-sessions")}
+                  onClick={() => {
+                    setSelectedSmartSpace("cbt-sessions");
+                    setShowSmartSpaces(false);
+                  }}
                 >
                   CBT Sessions
                 </Button>
@@ -559,7 +574,10 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                   variant={selectedSmartSpace === "crisis-intervention" ? "default" : "outline"}
                   size="sm"
                   className="rounded-full text-xs"
-                  onClick={() => setSelectedSmartSpace("crisis-intervention")}
+                  onClick={() => {
+                    setSelectedSmartSpace("crisis-intervention");
+                    setShowSmartSpaces(false);
+                  }}
                 >
                   Crisis Intervention
                 </Button>
@@ -567,7 +585,10 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                   variant={selectedSmartSpace === "supervision-prep" ? "default" : "outline"}
                   size="sm"
                   className="rounded-full text-xs"
-                  onClick={() => setSelectedSmartSpace("supervision-prep")}
+                  onClick={() => {
+                    setSelectedSmartSpace("supervision-prep");
+                    setShowSmartSpaces(false);
+                  }}
                 >
                   Supervision Prep
                 </Button>
@@ -575,7 +596,10 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                   variant={selectedSmartSpace === "challenging-cases" ? "default" : "outline"}
                   size="sm"
                   className="rounded-full text-xs"
-                  onClick={() => setSelectedSmartSpace("challenging-cases")}
+                  onClick={() => {
+                    setSelectedSmartSpace("challenging-cases");
+                    setShowSmartSpaces(false);
+                  }}
                 >
                   Challenging Cases
                 </Button>
