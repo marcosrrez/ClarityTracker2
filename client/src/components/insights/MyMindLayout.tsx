@@ -11,7 +11,7 @@ import { createInsightCard } from "@/lib/firestore";
 import { useAuth } from "@/hooks/use-auth";
 import { ResourceWidget } from "./ResourceWidget";
 import { AIAgentWidget } from "./AIAgentWidget";
-import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import { CustomRichEditor } from "@/components/ui/custom-rich-editor";
 import type { InsertInsightCard } from "@shared/schema";
 
 interface GalleryItem {
@@ -63,6 +63,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isProcessingSmartSearch, setIsProcessingSmartSearch] = useState(false);
   const [historicalInsights, setHistoricalInsights] = useState<any[]>([]);
+  const [editorInstance, setEditorInstance] = useState<any>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -798,27 +799,114 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                   }}
                 />
                 
-                {/* Rich Text Editor */}
-                <div className="flex-1 min-h-[500px]">
-                  <RichTextEditor
+                {/* Content Editor - Premium Writing Experience */}
+                <div className="flex-1 min-h-[500px] relative">
+                  <CustomRichEditor
                     content={noteContent}
                     onChange={setNoteContent}
-                    placeholder="Start writing your reflection..."
-                    className="h-full min-h-[500px]"
+                    placeholder="Start writing right here...
+
+💡PRO TIP: Use the formatting toolbar below to style your text. Write naturally and let your thoughts flow."
+                    className="h-full min-h-[500px] border-none shadow-none bg-transparent"
+                    minHeight="500px"
+                    onEditorReady={setEditorInstance}
                   />
                 </div>
               </div>
             </div>
 
-            {/* Save Button */}
-            <div className="absolute bottom-6 right-6">
-              <Button 
-                onClick={handleSaveNote}
-                disabled={isSaving || !noteContent.trim()}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 shadow-lg"
-              >
-                {isSaving ? "Saving..." : "Save Note"}
-              </Button>
+            {/* Beautiful Floating Toolbar - Restored Design */}
+            <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2">
+              <div className="bg-white dark:bg-gray-800 shadow-lg rounded-full px-4 py-2 flex items-center gap-4 border border-gray-200 dark:border-gray-700">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700"
+                  onClick={() => {
+                    if (editorInstance) {
+                      editorInstance.chain().focus().toggleBold().run();
+                    }
+                  }}
+                  title="Bold (Ctrl+B)"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 6h4a4 4 0 014 4 4 4 0 01-4 4H8m0-8v8m0-8V4a2 2 0 012-2h2.172a2 2 0 011.414.586l.414.414A2 2 0 0114.828 4H17a2 2 0 012 2v2.172a2 2 0 01-.586 1.414l-.414.414A2 2 0 0117 10.828V12a2 2 0 01-2 2h-2.172a2 2 0 01-1.414-.586l-.414-.414A2 2 0 0110.828 12H8" />
+                  </svg>
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700"
+                  onClick={() => {
+                    if (editorInstance) {
+                      editorInstance.chain().focus().toggleItalic().run();
+                    }
+                  }}
+                  title="Italic (Ctrl+I)"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 4v16m4-16l-4 16" />
+                  </svg>
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700"
+                  onClick={() => {
+                    if (editorInstance) {
+                      editorInstance.chain().focus().toggleHeading({ level: 2 }).run();
+                    }
+                  }}
+                  title="Heading"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
+                  </svg>
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700"
+                  onClick={() => {
+                    if (editorInstance) {
+                      editorInstance.chain().focus().toggleBulletList().run();
+                    }
+                  }}
+                  title="Bullet List"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
+                  </svg>
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700"
+                  onClick={() => {
+                    if (editorInstance) {
+                      editorInstance.chain().focus().setHorizontalRule().run();
+                    }
+                  }}
+                  title="Add Separator"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                  </svg>
+                </Button>
+                <div className="w-px h-6 bg-gray-200 dark:bg-gray-600"></div>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="p-2 h-auto text-green-600 hover:text-green-700 disabled:opacity-50"
+                  onClick={handleSaveNote}
+                  disabled={isSaving || !noteContent.trim()}
+                  title="Save Note"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </Button>
+              </div>
             </div>
 
             {/* Floating Add Button - appears when header is hidden */}
