@@ -909,29 +909,19 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
             {/* Pi-style Header - Ultra minimal with threads */}
             <div className="flex items-center justify-between px-6 py-3">
               <div className="flex items-center gap-3">
-                <div className="w-6 h-6 rounded-full bg-[#2D5A27] flex items-center justify-center">
-                  <Sparkles className="h-3 w-3 text-white" />
-                </div>
-                
-                {/* Threads Button */}
+                {/* Threads Button with Pi-style icon */}
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowThreads(true)}
                   className="flex items-center gap-2 px-3 py-1 text-sm text-gray-600 hover:bg-gray-200/50 rounded-full"
                 >
-                  <MessageCircle className="h-3 w-3" />
+                  <div className="flex flex-col gap-0.5">
+                    <div className="w-3 h-0.5 bg-current rounded-full"></div>
+                    <div className="w-3 h-0.5 bg-current rounded-full"></div>
+                    <div className="w-3 h-0.5 bg-current rounded-full"></div>
+                  </div>
                   <span>Threads</span>
-                </Button>
-                
-                {/* New Thread Button */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={createNewThread}
-                  className="w-6 h-6 rounded-full p-0 hover:bg-gray-200/50"
-                >
-                  <Plus className="h-3 w-3 text-gray-500" />
                 </Button>
               </div>
               
@@ -939,9 +929,9 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowAIAgent(false)}
-                className="w-6 h-6 rounded-full p-0 hover:bg-gray-200/50"
+                className="text-sm text-gray-600 hover:bg-gray-200/50 px-2 py-1 rounded"
               >
-                <X className="h-3 w-3 text-gray-500" />
+                Close
               </Button>
             </div>
 
@@ -991,7 +981,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                         handleSendAiMessage();
                       }
                     }}
-                    placeholder="Talk with Pi"
+                    placeholder="Talk with Dinger"
                     className="w-full min-h-[48px] max-h-[120px] px-4 py-3 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 resize-none focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                     disabled={isAiLoading}
                     rows={1}
@@ -1027,9 +1017,9 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowThreads(false)}
-                  className="w-6 h-6 rounded-full p-0 hover:bg-gray-200/50"
+                  className="text-sm text-gray-600 hover:bg-gray-200/50 px-2 py-1 rounded"
                 >
-                  <X className="h-3 w-3 text-gray-500" />
+                  Back
                 </Button>
                 <h2 className="text-xl font-normal text-gray-800 dark:text-gray-200">Threads</h2>
               </div>
