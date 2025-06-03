@@ -1272,64 +1272,51 @@ Please provide a helpful, professional response that's personalized to their sit
   app.get('/api/ai/insights-history/:userId', async (req, res) => {
     try {
       const { userId } = req.params;
-      
-      // Get user's session entries and extract AI insights
-      const entries = await storage.getEntriesByUserId(userId);
       const insights: any[] = [];
       
-      entries.forEach((entry: any, index: number) => {
-        if (entry.analysis) {
-          const analysis = entry.analysis;
-          
-          // Create insight entries for different types of AI analysis
-          if (analysis.patternAlerts && analysis.patternAlerts.length > 0) {
-            insights.push({
-              id: `pattern-${entry.id}-${index}`,
-              type: 'pattern-alert',
-              title: 'Pattern Alert Detected',
-              content: analysis.patternAlerts.join('; '),
-              createdAt: entry.dateOfContact || entry.createdAt,
-              helpful: null,
-              actionTaken: null
-            });
-          }
-          
-          if (analysis.growthObservations && analysis.growthObservations.length > 0) {
-            insights.push({
-              id: `growth-${entry.id}-${index}`,
-              type: 'growth-observation',
-              title: 'Professional Growth Observation',
-              content: analysis.growthObservations.join('; '),
-              createdAt: entry.dateOfContact || entry.createdAt,
-              helpful: null,
-              actionTaken: null
-            });
-          }
-          
-          if (analysis.supervisionTopics && analysis.supervisionTopics.length > 0) {
-            insights.push({
-              id: `supervision-${entry.id}-${index}`,
-              type: 'supervision-prep',
-              title: 'Supervision Preparation Notes',
-              content: analysis.supervisionTopics.join('; '),
-              createdAt: entry.dateOfContact || entry.createdAt,
-              helpful: null,
-              actionTaken: null
-            });
-          }
-          
-          if (analysis.resourceSuggestions && analysis.resourceSuggestions.length > 0) {
-            insights.push({
-              id: `resources-${entry.id}-${index}`,
-              type: 'resource-suggestion',
-              title: 'AI Resource Suggestions',
-              content: analysis.resourceSuggestions.map((r: any) => `${r.title}: ${r.description}`).join('; '),
-              createdAt: entry.dateOfContact || entry.createdAt,
-              helpful: null,
-              actionTaken: null
-            });
-          }
-        }
+      // Get competency analysis insights
+      const competencyAnalyses = await storage.getCompetencyAnalysis(userId);
+      competencyAnalyses.forEach((analysis) => {
+        insights.push({
+          id: `competency-${analysis.id}`,
+          type: 'competency-analysis',
+          title: 'Competency Assessment',
+          content: `Professional competency analysis covering development areas and supervision discussion points`,
+          createdAt: analysis.analyzedAt,
+          helpful: null,
+          actionTaken: null,
+          data: analysis
+        });
+      });
+      
+      // Get pattern analysis insights
+      const patternAnalyses = await storage.getPatternAnalysis(userId);
+      patternAnalyses.forEach((pattern) => {
+        insights.push({
+          id: `pattern-${pattern.id}`,
+          type: 'pattern-alert',
+          title: `${pattern.alertType.charAt(0).toUpperCase() + pattern.alertType.slice(1)} Pattern Alert`,
+          content: pattern.description,
+          createdAt: pattern.createdAt,
+          helpful: null,
+          actionTaken: null,
+          data: pattern
+        });
+      });
+      
+      // Get supervision intelligence insights
+      const supervisionIntelligence = await storage.getSupervisionIntelligence(userId);
+      supervisionIntelligence.forEach((intel) => {
+        insights.push({
+          id: `supervision-${intel.id}`,
+          type: 'supervision-prep',
+          title: `Weekly Supervision Preparation - ${new Date(intel.weekStartDate).toLocaleDateString()}`,
+          content: `AI-generated supervision agenda and weekly analysis based on ${intel.sessionDataAnalyzed} sessions`,
+          createdAt: intel.generatedAt,
+          helpful: null,
+          actionTaken: null,
+          data: intel
+        });
       });
       
       // Sort insights by date (newest first)
