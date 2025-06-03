@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { SuperhumanOnboarding } from "./SuperhumanOnboarding";
 import { 
   User, 
   Users, 
@@ -34,6 +35,7 @@ export const OnboardingFlow = () => {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [showSuperhumanOnboarding, setShowSuperhumanOnboarding] = useState(false);
   const [data, setData] = useState<OnboardingData>({
     preferredName: '',
     accountType: undefined,
@@ -116,10 +118,8 @@ export const OnboardingFlow = () => {
         // Don't block onboarding if email fails
       }
 
-      toast({
-        title: "Welcome to ClarityLog!",
-        description: "Your account has been set up successfully. Check your email for next steps.",
-      });
+      // Show Superhuman-inspired onboarding after successful setup
+      setShowSuperhumanOnboarding(true);
     } catch (error) {
       toast({
         title: "Setup Error", 
@@ -129,6 +129,16 @@ export const OnboardingFlow = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSuperhumanComplete = () => {
+    setShowSuperhumanOnboarding(false);
+    toast({
+      title: "Welcome to ClarityLog!",
+      description: "Your account has been set up successfully. Check your email for next steps.",
+    });
+    // Redirect to dashboard
+    window.location.href = '/dashboard';
   };
 
   const getPainPoint = () => {
@@ -247,6 +257,16 @@ export const OnboardingFlow = () => {
 
   const steps = getSteps();
   const currentStepData = steps[currentStep];
+
+  // Show Superhuman onboarding if signup flow is complete
+  if (showSuperhumanOnboarding && data.accountType) {
+    return (
+      <SuperhumanOnboarding 
+        onComplete={handleSuperhumanComplete}
+        userType={data.accountType}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex flex-col">
