@@ -62,19 +62,19 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
   const [aiMessages, setAiMessages] = useState([
     {
       id: '1',
-      content: "Hey there, great to meet you. I'm your personal AI coach for professional development.",
+      content: "Hey there, great to meet you. I'm Pi, your personal AI.",
       isUser: false,
       timestamp: new Date()
     },
     {
       id: '2', 
-      content: "My goal is to be useful, supportive and understanding. Ask me for guidance on your therapy practice, professional growth, or let's talk about whatever's on your mind.",
+      content: "My goal is to be useful, friendly and fun. Ask me for advice, for answers, or let's talk about whatever's on your mind.",
       isUser: false,
       timestamp: new Date()
     },
     {
       id: '3',
-      content: "How's your professional journey going today?",
+      content: "How's your day going?",
       isUser: false,
       timestamp: new Date()
     }
@@ -844,87 +844,53 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
         </div>
       </div>
 
-      {/* AI Coach Interface - True Pi AI Style */}
+      {/* AI Coach Interface - Exact Pi AI Style */}
       <Dialog open={showAIAgent} onOpenChange={setShowAIAgent}>
-        <DialogContent className="max-w-none w-full h-full p-0 gap-0 bg-[#F8F9FA] dark:bg-[#1a1a1a]" aria-describedby="ai-coach-description">
+        <DialogContent className="max-w-none w-full h-full p-0 gap-0 bg-[#F4F1EA] dark:bg-[#1a1a1a]" aria-describedby="ai-coach-description">
           <DialogTitle className="sr-only">AI Coach Conversation</DialogTitle>
           <div className="flex flex-col h-full">
             
-            {/* Pi-style Header - Clean and minimal */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200/50 dark:border-gray-700/50">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-sm">
-                  <Sparkles className="h-4 w-4 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-base font-medium text-gray-900 dark:text-gray-100">AI Coach</h2>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Your therapy expertise companion</p>
+            {/* Pi-style Header - Ultra minimal */}
+            <div className="flex items-center justify-between px-6 py-3">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-[#2D5A27] flex items-center justify-center">
+                  <Sparkles className="h-3 w-3 text-white" />
                 </div>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowAIAgent(false)}
-                className="w-8 h-8 rounded-full p-0 hover:bg-gray-100 dark:hover:bg-gray-800"
+                className="w-6 h-6 rounded-full p-0 hover:bg-gray-200/50"
               >
-                <X className="h-4 w-4 text-gray-400" />
+                <X className="h-3 w-3 text-gray-500" />
               </Button>
             </div>
 
-            {/* Pi-style Messages - Centered, contained conversation */}
-            <div className="flex-1 overflow-y-auto">
-              <div className="max-w-2xl mx-auto px-6 py-8">
-                {aiMessages.length === 3 && (
-                  <div className="text-center mb-12">
-                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg">
-                      <Sparkles className="h-8 w-8 text-white" />
-                    </div>
-                    <h3 className="text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">
-                      How can I help you today?
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed max-w-md mx-auto">
-                      Ask questions about therapy techniques, get guidance on cases, analyze documents, or discuss your professional development.
-                    </p>
-                  </div>
-                )}
-
-                <div className="space-y-6">
-                  {aiMessages.slice(3).map((message) => (
-                    <div key={message.id} className="space-y-4">
-                      {message.isUser ? (
-                        <div className="flex justify-end">
-                          <div className="max-w-[75%] bg-emerald-500 text-white px-4 py-3 rounded-2xl rounded-br-md">
-                            <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
-                          </div>
+            {/* Pi-style Messages - Exact Pi layout with no bubbles */}
+            <div className="flex-1 overflow-y-auto px-6 pb-6">
+              <div className="max-w-lg mx-auto">
+                <div className="space-y-6 pt-4">
+                  {aiMessages.map((message, index) => (
+                    <div key={message.id}>
+                      {!message.isUser ? (
+                        <div className="text-[#4A4A4A] dark:text-gray-300 leading-relaxed text-base">
+                          {message.content}
                         </div>
                       ) : (
-                        <div className="flex items-start gap-3">
-                          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center flex-shrink-0 mt-1">
-                            <Sparkles className="h-3 w-3 text-white" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="bg-white dark:bg-gray-800 px-4 py-3 rounded-2xl rounded-tl-md shadow-sm border border-gray-100 dark:border-gray-700">
-                              <p className="text-sm leading-relaxed text-gray-900 dark:text-gray-100 whitespace-pre-wrap">{message.content}</p>
-                            </div>
-                          </div>
+                        <div className="text-[#4A4A4A] dark:text-gray-300 leading-relaxed text-base italic">
+                          {message.content}
                         </div>
                       )}
                     </div>
                   ))}
                   
                   {isAiLoading && (
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center flex-shrink-0 mt-1">
-                        <Sparkles className="h-3 w-3 text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="bg-white dark:bg-gray-800 px-4 py-3 rounded-2xl rounded-tl-md shadow-sm border border-gray-100 dark:border-gray-700">
-                          <div className="flex items-center gap-1">
-                            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce"></div>
-                            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                          </div>
-                        </div>
+                    <div className="text-[#4A4A4A] dark:text-gray-300 leading-relaxed text-base">
+                      <div className="flex items-center gap-1">
+                        <div className="w-1.5 h-1.5 bg-[#4A4A4A] rounded-full animate-bounce"></div>
+                        <div className="w-1.5 h-1.5 bg-[#4A4A4A] rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                        <div className="w-1.5 h-1.5 bg-[#4A4A4A] rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                       </div>
                     </div>
                   )}
@@ -934,33 +900,35 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
               </div>
             </div>
 
-            {/* Pi-style Input - Clean, minimal, focused */}
-            <div className="border-t border-gray-200/50 dark:border-gray-700/50 bg-white/50 dark:bg-gray-900/50">
-              <div className="max-w-2xl mx-auto px-6 py-4">
-                <div className="flex gap-3 items-end">
-                  <div className="flex-1 relative">
-                    <textarea
-                      value={aiInputValue}
-                      onChange={(e) => setAiInputValue(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          handleSendAiMessage();
-                        }
-                      }}
-                      placeholder="Ask about therapy techniques, case guidance, or upload files for analysis..."
-                      className="w-full min-h-[44px] max-h-[120px] px-4 py-3 rounded-full border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 dark:focus:border-emerald-400 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-all"
-                      disabled={isAiLoading}
-                      rows={1}
-                    />
-                  </div>
+            {/* Pi-style Input - Exact Pi design */}
+            <div className="px-6 pb-6">
+              <div className="max-w-lg mx-auto">
+                <div className="relative">
+                  <textarea
+                    value={aiInputValue}
+                    onChange={(e) => setAiInputValue(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendAiMessage();
+                      }
+                    }}
+                    placeholder="Talk with Pi"
+                    className="w-full min-h-[48px] max-h-[120px] px-4 py-3 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 resize-none focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+                    disabled={isAiLoading}
+                    rows={1}
+                  />
                   <Button
                     onClick={handleSendAiMessage}
                     disabled={!aiInputValue.trim() || isAiLoading}
-                    className="w-11 h-11 rounded-full bg-emerald-500 hover:bg-emerald-600 disabled:bg-gray-200 dark:disabled:bg-gray-700 disabled:cursor-not-allowed transition-all shadow-sm flex-shrink-0 p-0"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-transparent hover:bg-gray-100 dark:hover:bg-gray-700 disabled:bg-transparent disabled:cursor-not-allowed p-0 border-0"
                   >
-                    <Send className="h-4 w-4 text-white" />
+                    <Send className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                   </Button>
+                </div>
+                
+                <div className="text-center mt-4 text-xs text-gray-500 dark:text-gray-400">
+                  By using AI Coach, you agree to our Terms and Privacy Policy.
                 </div>
               </div>
             </div>
