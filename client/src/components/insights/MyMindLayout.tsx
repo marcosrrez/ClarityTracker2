@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Calendar, Sparkles, Search, Plus, Filter, Tags, Upload, Download, Mail } from "lucide-react";
+import { Calendar, Sparkles, Search, Plus, Filter, Tags, Upload, Download, Mail, X, Send } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { createInsightCard } from "@/lib/firestore";
@@ -59,6 +59,90 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
   const [showSmartSpaces, setShowSmartSpaces] = useState(false);
   const [showResourceWidget, setShowResourceWidget] = useState(false);
   const [showAIAgent, setShowAIAgent] = useState(false);
+  const [aiMessages, setAiMessages] = useState([
+    {
+      id: '1',
+      content: "Hey there, great to meet you. I'm your personal AI coach for professional development.",
+      isUser: false,
+      timestamp: new Date()
+    },
+    {
+      id: '2', 
+      content: "My goal is to be useful, supportive and understanding. Ask me for guidance on your therapy practice, professional growth, or let's talk about whatever's on your mind.",
+      isUser: false,
+      timestamp: new Date()
+    },
+    {
+      id: '3',
+      content: "How's your professional journey going today?",
+      isUser: false,
+      timestamp: new Date()
+    }
+  ]);
+  const [aiInputValue, setAiInputValue] = useState('');
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const aiMessagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Handle AI Coach message sending
+  const handleSendAiMessage = async () => {
+    if (!aiInputValue.trim() || isAiLoading) return;
+
+    const userMessage = {
+      id: Date.now().toString(),
+      content: aiInputValue.trim(),
+      isUser: true,
+      timestamp: new Date()
+    };
+
+    setAiMessages(prev => [...prev, userMessage]);
+    setAiInputValue('');
+    setIsAiLoading(true);
+
+    try {
+      const response = await fetch('/api/ai/coaching-chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: userMessage.content,
+          userId: user?.uid,
+          conversationHistory: aiMessages.slice(-10)
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to get response');
+
+      const data = await response.json();
+      
+      const aiMessage = {
+        id: (Date.now() + 1).toString(),
+        content: data.response,
+        isUser: false,
+        timestamp: new Date()
+      };
+
+      setAiMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      const errorMessage = {
+        id: (Date.now() + 1).toString(),
+        content: "I'm having trouble connecting right now. Please try again in a moment.",
+        isUser: false,
+        timestamp: new Date()
+      };
+      setAiMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
+  // Auto-scroll to bottom of AI chat
+  useEffect(() => {
+    if (aiMessagesEndRef.current) {
+      aiMessagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [aiMessages]);
   const [showBottomNav, setShowBottomNav] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isProcessingSmartSearch, setIsProcessingSmartSearch] = useState(false);
@@ -744,23 +828,121 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                   <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Add Note</span>
                 </button>
 
-                {/* AI Agent Button */}
+                {/* AI Coach Button */}
                 <button
                   onClick={() => setShowAIAgent(true)}
                   className="flex items-center gap-2 px-3 py-2 rounded-full hover:bg-gray-100/50 dark:hover:bg-gray-700/50 transition-all duration-200 group"
                 >
-                  <div className="w-6 h-6 rounded-full bg-purple-500/10 dark:bg-purple-400/10 flex items-center justify-center group-hover:bg-purple-500/20 dark:group-hover:bg-purple-400/20 transition-colors">
-                    <svg className="h-3 w-3 text-purple-600 dark:text-purple-400" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M11 21h-1l1-7H7.5c-.88 0-.33-.75-.31-.78C8.48 10.94 10.42 7.54 13.01 3h1l-1 7h3.51c.4 0 .62.19.4.66C12.97 17.55 11 21 11 21z"/>
-                    </svg>
+                  <div className="w-6 h-6 rounded-full bg-emerald-500/10 dark:bg-emerald-400/10 flex items-center justify-center group-hover:bg-emerald-500/20 dark:group-hover:bg-emerald-400/20 transition-colors">
+                    <Sparkles className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                   </div>
-                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300">AI Agent</span>
+                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300">AI Coach</span>
                 </button>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* AI Coach Interface - Pi AI Style */}
+      <Dialog open={showAIAgent} onOpenChange={setShowAIAgent}>
+        <DialogContent className="max-w-none w-full h-full p-0 gap-0 bg-gradient-to-br from-amber-50 via-cream-50 to-orange-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900" aria-describedby="ai-coach-description">
+          <DialogTitle className="sr-only">AI Coach Conversation</DialogTitle>
+          <div className="flex flex-col h-full">
+            
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-amber-200/30 dark:border-gray-700/30 bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-emerald-500/20 dark:bg-emerald-400/20 flex items-center justify-center">
+                  <Sparkles className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">AI Coach</h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Professional Development Assistant</p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowAIAgent(false)}
+                className="rounded-full"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Messages Area */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {aiMessages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-[80%] p-4 rounded-2xl ${
+                      message.isUser
+                        ? 'bg-emerald-500 text-white ml-4'
+                        : 'bg-white/80 dark:bg-gray-800/80 text-gray-900 dark:text-gray-100 mr-4 border border-amber-200/30 dark:border-gray-700/30'
+                    }`}
+                  >
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                    <span className={`text-xs mt-2 block ${
+                      message.isUser 
+                        ? 'text-emerald-100' 
+                        : 'text-gray-500 dark:text-gray-400'
+                    }`}>
+                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                </div>
+              ))}
+              
+              {isAiLoading && (
+                <div className="flex justify-start">
+                  <div className="max-w-[80%] p-4 rounded-2xl bg-white/80 dark:bg-gray-800/80 mr-4 border border-amber-200/30 dark:border-gray-700/30">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              <div ref={aiMessagesEndRef} />
+            </div>
+
+            {/* Input Area */}
+            <div className="p-6 border-t border-amber-200/30 dark:border-gray-700/30 bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm">
+              <div className="flex gap-3">
+                <textarea
+                  value={aiInputValue}
+                  onChange={(e) => setAiInputValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendAiMessage();
+                    }
+                  }}
+                  placeholder="Share what's on your mind about your practice, challenges, or goals..."
+                  className="flex-1 min-h-[60px] max-h-[120px] px-4 py-3 rounded-2xl border border-amber-200/50 dark:border-gray-600/50 bg-white/80 dark:bg-gray-800/80 resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500/50 dark:focus:ring-emerald-400/50 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+                  disabled={isAiLoading}
+                />
+                <Button
+                  onClick={handleSendAiMessage}
+                  disabled={!aiInputValue.trim() || isAiLoading}
+                  className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
+                Press Enter to send • Shift+Enter for new line
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Focus Mode Note Editor - MyMind Style */}
       <Dialog open={showNoteEditor} onOpenChange={setShowNoteEditor}>
