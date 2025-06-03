@@ -10,7 +10,6 @@ import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/use-auth";
 import { useAccountType } from "@/hooks/use-account-type";
 import { useTheme } from "@/contexts/ThemeContext";
-import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import {
   ChartLine,
   Plus,
