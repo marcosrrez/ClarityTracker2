@@ -6,6 +6,7 @@ import { sendFeedbackToReplit, createReplitIssue } from "./replit-feedback";
 import { storage } from "./storage";
 import { handleTwilioWebhook } from "./sms-service";
 import { sendWelcomeEmail } from "./welcome-email";
+import { sendWelcomeEmail as sendCampaignWelcome } from "./email-campaigns";
 import OpenAI from "openai";
 import { insertKnowledgeEntrySchema } from "@shared/schema";
 import { visualIntelligence } from "./visual-intelligence";
@@ -242,14 +243,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Missing required fields" });
       }
 
-      const success = await sendWelcomeEmail({
-        userEmail,
-        preferredName,
-        accountType
-      });
+      // Send both the original welcome email and start the campaign sequence
+      const [welcomeSuccess, campaignSuccess] = await Promise.all([
+        sendWelcomeEmail({
+          userEmail,
+          preferredName,
+          accountType
+        }),
+        sendCampaignWelcome(userEmail, preferredName, accountType)
+      ]);
 
-      if (success) {
-        res.json({ success: true, message: "Welcome email sent successfully" });
+      if (welcomeSuccess || campaignSuccess) {
+        res.json({ 
+          success: true, 
+          message: "Welcome email sent successfully",
+          campaignStarted: campaignSuccess 
+        });
       } else {
         res.status(500).json({ error: "Failed to send welcome email" });
       }
