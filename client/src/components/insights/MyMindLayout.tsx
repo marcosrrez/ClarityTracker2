@@ -58,29 +58,39 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
   const [showSmartSpaces, setShowSmartSpaces] = useState(false);
   const [showResourceWidget, setShowResourceWidget] = useState(false);
   const [showAIAgent, setShowAIAgent] = useState(false);
-  const [aiMessages, setAiMessages] = useState([
-    {
-      id: '1',
-      content: "Hey there, great to meet you. I'm Pi, your personal AI.",
-      isUser: false,
-      timestamp: new Date()
-    },
-    {
-      id: '2', 
-      content: "My goal is to be useful, friendly and fun. Ask me for advice, for answers, or let's talk about whatever's on your mind.",
-      isUser: false,
-      timestamp: new Date()
-    },
-    {
-      id: '3',
-      content: "How's your day going?",
-      isUser: false,
-      timestamp: new Date()
-    }
-  ]);
+  const [showThreads, setShowThreads] = useState(false);
+  const [currentThreadId, setCurrentThreadId] = useState('default');
+  const [threads, setThreads] = useState<{[key: string]: any[]}>({
+    'default': [
+      {
+        id: '1',
+        content: "Hey there, great to meet you. I'm Dinger, your personal AI.",
+        isUser: false,
+        timestamp: new Date()
+      },
+      {
+        id: '2', 
+        content: "My goal is to be useful, friendly and fun. Ask me for advice, for answers, or let's talk about whatever's on your mind.",
+        isUser: false,
+        timestamp: new Date()
+      },
+      {
+        id: '3',
+        content: "How's your day going?",
+        isUser: false,
+        timestamp: new Date()
+      }
+    ]
+  });
+  const [threadTitles, setThreadTitles] = useState<{[key: string]: string}>({
+    'default': 'Conversation with Dinger'
+  });
   const [aiInputValue, setAiInputValue] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
   const aiMessagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Get current thread messages
+  const aiMessages = threads[currentThreadId] || [];
 
   // Handle AI Coach message sending
   const handleSendAiMessage = async () => {
@@ -93,7 +103,10 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
       timestamp: new Date()
     };
 
-    setAiMessages(prev => [...prev, userMessage]);
+    setThreads(prev => ({
+      ...prev,
+      [currentThreadId]: [...(prev[currentThreadId] || []), userMessage]
+    }));
     setAiInputValue('');
     setIsAiLoading(true);
 
@@ -121,7 +134,10 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
         timestamp: new Date()
       };
 
-      setAiMessages(prev => [...prev, aiMessage]);
+      setThreads(prev => ({
+        ...prev,
+        [currentThreadId]: [...(prev[currentThreadId] || []), aiMessage]
+      }));
     } catch (error) {
       console.error('Error sending message:', error);
       const errorMessage = {
@@ -130,7 +146,10 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
         isUser: false,
         timestamp: new Date()
       };
-      setAiMessages(prev => [...prev, errorMessage]);
+      setThreads(prev => ({
+        ...prev,
+        [currentThreadId]: [...(prev[currentThreadId] || []), errorMessage]
+      }));
     } finally {
       setIsAiLoading(false);
     }
@@ -142,6 +161,44 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
       aiMessagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [aiMessages]);
+
+  // Create new thread
+  const createNewThread = () => {
+    const newThreadId = `thread_${Date.now()}`;
+    const greeting = user?.displayName ? `Hey ${user.displayName}, great to meet you. I'm Dinger, your personal AI.` : "Hey there, great to meet you. I'm Dinger, your personal AI.";
+    
+    setThreads(prev => ({
+      ...prev,
+      [newThreadId]: [
+        {
+          id: '1',
+          content: greeting,
+          isUser: false,
+          timestamp: new Date()
+        },
+        {
+          id: '2', 
+          content: "My goal is to be useful, friendly and fun. Ask me for advice, for answers, or let's talk about whatever's on your mind.",
+          isUser: false,
+          timestamp: new Date()
+        },
+        {
+          id: '3',
+          content: "How's your day going?",
+          isUser: false,
+          timestamp: new Date()
+        }
+      ]
+    }));
+    
+    setThreadTitles(prev => ({
+      ...prev,
+      [newThreadId]: 'New conversation'
+    }));
+    
+    setCurrentThreadId(newThreadId);
+    setShowThreads(false);
+  };
   const [showBottomNav, setShowBottomNav] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isProcessingSmartSearch, setIsProcessingSmartSearch] = useState(false);
@@ -849,13 +906,35 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
           <DialogTitle className="sr-only">AI Coach Conversation</DialogTitle>
           <div className="flex flex-col h-full">
             
-            {/* Pi-style Header - Ultra minimal */}
+            {/* Pi-style Header - Ultra minimal with threads */}
             <div className="flex items-center justify-between px-6 py-3">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <div className="w-6 h-6 rounded-full bg-[#2D5A27] flex items-center justify-center">
                   <Sparkles className="h-3 w-3 text-white" />
                 </div>
+                
+                {/* Threads Button */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowThreads(true)}
+                  className="flex items-center gap-2 px-3 py-1 text-sm text-gray-600 hover:bg-gray-200/50 rounded-full"
+                >
+                  <MessageCircle className="h-3 w-3" />
+                  <span>Threads</span>
+                </Button>
+                
+                {/* New Thread Button */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={createNewThread}
+                  className="w-6 h-6 rounded-full p-0 hover:bg-gray-200/50"
+                >
+                  <Plus className="h-3 w-3 text-gray-500" />
+                </Button>
               </div>
+              
               <Button
                 variant="ghost"
                 size="sm"
@@ -929,6 +1008,90 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                 <div className="text-center mt-4 text-xs text-gray-500 dark:text-gray-400">
                   By using AI Coach, you agree to our Terms and Privacy Policy.
                 </div>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Threads Panel - Exact Pi AI Style */}
+      <Dialog open={showThreads} onOpenChange={setShowThreads}>
+        <DialogContent className="max-w-none w-full h-full p-0 gap-0 bg-[#F4F1EA] dark:bg-[#1a1a1a]">
+          <DialogTitle className="sr-only">Conversation Threads</DialogTitle>
+          <div className="flex flex-col h-full">
+            
+            {/* Threads Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200/30">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowThreads(false)}
+                  className="w-6 h-6 rounded-full p-0 hover:bg-gray-200/50"
+                >
+                  <X className="h-3 w-3 text-gray-500" />
+                </Button>
+                <h2 className="text-xl font-normal text-gray-800 dark:text-gray-200">Threads</h2>
+              </div>
+              
+              <Button
+                onClick={createNewThread}
+                className="flex items-center gap-2 px-4 py-2 bg-[#2D5A27] hover:bg-[#234521] text-white rounded-full text-sm"
+              >
+                <Plus className="h-3 w-3" />
+                New thread
+              </Button>
+            </div>
+
+            {/* Threads List */}
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-3">
+                {Object.entries(threads).map(([threadId, messages]) => {
+                  const lastMessage = messages[messages.length - 1];
+                  const threadTitle = threadTitles[threadId] || 'Conversation';
+                  const isActive = threadId === currentThreadId;
+                  
+                  return (
+                    <div
+                      key={threadId}
+                      onClick={() => {
+                        setCurrentThreadId(threadId);
+                        setShowThreads(false);
+                      }}
+                      className={`p-4 rounded-xl cursor-pointer transition-all duration-200 ${
+                        isActive 
+                          ? 'bg-white dark:bg-gray-800 shadow-sm border border-gray-200/50' 
+                          : 'hover:bg-white/50 dark:hover:bg-gray-800/50'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium text-gray-800 dark:text-gray-200 truncate">
+                            {threadTitle}
+                          </h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
+                            {lastMessage?.content || 'No messages'}
+                          </p>
+                          <div className="text-xs text-gray-500 mt-2">
+                            {lastMessage?.timestamp ? new Date(lastMessage.timestamp).toLocaleDateString() : ''}
+                          </div>
+                        </div>
+                        
+                        {isActive && (
+                          <div className="w-2 h-2 bg-[#2D5A27] rounded-full flex-shrink-0 ml-3 mt-2" />
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+                
+                {Object.keys(threads).length === 0 && (
+                  <div className="text-center py-12">
+                    <MessageCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500">No conversations yet</p>
+                    <p className="text-sm text-gray-400 mt-1">Start a new thread to begin chatting with Dinger</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
