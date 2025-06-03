@@ -114,9 +114,37 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
           </SheetTitle>
         </SheetHeader>
 
-        <nav className="flex-1 p-4 space-y-6 mt-6">
-          {/* Group navigation items by category like Routine */}
-          {['main', 'tracking', 'supervision', 'admin'].map((group) => {
+        <nav className="flex-1 p-6 space-y-8">
+          {/* Main navigation - prominent placement like Routine */}
+          <div className="space-y-1">
+            {navigationItems.filter(item => item.group === 'main').map((item) => {
+              const Icon = item.icon;
+              const isActive = location === item.href;
+              
+              return (
+                <Link key={item.href} href={item.href}>
+                  <div
+                    className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer ${
+                      isActive
+                        ? 'bg-blue-600 text-white shadow-sm'
+                        : 'text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
+                    }`}
+                    onClick={() => onOpenChange(false)}
+                  >
+                    <Icon className={`h-4 w-4 flex-shrink-0 ${
+                      isActive 
+                        ? 'text-white' 
+                        : 'text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300'
+                    }`} />
+                    <span className="truncate">{item.label}</span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Secondary navigation groups with wide spacing like Routine */}
+          {['tracking', 'supervision', 'admin'].map((group) => {
             const groupItems = navigationItems.filter(item => item.group === group);
             if (groupItems.length === 0) return null;
             
@@ -150,8 +178,8 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
             );
           })}
           
-          {/* Settings section separated like Routine */}
-          <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+          {/* Settings section - widely separated at bottom like Routine */}
+          <div className="pt-8 border-t border-gray-200 dark:border-gray-700">
             <div className="space-y-1">
               {navigationItems.filter(item => item.group === 'settings').map((item) => {
                 const Icon = item.icon;

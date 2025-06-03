@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { Button } from "@/components/ui/button";
-import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { NotificationBadge } from "@/components/notifications/NotificationBadge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sprout, Menu, Eye } from "lucide-react";
