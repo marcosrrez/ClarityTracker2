@@ -125,18 +125,22 @@ export const NotificationCenter = () => {
 
     // AI insights notifications
     if (preferences.aiInsights && insightCards.length > 0) {
-      const unreadInsights = insightCards.filter(card => !card.dismissed);
-      if (unreadInsights.length > 0) {
+      const recentInsights = insightCards.filter(card => {
+        const cardDate = new Date(card.createdAt);
+        const daysDiff = (now.getTime() - cardDate.getTime()) / (1000 * 60 * 60 * 24);
+        return daysDiff <= 7; // Show insights from last 7 days
+      });
+      if (recentInsights.length > 0) {
         newNotifications.push({
           id: 'ai-insights',
           type: 'insight',
           title: 'New AI insights available',
-          message: `${unreadInsights.length} new insights based on your recent sessions.`,
+          message: `${recentInsights.length} new insights based on your recent sessions.`,
           priority: 'low',
           timestamp: now,
           read: false,
           actionText: 'View Insights',
-          actionUrl: '/dashboard'
+          actionUrl: '/insights'
         });
       }
     }

@@ -1065,9 +1065,11 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowThreads(false)}
-                  className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800/50 px-3 py-1.5 rounded-lg transition-colors"
+                  className="flex items-center justify-center w-10 h-10 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-xl transition-colors"
                 >
-                  Back
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
                 </Button>
                 <h2 
                   className="text-2xl font-light text-gray-900 dark:text-gray-100"
