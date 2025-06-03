@@ -114,12 +114,7 @@ export const Dashboard = () => {
           </div>
         )}
         
-        {/* Supervision tracking - always shown */}
-        <ErrorBoundary>
-          <div>
-            <SupervisionMetrics />
-          </div>
-        </ErrorBoundary>
+
         
         {/* Progress tracking - always shown */}
         <ErrorBoundary>
