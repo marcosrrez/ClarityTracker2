@@ -140,9 +140,30 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
       }));
     } catch (error) {
       console.error('Error sending message:', error);
+      
+      // Try to get a relevant response from counseling dataset
+      let fallbackResponse = "I'm having trouble connecting right now. Please try again in a moment.";
+      
+      try {
+        const fallbackResp = await fetch('/api/ai/counseling-fallback', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ query: userMessage.content }),
+        });
+        
+        if (fallbackResp.ok) {
+          const fallbackData = await fallbackResp.json();
+          fallbackResponse = fallbackData.response;
+        }
+      } catch (fallbackError) {
+        console.error('Fallback also failed:', fallbackError);
+      }
+      
       const errorMessage = {
         id: (Date.now() + 1).toString(),
-        content: "I'm having trouble connecting right now. Please try again in a moment.",
+        content: fallbackResponse,
         isUser: false,
         timestamp: new Date()
       };
@@ -906,7 +927,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
           <DialogTitle className="sr-only">AI Coach Conversation</DialogTitle>
           <div className="flex flex-col h-full">
             
-            {/* Pi-style Header - Ultra minimal with threads */}
+            {/* Pi-style Header - Ultra minimal */}
             <div className="flex items-center justify-between px-6 py-3">
               <div className="flex items-center gap-3">
                 {/* Threads Button with Pi-style icon */}
@@ -921,7 +942,6 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                     <div className="w-3 h-0.5 bg-current rounded-full"></div>
                     <div className="w-3 h-0.5 bg-current rounded-full"></div>
                   </div>
-                  <span>Threads</span>
                 </Button>
               </div>
               
@@ -942,7 +962,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                   {aiMessages.map((message, index) => (
                     <div key={message.id}>
                       {!message.isUser ? (
-                        <div className="text-[#4A4A4A] dark:text-gray-300 leading-relaxed text-base">
+                        <div className="text-[#2B2B2B] dark:text-gray-300 leading-relaxed text-base font-['Georgia',serif] tracking-wide">
                           {message.content}
                         </div>
                       ) : (

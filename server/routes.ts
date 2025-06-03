@@ -1130,7 +1130,30 @@ Source: ${entry.sourceTitle} (${entry.sourceType})`;
     }
   });
 
-  // AI Coaching Chat Route
+    // AI Counseling Fallback endpoint
+  app.post('/api/ai/counseling-fallback', async (req, res) => {
+    try {
+      const { query } = req.body;
+      
+      if (!query || typeof query !== 'string') {
+        return res.status(400).json({ error: 'Query is required' });
+      }
+
+      // Import the counseling dataset
+      const { getCounselingResponse } = await import('./counseling-dataset');
+      
+      const response = getCounselingResponse(query);
+      
+      res.json({ 
+        response: `${response}\n\nThis response is from my counseling knowledge base while my main AI system is offline. For immediate crises, please contact your supervisor or call 988.`
+      });
+    } catch (error) {
+      console.error('Error with counseling fallback:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+// AI Coaching Chat Route
   app.post('/api/ai/coaching-chat', async (req, res) => {
     try {
       const { message, userId, conversationHistory } = req.body;
