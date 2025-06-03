@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 import { useAccountType } from "@/hooks/use-account-type";
-import { GuidedOnboardingOverlay } from "./GuidedOnboardingOverlay";
+// Removed GuidedOnboardingOverlay import - onboarding now handled in signup flow
 import { ConfettiCelebration } from "./ConfettiCelebration";
 import { hapticFeedback } from "@/lib/haptics";
 
@@ -27,30 +27,15 @@ export const EnhancedDashboard = () => {
   const { entries } = useLogEntries();
   const { user, userProfile, updateUserProfile } = useAuth();
   const { accountType, isSupervisor } = useAccountType();
-  const [showGuidedOverlay, setShowGuidedOverlay] = useState(false);
+  // Removed showGuidedOverlay - onboarding now handled in signup flow
   const [showConfetti, setShowConfetti] = useState(false);
   
   const totalHours = entries?.reduce((sum, entry) => sum + (entry.clientContactHours || 0), 0) || 0;
   const totalSupervisionHours = entries?.reduce((sum, entry) => sum + (entry.supervisionHours || 0), 0) || 0;
 
-  // Check if user needs guided onboarding
-  useEffect(() => {
-    if (userProfile && !userProfile.hasCompletedOnboarding && entries?.length > 0) {
-      setTimeout(() => {
-        setShowGuidedOverlay(true);
-      }, 1000);
-    }
-  }, [userProfile, entries]);
+  // Removed guided onboarding overlay - now handled in signup flow
 
-  const handleCompleteOnboarding = async () => {
-    setShowGuidedOverlay(false);
-    hapticFeedback.success();
-    try {
-      await updateUserProfile({ hasCompletedOnboarding: true });
-    } catch (error) {
-      console.error('Error completing onboarding:', error);
-    }
-  };
+  // Removed handleCompleteOnboarding - onboarding now handled in signup flow
 
   const getWelcomeMessage = () => {
     const displayName = userProfile?.displayName || userProfile?.preferredName || user?.displayName || "there";
@@ -304,13 +289,7 @@ export const EnhancedDashboard = () => {
         <span>HIPAA-compliant & Encrypted</span>
       </motion.div>
 
-      {/* Guided Onboarding Overlay */}
-      {showGuidedOverlay && (
-        <GuidedOnboardingOverlay 
-          onComplete={handleCompleteOnboarding}
-          onSkip={handleCompleteOnboarding}
-        />
-      )}
+      {/* Guided onboarding now handled in signup flow */}
 
       {/* Confetti Celebration */}
       {showConfetti && (
