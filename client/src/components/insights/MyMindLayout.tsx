@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Calendar, Sparkles, Search, Plus, Filter, Tags, Upload, Download, Mail, X, Send, MessageCircle } from "lucide-react";
+import { GrokStyleCoach } from "../ai/GrokStyleCoach";
 import { LoadingQuoteCompact } from "@/components/ui/loading-quote";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -922,41 +923,13 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
         </div>
       </div>
 
-      {/* AI Coach Interface - Exact Pi AI Style */}
-      <Dialog open={showAIAgent} onOpenChange={setShowAIAgent}>
-        <DialogContent className="max-w-none w-full h-full p-0 gap-0 bg-[#F4F1EA] dark:bg-[#1a1a1a]" aria-describedby="ai-coach-description">
-          <DialogTitle className="sr-only">AI Coach Conversation</DialogTitle>
-          <div className="flex flex-col h-full">
-            
-            {/* Pi-style Header - Ultra minimal */}
-            <div className="flex items-center justify-between px-6 py-3">
-              <div className="flex items-center gap-3">
-                {/* Threads Button with Pi-style icon */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowThreads(true)}
-                  className="flex items-center gap-2 px-3 py-1 text-sm text-gray-600 hover:bg-gray-200/50 rounded-full"
-                >
-                  <div className="flex flex-col gap-0.5">
-                    <div className="w-3 h-0.5 bg-current rounded-full"></div>
-                    <div className="w-3 h-0.5 bg-current rounded-full"></div>
-                    <div className="w-3 h-0.5 bg-current rounded-full"></div>
-                  </div>
-                </Button>
-              </div>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowAIAgent(false)}
-                className="text-sm text-gray-600 hover:bg-gray-200/50 px-2 py-1 rounded"
-              >
-                Close
-              </Button>
-            </div>
+      {/* Grok-Style AI Coach Interface */}
+      <GrokStyleCoach 
+        isOpen={showAIAgent} 
+        onClose={() => setShowAIAgent(false)} 
+      />
 
-            {/* Pi-style Messages - Exact Pi layout with no bubbles */}
+      {/* Note Editor - Bear-style */}
             <div className="flex-1 overflow-y-auto px-6 pb-6">
               <div className="max-w-lg mx-auto">
                 <div className="space-y-6 pt-4">

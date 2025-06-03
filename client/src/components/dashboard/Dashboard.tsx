@@ -3,7 +3,7 @@ import { WelcomeSection } from "./WelcomeSection";
 import { QuickStatsGrid } from "./QuickStatsGrid";
 import { ProgressSection } from "./ProgressSection";
 import { LogTableSection } from "./LogTableSection";
-import { GrokInspiredInsights } from "../ai/GrokInspiredInsights";
+import { PersonalizedAICoaching } from "./PersonalizedAICoaching";
 import { CompetencyTracker } from "./CompetencyTracker";
 import { SmartInsightsCard } from "./SmartInsightsCard";
 import { AIIntegrationTracker } from "./AIIntegrationTracker";
@@ -106,7 +106,7 @@ export const Dashboard = () => {
               <CrossSessionInsights />
             </ErrorBoundary>
             <ErrorBoundary>
-              <GrokInspiredInsights />
+              <PersonalizedAICoaching />
             </ErrorBoundary>
             <ErrorBoundary>
               <CompetencyTracker />
