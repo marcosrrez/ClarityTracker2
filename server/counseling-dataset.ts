@@ -58,6 +58,84 @@ export const counselingDataset: CounselingEntry[] = [
     skillLevel: 'Intermediate',
     relatedTopics: ['Goal Setting', 'Strengths-Based Approach', 'Brief Therapy']
   },
+  {
+    id: 'gestalt-001',
+    topic: 'Gestalt Therapy',
+    category: 'Counseling Theories',
+    description: 'Gestalt therapy, developed by Fritz Perls, focuses on present-moment awareness, personal responsibility, and the integration of fragmented parts of the self. Key concepts include figure/ground, contact and resistance, and the "here and now" approach. Emphasizes experiential techniques over interpretation.',
+    example: 'Use the "empty chair" technique: Have the client speak to an absent person or part of themselves in an empty chair, then switch chairs to respond. Ask "What are you experiencing right now in your body?" to increase present-moment awareness.',
+    reflectivePrompt: 'How comfortable are you with experiential techniques that focus on present-moment awareness rather than past exploration?',
+    references: ['Perls, F. (1973). The Gestalt Approach and Eye Witness to Therapy', 'Yontef, G. (1993). Awareness, Dialogue, and Process'],
+    keywords: ['gestalt', 'fritz perls', 'present moment', 'awareness', 'empty chair', 'figure ground', 'here and now'],
+    responseTemplate: 'For {user_input}, use Gestalt techniques focusing on present awareness. Try asking "What are you experiencing right now?" or use empty chair work for internal conflicts.',
+    skillLevel: 'Advanced',
+    relatedTopics: ['Experiential Therapy', 'Body Awareness', 'Present-Moment Focus']
+  },
+  {
+    id: 'psychodynamic-001',
+    topic: 'Psychodynamic Therapy',
+    category: 'Counseling Theories',
+    description: 'Based on psychoanalytic theory, psychodynamic therapy explores unconscious processes, early life experiences, and relationship patterns. Focuses on insight, transference, countertransference, and defense mechanisms. Modern approaches are more interactive than classical psychoanalysis.',
+    example: 'Notice transference patterns: "I notice you relate to me similarly to how you described your relationship with your father. What do you think about that?" Explore defense mechanisms like projection or denial.',
+    reflectivePrompt: 'How do you notice your own unconscious reactions (countertransference) with clients, and how might this inform the therapy?',
+    references: ['Freud, S. (1912). The Dynamics of Transference', 'Shedler, J. (2010). The efficacy of psychodynamic psychotherapy'],
+    keywords: ['psychodynamic', 'unconscious', 'transference', 'countertransference', 'defense mechanisms', 'insight'],
+    responseTemplate: 'In psychodynamic work with {user_input}, explore unconscious patterns, examine transference dynamics, and help the client gain insight into recurring themes.',
+    skillLevel: 'Advanced',
+    relatedTopics: ['Transference', 'Defense Mechanisms', 'Insight-Oriented Therapy']
+  },
+  {
+    id: 'dbt-001',
+    topic: 'Dialectical Behavior Therapy',
+    category: 'Counseling Theories',
+    description: 'DBT, developed by Marsha Linehan, combines CBT techniques with mindfulness and distress tolerance skills. Originally for borderline personality disorder, now used for emotion regulation issues. Four modules: mindfulness, distress tolerance, emotion regulation, and interpersonal effectiveness.',
+    example: 'Teach the TIPP skill for crisis survival: Temperature (cold water on face), Intense exercise, Paced breathing, Progressive muscle relaxation. Practice radical acceptance: "I cannot change this situation right now, but I can accept it."',
+    reflectivePrompt: 'How do you model distress tolerance and emotional regulation in your own life and therapeutic practice?',
+    references: ['Linehan, M. M. (1993). Cognitive-Behavioral Treatment of Borderline Personality Disorder', 'Linehan, M. M. (2014). DBT Skills Training Manual'],
+    keywords: ['DBT', 'dialectical behavior therapy', 'marsha linehan', 'mindfulness', 'distress tolerance', 'emotion regulation', 'interpersonal effectiveness'],
+    responseTemplate: 'For {user_input}, use DBT skills like mindfulness, distress tolerance (TIPP), emotion regulation, or interpersonal effectiveness depending on the client\'s needs.',
+    skillLevel: 'Advanced',
+    relatedTopics: ['Mindfulness', 'Emotion Regulation', 'Crisis Management']
+  },
+  {
+    id: 'acceptance-commitment-001',
+    topic: 'Acceptance and Commitment Therapy',
+    category: 'Counseling Theories',
+    description: 'ACT focuses on psychological flexibility through six core processes: acceptance, cognitive defusion, present-moment awareness, self-as-context, values clarification, and committed action. Based on Relational Frame Theory and functional contextualism.',
+    example: 'Use metaphors like "thoughts are like clouds passing in the sky - you can observe them without being controlled by them." Help clients identify values: "What matters most to you in life, regardless of your anxiety?"',
+    reflectivePrompt: 'How do you practice psychological flexibility in your own life, and how does this inform your therapeutic work?',
+    references: ['Hayes, S. C. (1999). Acceptance and Commitment Therapy', 'Luoma, J. B. (2007). Learning ACT'],
+    keywords: ['ACT', 'acceptance commitment therapy', 'psychological flexibility', 'values', 'mindfulness', 'cognitive defusion'],
+    responseTemplate: 'For {user_input}, use ACT principles: help identify values, practice acceptance of difficult emotions, and commit to value-based actions despite discomfort.',
+    skillLevel: 'Advanced',
+    relatedTopics: ['Mindfulness', 'Values Clarification', 'Behavioral Change']
+  },
+  {
+    id: 'family-systems-001',
+    topic: 'Family Systems Therapy',
+    category: 'Counseling Theories',
+    description: 'Family systems approaches view problems within the context of family relationships and patterns. Key concepts include boundaries, subsystems, triangulation, and homeostasis. Includes structural (Minuchin), strategic (Haley), and Bowenian approaches.',
+    example: 'Map family structure: "Who makes decisions in your family? How are boundaries maintained between parents and children?" Look for triangulation: "When your parents fight, what role do you typically play?"',
+    reflectivePrompt: 'How does your own family-of-origin experience influence your understanding of family dynamics in therapy?',
+    references: ['Minuchin, S. (1974). Families and Family Therapy', 'Bowen, M. (1978). Family Therapy in Clinical Practice'],
+    keywords: ['family systems', 'structural therapy', 'strategic therapy', 'bowen', 'minuchin', 'boundaries', 'triangulation'],
+    responseTemplate: 'For family issues in {user_input}, examine family structure, boundaries, communication patterns, and roles. Consider how the individual\'s symptoms serve the family system.',
+    skillLevel: 'Advanced',
+    relatedTopics: ['Family Therapy', 'Systems Theory', 'Relationship Dynamics']
+  },
+  {
+    id: 'narrative-therapy-001',
+    topic: 'Narrative Therapy',
+    category: 'Counseling Theories',
+    description: 'Developed by Michael White and David Epston, narrative therapy views people as separate from their problems. Uses externalization, unique outcomes, and re-authoring conversations to help clients rewrite their life stories and reclaim personal agency.',
+    example: 'Externalize the problem: "How long has Depression been convincing you that you\'re worthless?" Find unique outcomes: "Tell me about a time when you didn\'t let Anxiety make decisions for you." Use scaling: "On a scale of 1-10, how much influence does the problem have today?"',
+    reflectivePrompt: 'What dominant stories from your own life might influence how you understand and work with clients\' narratives?',
+    references: ['White, M. (1990). Narrative Means to Therapeutic Ends', 'Freedman, J. (1996). Narrative Therapy'],
+    keywords: ['narrative therapy', 'michael white', 'david epston', 'externalization', 'unique outcomes', 're-authoring'],
+    responseTemplate: 'For {user_input}, use narrative techniques: externalize the problem, explore unique outcomes when the problem didn\'t dominate, and help re-author a preferred life story.',
+    skillLevel: 'Advanced',
+    relatedTopics: ['Externalization', 'Strength-Based Approach', 'Social Construction']
+  },
 
   // Best Counseling Practices
   {
