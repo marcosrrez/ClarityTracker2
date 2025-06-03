@@ -5,6 +5,7 @@ import CharacterCount from '@tiptap/extension-character-count';
 import TextStyle from '@tiptap/extension-text-style';
 import Color from '@tiptap/extension-color';
 import Highlight from '@tiptap/extension-highlight';
+import Underline from '@tiptap/extension-underline';
 import BulletList from '@tiptap/extension-bullet-list';
 import OrderedList from '@tiptap/extension-ordered-list';
 import ListItem from '@tiptap/extension-list-item';
@@ -75,6 +76,7 @@ export const RichTextEditor = ({
       Highlight.configure({
         multicolor: true,
       }),
+      Underline,
     ],
     content,
     onUpdate: ({ editor }) => {

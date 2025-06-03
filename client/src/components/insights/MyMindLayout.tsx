@@ -877,13 +877,13 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                     className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700 w-8 h-8 rounded-full flex items-center justify-center"
                     onClick={() => {
                       if (editorInstance) {
-                        editorInstance.chain().focus().toggleHighlight().run();
+                        editorInstance.chain().focus().toggleBulletList().run();
                       }
                     }}
-                    title="Highlight"
+                    title="List"
                   >
                     <svg className="w-4 h-4 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
                     </svg>
                   </Button>
                   
@@ -983,13 +983,13 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                         className="p-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-700 w-8 h-8 rounded-full flex items-center justify-center"
                         onClick={() => {
                           if (editorInstance) {
-                            editorInstance.chain().focus().toggleBulletList().run();
+                            editorInstance.chain().focus().toggleHighlight().run();
                           }
                         }}
-                        title="Bullet List"
+                        title="Highlight"
                       >
                         <svg className="w-4 h-4 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
                         </svg>
                       </Button>
                       <Button 
