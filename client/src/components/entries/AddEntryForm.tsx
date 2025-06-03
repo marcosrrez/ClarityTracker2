@@ -879,15 +879,22 @@ export const AddEntryForm = () => {
                       className={cn(
                         "prose dark:prose-invert max-w-none focus:outline-none premium-writing",
                         isNotesExpanded ? "prose-xl" : "prose-lg",
-                        "[&_.ProseMirror]:min-h-[300px] [&_.ProseMirror]:outline-none [&_.ProseMirror]:border-none"
+                        "[&_.ProseMirror]:min-h-[300px] [&_.ProseMirror]:outline-none [&_.ProseMirror]:border-none [&_.ProseMirror]:cursor-text [&_.ProseMirror]:p-0"
                       )}
                     />
                     {!editor?.getText() && (
-                      <div className="absolute top-12 left-12 text-gray-400 dark:text-gray-500 pointer-events-none leading-relaxed select-none" style={{
-                        fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
-                        fontSize: isNotesExpanded ? '1.125rem' : '1rem',
-                        lineHeight: '1.75'
-                      }}>
+                      <div 
+                        className="absolute top-12 left-12 text-gray-400 dark:text-gray-500 leading-relaxed select-none cursor-text pointer-events-auto" 
+                        style={{
+                          fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
+                          fontSize: isNotesExpanded ? '1.125rem' : '1rem',
+                          lineHeight: '1.75'
+                        }}
+                        onClick={() => {
+                          editor?.commands.focus();
+                          editor?.commands.setTextSelection(0);
+                        }}
+                      >
                         Describe what happened in this session, your interventions, client progress, challenges you faced, insights gained, and your professional reflections.
                         {isNotesExpanded && (
                           <div className="mt-6 text-base opacity-75">

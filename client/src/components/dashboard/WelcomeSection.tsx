@@ -34,26 +34,25 @@ export const WelcomeSection = () => {
   const generatePersonalizedWelcome = () => {
     const sessionCount = entries?.length || 0;
     const totalHours = entries?.reduce((sum: number, entry: any) => sum + (entry.clientContactHours || 0), 0) || 0;
-    const now = new Date();
-    const timeOfDay = now.getHours();
-    const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
-    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
     
-    // Get last session date
-    const lastSession = entries?.length > 0 ? 
-      new Date(Math.max(...entries.map((e: any) => new Date(e.dateOfContact).getTime()))) : null;
-    
-    const daysSinceLastSession = lastSession ? 
-      Math.floor((now.getTime() - lastSession.getTime()) / (1000 * 60 * 60 * 24)) : null;
-    
-    // Time-based greeting
-    let greeting = "Good morning";
-    if (timeOfDay >= 12 && timeOfDay < 17) greeting = "Good afternoon";
-    if (timeOfDay >= 17 && timeOfDay < 22) greeting = "Good evening";
-    if (timeOfDay >= 22 || timeOfDay < 6) greeting = "Working late";
-    
-    // Contextual messages based on user activity, time, and account type
+    // Smart, rule-based personalized messages without greeting duplication
     let message = "";
+    
+    if (accountType === 'supervisor' || accountType === 'enterprise') {
+      message = "Monitor supervisee progress and maintain compliance standards";
+    } else if (sessionCount === 0) {
+      message = "Ready to start your professional journey? Let's log your first session and begin tracking your path to LPC licensure.";
+    } else if (totalHours < 50) {
+      message = "You're building momentum! Each session gets you closer to your LPC goals.";
+    } else if (totalHours < 500) {
+      message = "Great progress! You're developing strong clinical skills and professional habits.";
+    } else if (totalHours < 2000) {
+      message = "Impressive dedication! You're well on your way to meeting licensure requirements.";
+    } else {
+      message = "Outstanding commitment! You're approaching licensure readiness with excellent clinical experience.";
+    }
+    
+    setPersonalizedMessage(message);
     
     if (accountType === 'supervisor' || accountType === 'enterprise') {
       // Supervisor-specific messaging focused on managing supervisees
