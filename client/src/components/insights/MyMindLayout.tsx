@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Calendar, Sparkles, Search, Plus, Filter, Tags, Upload, Download, Mail, X, Send, MessageCircle } from "lucide-react";
+import { LoadingQuoteCompact } from "@/components/ui/loading-quote";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { createInsightCard } from "@/lib/firestore";
@@ -974,12 +975,12 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                   ))}
                   
                   {isAiLoading && (
-                    <div className="text-[#4A4A4A] dark:text-gray-300 leading-relaxed text-base">
-                      <div className="flex items-center gap-1">
-                        <div className="w-1.5 h-1.5 bg-[#4A4A4A] rounded-full animate-bounce"></div>
-                        <div className="w-1.5 h-1.5 bg-[#4A4A4A] rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                        <div className="w-1.5 h-1.5 bg-[#4A4A4A] rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                      </div>
+                    <div className="my-4">
+                      <LoadingQuoteCompact 
+                        context={['therapeutic alliance', 'professional development', 'counseling skills']}
+                        skillLevel="intermediate"
+                        className="max-w-lg"
+                      />
                     </div>
                   )}
                 </div>
