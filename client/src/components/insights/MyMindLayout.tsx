@@ -971,7 +971,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
           <div className="flex flex-col h-full">
             
             {/* Ultra Minimal Header */}
-            <div className="flex-shrink-0 flex items-center justify-between px-6 py-2">
+            <div className="flex-shrink-0 flex items-center justify-between px-6 py-2 bg-[#FEFEFE] dark:bg-[#0D0D0D]">
               <Button
                 variant="ghost"
                 size="sm"
@@ -1087,10 +1087,13 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                                 }}
                                 dangerouslySetInnerHTML={{
                                   __html: message.content
+                                    .replace(/\*\*\*(.*?)\*\*\*/g, '<strong>$1</strong>')
+                                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
                                     .split('\n\n')
-                                    .map(paragraph => paragraph.trim())
-                                    .filter(paragraph => paragraph.length > 0)
-                                    .map(paragraph => `<p style="margin-bottom: 1.5rem;">${paragraph}</p>`)
+                                    .map((paragraph: string) => paragraph.trim())
+                                    .filter((paragraph: string) => paragraph.length > 0)
+                                    .map((paragraph: string) => `<p style="margin-bottom: 1.5rem;">${paragraph}</p>`)
                                     .join('')
                                 }}
                               />
@@ -1157,7 +1160,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
             </div>
 
             {/* Mobile-Optimized Input Area - Compact Design */}
-            <div className="flex-shrink-0 bg-white dark:bg-gray-900 backdrop-blur-md bg-opacity-95 dark:bg-opacity-95">
+            <div className="flex-shrink-0 bg-[#FEFEFE] dark:bg-[#0D0D0D]">
               <div className="safe-area-inset-bottom">
                 <div className="px-4 md:px-6 py-2">
                   <div className="max-w-4xl mx-auto">
