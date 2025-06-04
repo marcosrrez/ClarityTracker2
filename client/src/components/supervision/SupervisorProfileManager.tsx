@@ -177,15 +177,24 @@ export function SupervisorProfileManager() {
   };
 
   const SupervisorForm = () => {
+    const [formData, setFormData] = useState({
+      name: editingSupervisor?.name || '',
+      title: editingSupervisor?.title || '',
+      email: editingSupervisor?.email || '',
+      phone: editingSupervisor?.phone || '',
+      supervisionType: editingSupervisor?.supervisionType || 'individual',
+      sessionFrequency: editingSupervisor?.sessionFrequency || 'weekly',
+      sessionDuration: editingSupervisor?.sessionDuration || '1',
+      notes: editingSupervisor?.notes || ''
+    });
     const [isSubmitting, setIsSubmitting] = useState(false);
     
-    const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      if (isSubmitting) return;
-      
-      console.log('Form submit triggered');
+    const handleInputChange = (field: string, value: string) => {
+      setFormData(prev => ({ ...prev, [field]: value }));
+    };
+    
+    const handleFormSubmit = async () => {
+      console.log('Direct submit triggered');
       
       if (selectedSpecialties.length === 0) {
         console.log('Validation failed: no specialties selected');
@@ -197,29 +206,28 @@ export function SupervisorProfileManager() {
         return;
       }
 
+      if (!formData.name || !formData.title) {
+        toast({
+          title: 'Validation Error',
+          description: 'Name and Title are required.',
+          variant: 'destructive'
+        });
+        return;
+      }
+
       setIsSubmitting(true);
       
       try {
-        console.log('Extracting form data...');
-        const formData = new FormData(e.currentTarget);
         const data = {
-          name: formData.get('name') as string,
-          title: formData.get('title') as string,
-          email: formData.get('email') as string || '',
-          phone: formData.get('phone') as string || '',
+          ...formData,
           specialties: selectedSpecialties,
-          supervisionType: formData.get('supervisionType') as ('individual' | 'group' | 'both') || 'individual',
-          sessionFrequency: formData.get('sessionFrequency') as ('weekly' | 'biweekly' | 'monthly' | 'asNeeded') || 'weekly',
-          sessionDuration: formData.get('sessionDuration') as string || '1',
-          notes: formData.get('notes') as string || '',
           isActive: true
         };
 
-        console.log('Form data extracted:', data);
-        console.log('Selected specialties:', selectedSpecialties);
+        console.log('Form data to submit:', data);
         
         await handleSubmit(data);
-        console.log('handleSubmit completed');
+        console.log('handleSubmit completed successfully');
       } catch (error) {
         console.error('Error in handleSubmit:', error);
       } finally {
@@ -229,7 +237,7 @@ export function SupervisorProfileManager() {
 
     return (
       <div className="p-4 sm:p-6">
-        <form onSubmit={handleFormSubmit} className="space-y-6">
+        <div className="space-y-6">
           {/* Basic Information */}
           <div className="space-y-4">
             <div>
@@ -237,10 +245,9 @@ export function SupervisorProfileManager() {
                 Full Name
               </label>
               <input
-                name="name"
-                required
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
                 placeholder="Dr. Jane Smith"
-                defaultValue={editingSupervisor?.name || ''}
                 className="w-full h-11 px-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-base"
               />
             </div>
@@ -250,10 +257,9 @@ export function SupervisorProfileManager() {
                 Title/Credentials
               </label>
               <input
-                name="title"
-                required
+                value={formData.title}
+                onChange={(e) => handleInputChange('title', e.target.value)}
                 placeholder="LPC, PhD"
-                defaultValue={editingSupervisor?.title || ''}
                 className="w-full h-11 px-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-base"
               />
             </div>
@@ -266,10 +272,10 @@ export function SupervisorProfileManager() {
                 Email (Optional)
               </label>
               <input
-                name="email"
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
                 type="email"
                 placeholder="supervisor@clinic.com"
-                defaultValue={editingSupervisor?.email || ''}
                 className="w-full h-11 px-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-base"
               />
             </div>
@@ -279,9 +285,9 @@ export function SupervisorProfileManager() {
                 Phone (Optional)
               </label>
               <input
-                name="phone"
+                value={formData.phone}
+                onChange={(e) => handleInputChange('phone', e.target.value)}
                 placeholder="(555) 123-4567"
-                defaultValue={editingSupervisor?.phone || ''}
                 className="w-full h-11 px-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-base"
               />
             </div>
@@ -334,8 +340,8 @@ export function SupervisorProfileManager() {
                 Type
               </label>
               <select
-                name="supervisionType"
-                defaultValue={editingSupervisor?.supervisionType || 'individual'}
+                value={formData.supervisionType}
+                onChange={(e) => handleInputChange('supervisionType', e.target.value)}
                 className="w-full h-11 px-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-base"
               >
                 <option value="individual">Individual</option>
@@ -349,8 +355,8 @@ export function SupervisorProfileManager() {
                 Frequency
               </label>
               <select
-                name="sessionFrequency"
-                defaultValue={editingSupervisor?.sessionFrequency || 'weekly'}
+                value={formData.sessionFrequency}
+                onChange={(e) => handleInputChange('sessionFrequency', e.target.value)}
                 className="w-full h-11 px-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-base"
               >
                 <option value="weekly">Weekly</option>
@@ -365,13 +371,13 @@ export function SupervisorProfileManager() {
                 Duration (hours)
               </label>
               <input
-                name="sessionDuration"
+                value={formData.sessionDuration}
+                onChange={(e) => handleInputChange('sessionDuration', e.target.value)}
                 type="number"
                 step="0.5"
                 min="0.5"
                 max="4"
                 placeholder="1.0"
-                defaultValue={editingSupervisor?.sessionDuration || '1'}
                 className="w-full h-11 px-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-base"
               />
             </div>
@@ -383,10 +389,10 @@ export function SupervisorProfileManager() {
               Notes (Optional)
             </label>
             <textarea
-              name="notes"
+              value={formData.notes}
+              onChange={(e) => handleInputChange('notes', e.target.value)}
               placeholder="Additional notes..."
               rows={3}
-              defaultValue={editingSupervisor?.notes || ''}
               className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 resize-none text-base"
             />
           </div>
@@ -401,14 +407,15 @@ export function SupervisorProfileManager() {
               Cancel
             </button>
             <button
-              type="submit"
+              type="button"
+              onClick={handleFormSubmit}
               disabled={selectedSpecialties.length === 0 || isSubmitting}
               className="flex-1 h-11 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium disabled:cursor-not-allowed"
             >
               {isSubmitting ? 'Saving...' : (editingSupervisor ? 'Update' : 'Add')} Supervisor
             </button>
           </div>
-        </form>
+        </div>
       </div>
     );
   };
