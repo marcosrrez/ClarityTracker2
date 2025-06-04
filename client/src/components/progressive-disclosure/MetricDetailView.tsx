@@ -136,8 +136,6 @@ export function MetricDetailView({ category, onBack, onDrillDown }: MetricDetail
         return 'Direct Client Contact Hours';
       case 'supervision_hours':
         return 'Supervision Hours';
-      case 'direct_hours':
-        return 'Direct Client Hours';
       case 'professional_development':
         return 'Professional Development';
       default:
