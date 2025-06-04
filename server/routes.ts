@@ -17,6 +17,7 @@ import { ComplianceMonitoringService } from "./services/compliance-monitoring-se
 import { ResourceRecommendationEngine } from "./services/resource-recommendation-engine";
 import { ConversationAnalysisService } from "./services/conversation-analysis-service";
 import { SupervisionService } from "./services/supervision-service";
+import { progressiveDisclosureService } from "./progressive-disclosure-service";
 
 // Email reminder scheduling function
 async function scheduleSessionReminders(session: any, reminderDays: number) {

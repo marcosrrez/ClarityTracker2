@@ -1010,3 +1010,109 @@ export const patternAnalysisTable = pgTable('pattern_analysis', {
   resolvedAt: timestamp('resolved_at'),
   createdAt: timestamp('created_at').defaultNow().notNull()
 });
+
+// Progressive Disclosure System Tables
+
+// Educational Content Table - for tips, explanations, and guidance
+export const educationalContentTable = pgTable('educational_content', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  category: varchar('category', { length: 100 }).notNull(), // supervision, direct_hours, ethics, etc.
+  contentType: varchar('content_type', { length: 50 }).notNull(), // tip, explanation, guide, definition
+  title: text('title').notNull(),
+  content: text('content').notNull(), // markdown content
+  level: integer('level').notNull().default(1), // 1=basic, 2=intermediate, 3=advanced
+  tags: text('tags'), // JSON array of searchable tags
+  targetAudience: varchar('target_audience', { length: 50 }).notNull().default('all'), // all, lac, lpc, supervisor
+  orderIndex: integer('order_index').default(0),
+  isActive: varchar('is_active', { length: 10 }).default('true'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const educationalContentSchema = z.object({
+  id: z.string(),
+  category: z.string(),
+  contentType: z.enum(['tip', 'explanation', 'guide', 'definition']),
+  title: z.string(),
+  content: z.string(),
+  level: z.number().min(1).max(3).default(1),
+  tags: z.array(z.string()).default([]),
+  targetAudience: z.enum(['all', 'lac', 'lpc', 'supervisor']).default('all'),
+  orderIndex: z.number().default(0),
+  isActive: z.boolean().default(true),
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date()),
+});
+
+export const insertEducationalContentSchema = educationalContentSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type EducationalContent = z.infer<typeof educationalContentSchema>;
+export type InsertEducationalContent = z.infer<typeof insertEducationalContentSchema>;
+
+// User Progress Insights Table - for tracking and displaying progress messages
+export const userProgressInsightTable = pgTable('user_progress_insights', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  category: varchar('category', { length: 100 }).notNull(), // supervision_hours, direct_hours, etc.
+  insightType: varchar('insight_type', { length: 50 }).notNull(), // progress, milestone, trend, encouragement
+  message: text('message').notNull(),
+  data: text('data'), // JSON object with supporting data
+  priority: integer('priority').default(1), // 1=low, 2=medium, 3=high
+  isRead: varchar('is_read', { length: 10 }).default('false'),
+  validUntil: timestamp('valid_until'), // when this insight expires
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const userProgressInsightSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  category: z.string(),
+  insightType: z.enum(['progress', 'milestone', 'trend', 'encouragement']),
+  message: z.string(),
+  data: z.any().optional(), // JSON object with supporting data
+  priority: z.number().min(1).max(3).default(1),
+  isRead: z.boolean().default(false),
+  validUntil: z.date().optional(),
+  createdAt: z.date().default(() => new Date()),
+});
+
+export const insertUserProgressInsightSchema = userProgressInsightSchema.omit({
+  id: true,
+  createdAt: true,
+});
+
+export type UserProgressInsight = z.infer<typeof userProgressInsightSchema>;
+export type InsertUserProgressInsight = z.infer<typeof insertUserProgressInsightSchema>;
+
+// Dashboard Interaction Table - for tracking user interactions with dashboard components
+export const dashboardInteractionTable = pgTable('dashboard_interactions', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  componentType: varchar('component_type', { length: 100 }).notNull(), // supervision_card, direct_hours_card, etc.
+  interactionType: varchar('interaction_type', { length: 50 }).notNull(), // click, drill_down, educational_view
+  level: integer('level').notNull().default(1), // 1=first level, 2=second level, 3=third level
+  metadata: text('metadata'), // JSON with additional context
+  timestamp: timestamp('timestamp').defaultNow().notNull(),
+});
+
+export const dashboardInteractionSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  componentType: z.string(),
+  interactionType: z.enum(['click', 'drill_down', 'educational_view']),
+  level: z.number().min(1).max(3).default(1),
+  metadata: z.any().optional(),
+  timestamp: z.date().default(() => new Date()),
+});
+
+export const insertDashboardInteractionSchema = dashboardInteractionSchema.omit({
+  id: true,
+  timestamp: true,
+});
+
+export type DashboardInteraction = z.infer<typeof dashboardInteractionSchema>;
+export type InsertDashboardInteraction = z.infer<typeof insertDashboardInteractionSchema>;
