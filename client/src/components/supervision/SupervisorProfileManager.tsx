@@ -65,9 +65,12 @@ export function SupervisorProfileManager() {
 
   const loadSupervisors = async () => {
     try {
+      console.log('Loading supervisors for user:', user?.uid);
       const response = await fetch(`/api/supervisors/${user?.uid}`);
+      console.log('Supervisor response status:', response.status);
       if (response.ok) {
         const data = await response.json();
+        console.log('Supervisor data received:', data);
         setSupervisors(data);
       }
     } catch (error) {
@@ -274,16 +277,16 @@ export function SupervisorProfileManager() {
       {isDialogOpen && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
           <div className="fixed inset-0 bg-black/50" onClick={() => setIsDialogOpen(false)} />
-          <div className="relative w-full max-w-md bg-white dark:bg-gray-900 rounded-t-2xl sm:rounded-2xl shadow-xl max-h-[90vh] overflow-y-auto">
+          <div className="relative w-full max-w-md bg-white dark:bg-gray-900 rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-700">
             {/* Header */}
-            <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 p-4">
+            <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 p-6">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
                   {editingSupervisor ? 'Edit Supervisor' : 'Add Supervisor'}
                 </h3>
                 <button
                   onClick={() => setIsDialogOpen(false)}
-                  className="p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                 >
                   ✕
                 </button>
@@ -291,47 +294,49 @@ export function SupervisorProfileManager() {
             </div>
 
             {/* Form Content */}
-            <div className="p-4 space-y-4">
+            <div className="p-6 space-y-6">
               {/* Basic Information */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Full Name *
-                </label>
-                <input
-                  value={formData.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  placeholder="Dr. Jane Smith"
-                  className="w-full h-12 px-4 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Title/Credentials *
-                </label>
-                <input
-                  value={formData.title}
-                  onChange={(e) => handleInputChange('title', e.target.value)}
-                  placeholder="LPC, PhD"
-                  className="w-full h-12 px-4 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                    Full Name *
+                  </label>
+                  <input
+                    value={formData.name}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    placeholder="Dr. Jane Smith"
+                    className="w-full h-14 px-4 text-base border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                    Title/Credentials *
+                  </label>
+                  <input
+                    value={formData.title}
+                    onChange={(e) => handleInputChange('title', e.target.value)}
+                    placeholder="LPC, PhD"
+                    className="w-full h-14 px-4 text-base border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  />
+                </div>
               </div>
 
               {/* Specialties */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                   Specialties * (Select at least one)
                 </label>
-                <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
+                <div className="grid grid-cols-1 gap-3 max-h-48 overflow-y-auto p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
                   {specialtyOptions.map((specialty) => (
-                    <label key={specialty} className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800">
+                    <label key={specialty} className="flex items-center space-x-3 p-3 rounded-xl hover:bg-white dark:hover:bg-gray-700 transition-colors cursor-pointer">
                       <input
                         type="checkbox"
                         checked={selectedSpecialties.includes(specialty)}
                         onChange={() => toggleSpecialty(specialty)}
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        className="w-5 h-5 rounded-lg border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
                       />
-                      <span className="text-sm text-gray-700 dark:text-gray-300">{specialty}</span>
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{specialty}</span>
                     </label>
                   ))}
                 </div>
@@ -404,17 +409,17 @@ export function SupervisorProfileManager() {
             </div>
 
             {/* Footer */}
-            <div className="sticky bottom-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 p-4 space-y-3">
+            <div className="sticky bottom-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 p-6 space-y-3">
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="w-full h-12 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium rounded-lg disabled:cursor-not-allowed"
+                className="w-full h-14 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold rounded-xl disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 {isSubmitting ? 'Saving...' : (editingSupervisor ? 'Update' : 'Add')} Supervisor
               </button>
               <button
                 onClick={() => setIsDialogOpen(false)}
-                className="w-full h-12 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium rounded-lg"
+                className="w-full h-14 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-semibold rounded-xl transition-all duration-200"
               >
                 Cancel
               </button>
