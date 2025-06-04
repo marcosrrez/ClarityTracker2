@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useUser } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 
@@ -219,6 +219,12 @@ export function SupervisorProfileManager() {
               <DialogTitle>
                 {editingSupervisor ? 'Edit Supervisor' : 'Add New Supervisor'}
               </DialogTitle>
+              <DialogDescription>
+                {editingSupervisor 
+                  ? 'Update supervisor details, specialties, and session preferences.'
+                  : 'Add supervisor contact information, specialties, and session preferences to track your supervision relationships.'
+                }
+              </DialogDescription>
             </DialogHeader>
             
             <Form {...form}>

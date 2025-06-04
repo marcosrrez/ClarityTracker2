@@ -336,7 +336,7 @@ export function MetricDetailView({ category, onBack, onDrillDown }: MetricDetail
                 )}
               </div>
               <div className="text-lg font-semibold">
-                {entry.hours}h
+                {Math.round(entry.hours * 10) / 10}h
               </div>
             </div>
           ))}
