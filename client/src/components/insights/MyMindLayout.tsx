@@ -1159,13 +1159,13 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
               )}
             </div>
 
-            {/* Mobile-Optimized Input Area - Navigation Bar Style */}
+            {/* Mobile-Optimized Input Area - Enhanced Visibility */}
             <div className="flex-shrink-0 bg-[#FEFEFE] dark:bg-[#0D0D0D]">
               <div className="safe-area-inset-bottom">
-                <div className="px-12 py-4">
-                  <div className="max-w-sm mx-auto">
-                    <div className="relative bg-gray-100 dark:bg-gray-800 rounded-full shadow-lg border-2 border-gray-300 dark:border-gray-600">
-                      <div className="px-4 py-2">
+                <div className="px-6 py-3">
+                  <div className="max-w-md mx-auto">
+                    <div className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-xl border-2 border-gray-400 dark:border-gray-500">
+                      <div className="px-4 py-3">
                         <textarea
                           value={aiInputValue}
                           onChange={(e) => setAiInputValue(e.target.value)}
@@ -1187,7 +1187,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                             }
                           }}
                           placeholder="Ask about counseling theories, DSM, clinical practice, or business guidance..."
-                          className="w-full min-h-[50px] max-h-[100px] px-4 py-3 pr-14 border-none bg-transparent resize-none focus:outline-none text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 rounded-2xl text-sm"
+                          className="w-full min-h-[60px] max-h-[120px] px-4 py-3 pr-14 border-none bg-transparent resize-none focus:outline-none text-gray-900 dark:text-gray-100 placeholder-gray-600 dark:placeholder-gray-400 rounded-2xl text-base"
                           style={{ 
                             fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
                             lineHeight: '1.5'
