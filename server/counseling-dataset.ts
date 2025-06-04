@@ -18,6 +18,21 @@ export interface CounselingEntry {
 }
 
 export const counselingDataset: CounselingEntry[] = [
+  // Basic Interactions
+  {
+    id: 'greeting-001',
+    topic: 'Greetings and Basic Interactions',
+    category: 'Basic Interactions',
+    description: 'Responding to greetings and basic conversational interactions in a professional, warm manner appropriate for counseling contexts.',
+    example: 'Hello! I\'m here to help with your counseling questions. How can I assist you today?',
+    reflectivePrompt: 'What brings you to seek counseling guidance today?',
+    references: ['Basic counseling communication principles'],
+    keywords: ['hello', 'hi', 'hey', 'greetings', 'good morning', 'good afternoon', 'good evening', 'how are you'],
+    responseTemplate: 'Hello! I\'m Dinger, your counseling AI assistant. I\'m here to help with questions about therapy, mental health, professional development, and counseling practice. What would you like to explore today?',
+    skillLevel: 'Beginner',
+    relatedTopics: ['Professional Communication', 'Therapeutic Alliance']
+  },
+
   // Counseling Theories
   {
     id: 'cbt-001',
@@ -44,6 +59,45 @@ export const counselingDataset: CounselingEntry[] = [
     responseTemplate: 'In humanistic therapy, focus on {user_input} through empathy and acceptance. Practice active listening and reflect the client\'s feelings.',
     skillLevel: 'Beginner',
     relatedTopics: ['Therapeutic Alliance', 'Core Skills', 'Active Listening']
+  },
+  {
+    id: 'gestalt-001',
+    topic: 'Gestalt Therapy',
+    category: 'Counseling Theories',
+    description: 'Gestalt therapy focuses on present-moment awareness, the here-and-now experience, and the contact between therapist and client. Emphasizes wholeness, figure-ground relationships, and creative experiments.',
+    example: 'Use empty chair technique: "Speak to your anger as if it were sitting in that chair. What would you say?" Focus on body awareness: "What do you notice happening in your body right now?"',
+    reflectivePrompt: 'How comfortable are you with focusing on present-moment experiences rather than past analysis?',
+    references: ['Perls, F. (1973). The Gestalt Approach', 'Yontef, G. (1993). Awareness, Dialogue, and Process'],
+    keywords: ['gestalt', 'present moment', 'here and now', 'awareness', 'contact', 'figure ground', 'empty chair', 'experiments'],
+    responseTemplate: 'Gestalt therapy for {user_input} emphasizes present-moment awareness and direct experience. Try focusing on what\'s happening right now rather than analyzing the past. {reflective_prompt}',
+    skillLevel: 'Intermediate',
+    relatedTopics: ['Present Moment Awareness', 'Body Awareness', 'Creative Techniques']
+  },
+  {
+    id: 'psychodynamic-001',
+    topic: 'Psychodynamic Therapy',
+    category: 'Counseling Theories',
+    description: 'Explores unconscious processes, defense mechanisms, transference, and early life experiences. Focuses on insight development and working through unresolved conflicts.',
+    example: 'Explore transference: "I notice you seem to be responding to me the way you described responding to your father. What comes up for you about that?"',
+    reflectivePrompt: 'How do unconscious patterns from your past show up in your current relationships?',
+    references: ['Freud, S. (1900). The Interpretation of Dreams', 'McWilliams, N. (2004). Psychoanalytic Psychotherapy'],
+    keywords: ['psychodynamic', 'unconscious', 'transference', 'defense mechanisms', 'insight', 'psychoanalytic', 'early experiences'],
+    responseTemplate: 'Psychodynamic approach to {user_input} involves exploring unconscious patterns and early experiences. Consider how past relationships influence current patterns. {reflective_prompt}',
+    skillLevel: 'Advanced',
+    relatedTopics: ['Transference', 'Defense Mechanisms', 'Insight Development']
+  },
+  {
+    id: 'existential-001',
+    topic: 'Existential Therapy',
+    category: 'Counseling Theories',
+    description: 'Addresses fundamental human concerns: death, freedom, isolation, and meaninglessness. Focuses on personal responsibility, authentic living, and creating meaning.',
+    example: 'Explore meaning: "What gives your life meaning right now?" Address freedom: "What choices do you have in this situation, even if they\'re difficult ones?"',
+    reflectivePrompt: 'How do you find meaning in difficult experiences?',
+    references: ['Yalom, I. (1980). Existential Psychotherapy', 'Frankl, V. (1946). Man\'s Search for Meaning'],
+    keywords: ['existential', 'meaning', 'freedom', 'death anxiety', 'isolation', 'responsibility', 'authentic living'],
+    responseTemplate: 'From an existential perspective, {user_input} involves questions of meaning, choice, and responsibility. Focus on what you can control and what gives life meaning. {reflective_prompt}',
+    skillLevel: 'Advanced',
+    relatedTopics: ['Meaning Making', 'Personal Responsibility', 'Life Transitions']
   },
   {
     id: 'solution-focused-001',
@@ -628,13 +682,15 @@ export const counselingDataset: CounselingEntry[] = [
  * Search function to find relevant counseling entries based on user input
  */
 export function searchCounselingDataset(query: string, category?: string): CounselingEntry[] {
-  const searchTerms = query.toLowerCase().split(' ');
+  const searchTerms = query.toLowerCase().split(' ').filter(term => term.length > 2); // Ignore very short words
+  const queryLower = query.toLowerCase();
   
-  return counselingDataset.filter(entry => {
+  // Score each entry based on relevance
+  const scoredEntries = counselingDataset.map(entry => {
     // Filter by category if specified
-    if (category && entry.category !== category) return false;
+    if (category && entry.category !== category) return { entry, score: 0 };
     
-    // Search in keywords, topic, and description
+    let score = 0;
     const searchableText = [
       entry.topic,
       entry.description,
@@ -642,9 +698,39 @@ export function searchCounselingDataset(query: string, category?: string): Couns
       ...entry.relatedTopics
     ].join(' ').toLowerCase();
     
-    // Return true if any search term is found
-    return searchTerms.some(term => searchableText.includes(term));
-  }).slice(0, 3); // Return top 3 matches
+    // Exact topic match gets highest score
+    if (entry.topic.toLowerCase().includes(queryLower)) {
+      score += 100;
+    }
+    
+    // Keyword matches get high score
+    entry.keywords.forEach(keyword => {
+      if (queryLower.includes(keyword.toLowerCase()) || keyword.toLowerCase().includes(queryLower)) {
+        score += 50;
+      }
+    });
+    
+    // Search term matches in description
+    searchTerms.forEach(term => {
+      if (searchableText.includes(term)) {
+        score += 10;
+      }
+    });
+    
+    // Boost score for exact phrase matches
+    if (searchableText.includes(queryLower)) {
+      score += 30;
+    }
+    
+    return { entry, score };
+  });
+  
+  // Return top matches sorted by score, excluding zero scores
+  return scoredEntries
+    .filter(item => item.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+    .map(item => item.entry);
 }
 
 /**
@@ -654,11 +740,30 @@ export function getCounselingResponse(userInput: string): string {
   const matches = searchCounselingDataset(userInput);
   
   if (matches.length === 0) {
-    return "I understand you're asking about counseling. While I'm having trouble accessing my full knowledge base right now, I'd recommend consulting your supervisor or reviewing the ACA Code of Ethics for guidance. Is there a specific area of counseling you'd like to explore?";
+    // Check if it's a greeting
+    const greetingWords = ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening'];
+    const isGreeting = greetingWords.some(greeting => 
+      userInput.toLowerCase().includes(greeting)
+    );
+    
+    if (isGreeting) {
+      return "Hello! I'm Dinger, your counseling AI assistant. I'm here to help with questions about therapy, mental health theories, professional development, and counseling practice. What would you like to explore today?";
+    }
+    
+    return "I understand you're asking about counseling. While I'm using my knowledge base right now, I'd recommend consulting your supervisor or reviewing the ACA Code of Ethics for guidance on topics I may not have covered. Is there a specific area of counseling you'd like to explore?";
   }
   
   const bestMatch = matches[0];
-  return bestMatch.responseTemplate.replace('{user_input}', userInput).replace('{reflective_prompt}', bestMatch.reflectivePrompt);
+  let response = bestMatch.responseTemplate
+    .replace('{user_input}', userInput)
+    .replace('{reflective_prompt}', bestMatch.reflectivePrompt);
+  
+  // Add related topics if available
+  if (bestMatch.relatedTopics.length > 0) {
+    response += `\n\nRelated topics you might explore: ${bestMatch.relatedTopics.join(', ')}.`;
+  }
+  
+  return response;
 }
 
 /**
