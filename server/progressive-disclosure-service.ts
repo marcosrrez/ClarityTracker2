@@ -259,9 +259,12 @@ export class ProgressiveDisclosureService {
 
     // Insert educational content
     for (const content of educationalContent) {
+      const { tags, isActive, ...contentData } = content;
       await db.insert(educationalContentTable).values({
         id: `edu_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        ...content
+        ...contentData,
+        tags: JSON.stringify(tags),
+        isActive: isActive ? 'true' : 'false'
       });
     }
   }

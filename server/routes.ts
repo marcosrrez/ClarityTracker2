@@ -1892,5 +1892,92 @@ Please provide a helpful, professional response that's personalized to their sit
     }
   });
 
+  // Progressive Disclosure API Routes
+
+  // Generate progress insights for a user
+  app.post('/api/progressive-disclosure/generate-insights/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      // Get user's log entries for insight generation
+      const logEntries = await storage.getLogEntriesByUserId(userId);
+      
+      const insights = await progressiveDisclosureService.generateProgressInsights(userId, logEntries);
+      res.json({ insights });
+    } catch (error) {
+      console.error('Error generating progress insights:', error);
+      res.status(500).json({ error: 'Failed to generate progress insights' });
+    }
+  });
+
+  // Get educational content for a category
+  app.get('/api/progressive-disclosure/educational-content/:category', async (req, res) => {
+    try {
+      const { category } = req.params;
+      const { level = 1, targetAudience = 'all' } = req.query;
+      
+      const content = await progressiveDisclosureService.getEducationalContent(
+        category, 
+        parseInt(level as string), 
+        targetAudience as string
+      );
+      
+      res.json({ content });
+    } catch (error) {
+      console.error('Error fetching educational content:', error);
+      res.status(500).json({ error: 'Failed to fetch educational content' });
+    }
+  });
+
+  // Get user progress insights
+  app.get('/api/progressive-disclosure/insights/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { category, limit = 10 } = req.query;
+      
+      const insights = await progressiveDisclosureService.getUserProgressInsights(
+        userId,
+        category as string,
+        parseInt(limit as string)
+      );
+      
+      res.json({ insights });
+    } catch (error) {
+      console.error('Error fetching user insights:', error);
+      res.status(500).json({ error: 'Failed to fetch user insights' });
+    }
+  });
+
+  // Track dashboard interaction
+  app.post('/api/progressive-disclosure/track-interaction', express.json(), async (req, res) => {
+    try {
+      const { userId, componentType, interactionType, level = 1, metadata } = req.body;
+      
+      await progressiveDisclosureService.trackDashboardInteraction(
+        userId,
+        componentType,
+        interactionType,
+        level,
+        metadata
+      );
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error tracking dashboard interaction:', error);
+      res.status(500).json({ error: 'Failed to track interaction' });
+    }
+  });
+
+  // Seed educational content (admin only)
+  app.post('/api/progressive-disclosure/seed-content', async (req, res) => {
+    try {
+      await progressiveDisclosureService.seedEducationalContent();
+      res.json({ success: true, message: 'Educational content seeded successfully' });
+    } catch (error) {
+      console.error('Error seeding educational content:', error);
+      res.status(500).json({ error: 'Failed to seed educational content' });
+    }
+  });
+
   return httpServer;
 }
