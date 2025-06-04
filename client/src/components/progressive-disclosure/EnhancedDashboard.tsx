@@ -136,7 +136,7 @@ export function EnhancedDashboard() {
 
       {/* Progressive Disclosure Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <ProgressiveMetricCard
+        <ProgressiveMetricCardNew
           title="Supervision Hours"
           value={`${metrics.supervisionHours}`}
           subtitle="hours completed"
@@ -145,7 +145,7 @@ export function EnhancedDashboard() {
           className="hover:shadow-lg"
         />
         
-        <ProgressiveMetricCard
+        <ProgressiveMetricCardNew
           title="Direct Client Hours"
           value={`${metrics.directClientHours}`}
           subtitle="hours logged"
@@ -154,7 +154,7 @@ export function EnhancedDashboard() {
           className="hover:shadow-lg"
         />
         
-        <ProgressiveMetricCard
+        <ProgressiveMetricCardNew
           title="Professional Development"
           value={`${metrics.professionalDevelopmentHours}`}
           subtitle="hours completed"
