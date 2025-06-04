@@ -2528,37 +2528,33 @@ Please provide a helpful, professional response that's personalized to their sit
   app.get('/api/supervisors/:userId', async (req, res) => {
     try {
       const { userId } = req.params;
-      // For now, return empty array until database schema is extended
-      const supervisors: any[] = [];
+      const supervisors = await storage.getSupervisorsByUserId(userId);
       res.json(supervisors);
     } catch (error) {
+      console.error('Error fetching supervisors:', error);
       res.status(500).json({ error: 'Failed to fetch supervisors' });
     }
   });
 
-  app.post('/api/supervisors', async (req, res) => {
+  app.post('/api/supervisors', express.json(), async (req, res) => {
     try {
       const supervisorData = req.body;
-      // In a real implementation, this would save to the database
-      const newSupervisor = {
-        id: Date.now().toString(),
-        ...supervisorData,
-        createdAt: new Date(),
-        totalHours: 0
-      };
+      const newSupervisor = await storage.createSupervisor(supervisorData);
       res.json(newSupervisor);
     } catch (error) {
+      console.error('Error creating supervisor:', error);
       res.status(500).json({ error: 'Failed to create supervisor' });
     }
   });
 
-  app.put('/api/supervisors/:supervisorId', async (req, res) => {
+  app.put('/api/supervisors/:supervisorId', express.json(), async (req, res) => {
     try {
       const { supervisorId } = req.params;
       const updates = req.body;
-      // In a real implementation, this would update the database
-      res.json({ id: supervisorId, ...updates });
+      await storage.updateSupervisor(supervisorId, updates);
+      res.json({ success: true });
     } catch (error) {
+      console.error('Error updating supervisor:', error);
       res.status(500).json({ error: 'Failed to update supervisor' });
     }
   });
@@ -2566,9 +2562,10 @@ Please provide a helpful, professional response that's personalized to their sit
   app.delete('/api/supervisors/:supervisorId', async (req, res) => {
     try {
       const { supervisorId } = req.params;
-      // In a real implementation, this would delete from the database
+      await storage.deleteSupervisor(supervisorId);
       res.json({ success: true });
     } catch (error) {
+      console.error('Error deleting supervisor:', error);
       res.status(500).json({ error: 'Failed to delete supervisor' });
     }
   });
