@@ -65,12 +65,9 @@ export function SupervisorProfileManager() {
 
   const loadSupervisors = async () => {
     try {
-      console.log('Loading supervisors for user:', user?.uid);
       const response = await fetch(`/api/supervisors/${user?.uid}`);
-      console.log('Supervisor response status:', response.status);
       if (response.ok) {
         const data = await response.json();
-        console.log('Supervisor data received:', data);
         setSupervisors(data);
       }
     } catch (error) {
