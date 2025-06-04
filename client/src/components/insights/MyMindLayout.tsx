@@ -1007,7 +1007,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                           letterSpacing: '-0.01em'
                         }}
                       >
-                        Hey there, great to meet you. I'm Dinger, your AI assistant.
+                        Hey there, great to meet you. I'm Dinger, your counseling AI assistant.
                       </h1>
                       
                       <p 
@@ -1017,7 +1017,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                           lineHeight: '1.7'
                         }}
                       >
-                        I can help with anything - from creative writing and analysis to problem-solving and conversations. I'm powered by advanced AI and ready to assist with your questions and ideas.
+                        I specialize in mental health, counseling theories, therapeutic modalities, the DSM, clinical practice, and business guidance for LACs and LPCs. I'm here to support your professional development and clinical expertise.
                       </p>
                       
                       <p 
@@ -1027,7 +1027,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                           lineHeight: '1.6'
                         }}
                       >
-                        What would you like to explore today?
+                        What aspect of counseling would you like to explore?
                       </p>
                     </div>
                   </div>
@@ -1139,7 +1139,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                           }
                         }, 500);
                       }}
-                      placeholder="Ask me anything..."
+                      placeholder="Ask about counseling theories, DSM, clinical practice, or business guidance..."
                       className="w-full min-h-[100px] max-h-[240px] px-8 py-6 pr-20 border-none bg-transparent resize-none focus:outline-none text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 rounded-[1.75rem]"
                       style={{ 
                         fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
