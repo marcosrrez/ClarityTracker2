@@ -2108,17 +2108,27 @@ Please provide a helpful, professional response that's personalized to their sit
         const entryHours = context.entry.hours || 0;
         const entryDate = context.entry.date || 'Recent Entry';
         const entryNotes = context.entry.notes || 'No notes recorded';
+        const noteLength = entryNotes.length;
+        const wordCount = entryNotes.split(' ').filter(word => word.length > 0).length;
         
-        personalAnalysis = `This ${entryHours} hour session on ${entryDate} represents focused clinical work. Your detailed documentation demonstrates professional growth and commitment to quality care.`;
+        // Adjust analysis based on actual note quality
+        const documentationQuality = wordCount >= 10 ? 'detailed' : wordCount >= 5 ? 'brief' : 'minimal';
+        const documentationComment = documentationQuality === 'detailed' ? 
+          'Your comprehensive documentation demonstrates professional thoroughness.' :
+          documentationQuality === 'brief' ? 
+          'Consider expanding your session notes for better clinical tracking.' :
+          'Adding more detailed session notes will enhance your professional development.';
+        
+        personalAnalysis = `This ${entryHours} hour session on ${entryDate} represents focused clinical work. ${documentationComment}`;
         
         patterns = [
           `Session duration of ${entryHours} hours shows appropriate therapeutic engagement`,
-          'Consistent documentation supports clinical decision-making',
-          'Regular logging demonstrates professional accountability'
+          `Documentation level: ${documentationQuality} (${wordCount} words)`,
+          'Regular session logging demonstrates professional accountability'
         ];
         
         recommendations = [
-          'Continue detailed session documentation',
+          documentationQuality === 'minimal' ? 'Expand session documentation with key interventions and outcomes' : 'Continue thorough session documentation',
           'Reflect on key therapeutic moments from this session',
           'Consider discussing insights from this session in supervision'
         ];
@@ -2127,12 +2137,12 @@ Please provide a helpful, professional response that's personalized to their sit
           {
             title: 'Session Documentation Best Practices',
             description: 'Effective approaches to clinical record-keeping',
-            relevance: 'Directly applicable to your documentation',
+            relevance: 'Directly applicable to your documentation style',
             topic: 'documentation_practices'
           },
           {
             title: 'Reflective Practice in Therapy Sessions',
-            description: 'Techniques for post-session reflection',
+            description: 'Techniques for post-session reflection and analysis',
             relevance: 'Enhances learning from each session',
             topic: 'reflective_practice'
           }
@@ -2511,6 +2521,55 @@ Please provide a helpful, professional response that's personalized to their sit
     } catch (error) {
       console.error('Error seeding educational content:', error);
       res.status(500).json({ error: 'Failed to seed educational content' });
+    }
+  });
+
+  // Supervisor profile management routes
+  app.get('/api/supervisors/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      // For now, return empty array until database schema is extended
+      const supervisors: any[] = [];
+      res.json(supervisors);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch supervisors' });
+    }
+  });
+
+  app.post('/api/supervisors', async (req, res) => {
+    try {
+      const supervisorData = req.body;
+      // In a real implementation, this would save to the database
+      const newSupervisor = {
+        id: Date.now().toString(),
+        ...supervisorData,
+        createdAt: new Date(),
+        totalHours: 0
+      };
+      res.json(newSupervisor);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to create supervisor' });
+    }
+  });
+
+  app.put('/api/supervisors/:supervisorId', async (req, res) => {
+    try {
+      const { supervisorId } = req.params;
+      const updates = req.body;
+      // In a real implementation, this would update the database
+      res.json({ id: supervisorId, ...updates });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to update supervisor' });
+    }
+  });
+
+  app.delete('/api/supervisors/:supervisorId', async (req, res) => {
+    try {
+      const { supervisorId } = req.params;
+      // In a real implementation, this would delete from the database
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to delete supervisor' });
     }
   });
 
