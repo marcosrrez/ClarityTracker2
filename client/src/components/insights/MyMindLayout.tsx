@@ -95,16 +95,38 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
   
   // Auto-scroll to bottom when messages change
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (aiMessagesEndRef.current) {
-        const scrollContainer = aiMessagesEndRef.current.closest('.overflow-y-auto');
-        if (scrollContainer) {
-          scrollContainer.scrollTop = scrollContainer.scrollHeight;
-        }
+    const scrollToBottom = () => {
+      const chatContainer = document.getElementById('chat-container');
+      if (chatContainer) {
+        chatContainer.scrollTo({
+          top: chatContainer.scrollHeight,
+          behavior: 'smooth'
+        });
       }
-    }, 100);
+    };
+    
+    // Small delay to ensure DOM is updated
+    const timer = setTimeout(scrollToBottom, 150);
     return () => clearTimeout(timer);
   }, [aiMessages.length, isAiLoading]);
+
+  // Handle viewport changes for mobile keyboard
+  useEffect(() => {
+    const handleResize = () => {
+      const chatContainer = document.getElementById('chat-container');
+      if (chatContainer && aiMessages.length > 0) {
+        setTimeout(() => {
+          chatContainer.scrollTo({
+            top: chatContainer.scrollHeight,
+            behavior: 'smooth'
+          });
+        }, 300);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [aiMessages.length]);
 
   // Handle AI Coach message sending
   const handleSendAiMessage = async () => {
@@ -971,8 +993,8 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
             </div>
 
             {/* Modern Chat Interface - Claude/ChatGPT Style */}
-            <div className="flex-1 overflow-y-auto" style={{ scrollBehavior: 'smooth' }}>
-              <div className="max-w-4xl mx-auto px-8 min-h-full flex flex-col">
+            <div className="flex-1 overflow-y-auto" style={{ scrollBehavior: 'smooth' }} id="chat-container">
+              <div className="max-w-4xl mx-auto px-8 pb-8 flex flex-col">
                 
                 {/* Welcome Message - Only shown when no conversation */}
                 {aiMessages.length === 0 && !isAiLoading && (
@@ -985,7 +1007,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                           letterSpacing: '-0.01em'
                         }}
                       >
-                        Hey there, great to meet you. I'm Dinger, your personal AI.
+                        Hey there, great to meet you. I'm Dinger, your AI assistant.
                       </h1>
                       
                       <p 
@@ -995,7 +1017,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                           lineHeight: '1.7'
                         }}
                       >
-                        My goal is to be useful, friendly and fun. Ask me for advice, for answers, or let's talk about whatever's on your mind.
+                        I can help with anything - from creative writing and analysis to problem-solving and conversations. I'm powered by advanced AI and ready to assist with your questions and ideas.
                       </p>
                       
                       <p 
@@ -1005,7 +1027,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                           lineHeight: '1.6'
                         }}
                       >
-                        How's your day going?
+                        What would you like to explore today?
                       </p>
                     </div>
                   </div>
@@ -1091,10 +1113,10 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
               </div>
             </div>
 
-            {/* Premium Text Entry - Ultra Elegant */}
-            <div className="px-8 pb-8 pt-4">
+            {/* Premium Text Entry - Mobile Optimized */}
+            <div className="px-8 pb-8 pt-4 bg-white dark:bg-gray-900">
               <div className="max-w-4xl mx-auto">
-                <div className="relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-[2rem] shadow-lg border border-gray-200/30 dark:border-gray-700/30 hover:shadow-xl transition-all duration-300">
+                <div className="relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-[2rem] shadow-lg border border-gray-200/30 dark:border-gray-700/30 hover:shadow-xl transition-all duration-300">
                   <div className="p-1.5">
                     <textarea
                       value={aiInputValue}
@@ -1105,7 +1127,19 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                           handleSendAiMessage();
                         }
                       }}
-                      placeholder="What would you like to explore today?"
+                      onFocus={() => {
+                        // Scroll to input on mobile focus
+                        setTimeout(() => {
+                          const chatContainer = document.getElementById('chat-container');
+                          if (chatContainer) {
+                            chatContainer.scrollTo({
+                              top: chatContainer.scrollHeight,
+                              behavior: 'smooth'
+                            });
+                          }
+                        }, 500);
+                      }}
+                      placeholder="Ask me anything..."
                       className="w-full min-h-[100px] max-h-[240px] px-8 py-6 pr-20 border-none bg-transparent resize-none focus:outline-none text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 rounded-[1.75rem]"
                       style={{ 
                         fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
