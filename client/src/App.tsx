@@ -35,6 +35,7 @@ import AIInsights from "@/pages/AIInsights";
 import IntelligenceHub from "@/pages/IntelligenceHub";
 import AICoachPage from "@/pages/AICoachPage";
 import EnhancedDashboardPage from "@/pages/EnhancedDashboardPage";
+import { SupervisorsPage } from "@/pages/SupervisorsPage";
 
 import NotFound from "@/pages/not-found";
 

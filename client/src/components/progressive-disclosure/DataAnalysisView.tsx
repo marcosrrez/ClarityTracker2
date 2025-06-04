@@ -130,7 +130,7 @@ export function DataAnalysisView({ dataPoint, context, onBack, onLearnMore }: Da
             </div>
           )}
           
-          {dataPoint === 'recent_entry' && (
+          {dataPoint === 'recent_entry' && context?.entry && (
             <div className="space-y-2">
               <div className="text-2xl font-bold">{context.entry.hours} hours</div>
               <div className="text-sm text-muted-foreground">

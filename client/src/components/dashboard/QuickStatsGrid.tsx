@@ -79,7 +79,7 @@ export const QuickStatsGrid = () => {
     },
     {
       title: "Supervision Hours",
-      value: totalSupervisionHours.toFixed(1),
+      value: (Math.round(totalSupervisionHours * 10) / 10).toString(),
       subtitle: "Total", 
       change: thisWeekSupervisionHours - lastWeekSupervisionHours,
       changeLabel: "vs last week",
@@ -115,7 +115,7 @@ export const QuickStatsGrid = () => {
             <div className="flex-1">
               <div className="flex items-baseline space-x-1 mb-1">
                 <h2 className="text-3xl font-bold text-black dark:text-white">
-                  {totalClientHours.toFixed(1)}
+                  {Math.round(totalClientHours * 10) / 10}
                 </h2>
                 <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">
                   / 100 hours

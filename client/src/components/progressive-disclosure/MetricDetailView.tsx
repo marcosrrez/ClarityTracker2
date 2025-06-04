@@ -278,11 +278,11 @@ export function MetricDetailView({ category, onBack, onDrillDown }: MetricDetail
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div>
-              <div className="text-2xl font-bold text-blue-600">{data.totalHours}</div>
+              <div className="text-2xl font-bold text-blue-600">{Number(data.totalHours).toFixed(1)}</div>
               <div className="text-sm text-muted-foreground">Total Hours</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-green-600">{data.weeklyAverage}</div>
+              <div className="text-2xl font-bold text-green-600">{Number(data.weeklyAverage).toFixed(1)}</div>
               <div className="text-sm text-muted-foreground">Weekly Average</div>
             </div>
             <div>
