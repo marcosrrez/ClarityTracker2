@@ -10,6 +10,9 @@ import { Label } from "@/components/ui/label";
 import { Users, Clock, Calendar, TrendingUp, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { MetricDetailView } from '../progressive-disclosure/MetricDetailView';
+import { DataAnalysisView } from '../progressive-disclosure/DataAnalysisView';
+import { EducationalContentView } from '../progressive-disclosure/EducationalContentView';
 
 interface SupervisionMetrics {
   totalHours: number;
@@ -25,8 +28,16 @@ interface SupervisionMetrics {
   }>;
 }
 
+type NavigationState = {
+  level: 'overview' | 'detail' | 'analysis' | 'education';
+  dataPoint?: string;
+  context?: any;
+  topic?: string;
+};
+
 export function SupervisionTracker() {
   const [showSessionDialog, setShowSessionDialog] = useState(false);
+  const [navigation, setNavigation] = useState<NavigationState>({ level: 'overview' });
   const [sessionData, setSessionData] = useState({
     date: new Date().toISOString().split('T')[0],
     duration: 1,
@@ -44,6 +55,30 @@ export function SupervisionTracker() {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
+
+  const handleCardClick = () => {
+    if (user?.uid) {
+      setNavigation({ level: 'detail' });
+    }
+  };
+
+  const handleBack = () => {
+    if (navigation.level === 'detail') {
+      setNavigation({ level: 'overview' });
+    } else if (navigation.level === 'analysis') {
+      setNavigation({ level: 'detail' });
+    } else if (navigation.level === 'education') {
+      setNavigation({ level: 'analysis', dataPoint: navigation.dataPoint, context: navigation.context });
+    }
+  };
+
+  const handleDrillDown = (dataPoint: string, context: any) => {
+    setNavigation({ level: 'analysis', dataPoint, context });
+  };
+
+  const handleLearnMore = (topic: string, context: any) => {
+    setNavigation({ level: 'education', topic, context, dataPoint: navigation.dataPoint });
+  };
 
   // Fetch supervision metrics
   useEffect(() => {
@@ -114,6 +149,52 @@ export function SupervisionTracker() {
     }
   };
 
+  // Detail Level - Detailed supervision view
+  if (navigation.level === 'detail') {
+    return (
+      <div className="fixed inset-0 bg-background z-50 overflow-y-auto">
+        <div className="container mx-auto py-6 px-4">
+          <MetricDetailView
+            category="supervision_hours"
+            onBack={handleBack}
+            onDrillDown={handleDrillDown}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Analysis Level - Supervision analysis
+  if (navigation.level === 'analysis') {
+    return (
+      <div className="fixed inset-0 bg-background z-50 overflow-y-auto">
+        <div className="container mx-auto py-6 px-4">
+          <DataAnalysisView
+            dataPoint={navigation.dataPoint!}
+            context={navigation.context}
+            onBack={handleBack}
+            onLearnMore={handleLearnMore}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Education Level - Educational content about supervision
+  if (navigation.level === 'education') {
+    return (
+      <div className="fixed inset-0 bg-background z-50 overflow-y-auto">
+        <div className="container mx-auto py-6 px-4">
+          <EducationalContentView
+            topic={navigation.topic!}
+            context={navigation.context}
+            onBack={handleBack}
+          />
+        </div>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <Card>
@@ -137,7 +218,10 @@ export function SupervisionTracker() {
   }
 
   return (
-    <Card>
+    <Card 
+      className="cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-lg"
+      onClick={handleCardClick}
+    >
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">
