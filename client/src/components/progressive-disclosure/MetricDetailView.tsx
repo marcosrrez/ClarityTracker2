@@ -52,12 +52,28 @@ export function MetricDetailView({ category, onBack, onDrillDown }: MetricDetail
       recentEntries = userEntries
         .filter((entry: any) => entry.clientContactHours > 0)
         .slice(0, 10)
-        .map((entry: any) => ({
-          date: entry.dateOfContact ? new Date(entry.dateOfContact.seconds * 1000).toLocaleDateString() : 'N/A',
-          hours: entry.clientContactHours || 0,
-          notes: entry.notes || 'No session notes recorded',
-          type: 'Direct Client Contact'
-        }));
+        .map((entry: any) => {
+          let displayDate = 'Recent Entry';
+          if (entry.dateOfContact) {
+            try {
+              if (entry.dateOfContact.seconds) {
+                displayDate = new Date(entry.dateOfContact.seconds * 1000).toLocaleDateString();
+              } else if (entry.dateOfContact.toDate) {
+                displayDate = entry.dateOfContact.toDate().toLocaleDateString();
+              } else {
+                displayDate = new Date(entry.dateOfContact).toLocaleDateString();
+              }
+            } catch (e) {
+              displayDate = 'Recent Entry';
+            }
+          }
+          return {
+            date: displayDate,
+            hours: entry.clientContactHours || 0,
+            notes: entry.notes || 'No session notes recorded',
+            type: 'Direct Client Contact'
+          };
+        });
 
       const averageSession = recentEntries.length > 0 ? 
         (totalHours / recentEntries.length).toFixed(1) : '0';
@@ -217,7 +233,9 @@ export function MetricDetailView({ category, onBack, onDrillDown }: MetricDetail
             onClick={() => onDrillDown('total_hours', { 
               value: data?.totalHours, 
               trend: data?.monthlyTrend,
-              category 
+              category,
+              totalHours: data?.totalHours,
+              recentEntries: data?.recentEntries
             })}
           >
             <Calendar className="h-4 w-4 mr-2" />
