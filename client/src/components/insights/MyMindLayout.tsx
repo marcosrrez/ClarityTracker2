@@ -62,26 +62,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
   const [showThreads, setShowThreads] = useState(false);
   const [currentThreadId, setCurrentThreadId] = useState('default');
   const [threads, setThreads] = useState<{[key: string]: any[]}>({
-    'default': [
-      {
-        id: '1',
-        content: "Hey there, great to meet you. I'm Dinger, your personal AI.",
-        isUser: false,
-        timestamp: new Date()
-      },
-      {
-        id: '2', 
-        content: "My goal is to be useful, friendly and fun. Ask me for advice, for answers, or let's talk about whatever's on your mind.",
-        isUser: false,
-        timestamp: new Date()
-      },
-      {
-        id: '3',
-        content: "How's your day going?",
-        isUser: false,
-        timestamp: new Date()
-      }
-    ]
+    'default': []
   });
   const [threadTitles, setThreadTitles] = useState<{[key: string]: string}>({
     'default': 'Conversation with Dinger'
@@ -992,16 +973,16 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
               </Button>
             </div>
 
-            {/* Modern Chat Interface - Claude/ChatGPT Style */}
-            <div className="flex-1 overflow-y-auto" style={{ scrollBehavior: 'smooth' }} id="chat-container">
-              <div className="max-w-4xl mx-auto px-8 pb-8 flex flex-col">
+            {/* Modern Chat Interface - Mobile Optimized */}
+            <div className="flex-1 overflow-y-auto pb-32" style={{ scrollBehavior: 'smooth' }} id="chat-container">
+              <div className="max-w-4xl mx-auto px-4 md:px-8 flex flex-col min-h-full">
                 
-                {/* Welcome Message - Only shown when no conversation */}
+                {/* Dynamic Welcome Message - Scrollable */}
                 {aiMessages.length === 0 && !isAiLoading && (
-                  <div className="flex-1 flex flex-col items-center justify-center text-center space-y-8">
-                    <div className="space-y-6">
+                  <div className="flex-1 flex flex-col justify-center text-center space-y-6 py-8">
+                    <div className="space-y-4">
                       <h1 
-                        className="text-3xl font-light text-gray-900 dark:text-gray-100"
+                        className="text-2xl md:text-3xl font-light text-gray-900 dark:text-gray-100"
                         style={{ 
                           fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
                           letterSpacing: '-0.01em'
@@ -1011,17 +992,17 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                       </h1>
                       
                       <p 
-                        className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl"
+                        className="text-base md:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto px-4"
                         style={{ 
                           fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
                           lineHeight: '1.7'
                         }}
                       >
-                        I specialize in mental health, counseling theories, therapeutic modalities, the DSM, cognitive psychology, neuroscience applications, clinical practice, and business guidance for LACs and LPCs. I'm here to support your professional development and clinical expertise.
+                        I specialize in mental health, counseling theories, therapeutic modalities, the DSM, cognitive psychology, neuroscience applications, clinical practice, and business guidance for LACs and LPCs.
                       </p>
                       
                       <p 
-                        className="text-base text-gray-500 dark:text-gray-500"
+                        className="text-sm md:text-base text-gray-500 dark:text-gray-500"
                         style={{ 
                           fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
                           lineHeight: '1.6'
@@ -1113,58 +1094,58 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
               </div>
             </div>
 
-            {/* Premium Text Entry - Mobile Optimized */}
-            <div className="px-8 pb-8 pt-4 bg-white dark:bg-gray-900">
-              <div className="max-w-4xl mx-auto">
-                <div className="relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-[2rem] shadow-lg border border-gray-200/30 dark:border-gray-700/30 hover:shadow-xl transition-all duration-300">
-                  <div className="p-1.5">
-                    <textarea
-                      value={aiInputValue}
-                      onChange={(e) => setAiInputValue(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          handleSendAiMessage();
-                        }
-                      }}
-                      onFocus={() => {
-                        // Scroll to input on mobile focus
-                        setTimeout(() => {
-                          const chatContainer = document.getElementById('chat-container');
-                          if (chatContainer) {
-                            chatContainer.scrollTo({
-                              top: chatContainer.scrollHeight,
-                              behavior: 'smooth'
-                            });
-                          }
-                        }, 500);
-                      }}
-                      placeholder="Ask about counseling theories, DSM, clinical practice, or business guidance..."
-                      className="w-full min-h-[100px] max-h-[240px] px-8 py-6 pr-20 border-none bg-transparent resize-none focus:outline-none text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 rounded-[1.75rem]"
-                      style={{ 
-                        fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
-                        fontSize: '1.125rem',
-                        lineHeight: '1.7',
-                        letterSpacing: '0.01em',
-                        fontWeight: '400'
-                      }}
-                      disabled={isAiLoading}
-                      rows={3}
-                    />
-                    <Button
-                      onClick={handleSendAiMessage}
-                      disabled={!aiInputValue.trim() || isAiLoading}
-                      className="absolute right-4 bottom-4 w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-blue-600 hover:from-indigo-600 hover:via-purple-600 hover:to-blue-700 disabled:from-gray-300 disabled:via-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed text-white shadow-lg hover:shadow-2xl transition-all duration-300 flex items-center justify-center p-0 border-0 hover:scale-105"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                      </svg>
-                    </Button>
+            {/* Mobile-Optimized Input Area - Fixed Position */}
+            <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200/30 dark:border-gray-700/30 backdrop-blur-md bg-opacity-95 dark:bg-opacity-95 z-50">
+              <div className="safe-area-inset-bottom">
+                <div className="px-4 md:px-8 py-4">
+                  <div className="max-w-4xl mx-auto">
+                    <div className="relative bg-gray-50/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-3xl shadow-lg border border-gray-200/50 dark:border-gray-700/50">
+                      <div className="p-3">
+                        <textarea
+                          value={aiInputValue}
+                          onChange={(e) => setAiInputValue(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              handleSendAiMessage();
+                            }
+                          }}
+                          onFocus={(e) => {
+                            // Improved mobile keyboard handling
+                            if (window.innerWidth <= 768) {
+                              setTimeout(() => {
+                                e.target.scrollIntoView({ 
+                                  behavior: 'smooth', 
+                                  block: 'center' 
+                                });
+                              }, 300);
+                            }
+                          }}
+                          placeholder="Ask about counseling theories, DSM, clinical practice, or business guidance..."
+                          className="w-full min-h-[80px] max-h-[160px] px-6 py-4 pr-16 border-none bg-transparent resize-none focus:outline-none text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 rounded-3xl text-base"
+                          style={{ 
+                            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                            lineHeight: '1.5'
+                          }}
+                          disabled={isAiLoading}
+                          rows={2}
+                        />
+                        <Button
+                          onClick={handleSendAiMessage}
+                          disabled={!aiInputValue.trim() || isAiLoading}
+                          className="absolute right-3 bottom-3 w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed text-white shadow-md transition-all duration-200 flex items-center justify-center p-0 border-0"
+                        >
+                          {isAiLoading ? (
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          ) : (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                            </svg>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                
-                <div className="text-center mt-8 text-xs text-gray-400 dark:text-gray-500 tracking-wide">
-                  Press Enter to send • Shift+Enter for new line
                 </div>
               </div>
             </div>
