@@ -177,10 +177,37 @@ export function SupervisorProfileManager() {
     );
   };
 
-  const SupervisorForm = () => (
-    <div className="p-4 sm:p-6">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+  const SupervisorForm = () => {
+    const handleFormSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      
+      if (selectedSpecialties.length === 0) {
+        toast({
+          title: 'Validation Error',
+          description: 'Please select at least one specialty.',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      const formData = new FormData(e.target as HTMLFormElement);
+      const data = {
+        name: formData.get('name') as string,
+        title: formData.get('title') as string,
+        email: formData.get('email') as string || '',
+        phone: formData.get('phone') as string || '',
+        supervisionType: formData.get('supervisionType') as string || 'individual',
+        sessionFrequency: formData.get('sessionFrequency') as string || 'weekly',
+        sessionDuration: formData.get('sessionDuration') as string || '1',
+        notes: formData.get('notes') as string || ''
+      };
+
+      await handleSubmit(data);
+    };
+
+    return (
+      <div className="p-4 sm:p-6">
+        <form onSubmit={handleFormSubmit} className="space-y-6">
           {/* Basic Information */}
           <div className="space-y-4">
             <div>
@@ -188,8 +215,10 @@ export function SupervisorProfileManager() {
                 Full Name
               </label>
               <input
-                {...form.register('name')}
+                name="name"
+                required
                 placeholder="Dr. Jane Smith"
+                defaultValue={editingSupervisor?.name || ''}
                 className="w-full h-11 px-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-base"
               />
             </div>
@@ -199,8 +228,10 @@ export function SupervisorProfileManager() {
                 Title/Credentials
               </label>
               <input
-                {...form.register('title')}
+                name="title"
+                required
                 placeholder="LPC, PhD"
+                defaultValue={editingSupervisor?.title || ''}
                 className="w-full h-11 px-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-base"
               />
             </div>
@@ -213,9 +244,10 @@ export function SupervisorProfileManager() {
                 Email (Optional)
               </label>
               <input
-                {...form.register('email')}
+                name="email"
                 type="email"
                 placeholder="supervisor@clinic.com"
+                defaultValue={editingSupervisor?.email || ''}
                 className="w-full h-11 px-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-base"
               />
             </div>
@@ -225,8 +257,9 @@ export function SupervisorProfileManager() {
                 Phone (Optional)
               </label>
               <input
-                {...form.register('phone')}
+                name="phone"
                 placeholder="(555) 123-4567"
+                defaultValue={editingSupervisor?.phone || ''}
                 className="w-full h-11 px-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-base"
               />
             </div>
@@ -278,54 +311,45 @@ export function SupervisorProfileManager() {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Type
               </label>
-              <FormField control={form.control} name="supervisionType" render={({ field }) => (
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger className="h-11 rounded-xl border border-gray-300 dark:border-gray-600">
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="individual">Individual</SelectItem>
-                    <SelectItem value="group">Group</SelectItem>
-                    <SelectItem value="both">Both</SelectItem>
-                  </SelectContent>
-                </Select>
-              )} />
+              <select
+                name="supervisionType"
+                defaultValue={editingSupervisor?.supervisionType || 'individual'}
+                className="w-full h-11 px-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-base"
+              >
+                <option value="individual">Individual</option>
+                <option value="group">Group</option>
+                <option value="both">Both</option>
+              </select>
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Frequency
               </label>
-              <FormField control={form.control} name="sessionFrequency" render={({ field }) => (
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger className="h-11 rounded-xl border border-gray-300 dark:border-gray-600">
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                    <SelectItem value="biweekly">Bi-weekly</SelectItem>
-                    <SelectItem value="monthly">Monthly</SelectItem>
-                    <SelectItem value="asNeeded">As Needed</SelectItem>
-                  </SelectContent>
-                </Select>
-              )} />
+              <select
+                name="sessionFrequency"
+                defaultValue={editingSupervisor?.sessionFrequency || 'weekly'}
+                className="w-full h-11 px-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-base"
+              >
+                <option value="weekly">Weekly</option>
+                <option value="biweekly">Bi-weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="asNeeded">As Needed</option>
+              </select>
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Duration
+                Duration (hours)
               </label>
               <input
-                {...form.register('sessionDuration')}
+                name="sessionDuration"
                 type="number"
                 step="0.5"
                 min="0.5"
                 max="4"
                 placeholder="1.0"
+                defaultValue={editingSupervisor?.sessionDuration || '1'}
                 className="w-full h-11 px-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-base"
               />
             </div>
@@ -337,9 +361,10 @@ export function SupervisorProfileManager() {
               Notes (Optional)
             </label>
             <textarea
-              {...form.register('notes')}
+              name="notes"
               placeholder="Additional notes..."
               rows={3}
+              defaultValue={editingSupervisor?.notes || ''}
               className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 resize-none text-base"
             />
           </div>
@@ -362,9 +387,9 @@ export function SupervisorProfileManager() {
             </button>
           </div>
         </form>
-      </Form>
-    </div>
-  );
+      </div>
+    );
+  };
 
   if (isLoading) {
     return (
