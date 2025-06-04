@@ -237,8 +237,23 @@ export function SupervisorProfileManager() {
         
         await handleSubmit(data);
         console.log('handleSubmit completed successfully');
+        
+        // Close dialog and refresh list
+        setIsDialogOpen(false);
+        setEditingSupervisor(null);
+        loadSupervisors();
+        
+        toast({
+          title: 'Success',
+          description: `Supervisor ${editingSupervisor ? 'updated' : 'added'} successfully.`
+        });
       } catch (error) {
         console.error('Error in handleSubmit:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to save supervisor. Please try again.',
+          variant: 'destructive'
+        });
       } finally {
         setIsSubmitting(false);
       }
