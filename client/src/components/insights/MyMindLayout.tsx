@@ -1124,6 +1124,26 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                 
                 <div ref={aiMessagesEndRef} className="h-px" />
               </div>
+
+              {/* Scroll to Bottom Button - Enhanced with Lucide Icon */}
+              {showScrollToBottom && (
+                <button
+                  onClick={scrollToBottom}
+                  className="absolute bottom-24 right-6 w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-40 border-2 border-white dark:border-gray-800"
+                  title="Scroll to bottom"
+                  aria-label="Scroll to latest message"
+                >
+                  <svg 
+                    className="w-5 h-5" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24" 
+                    strokeWidth={2.5}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                  </svg>
+                </button>
+              )}
             </div>
 
             {/* Mobile-Optimized Input Area - Fixed Position */}
