@@ -124,7 +124,6 @@ export function SupervisorProfileManager() {
         setIsDialogOpen(false);
         setEditingSupervisor(null);
         setSelectedSpecialties([]);
-        form.reset();
         loadSupervisors();
       } else {
         const error = await response.text();
@@ -178,9 +177,15 @@ export function SupervisorProfileManager() {
   };
 
   const SupervisorForm = () => {
-    const handleFormSubmit = async (e: React.FormEvent) => {
-      console.log('Form submit triggered');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    
+    const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
+      e.stopPropagation();
+      
+      if (isSubmitting) return;
+      
+      console.log('Form submit triggered');
       
       if (selectedSpecialties.length === 0) {
         console.log('Validation failed: no specialties selected');
@@ -192,29 +197,33 @@ export function SupervisorProfileManager() {
         return;
       }
 
-      console.log('Extracting form data...');
-      const formData = new FormData(e.target as HTMLFormElement);
-      const data = {
-        name: formData.get('name') as string,
-        title: formData.get('title') as string,
-        email: formData.get('email') as string || '',
-        phone: formData.get('phone') as string || '',
-        specialties: selectedSpecialties,
-        supervisionType: formData.get('supervisionType') as ('individual' | 'group' | 'both') || 'individual',
-        sessionFrequency: formData.get('sessionFrequency') as ('weekly' | 'biweekly' | 'monthly' | 'asNeeded') || 'weekly',
-        sessionDuration: formData.get('sessionDuration') as string || '1',
-        notes: formData.get('notes') as string || '',
-        isActive: true
-      };
-
-      console.log('Form data extracted:', data);
-      console.log('Selected specialties:', selectedSpecialties);
+      setIsSubmitting(true);
       
       try {
+        console.log('Extracting form data...');
+        const formData = new FormData(e.currentTarget);
+        const data = {
+          name: formData.get('name') as string,
+          title: formData.get('title') as string,
+          email: formData.get('email') as string || '',
+          phone: formData.get('phone') as string || '',
+          specialties: selectedSpecialties,
+          supervisionType: formData.get('supervisionType') as ('individual' | 'group' | 'both') || 'individual',
+          sessionFrequency: formData.get('sessionFrequency') as ('weekly' | 'biweekly' | 'monthly' | 'asNeeded') || 'weekly',
+          sessionDuration: formData.get('sessionDuration') as string || '1',
+          notes: formData.get('notes') as string || '',
+          isActive: true
+        };
+
+        console.log('Form data extracted:', data);
+        console.log('Selected specialties:', selectedSpecialties);
+        
         await handleSubmit(data);
         console.log('handleSubmit completed');
       } catch (error) {
         console.error('Error in handleSubmit:', error);
+      } finally {
+        setIsSubmitting(false);
       }
     };
 
@@ -393,10 +402,10 @@ export function SupervisorProfileManager() {
             </button>
             <button
               type="submit"
-              disabled={selectedSpecialties.length === 0}
+              disabled={selectedSpecialties.length === 0 || isSubmitting}
               className="flex-1 h-11 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium disabled:cursor-not-allowed"
             >
-              {editingSupervisor ? 'Update' : 'Add'} Supervisor
+              {isSubmitting ? 'Saving...' : (editingSupervisor ? 'Update' : 'Add')} Supervisor
             </button>
           </div>
         </form>
