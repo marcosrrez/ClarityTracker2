@@ -175,7 +175,7 @@ export default function AIInsights() {
           <div className="px-8 py-12">
             <div className="flex items-center gap-4 mb-4">
               <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-sm">
-                <Brain className="h-8 w-8" />
+                <Lightbulb className="h-8 w-8" />
               </div>
               <div>
                 <h1 className="text-4xl font-bold">AI-Powered Insights</h1>

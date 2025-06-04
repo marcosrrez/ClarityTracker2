@@ -179,7 +179,7 @@ export const PersonalizedAICoaching = () => {
                 <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 p-4 rounded-2xl">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <Brain className="h-5 w-5 text-purple-600" />
+                      <Lightbulb className="h-5 w-5 text-purple-600" />
                       <div>
                         <h4 className="font-bold text-gray-900 dark:text-white text-sm">AI Insights Available</h4>
                         <p className="text-gray-600 dark:text-gray-300 text-xs">

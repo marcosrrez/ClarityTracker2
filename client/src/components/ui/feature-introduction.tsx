@@ -31,7 +31,7 @@ export function FeatureIntroduction({ onDismiss }: FeatureIntroductionProps) {
       )
     },
     {
-      icon: <Brain className="h-8 w-8 text-blue-500" />,
+      icon: <Lightbulb className="h-8 w-8 text-blue-500" />,
       title: "Smart Usage Management",
       description: "Enjoy 50 AI-powered conversations daily. When your limit is reached, Dinger seamlessly switches to our comprehensive counseling knowledge base.",
       preview: (
