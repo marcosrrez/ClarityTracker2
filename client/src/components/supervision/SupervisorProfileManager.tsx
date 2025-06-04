@@ -190,7 +190,12 @@ export function SupervisorProfileManager() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     
     const handleInputChange = (field: string, value: string) => {
-      setFormData(prev => ({ ...prev, [field]: value }));
+      console.log(`Input changed - ${field}:`, value);
+      setFormData(prev => {
+        const newData = { ...prev, [field]: value };
+        console.log('Updated form data:', newData);
+        return newData;
+      });
     };
     
     const handleFormSubmit = async () => {
@@ -206,7 +211,8 @@ export function SupervisorProfileManager() {
         return;
       }
 
-      if (!formData.name || !formData.title) {
+      if (!formData.name.trim() || !formData.title.trim()) {
+        console.log('Validation failed - form data:', formData);
         toast({
           title: 'Validation Error',
           description: 'Name and Title are required.',
