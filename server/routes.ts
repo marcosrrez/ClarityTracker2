@@ -2173,31 +2173,44 @@ Please provide a helpful, professional response that's personalized to their sit
           }
         ];
       } else if (category === 'supervision_hours') {
-        personalAnalysis = `Your supervision experience shows ${context.value || 0} total hours. Clinical supervision is crucial for professional development and ethical practice.`;
+        const totalHours = context.value || 0;
+        const progressPercent = Math.min(100, (totalHours / 40) * 100);
+        const remainingHours = Math.max(0, 40 - totalHours);
+        
+        personalAnalysis = `Your supervision experience shows ${totalHours} hours completed toward the 40-hour requirement (${progressPercent.toFixed(0)}% complete). ${remainingHours > 0 ? `You need ${remainingHours} more hours for LAC eligibility.` : 'You have met the supervision requirement!'} Clinical supervision is essential for developing clinical judgment and ethical practice.`;
         
         patterns = [
-          'Regular supervision supports ethical decision-making',
-          'Case discussion patterns enhance clinical skills',
-          'Supervisor feedback integration shows growth mindset'
+          `Supervision frequency supports professional growth at ${totalHours > 0 ? 'consistent' : 'developing'} pace`,
+          'Case discussion patterns enhance clinical decision-making skills',
+          'Supervisor feedback integration demonstrates commitment to learning',
+          totalHours >= 20 ? 'Approaching mid-point supervision milestone' : 'Building foundational supervision relationship'
         ];
         
         recommendations = [
-          'Prepare specific cases for supervision',
-          'Request feedback on intervention techniques',
-          'Discuss challenging ethical scenarios'
+          'Prepare specific cases and questions before each session',
+          'Document key insights and feedback from supervision',
+          'Request targeted feedback on intervention techniques',
+          'Discuss challenging ethical scenarios and decision-making',
+          remainingHours > 0 ? `Schedule ${Math.ceil(remainingHours / 1)} more supervision sessions` : 'Focus on advanced supervision topics'
         ];
 
         benchmarks = {
-          target: 100,
-          current: context.value || 0,
-          progress: Math.min(100, ((context.value || 0) / 100) * 100)
+          target: 40,
+          current: totalHours,
+          progress: progressPercent,
+          milestones: {
+            '25%': totalHours >= 10 ? 'Completed' : 'Upcoming',
+            '50%': totalHours >= 20 ? 'Completed' : 'Upcoming', 
+            '75%': totalHours >= 30 ? 'Completed' : 'Upcoming',
+            '100%': totalHours >= 40 ? 'Completed' : 'Upcoming'
+          }
         };
         
         educationalTopics = [
           {
-            title: 'Maximizing Clinical Supervision',
-            description: 'Getting the most from your supervision experience',
-            relevance: 'Directly applicable to your development',
+            title: 'Effective Supervision Preparation',
+            description: 'Strategies for maximizing supervision sessions',
+            relevance: 'Directly applicable to your supervision experience',
             topic: 'supervision_best_practices'
           },
           {
