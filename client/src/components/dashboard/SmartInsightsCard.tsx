@@ -5,14 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
 import {
-  Brain,
+  Lightbulb,
   TrendingUp,
   AlertCircle,
   CheckCircle,
   Users,
   ArrowRight,
-  X,
-  Lightbulb
+  X
 } from "lucide-react";
 import { ClickableAIInsightCard } from './ClickableAIInsightCard';
 
@@ -51,7 +50,7 @@ export function SmartInsightsCard() {
       case 'growth_observation': return TrendingUp;
       case 'supervision_prep': return Users;
       case 'milestone': return CheckCircle;
-      default: return Brain;
+      default: return Lightbulb;
     }
   };
 
@@ -68,7 +67,7 @@ export function SmartInsightsCard() {
       <Card className="border-0 shadow-lg">
         <CardContent className="p-6">
           <div className="flex items-center gap-3">
-            <Brain className="h-5 w-5 text-blue-600 animate-pulse" />
+            <Lightbulb className="h-5 w-5 text-blue-600 animate-pulse" />
             <span className="text-sm text-gray-600">Analyzing your progress...</span>
           </div>
         </CardContent>
@@ -84,7 +83,7 @@ export function SmartInsightsCard() {
     <Card className="border-0 shadow-lg">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-black font-bold">
-          <Brain className="h-5 w-5 text-blue-600" />
+          <Lightbulb className="h-5 w-5 text-blue-600" />
           Smart Insights
         </CardTitle>
       </CardHeader>
