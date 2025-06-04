@@ -1,12 +1,37 @@
-import { Clock, Users, Calendar, TrendingUp } from "lucide-react";
+import { Clock, Users, Calendar, TrendingUp, UserCheck } from "lucide-react";
 import { useLogEntries, useAppSettings } from "@/hooks/use-firestore";
+import { useUser } from "@/lib/firebase";
 import { EnhancedStatsCard } from "./EnhancedStatsCard";
 import { ClickableMetricCard } from "./ClickableMetricCard";
 import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
 
 export const QuickStatsGrid = () => {
   const { entries, loading: entriesLoading, refetch } = useLogEntries();
   const { settings, loading: settingsLoading } = useAppSettings();
+  const { user } = useUser();
+  const [supervisors, setSupervisors] = useState([]);
+  const [supervisorsLoading, setSupervisorsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadSupervisors = async () => {
+      if (!user) return;
+      setSupervisorsLoading(true);
+      try {
+        const response = await fetch(`/api/supervisors/${user.uid}`);
+        if (response.ok) {
+          const data = await response.json();
+          setSupervisors(data);
+        }
+      } catch (error) {
+        console.error('Error loading supervisors:', error);
+      } finally {
+        setSupervisorsLoading(false);
+      }
+    };
+    
+    loadSupervisors();
+  }, [user]);
 
   if (entriesLoading || settingsLoading) {
     return (
