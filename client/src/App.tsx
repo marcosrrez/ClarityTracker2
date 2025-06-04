@@ -34,6 +34,7 @@ import SpacedRepetition from "@/pages/SpacedRepetition";
 import AIInsights from "@/pages/AIInsights";
 import IntelligenceHub from "@/pages/IntelligenceHub";
 import AICoachPage from "@/pages/AICoachPage";
+import AICoach from "@/pages/AICoach";
 import EnhancedDashboardPage from "@/pages/EnhancedDashboardPage";
 import { SupervisorsPage } from "@/pages/SupervisorsPage";
 
@@ -71,6 +72,7 @@ function Router() {
       <Route path="/ai-insights" component={AIInsights} />
       <Route path="/intelligence-hub" component={IntelligenceHub} />
       <Route path="/ai-coach" component={AICoachPage} />
+      <Route path="/ai-coach-dynamic" component={AICoach} />
       <Route path="/enhanced-dashboard" component={EnhancedDashboardPage} />
       <Route path="/supervisors" component={SupervisorsPage} />
       <Route path="/account-setup">

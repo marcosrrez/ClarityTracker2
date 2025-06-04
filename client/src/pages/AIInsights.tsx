@@ -123,6 +123,7 @@ export default function AIInsights() {
 
       await apiRequest('/api/ai/analyze-session', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: mockUserId,
           sessionData,
