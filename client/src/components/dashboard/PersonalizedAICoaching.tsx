@@ -306,7 +306,7 @@ export const PersonalizedAICoaching = () => {
             </div>
           ) : (
             <div className="text-center py-8">
-              <Brain className="h-10 w-10 text-muted-foreground/40 mx-auto mb-4" />
+              <Lightbulb className="h-10 w-10 text-muted-foreground/40 mx-auto mb-4" />
               <p className="text-muted-foreground/70 mb-4 text-sm">
                 Generate personalized insights from your sessions
               </p>
