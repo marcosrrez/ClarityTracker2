@@ -1252,43 +1252,100 @@ Respond as a knowledgeable colleague who understands the nuances of mental healt
         { role: 'user', content: message }
       ];
 
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o',
-          messages,
-          max_tokens: 300,
-          temperature: 0.8,
-          presence_penalty: 0.1,
-          frequency_penalty: 0.1,
-        }),
-      });
+      let aiResponse;
+      let usedProvider = 'openai';
 
-      if (!response.ok) {
-        throw new Error(`OpenAI API error: ${response.status}`);
+      try {
+        // Try OpenAI first
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o',
+            messages,
+            max_tokens: 300,
+            temperature: 0.8,
+            presence_penalty: 0.1,
+            frequency_penalty: 0.1,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`OpenAI API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        aiResponse = data.choices[0]?.message?.content;
+      } catch (openaiError) {
+        console.log('OpenAI failed, trying Google AI:', openaiError);
+        
+        // Fallback to Google AI
+        try {
+          const { GoogleGenerativeAI } = await import('@google/generative-ai');
+          const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
+          const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+          // Convert messages to Google AI format
+          const conversationText = messages
+            .filter(m => m.role !== 'system')
+            .map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
+            .join('\n\n');
+
+          const prompt = `${systemPrompt}\n\nConversation:\n${conversationText}`;
+          
+          const result = await model.generateContent(prompt);
+          const response = await result.response;
+          aiResponse = response.text();
+          usedProvider = 'google';
+        } catch (googleError) {
+          console.log('Google AI also failed, using counseling dataset:', googleError);
+          
+          // Final fallback to counseling dataset
+          const { getCounselingResponse } = await import('./counseling-dataset');
+          aiResponse = getCounselingResponse(message);
+          usedProvider = 'dataset';
+        }
       }
 
-      const data = await response.json();
-      const aiResponse = data.choices[0]?.message?.content || "I'm having trouble processing that right now. Could you try rephrasing your question?";
+      if (!aiResponse) {
+        aiResponse = "I'm having trouble processing that right now. Could you try rephrasing your question?";
+      }
 
-      // Record successful AI call
-      UsageLimiter.recordAICall(userId);
+      // Record successful AI call only if we used external AI
+      if (usedProvider !== 'dataset') {
+        UsageLimiter.recordAICall(userId);
+      }
+      
       const stats = UsageLimiter.getUsageStats(userId);
 
       res.json({ 
         response: aiResponse,
-        usageStats: stats
+        usageStats: stats,
+        provider: usedProvider
       });
     } catch (error) {
       console.error('AI coaching chat error:', error);
-      res.status(500).json({ 
-        error: 'Failed to process coaching request',
-        response: "I'm having some technical difficulties right now. Please try again in a moment, and I'll be here to help with your professional development questions."
-      });
+      
+      // Final fallback to counseling dataset
+      try {
+        const { getCounselingResponse } = await import('./counseling-dataset');
+        const { UsageLimiter } = await import('./usage-limiter');
+        const fallbackResponse = getCounselingResponse(req.body.message || 'help');
+        
+        res.json({
+          response: `${fallbackResponse}\n\n(Using knowledge base due to technical issues)`,
+          provider: 'dataset',
+          usageStats: UsageLimiter.getUsageStats(req.body.userId)
+        });
+      } catch (datasetError) {
+        res.status(500).json({ 
+          error: 'Failed to process coaching request',
+          response: "I'm having some technical difficulties right now. Please try again in a moment, and I'll be here to help with your professional development questions."
+        });
+      }
     }
   });
 
