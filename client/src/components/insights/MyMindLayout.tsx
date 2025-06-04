@@ -1002,16 +1002,16 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
             {/* Modern Chat Interface - Mobile Optimized with Enhanced Scrolling */}
             <div 
               ref={chatContainerRef}
-              className="flex-1 overflow-y-auto pb-32 relative" 
-              style={{ scrollBehavior: 'smooth', height: '80vh' }} 
+              className="flex-1 overflow-y-auto relative" 
+              style={{ scrollBehavior: 'smooth' }} 
               id="chat-container"
               onScroll={handleScroll}
             >
-              <div className="max-w-4xl mx-auto px-4 md:px-8 flex flex-col min-h-full">
+              <div className="max-w-4xl mx-auto px-4 md:px-8 pb-32">
                 
-                {/* Dynamic Welcome Message - Scrollable */}
+                {/* Dynamic Welcome Message - Natural Flow */}
                 {aiMessages.length === 0 && !isAiLoading && (
-                  <div className="flex-1 flex flex-col justify-center text-center space-y-6 py-8">
+                  <div className="text-center space-y-6 py-16 min-h-[60vh] flex flex-col justify-center">
                     <div className="space-y-4">
                       <h1 
                         className="text-2xl md:text-3xl font-light text-gray-900 dark:text-gray-100"
@@ -1047,7 +1047,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                 )}
 
                 {/* Conversation Messages */}
-                <div className="flex-1">
+                <div>
                   {aiMessages.length > 0 && (
                     <div className="space-y-8 py-8">
                       {aiMessages.map((message, index) => (
