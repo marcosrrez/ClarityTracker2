@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, Mail, Phone, Users, Calendar, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 
@@ -229,43 +229,130 @@ export function SupervisorProfileManager() {
       </div>
 
       {/* Supervisors List */}
-      <div className="grid gap-4">
+      <div className="grid gap-6">
         {supervisors.map((supervisor) => (
-          <div key={supervisor.id} className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-start justify-between">
+          <div key={supervisor.id} className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-200">
+            {/* Header Section */}
+            <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  {supervisor.name}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400">{supervisor.title}</p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {supervisor.specialties.slice(0, 3).map((specialty) => (
-                    <span key={specialty} className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-lg text-xs">
-                      {specialty}
-                    </span>
-                  ))}
-                  {supervisor.specialties.length > 3 && (
-                    <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg text-xs">
-                      +{supervisor.specialties.length - 3} more
-                    </span>
-                  )}
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-lg">
+                    {supervisor.name.split(' ').map(n => n[0]).join('')}
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                      {supervisor.name}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 font-medium">{supervisor.title}</p>
+                  </div>
                 </div>
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => handleEdit(supervisor)}
-                  className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg"
+                  className="p-3 text-gray-600 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition-colors"
                 >
-                  <Edit2 size={16} />
+                  <Edit2 size={18} />
                 </button>
                 <button
                   onClick={() => handleDelete(supervisor.id)}
-                  className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                  className="p-3 text-gray-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
                 >
-                  <Trash2 size={16} />
+                  <Trash2 size={18} />
                 </button>
               </div>
             </div>
+
+            {/* Contact Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              {supervisor.email && (
+                <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                  <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                    <Mail size={16} className="text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Email</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{supervisor.email}</p>
+                  </div>
+                </div>
+              )}
+              {supervisor.phone && (
+                <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                  <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
+                    <Phone size={16} className="text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Phone</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{supervisor.phone}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Specialties */}
+            <div className="mb-4">
+              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Specialties</p>
+              <div className="flex flex-wrap gap-2">
+                {supervisor.specialties.map((specialty) => (
+                  <span key={specialty} className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full text-sm font-medium">
+                    {specialty}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Supervision Details */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
+                <div className="flex items-center gap-2 mb-1">
+                  <Users size={16} className="text-purple-600 dark:text-purple-400" />
+                  <p className="text-xs text-purple-600 dark:text-purple-400 uppercase tracking-wide font-semibold">Type</p>
+                </div>
+                <p className="text-sm font-bold text-purple-900 dark:text-purple-100 capitalize">{supervisor.supervisionType}</p>
+              </div>
+              <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-xl">
+                <div className="flex items-center gap-2 mb-1">
+                  <Calendar size={16} className="text-orange-600 dark:text-orange-400" />
+                  <p className="text-xs text-orange-600 dark:text-orange-400 uppercase tracking-wide font-semibold">Frequency</p>
+                </div>
+                <p className="text-sm font-bold text-orange-900 dark:text-orange-100 capitalize">{supervisor.sessionFrequency}</p>
+              </div>
+              <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-xl">
+                <div className="flex items-center gap-2 mb-1">
+                  <Clock size={16} className="text-green-600 dark:text-green-400" />
+                  <p className="text-xs text-green-600 dark:text-green-400 uppercase tracking-wide font-semibold">Duration</p>
+                </div>
+                <p className="text-sm font-bold text-green-900 dark:text-green-100">{supervisor.sessionDuration} hour{supervisor.sessionDuration !== '1' ? 's' : ''}</p>
+              </div>
+            </div>
+
+            {/* Progress & Actions */}
+            <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-4">
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{supervisor.totalHours}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Total Hours</p>
+                </div>
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <p className="text-sm font-medium text-green-600 dark:text-green-400">Active</p>
+              </div>
+              <div className="flex gap-2">
+                <button className="px-4 py-2 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-300 rounded-xl text-sm font-medium transition-colors">
+                  Schedule Session
+                </button>
+                <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-medium transition-colors">
+                  View Details
+                </button>
+              </div>
+            </div>
+
+            {/* Notes Section */}
+            {supervisor.notes && (
+              <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/10 rounded-xl border-l-4 border-amber-400">
+                <p className="text-xs text-amber-700 dark:text-amber-400 uppercase tracking-wide font-semibold mb-1">Notes</p>
+                <p className="text-sm text-amber-800 dark:text-amber-200">{supervisor.notes}</p>
+              </div>
+            )}
           </div>
         ))}
       </div>
