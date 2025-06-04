@@ -69,27 +69,53 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
   });
   const [aiInputValue, setAiInputValue] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+  const [userScrolledUp, setUserScrolledUp] = useState(false);
   const aiMessagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   // Get current thread messages
   const aiMessages = threads[currentThreadId] || [];
   
-  // Auto-scroll to bottom when messages change
-  useEffect(() => {
-    const scrollToBottom = () => {
-      const chatContainer = document.getElementById('chat-container');
-      if (chatContainer) {
-        chatContainer.scrollTo({
-          top: chatContainer.scrollHeight,
-          behavior: 'smooth'
-        });
-      }
-    };
+  // Enhanced scroll detection functions
+  const isAtBottom = () => {
+    const chatContainer = chatContainerRef.current;
+    if (!chatContainer) return true;
     
-    // Small delay to ensure DOM is updated
-    const timer = setTimeout(scrollToBottom, 150);
-    return () => clearTimeout(timer);
-  }, [aiMessages.length, isAiLoading]);
+    const threshold = 100; // pixels from bottom
+    return chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight < threshold;
+  };
+
+  const scrollToBottom = () => {
+    const chatContainer = chatContainerRef.current;
+    if (chatContainer) {
+      chatContainer.scrollTo({
+        top: chatContainer.scrollHeight,
+        behavior: 'smooth'
+      });
+      setUserScrolledUp(false);
+      setShowScrollToBottom(false);
+    }
+  };
+
+  // Handle scroll events to show/hide scroll-to-bottom button
+  const handleScroll = () => {
+    const atBottom = isAtBottom();
+    setShowScrollToBottom(!atBottom);
+    setUserScrolledUp(!atBottom);
+  };
+
+  // Auto-scroll to bottom when new messages are added (only if user hasn't scrolled up)
+  useEffect(() => {
+    if (aiMessages.length > 0 && !userScrolledUp) {
+      const timer = setTimeout(() => {
+        if (isAtBottom() || !userScrolledUp) {
+          scrollToBottom();
+        }
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [aiMessages.length, isAiLoading, userScrolledUp]);
 
   // Handle viewport changes for mobile keyboard
   useEffect(() => {
@@ -973,8 +999,14 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
               </Button>
             </div>
 
-            {/* Modern Chat Interface - Mobile Optimized */}
-            <div className="flex-1 overflow-y-auto pb-32" style={{ scrollBehavior: 'smooth' }} id="chat-container">
+            {/* Modern Chat Interface - Mobile Optimized with Enhanced Scrolling */}
+            <div 
+              ref={chatContainerRef}
+              className="flex-1 overflow-y-auto pb-32 relative" 
+              style={{ scrollBehavior: 'smooth', height: '80vh' }} 
+              id="chat-container"
+              onScroll={handleScroll}
+            >
               <div className="max-w-4xl mx-auto px-4 md:px-8 flex flex-col min-h-full">
                 
                 {/* Dynamic Welcome Message - Scrollable */}
