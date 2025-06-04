@@ -14,7 +14,7 @@ import {
   Sparkles,
   TrendingUp,
   RefreshCw,
-  Brain,
+
   ChevronDown,
   ChevronUp,
   Award,
@@ -255,7 +255,7 @@ export const PersonalizedAICoaching = () => {
                     <div className="bg-indigo-50 border border-indigo-200 p-6 rounded-2xl hover:bg-indigo-100 transition-colors duration-200">
                       <div className="flex items-center space-x-3 mb-4">
                         <div className="w-8 h-8 bg-indigo-50 rounded-full flex items-center justify-center">
-                          <Brain className="h-4 w-4 text-indigo-500" />
+                          <Lightbulb className="h-4 w-4 text-indigo-500" />
                         </div>
                         <h4 className="font-bold text-gray-900 text-base">Therapy Profile</h4>
                         <Badge variant="secondary" className="text-xs">Intelligence</Badge>

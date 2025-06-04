@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Brain,
+  Lightbulb,
   CheckCircle,
   TrendingUp,
   Users,
@@ -163,7 +163,7 @@ export function AIIntegrationTracker() {
       <Card className="border-0 shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-black font-bold">
-            <Brain className="h-5 w-5 text-blue-600" />
+            <Lightbulb className="h-5 w-5 text-blue-600" />
             AI Integration Progress
           </CardTitle>
         </CardHeader>
