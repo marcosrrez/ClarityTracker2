@@ -14,6 +14,7 @@ import {
   X,
   Lightbulb
 } from "lucide-react";
+import { ClickableAIInsightCard } from './ClickableAIInsightCard';
 
 interface SmartInsight {
   id: string;
@@ -79,7 +80,7 @@ export function SmartInsightsCard() {
     return null; // Don't show the card if no insights
   }
 
-  return (
+  const cardContent = (
     <Card className="border-0 shadow-lg">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-black font-bold">
@@ -152,5 +153,14 @@ export function SmartInsightsCard() {
         )}
       </CardContent>
     </Card>
+  );
+
+  return (
+    <ClickableAIInsightCard 
+      category="ai_insights" 
+      value={activeInsights.length}
+    >
+      {cardContent}
+    </ClickableAIInsightCard>
   );
 }
