@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -119,7 +119,10 @@ export const OnboardingModal = ({ open, onClose }: OnboardingModalProps) => {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className={`max-w-2xl p-0 overflow-hidden transition-all duration-300 ${isClosing ? 'scale-95 opacity-0' : 'scale-100 opacity-100'}`}>
+      <DialogContent className={`max-w-2xl p-0 overflow-hidden transition-all duration-300 ${isClosing ? 'scale-95 opacity-0' : 'scale-100 opacity-100'}`} aria-describedby="onboarding-description">
+          <DialogDescription id="onboarding-description" className="sr-only">
+            Guided onboarding to set up your ClarityLog professional development platform
+          </DialogDescription>
         <div className="relative">
           {/* Close Button */}
           <Button

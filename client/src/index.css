@@ -35,7 +35,10 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     /* Mobile optimizations */
-    overscroll-behavior: none;
+    overscroll-behavior: auto;
+    -webkit-overflow-scrolling: touch;
+    overflow-x: hidden;
+    position: relative;
   }
   
   /* Mobile safe area support */
