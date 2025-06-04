@@ -2103,7 +2103,41 @@ Please provide a helpful, professional response that's personalized to their sit
       let benchmarks = null;
       let educationalTopics: any[] = [];
 
-      if (category === 'direct_hours') {
+      // Handle individual entry analysis differently
+      if (dataPoint === 'recent_entry' && context.entry) {
+        const entryHours = context.entry.hours || 0;
+        const entryDate = context.entry.date || 'Recent Entry';
+        const entryNotes = context.entry.notes || 'No notes recorded';
+        
+        personalAnalysis = `This ${entryHours} hour session on ${entryDate} represents focused clinical work. Your detailed documentation demonstrates professional growth and commitment to quality care.`;
+        
+        patterns = [
+          `Session duration of ${entryHours} hours shows appropriate therapeutic engagement`,
+          'Consistent documentation supports clinical decision-making',
+          'Regular logging demonstrates professional accountability'
+        ];
+        
+        recommendations = [
+          'Continue detailed session documentation',
+          'Reflect on key therapeutic moments from this session',
+          'Consider discussing insights from this session in supervision'
+        ];
+        
+        educationalTopics = [
+          {
+            title: 'Session Documentation Best Practices',
+            description: 'Effective approaches to clinical record-keeping',
+            relevance: 'Directly applicable to your documentation',
+            topic: 'documentation_practices'
+          },
+          {
+            title: 'Reflective Practice in Therapy Sessions',
+            description: 'Techniques for post-session reflection',
+            relevance: 'Enhances learning from each session',
+            topic: 'reflective_practice'
+          }
+        ];
+      } else if (category === 'direct_hours') {
         personalAnalysis = `Your direct client contact shows ${context.value || 0} total hours. This represents your core clinical practice and therapeutic relationships.`;
         
         patterns = [
