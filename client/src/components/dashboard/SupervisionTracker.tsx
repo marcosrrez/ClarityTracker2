@@ -230,7 +230,11 @@ export function SupervisionTracker() {
           </div>
           <Dialog open={showSessionDialog} onOpenChange={setShowSessionDialog}>
             <DialogTrigger asChild>
-              <Button size="sm" className="flex items-center gap-2">
+              <Button 
+                size="sm" 
+                className="flex items-center gap-2"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <Plus className="h-4 w-4" />
                 Log Session
               </Button>
