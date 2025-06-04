@@ -170,6 +170,29 @@ export function SupervisorProfileManager() {
     }
   };
 
+  // Form state moved to parent level to prevent reset on re-renders
+  const [formData, setFormData] = useState({
+    name: editingSupervisor?.name || '',
+    title: editingSupervisor?.title || '',
+    email: editingSupervisor?.email || '',
+    phone: editingSupervisor?.phone || '',
+    supervisionType: editingSupervisor?.supervisionType || 'individual',
+    sessionFrequency: editingSupervisor?.sessionFrequency || 'weekly',
+    sessionDuration: editingSupervisor?.sessionDuration || '1',
+    notes: editingSupervisor?.notes || ''
+  });
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const handleInputChange = (field: string, value: string) => {
+    console.log(`Input changed - ${field}:`, value);
+    setFormData(prev => {
+      const newData = { ...prev, [field]: value };
+      console.log('Updated form data:', newData);
+      return newData;
+    });
+  };
+
   const toggleSpecialty = (specialty: string) => {
     setSelectedSpecialties(prev => 
       prev.includes(specialty) ? prev.filter(s => s !== specialty) : [...prev, specialty]
@@ -177,26 +200,6 @@ export function SupervisorProfileManager() {
   };
 
   const SupervisorForm = () => {
-    const [formData, setFormData] = useState({
-      name: editingSupervisor?.name || '',
-      title: editingSupervisor?.title || '',
-      email: editingSupervisor?.email || '',
-      phone: editingSupervisor?.phone || '',
-      supervisionType: editingSupervisor?.supervisionType || 'individual',
-      sessionFrequency: editingSupervisor?.sessionFrequency || 'weekly',
-      sessionDuration: editingSupervisor?.sessionDuration || '1',
-      notes: editingSupervisor?.notes || ''
-    });
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    
-    const handleInputChange = (field: string, value: string) => {
-      console.log(`Input changed - ${field}:`, value);
-      setFormData(prev => {
-        const newData = { ...prev, [field]: value };
-        console.log('Updated form data:', newData);
-        return newData;
-      });
-    };
     
     const handleFormSubmit = async () => {
       console.log('Direct submit triggered');
