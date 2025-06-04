@@ -1017,7 +1017,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                           lineHeight: '1.7'
                         }}
                       >
-                        I specialize in mental health, counseling theories, therapeutic modalities, the DSM, clinical practice, and business guidance for LACs and LPCs. I'm here to support your professional development and clinical expertise.
+                        I specialize in mental health, counseling theories, therapeutic modalities, the DSM, cognitive psychology, neuroscience applications, clinical practice, and business guidance for LACs and LPCs. I'm here to support your professional development and clinical expertise.
                       </p>
                       
                       <p 
