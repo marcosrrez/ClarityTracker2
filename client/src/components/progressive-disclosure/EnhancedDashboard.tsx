@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useUser } from '@/lib/firebase';
-import { ProgressiveMetricCard } from './ProgressiveMetricCard';
+import { ProgressiveMetricCardNew } from './ProgressiveMetricCardNew';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Lightbulb, Zap } from 'lucide-react';

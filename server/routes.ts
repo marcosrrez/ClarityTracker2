@@ -1948,6 +1948,283 @@ Please provide a helpful, professional response that's personalized to their sit
     }
   });
 
+  // Get detailed metrics for a specific category
+  app.get('/api/progressive-disclosure/detailed-metrics/:userId/:category', async (req, res) => {
+    try {
+      const { userId, category } = req.params;
+      
+      // Fetch log entries for the user
+      const logEntries = await db.select()
+        .from(logEntries as any)
+        .where(eq(logEntries.userId, userId))
+        .orderBy(desc(logEntries.dateOfContact));
+
+      let totalHours = 0;
+      let recentEntries: any[] = [];
+      
+      // Calculate metrics based on category
+      if (category === 'supervision_hours') {
+        const supervisionSessions = await db.select()
+          .from(supervisionSessions as any)
+          .where(eq(supervisionSessions.superviseeId, userId));
+        
+        totalHours = supervisionSessions.reduce((sum: number, session: any) => 
+          sum + (session.duration || 0), 0);
+        
+        recentEntries = supervisionSessions.slice(0, 10).map((session: any) => ({
+          date: session.scheduledDateTime?.toLocaleDateString() || 'N/A',
+          hours: session.duration || 0,
+          notes: session.notes || 'No notes'
+        }));
+      } else if (category === 'direct_hours') {
+        totalHours = logEntries.reduce((sum: number, entry: any) => 
+          sum + (entry.clientContactHours || 0), 0);
+        
+        recentEntries = logEntries.slice(0, 10).map((entry: any) => ({
+          date: entry.dateOfContact?.toLocaleDateString() || 'N/A',
+          hours: entry.clientContactHours || 0,
+          notes: entry.notes || 'No notes'
+        }));
+      } else if (category === 'professional_development') {
+        totalHours = logEntries.reduce((sum: number, entry: any) => 
+          sum + (entry.professionalDevelopmentHours || 0), 0);
+        
+        recentEntries = logEntries
+          .filter((entry: any) => entry.professionalDevelopmentHours > 0)
+          .slice(0, 10)
+          .map((entry: any) => ({
+            date: entry.dateOfContact?.toLocaleDateString() || 'N/A',
+            hours: entry.professionalDevelopmentHours || 0,
+            notes: entry.notes || 'No notes'
+          }));
+      }
+
+      const weeklyAverage = totalHours > 0 ? Math.round((totalHours / 12) * 10) / 10 : 0;
+      const insights = [
+        `You've logged ${totalHours} total hours in this category`,
+        `Your weekly average is ${weeklyAverage} hours`,
+        recentEntries.length > 0 ? 
+          `Most recent entry: ${recentEntries[0]?.hours} hours on ${recentEntries[0]?.date}` :
+          'No recent entries found'
+      ];
+
+      res.json({
+        totalHours,
+        weeklyAverage,
+        monthlyTrend: totalHours > weeklyAverage * 4 ? 'up' : 'stable',
+        recentEntries,
+        insights
+      });
+    } catch (error) {
+      console.error('Error fetching detailed metrics:', error);
+      res.status(500).json({ error: 'Failed to fetch detailed metrics' });
+    }
+  });
+
+  // Analyze specific data points
+  app.post('/api/progressive-disclosure/data-analysis/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { dataPoint, context } = req.body;
+
+      let personalAnalysis = '';
+      let patterns: string[] = [];
+      let recommendations: string[] = [];
+      let benchmarks = null;
+      let educationalTopics: any[] = [];
+
+      if (dataPoint === 'total_hours') {
+        const category = context.category;
+        personalAnalysis = `Your ${category.replace('_', ' ')} shows ${context.value} total hours with a ${context.trend} trend. This reflects your commitment to professional development.`;
+        
+        patterns = [
+          'Consistent logging pattern over recent weeks',
+          'Higher activity during weekdays',
+          'Gradual improvement in documentation quality'
+        ];
+        
+        recommendations = [
+          'Continue maintaining regular documentation habits',
+          'Consider setting weekly hour targets',
+          'Track progress toward licensing requirements'
+        ];
+
+        if (category === 'supervision_hours') {
+          benchmarks = {
+            target: 100,
+            current: context.value,
+            progress: Math.min(100, (context.value / 100) * 100)
+          };
+          
+          educationalTopics = [
+            {
+              title: 'Effective Supervision Practices',
+              description: 'Learn how to maximize your supervision experience',
+              relevance: 'Highly relevant to your current progress',
+              topic: 'supervision_best_practices'
+            },
+            {
+              title: 'Professional Development Planning',
+              description: 'Strategic approaches to career advancement',
+              relevance: 'Supports long-term goals',
+              topic: 'professional_development'
+            }
+          ];
+        }
+      } else if (dataPoint === 'recent_entry') {
+        personalAnalysis = `This entry shows ${context.entry.hours} hours of focused work. Your consistent documentation demonstrates professional growth.`;
+        
+        patterns = [
+          'Regular entry timing',
+          'Detailed note-taking approach',
+          'Balanced hour distribution'
+        ];
+        
+        recommendations = [
+          'Continue detailed documentation',
+          'Reflect on key learning points',
+          'Consider supervisor discussion topics'
+        ];
+        
+        educationalTopics = [
+          {
+            title: 'Reflective Practice in Counseling',
+            description: 'Techniques for meaningful self-reflection',
+            relevance: 'Directly applicable to your entries',
+            topic: 'reflective_practice'
+          }
+        ];
+      }
+
+      res.json({
+        personalAnalysis,
+        patterns,
+        recommendations,
+        benchmarks,
+        educationalTopics
+      });
+    } catch (error) {
+      console.error('Error analyzing data:', error);
+      res.status(500).json({ error: 'Failed to analyze data' });
+    }
+  });
+
+  // Get educational content for a specific topic
+  app.post('/api/progressive-disclosure/educational-content/:topic', async (req, res) => {
+    try {
+      const { topic } = req.params;
+      const { context } = req.body;
+
+      // Generate educational content based on topic
+      let content = null;
+
+      if (topic === 'supervision_best_practices') {
+        content = {
+          title: 'Effective Supervision Practices for LACs',
+          introduction: 'Supervision is a cornerstone of professional development in counseling. This guide helps you maximize your supervision experience.',
+          sections: [
+            {
+              heading: 'Preparing for Supervision',
+              content: 'Effective supervision begins with preparation. Come to each session with specific cases, questions, and goals.',
+              examples: [
+                'Prepare 2-3 specific client scenarios for discussion',
+                'List professional development goals for the month',
+                'Identify areas where you need guidance or support'
+              ]
+            },
+            {
+              heading: 'Active Participation',
+              content: 'Engage actively in supervision by asking questions, seeking feedback, and reflecting on your practice.',
+              examples: [
+                'Ask "How would you handle this situation?"',
+                'Request feedback on specific interventions',
+                'Discuss ethical dilemmas openly'
+              ]
+            }
+          ],
+          keyTakeaways: [
+            'Preparation enhances supervision effectiveness',
+            'Active participation accelerates learning',
+            'Regular reflection improves clinical skills',
+            'Open communication builds supervisor trust'
+          ],
+          practicalApplications: [
+            'Create a supervision preparation checklist',
+            'Maintain a supervision log with key insights',
+            'Practice presenting cases clearly and concisely',
+            'Develop professional goals collaboratively'
+          ],
+          additionalResources: [
+            {
+              title: 'ACA Supervision Guidelines',
+              description: 'Official guidelines for effective supervision',
+              type: 'article' as const
+            },
+            {
+              title: 'Clinical Supervision Best Practices',
+              description: 'Research-based supervision approaches',
+              type: 'course' as const
+            }
+          ],
+          relatedTopics: [
+            'Professional Development Planning',
+            'Ethics in Supervision',
+            'Case Conceptualization'
+          ],
+          estimatedReadTime: 8
+        };
+      } else if (topic === 'reflective_practice') {
+        content = {
+          title: 'Reflective Practice in Counseling',
+          introduction: 'Reflective practice is essential for professional growth and effective client care. Learn techniques to enhance your self-reflection.',
+          sections: [
+            {
+              heading: 'Understanding Reflective Practice',
+              content: 'Reflective practice involves critically examining your thoughts, feelings, and actions to improve professional competence.',
+            },
+            {
+              heading: 'Reflection Techniques',
+              content: 'Various methods can enhance your reflective practice, from structured journaling to peer consultation.',
+              examples: [
+                'End-of-session reflection notes',
+                'Weekly supervision preparation',
+                'Case conceptualization reviews'
+              ]
+            }
+          ],
+          keyTakeaways: [
+            'Reflection improves clinical decision-making',
+            'Regular practice builds self-awareness',
+            'Documentation supports professional growth'
+          ],
+          practicalApplications: [
+            'Implement daily reflection routines',
+            'Use structured reflection frameworks',
+            'Share insights in supervision'
+          ],
+          additionalResources: [
+            {
+              title: 'Reflective Practice Models',
+              description: 'Structured approaches to professional reflection',
+              type: 'article' as const
+            }
+          ],
+          relatedTopics: [
+            'Professional Development',
+            'Clinical Skills',
+            'Supervision'
+          ],
+          estimatedReadTime: 6
+        };
+      }
+
+      res.json(content);
+    } catch (error) {
+      console.error('Error fetching educational content:', error);
+      res.status(500).json({ error: 'Failed to fetch educational content' });
+    }
+  });
+
   // Track dashboard interaction
   app.post('/api/progressive-disclosure/track-interaction', express.json(), async (req, res) => {
     try {

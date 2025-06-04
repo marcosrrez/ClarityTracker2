@@ -1,0 +1,208 @@
+import { useEffect, useState } from 'react';
+import { useLocation } from 'wouter';
+import { ArrowLeft, TrendingUp, Calendar, Clock, BookOpen } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useUser } from '@/lib/firebase';
+
+interface MetricDetailProps {
+  category: string;
+  onBack: () => void;
+  onDrillDown: (dataPoint: string, context: any) => void;
+}
+
+interface MetricData {
+  totalHours: number;
+  weeklyAverage: number;
+  monthlyTrend: 'up' | 'down' | 'stable';
+  recentEntries: Array<{
+    date: string;
+    hours: number;
+    notes?: string;
+  }>;
+  insights: string[];
+}
+
+export function MetricDetailView({ category, onBack, onDrillDown }: MetricDetailProps) {
+  const { user } = useUser();
+  const [data, setData] = useState<MetricData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user?.uid) {
+      fetchDetailedData();
+    }
+  }, [user?.uid, category]);
+
+  const fetchDetailedData = async () => {
+    if (!user?.uid) return;
+    
+    try {
+      // Fetch detailed metrics for the specific category
+      const response = await fetch(`/api/progressive-disclosure/detailed-metrics/${user.uid}/${category}`);
+      const result = await response.json();
+      setData(result);
+    } catch (error) {
+      console.error('Error fetching detailed data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getCategoryTitle = (category: string) => {
+    switch (category) {
+      case 'supervision_hours':
+        return 'Supervision Hours';
+      case 'direct_hours':
+        return 'Direct Client Hours';
+      case 'professional_development':
+        return 'Professional Development';
+      default:
+        return 'Metric Details';
+    }
+  };
+
+  const getCategoryDescription = (category: string) => {
+    switch (category) {
+      case 'supervision_hours':
+        return 'Track your supervision sessions and progress toward licensure requirements';
+      case 'direct_hours':
+        return 'Monitor your direct client contact hours and therapeutic practice';
+      case 'professional_development':
+        return 'Document your continuing education and professional growth activities';
+      default:
+        return 'Detailed view of your professional development metrics';
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="sm" onClick={onBack}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div className="h-8 w-48 bg-muted animate-pulse rounded" />
+        </div>
+        <div className="grid gap-4">
+          {[1, 2, 3].map(i => (
+            <Card key={i} className="h-32 animate-pulse">
+              <CardContent className="p-6">
+                <div className="h-4 bg-muted rounded w-3/4 mb-4" />
+                <div className="h-8 bg-muted rounded w-1/2" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header with Back Navigation */}
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="sm" onClick={onBack} className="hover:bg-muted">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back
+        </Button>
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">{getCategoryTitle(category)}</h1>
+          <p className="text-muted-foreground">{getCategoryDescription(category)}</p>
+        </div>
+      </div>
+
+      {/* Main Metric Card */}
+      <Card className="border-2 hover:shadow-lg transition-shadow">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">Total Hours</CardTitle>
+            <Badge variant={data?.monthlyTrend === 'up' ? 'default' : 'secondary'}>
+              <TrendingUp className="h-3 w-3 mr-1" />
+              {data?.monthlyTrend || 'stable'}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="text-4xl font-bold text-foreground mb-2">
+            {data?.totalHours || 0}
+          </div>
+          <div className="text-sm text-muted-foreground mb-4">
+            Weekly average: {data?.weeklyAverage || 0} hours
+          </div>
+          <Button 
+            variant="outline" 
+            className="w-full"
+            onClick={() => onDrillDown('total_hours', { 
+              value: data?.totalHours, 
+              trend: data?.monthlyTrend,
+              category 
+            })}
+          >
+            <Calendar className="h-4 w-4 mr-2" />
+            Analyze Hours Pattern
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Recent Activity */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Clock className="h-5 w-5" />
+            Recent Activity
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {data?.recentEntries?.slice(0, 5).map((entry, index) => (
+            <div 
+              key={index}
+              className="flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:bg-muted/50 transition-colors"
+              onClick={() => onDrillDown('recent_entry', { entry, category })}
+            >
+              <div>
+                <div className="font-medium text-sm">{entry.date}</div>
+                {entry.notes && (
+                  <div className="text-xs text-muted-foreground truncate max-w-60">
+                    {entry.notes}
+                  </div>
+                )}
+              </div>
+              <div className="text-lg font-semibold">
+                {entry.hours}h
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* Insights */}
+      {data?.insights && data.insights.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <BookOpen className="h-5 w-5" />
+              Professional Insights
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {data.insights.map((insight, index) => (
+              <div 
+                key={index}
+                className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-950/30 transition-colors"
+                onClick={() => onDrillDown('insight', { insight, category })}
+              >
+                <p className="text-sm text-blue-900 dark:text-blue-100">{insight}</p>
+                <div className="flex items-center gap-1 mt-2 text-xs text-blue-700 dark:text-blue-300">
+                  <BookOpen className="h-3 w-3" />
+                  Learn more about this insight
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
