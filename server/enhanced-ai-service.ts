@@ -387,12 +387,12 @@ Be specific, professional, and actionable. Focus on growth and learning.
           console.log('OpenAI failed, trying Google AI:', openaiError);
           if (!googleAI) throw new Error('No AI service available');
           
-          const model = googleAI.getGenerativeModel({ model: "gemini-pro" });
+          const model = googleAI.getGenerativeModel({ model: "gemini-1.5-flash" });
           const result = await model.generateContent(supervisionPrompt + "\n\nProvide JSON response only.");
           response = result.response.text();
         }
       } else if (googleAI) {
-        const model = googleAI.getGenerativeModel({ model: "gemini-pro" });
+        const model = googleAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const result = await model.generateContent(supervisionPrompt + "\n\nProvide JSON response only.");
         response = result.response.text();
       } else {
@@ -507,12 +507,12 @@ Be specific and constructive in feedback.
           console.log('OpenAI failed, trying Google AI:', openaiError);
           if (!googleAI) throw new Error('No AI service available');
           
-          const model = googleAI.getGenerativeModel({ model: "gemini-pro" });
+          const model = googleAI.getGenerativeModel({ model: "gemini-1.5-flash" });
           const result = await model.generateContent(competencyPrompt + "\n\nProvide JSON response only.");
           response = result.response.text();
         }
       } else if (googleAI) {
-        const model = googleAI.getGenerativeModel({ model: "gemini-pro" });
+        const model = googleAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const result = await model.generateContent(competencyPrompt + "\n\nProvide JSON response only.");
         response = result.response.text();
       } else {
@@ -598,12 +598,12 @@ Only identify significant patterns with clear evidence. Be specific and actionab
           console.log('OpenAI failed, trying Google AI:', openaiError);
           if (!googleAI) throw new Error('No AI service available');
           
-          const model = googleAI.getGenerativeModel({ model: "gemini-pro" });
+          const model = googleAI.getGenerativeModel({ model: "gemini-1.5-flash" });
           const result = await model.generateContent(patternPrompt + "\n\nProvide JSON response only.");
           response = result.response.text();
         }
       } else if (googleAI) {
-        const model = googleAI.getGenerativeModel({ model: "gemini-pro" });
+        const model = googleAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const result = await model.generateContent(patternPrompt + "\n\nProvide JSON response only.");
         response = result.response.text();
       } else {
@@ -702,12 +702,12 @@ Focus on evidence-based, practical resources. Be specific and professional.
           console.log('OpenAI failed, trying Google AI:', openaiError);
           if (!googleAI) throw new Error('No AI service available');
           
-          const model = googleAI.getGenerativeModel({ model: "gemini-pro" });
+          const model = googleAI.getGenerativeModel({ model: "gemini-1.5-flash" });
           const result = await model.generateContent(resourcePrompt + "\n\nProvide JSON response only.");
           response = result.response.text();
         }
       } else if (googleAI) {
-        const model = googleAI.getGenerativeModel({ model: "gemini-pro" });
+        const model = googleAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const result = await model.generateContent(resourcePrompt + "\n\nProvide JSON response only.");
         response = result.response.text();
       } else {
