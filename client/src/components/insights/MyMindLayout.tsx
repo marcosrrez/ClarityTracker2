@@ -971,7 +971,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
           <div className="flex flex-col h-full">
             
             {/* Ultra Minimal Header */}
-            <div className="flex-shrink-0 flex items-center justify-between px-6 py-2 border-b border-gray-100/30 dark:border-gray-800/30">
+            <div className="flex-shrink-0 flex items-center justify-between px-6 py-2">
               <Button
                 variant="ghost"
                 size="sm"
@@ -1074,20 +1074,26 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                               </div>
                             </div>
                           ) : (
-                            /* AI Response - Full width, premium typography */
+                            /* AI Response - Full width, enhanced readability */
                             <div className="w-full mb-8">
                               <div 
-                                className="text-gray-800 dark:text-gray-200 max-w-none prose prose-lg dark:prose-invert"
+                                className="text-gray-800 dark:text-gray-200 max-w-none"
                                 style={{ 
                                   fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
                                   fontSize: '1.125rem',
-                                  lineHeight: '1.8',
-                                  letterSpacing: '0.01em',
+                                  lineHeight: '1.9',
+                                  letterSpacing: '0.015em',
                                   fontWeight: '400'
                                 }}
-                              >
-                                {message.content}
-                              </div>
+                                dangerouslySetInnerHTML={{
+                                  __html: message.content
+                                    .split('\n\n')
+                                    .map(paragraph => paragraph.trim())
+                                    .filter(paragraph => paragraph.length > 0)
+                                    .map(paragraph => `<p style="margin-bottom: 1.5rem;">${paragraph}</p>`)
+                                    .join('')
+                                }}
+                              />
                             </div>
                           )}
                         </div>
@@ -1151,7 +1157,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
             </div>
 
             {/* Mobile-Optimized Input Area - Compact Design */}
-            <div className="flex-shrink-0 bg-white dark:bg-gray-900 border-t border-gray-200/30 dark:border-gray-700/30 backdrop-blur-md bg-opacity-95 dark:bg-opacity-95">
+            <div className="flex-shrink-0 bg-white dark:bg-gray-900 backdrop-blur-md bg-opacity-95 dark:bg-opacity-95">
               <div className="safe-area-inset-bottom">
                 <div className="px-4 md:px-6 py-2">
                   <div className="max-w-4xl mx-auto">
