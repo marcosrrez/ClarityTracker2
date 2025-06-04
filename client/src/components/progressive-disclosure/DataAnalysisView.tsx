@@ -62,9 +62,9 @@ export function DataAnalysisView({ dataPoint, context, onBack, onLearnMore }: Da
   const getDataPointTitle = () => {
     switch (dataPoint) {
       case 'total_hours':
-        return `${context.category.replace('_', ' ')} Analysis`;
+        return `${context?.category?.replace('_', ' ') || 'Hours'} Analysis`;
       case 'recent_entry':
-        return `Entry from ${context.entry.date}`;
+        return `Entry from ${context?.entry?.date || 'Recent Date'}`;
       case 'insight':
         return 'Professional Insight Analysis';
       default:
