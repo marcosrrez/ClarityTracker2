@@ -448,6 +448,50 @@ export const QuickStatsGrid = () => {
           </div>
           </div>
         </ClickableMetricCard>
+
+        {/* Supervisor Network Integration */}
+        <ClickableMetricCard 
+          category="supervision_network" 
+          value={supervisors.filter((s: any) => s.isActive).length}
+          className="block"
+        >
+          <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-xl rounded-xl p-4 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-indigo-50/30 to-transparent rounded-full -translate-y-8 translate-x-8" />
+          
+          <div className="relative">
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-2 bg-indigo-500/10 rounded-lg">
+                <UserCheck className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <span className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold">
+                Professional network
+              </span>
+            </div>
+            
+            <div className="text-xl font-bold text-black dark:text-white mb-1">
+              {supervisors.filter((s: any) => s.isActive).length}
+            </div>
+            
+            <div className="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2">
+              Active Supervisors
+            </div>
+            
+            <div className="space-y-1">
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                {supervisors.length === 0 
+                  ? 'Build your network'
+                  : `${new Set(supervisors.flatMap((s: any) => s.specialties || [])).size} specialties covered`
+                }
+              </div>
+              {supervisors.length > 0 && (
+                <div className="text-xs text-gray-500 dark:text-gray-400">
+                  {supervisors.reduce((sum: number, s: any) => sum + (s.totalHours || 0), 0)} total hours logged
+                </div>
+              )}
+            </div>
+          </div>
+          </div>
+        </ClickableMetricCard>
       </div>
     </section>
   );

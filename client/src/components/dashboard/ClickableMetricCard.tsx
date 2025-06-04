@@ -3,6 +3,7 @@ import { MetricDetailView } from '../progressive-disclosure/MetricDetailView';
 import { DataAnalysisView } from '../progressive-disclosure/DataAnalysisView';
 import { EducationalContentView } from '../progressive-disclosure/EducationalContentView';
 import { useUser } from '@/lib/firebase';
+import { useLocation } from 'wouter';
 
 interface ClickableMetricCardProps {
   children: React.ReactNode;
@@ -25,10 +26,16 @@ export function ClickableMetricCard({
   className = "" 
 }: ClickableMetricCardProps) {
   const { user } = useUser();
+  const [, setLocation] = useLocation();
   const [navigation, setNavigation] = useState<NavigationState>({ level: 'overview' });
 
   const handleCardClick = () => {
     if (user?.uid) {
+      // Special handling for supervision network - navigate to supervisors page
+      if (category === 'supervision_network') {
+        setLocation('/supervisors');
+        return;
+      }
       setNavigation({ level: 'detail' });
     }
   };
