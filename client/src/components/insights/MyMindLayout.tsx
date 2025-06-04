@@ -54,7 +54,17 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
 
   useEffect(() => {
     if (aiMessages.length > 0) {
-      aiMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      // Enhanced scrolling for mobile
+      setTimeout(() => {
+        const container = document.getElementById('chat-messages-container');
+        if (container) {
+          container.scrollTo({
+            top: container.scrollHeight,
+            behavior: 'smooth'
+          });
+        }
+        aiMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
     }
   }, [aiMessages]);
 
@@ -259,9 +269,17 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
               </Button>
             </div>
 
-            {/* Chat Container - Mobile Optimized */}
-            <div className="flex-1 overflow-y-auto" style={{ paddingBottom: '120px' }}>
-              <div className="max-w-4xl mx-auto px-4 py-6">
+            {/* Chat Container - Mobile Optimized with Proper Scrolling */}
+            <div 
+              className="flex-1 overflow-y-auto overflow-x-hidden" 
+              style={{ 
+                height: 'calc(100vh - 140px)',
+                paddingBottom: '20px',
+                WebkitOverflowScrolling: 'touch'
+              }}
+              id="chat-messages-container"
+            >
+              <div className="max-w-4xl mx-auto px-4 py-6 min-h-full">
                 
                 {/* Welcome Message */}
                 {aiMessages.length === 0 && !isAiLoading && (
@@ -356,10 +374,17 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
               </div>
             </div>
 
-            {/* Input Area */}
-            <div className="border-t border-gray-200/30 dark:border-gray-700/30 bg-white dark:bg-gray-900">
-              <div className="px-4 py-4">
-                <div className="relative bg-gray-50 dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700">
+            {/* Fixed Input Area - Mobile Optimized */}
+            <div 
+              className="sticky bottom-0 border-t border-gray-200/30 dark:border-gray-700/30 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm"
+              style={{ 
+                position: 'sticky',
+                zIndex: 10,
+                marginTop: 'auto'
+              }}
+            >
+              <div className="px-4 py-4 safe-area-inset-bottom">
+                <div className="relative bg-gray-50 dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-lg">
                   <textarea
                     value={aiInputValue}
                     onChange={(e) => setAiInputValue(e.target.value)}
@@ -367,6 +392,20 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                       if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
                         handleSendAiMessage();
+                      }
+                    }}
+                    onFocus={() => {
+                      // Mobile scroll adjustment on focus
+                      if (window.innerWidth <= 768) {
+                        setTimeout(() => {
+                          const container = document.getElementById('chat-messages-container');
+                          if (container) {
+                            container.scrollTo({
+                              top: container.scrollHeight,
+                              behavior: 'smooth'
+                            });
+                          }
+                        }, 300);
                       }
                     }}
                     placeholder="Ask about counseling theories, DSM, clinical practice, or business guidance..."
@@ -381,7 +420,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                   <Button
                     onClick={handleSendAiMessage}
                     disabled={!aiInputValue.trim() || isAiLoading}
-                    className="absolute right-3 bottom-3 w-10 h-10 rounded-2xl bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white transition-all duration-200"
+                    className="absolute right-3 bottom-3 w-10 h-10 rounded-2xl bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white transition-all duration-200 shadow-md"
                   >
                     {isAiLoading ? (
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
