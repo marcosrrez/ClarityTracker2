@@ -2090,11 +2090,12 @@ Please provide a helpful, professional response that's personalized to their sit
     }
   });
 
-  // Analyze specific data points
+  // Analyze specific data points with category-specific insights
   app.post('/api/progressive-disclosure/data-analysis/:userId', async (req, res) => {
     try {
       const { userId } = req.params;
       const { dataPoint, context } = req.body;
+      const category = context.category || 'unknown';
 
       let personalAnalysis = '';
       let patterns: string[] = [];
@@ -2102,65 +2103,103 @@ Please provide a helpful, professional response that's personalized to their sit
       let benchmarks = null;
       let educationalTopics: any[] = [];
 
-      if (dataPoint === 'total_hours') {
-        const category = context.category || 'unknown';
-        personalAnalysis = `Your ${category.replace('_', ' ')} shows ${context.value} total hours with a ${context.trend} trend. This reflects your commitment to professional development.`;
+      if (category === 'direct_hours') {
+        personalAnalysis = `Your direct client contact shows ${context.value || 0} total hours. This represents your core clinical practice and therapeutic relationships.`;
         
         patterns = [
-          'Consistent logging pattern over recent weeks',
-          'Higher activity during weekdays',
-          'Gradual improvement in documentation quality'
+          'Client engagement patterns reflect therapeutic progress',
+          'Session frequency indicates active caseload management',
+          'Documentation quality supports clinical decision-making'
         ];
         
         recommendations = [
-          'Continue maintaining regular documentation habits',
-          'Consider setting weekly hour targets',
-          'Track progress toward licensing requirements'
+          'Track therapeutic outcomes across sessions',
+          'Reflect on intervention effectiveness',
+          'Prepare client progress for supervision discussions'
         ];
 
-        if (category === 'supervision_hours') {
-          benchmarks = {
-            target: 100,
-            current: context.value,
-            progress: Math.min(100, (context.value / 100) * 100)
-          };
-          
-          educationalTopics = [
-            {
-              title: 'Effective Supervision Practices',
-              description: 'Learn how to maximize your supervision experience',
-              relevance: 'Highly relevant to your current progress',
-              topic: 'supervision_best_practices'
-            },
-            {
-              title: 'Professional Development Planning',
-              description: 'Strategic approaches to career advancement',
-              relevance: 'Supports long-term goals',
-              topic: 'professional_development'
-            }
-          ];
-        }
-      } else if (dataPoint === 'recent_entry') {
-        personalAnalysis = `This entry shows ${context.entry.hours} hours of focused work. Your consistent documentation demonstrates professional growth.`;
-        
-        patterns = [
-          'Regular entry timing',
-          'Detailed note-taking approach',
-          'Balanced hour distribution'
-        ];
-        
-        recommendations = [
-          'Continue detailed documentation',
-          'Reflect on key learning points',
-          'Consider supervisor discussion topics'
-        ];
+        benchmarks = {
+          target: 4000,
+          current: context.value || 0,
+          progress: Math.min(100, ((context.value || 0) / 4000) * 100)
+        };
         
         educationalTopics = [
           {
-            title: 'Reflective Practice in Counseling',
-            description: 'Techniques for meaningful self-reflection',
-            relevance: 'Directly applicable to your entries',
-            topic: 'reflective_practice'
+            title: 'Therapeutic Relationship Building',
+            description: 'Evidence-based approaches to client engagement',
+            relevance: 'Essential for direct client work',
+            topic: 'therapeutic_relationships'
+          },
+          {
+            title: 'Treatment Planning Strategies',
+            description: 'Comprehensive approaches to client care',
+            relevance: 'Supports effective interventions',
+            topic: 'treatment_planning'
+          }
+        ];
+      } else if (category === 'supervision_hours') {
+        personalAnalysis = `Your supervision experience shows ${context.value || 0} total hours. Clinical supervision is crucial for professional development and ethical practice.`;
+        
+        patterns = [
+          'Regular supervision supports ethical decision-making',
+          'Case discussion patterns enhance clinical skills',
+          'Supervisor feedback integration shows growth mindset'
+        ];
+        
+        recommendations = [
+          'Prepare specific cases for supervision',
+          'Request feedback on intervention techniques',
+          'Discuss challenging ethical scenarios'
+        ];
+
+        benchmarks = {
+          target: 100,
+          current: context.value || 0,
+          progress: Math.min(100, ((context.value || 0) / 100) * 100)
+        };
+        
+        educationalTopics = [
+          {
+            title: 'Maximizing Clinical Supervision',
+            description: 'Getting the most from your supervision experience',
+            relevance: 'Directly applicable to your development',
+            topic: 'supervision_best_practices'
+          },
+          {
+            title: 'Ethical Decision-Making in Therapy',
+            description: 'Framework for complex ethical situations',
+            relevance: 'Essential for professional practice',
+            topic: 'ethics_in_therapy'
+          }
+        ];
+      } else if (category === 'professional_development' || category === 'ai_insights') {
+        personalAnalysis = `Your professional development shows ${context.value || 0} total hours. Continuous learning is essential for maintaining competency and expanding expertise.`;
+        
+        patterns = [
+          'Learning activities align with career goals',
+          'Skill development targets identified growth areas',
+          'Knowledge integration enhances clinical practice'
+        ];
+        
+        recommendations = [
+          'Focus on evidence-based practice updates',
+          'Attend workshops in specialized areas',
+          'Document learning outcomes and applications'
+        ];
+
+        educationalTopics = [
+          {
+            title: 'Evidence-Based Practice Integration',
+            description: 'Applying research findings to clinical work',
+            relevance: 'Enhances treatment effectiveness',
+            topic: 'evidence_based_practice'
+          },
+          {
+            title: 'Continuing Education Strategies',
+            description: 'Maximizing professional development opportunities',
+            relevance: 'Supports career advancement',
+            topic: 'continuing_education'
           }
         ];
       }
@@ -2178,112 +2217,215 @@ Please provide a helpful, professional response that's personalized to their sit
     }
   });
 
-  // Get educational content for a specific topic
+  // Get educational content for a specific topic with category-specific materials
   app.post('/api/progressive-disclosure/educational-content/:topic', async (req, res) => {
     try {
       const { topic } = req.params;
       const { context } = req.body;
 
-      // Generate educational content based on topic
+      // Generate category-specific educational content
       let content = null;
 
-      if (topic === 'supervision_best_practices') {
+      if (topic === 'therapeutic_relationships') {
         content = {
-          title: 'Effective Supervision Practices for LACs',
-          introduction: 'Supervision is a cornerstone of professional development in counseling. This guide helps you maximize your supervision experience.',
+          title: 'Building Strong Therapeutic Relationships',
+          introduction: 'The therapeutic relationship is the foundation of effective counseling. Research consistently shows it\'s one of the strongest predictors of positive client outcomes.',
           sections: [
             {
-              heading: 'Preparing for Supervision',
-              content: 'Effective supervision begins with preparation. Come to each session with specific cases, questions, and goals.',
+              heading: 'Establishing Rapport and Trust',
+              content: 'Building trust begins in the first session and continues throughout the therapeutic process.',
               examples: [
-                'Prepare 2-3 specific client scenarios for discussion',
-                'List professional development goals for the month',
-                'Identify areas where you need guidance or support'
+                'Demonstrate genuine empathy and understanding',
+                'Maintain consistent boundaries and reliability',
+                'Practice active listening and reflection skills',
+                'Validate client experiences and emotions'
               ]
             },
             {
-              heading: 'Active Participation',
-              content: 'Engage actively in supervision by asking questions, seeking feedback, and reflecting on your practice.',
+              heading: 'Cultural Responsiveness',
+              content: 'Effective therapy requires understanding and respecting client diversity and cultural backgrounds.',
               examples: [
-                'Ask "How would you handle this situation?"',
-                'Request feedback on specific interventions',
-                'Discuss ethical dilemmas openly'
+                'Acknowledge your own cultural biases and limitations',
+                'Learn about client\'s cultural context and values',
+                'Adapt interventions to be culturally appropriate',
+                'Seek consultation when working outside your cultural competence'
+              ]
+            },
+            {
+              heading: 'Managing Ruptures and Repairs',
+              content: 'Even strong therapeutic relationships experience challenges. How you handle these moments determines relationship strength.',
+              examples: [
+                'Recognize signs of relationship strain early',
+                'Address ruptures directly and honestly',
+                'Take responsibility for your contribution to problems',
+                'Use repairs as opportunities to strengthen trust'
               ]
             }
           ],
           keyTakeaways: [
-            'Preparation enhances supervision effectiveness',
-            'Active participation accelerates learning',
-            'Regular reflection improves clinical skills',
-            'Open communication builds supervisor trust'
+            'Therapeutic relationship quality predicts treatment success',
+            'Authenticity and genuineness build trust over time',
+            'Cultural competence is essential for effective relationships',
+            'Ruptures, when handled well, can strengthen bonds'
           ],
           practicalApplications: [
-            'Create a supervision preparation checklist',
-            'Maintain a supervision log with key insights',
-            'Practice presenting cases clearly and concisely',
-            'Develop professional goals collaboratively'
+            'Practice reflection after each session',
+            'Seek client feedback on the relationship regularly',
+            'Develop cultural competence through training and reading',
+            'Use supervision to process relationship challenges'
           ],
           additionalResources: [
             {
-              title: 'ACA Supervision Guidelines',
-              description: 'Official guidelines for effective supervision',
+              title: 'Therapeutic Alliance Research',
+              description: 'Evidence base for relationship factors in therapy',
               type: 'article' as const
             },
             {
-              title: 'Clinical Supervision Best Practices',
-              description: 'Research-based supervision approaches',
+              title: 'Cultural Competence in Counseling',
+              description: 'Framework for culturally responsive practice',
               type: 'course' as const
             }
           ],
           relatedTopics: [
-            'Professional Development Planning',
-            'Ethics in Supervision',
-            'Case Conceptualization'
+            'Treatment Planning',
+            'Ethics in Therapy',
+            'Evidence-Based Practice'
           ],
-          estimatedReadTime: 8
+          estimatedReadTime: 12
         };
-      } else if (topic === 'reflective_practice') {
+      } else if (topic === 'supervision_best_practices') {
         content = {
-          title: 'Reflective Practice in Counseling',
-          introduction: 'Reflective practice is essential for professional growth and effective client care. Learn techniques to enhance your self-reflection.',
+          title: 'Maximizing Your Clinical Supervision Experience',
+          introduction: 'Clinical supervision is a protected learning environment designed to enhance your professional development, ensure ethical practice, and improve client outcomes.',
           sections: [
             {
-              heading: 'Understanding Reflective Practice',
-              content: 'Reflective practice involves critically examining your thoughts, feelings, and actions to improve professional competence.',
+              heading: 'Preparation Strategies',
+              content: 'Effective supervision requires intentional preparation to maximize learning opportunities.',
+              examples: [
+                'Review challenging cases before sessions',
+                'Prepare specific questions about interventions',
+                'Identify areas where you need skill development',
+                'Bring ethical dilemmas for discussion'
+              ]
             },
             {
-              heading: 'Reflection Techniques',
-              content: 'Various methods can enhance your reflective practice, from structured journaling to peer consultation.',
+              heading: 'Case Presentation Skills',
+              content: 'Learning to present cases clearly helps you organize your thinking and receive targeted feedback.',
               examples: [
-                'End-of-session reflection notes',
-                'Weekly supervision preparation',
-                'Case conceptualization reviews'
+                'Use a structured case presentation format',
+                'Include relevant background and presenting concerns',
+                'Describe interventions used and client responses',
+                'Identify specific areas where you need guidance'
+              ]
+            },
+            {
+              heading: 'Professional Development Planning',
+              content: 'Use supervision to create and refine your professional development goals.',
+              examples: [
+                'Assess your current competency levels honestly',
+                'Set specific, measurable learning objectives',
+                'Track progress toward licensing requirements',
+                'Plan for continuing education and specialization'
               ]
             }
           ],
           keyTakeaways: [
-            'Reflection improves clinical decision-making',
-            'Regular practice builds self-awareness',
-            'Documentation supports professional growth'
+            'Preparation enhances supervision effectiveness significantly',
+            'Active participation accelerates professional growth',
+            'Case presentation skills improve clinical thinking',
+            'Regular goal-setting maintains developmental focus'
           ],
           practicalApplications: [
-            'Implement daily reflection routines',
-            'Use structured reflection frameworks',
-            'Share insights in supervision'
+            'Create a supervision preparation checklist',
+            'Maintain a learning journal for supervision topics',
+            'Practice case presentations with peers',
+            'Set monthly professional development goals'
           ],
           additionalResources: [
             {
-              title: 'Reflective Practice Models',
-              description: 'Structured approaches to professional reflection',
+              title: 'ACA Supervision Guidelines',
+              description: 'Professional standards for clinical supervision',
               type: 'article' as const
+            },
+            {
+              title: 'Supervision Models and Approaches',
+              description: 'Different frameworks for supervision practice',
+              type: 'course' as const
             }
           ],
           relatedTopics: [
+            'Ethics in Supervision',
             'Professional Development',
-            'Clinical Skills',
-            'Supervision'
+            'Case Conceptualization'
           ],
-          estimatedReadTime: 6
+          estimatedReadTime: 15
+        };
+      } else if (topic === 'evidence_based_practice') {
+        content = {
+          title: 'Integrating Evidence-Based Practice in Clinical Work',
+          introduction: 'Evidence-based practice combines the best research evidence with clinical expertise and client preferences to provide effective, ethical treatment.',
+          sections: [
+            {
+              heading: 'Understanding the Research Base',
+              content: 'Stay current with research findings that inform your clinical practice.',
+              examples: [
+                'Read peer-reviewed journals in your specialty areas',
+                'Attend conferences and professional workshops',
+                'Join professional organizations for continuing education',
+                'Participate in research studies when possible'
+              ]
+            },
+            {
+              heading: 'Clinical Application',
+              content: 'Integrate research findings with your clinical judgment and client needs.',
+              examples: [
+                'Match interventions to client presenting concerns',
+                'Consider cultural factors in treatment selection',
+                'Monitor client progress using validated measures',
+                'Adjust approaches based on client response'
+              ]
+            },
+            {
+              heading: 'Client Collaboration',
+              content: 'Include clients as partners in treatment planning and decision-making.',
+              examples: [
+                'Explain treatment options and their evidence base',
+                'Consider client preferences and values',
+                'Regularly assess client satisfaction with treatment',
+                'Collaborate on treatment goals and methods'
+              ]
+            }
+          ],
+          keyTakeaways: [
+            'Evidence-based practice improves client outcomes',
+            'Research knowledge must be integrated with clinical skill',
+            'Client preferences are essential to consider',
+            'Continuous learning keeps practice current and effective'
+          ],
+          practicalApplications: [
+            'Subscribe to relevant professional journals',
+            'Use validated assessment tools in practice',
+            'Track client outcomes systematically',
+            'Seek supervision on complex cases'
+          ],
+          additionalResources: [
+            {
+              title: 'Evidence-Based Treatment Guidelines',
+              description: 'Research-supported interventions by diagnosis',
+              type: 'article' as const
+            },
+            {
+              title: 'Outcome Measurement in Therapy',
+              description: 'Tools and methods for tracking progress',
+              type: 'course' as const
+            }
+          ],
+          relatedTopics: [
+            'Treatment Planning',
+            'Assessment and Diagnosis',
+            'Professional Development'
+          ],
+          estimatedReadTime: 18
         };
       }
 
