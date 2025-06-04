@@ -12,6 +12,7 @@ import { createInsightCard } from "@/lib/firestore";
 import { useAuth } from "@/hooks/use-auth";
 import { ResourceWidget } from "./ResourceWidget";
 import { CustomRichEditor } from "@/components/ui/custom-rich-editor";
+import { DynamicInputBox } from "@/components/ui/dynamic-input-box";
 import type { InsertInsightCard } from "@shared/schema";
 
 interface GalleryItem {
@@ -1159,61 +1160,70 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
               )}
             </div>
 
-            {/* Mobile-Optimized Input Area - Enhanced Visibility */}
-            <div className="flex-shrink-0 bg-[#FEFEFE] dark:bg-[#0D0D0D]">
-              <div className="safe-area-inset-bottom">
-                <div className="px-6 py-3">
-                  <div className="max-w-md mx-auto">
-                    <div className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-xl border-2 border-gray-400 dark:border-gray-500">
-                      <div className="px-4 py-3">
-                        <textarea
-                          value={aiInputValue}
-                          onChange={(e) => setAiInputValue(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                              e.preventDefault();
-                              handleSendAiMessage();
-                            }
-                          }}
-                          onFocus={(e) => {
-                            // Improved mobile keyboard handling
-                            if (window.innerWidth <= 768) {
-                              setTimeout(() => {
-                                e.target.scrollIntoView({ 
-                                  behavior: 'smooth', 
-                                  block: 'center' 
-                                });
-                              }, 300);
-                            }
-                          }}
-                          placeholder="Ask about counseling theories, DSM, clinical practice, or business guidance..."
-                          className="w-full min-h-[60px] max-h-[120px] px-4 py-3 pr-14 border-none bg-transparent resize-none focus:outline-none text-gray-900 dark:text-gray-100 placeholder-gray-600 dark:placeholder-gray-400 rounded-2xl text-base"
-                          style={{ 
-                            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                            lineHeight: '1.5'
-                          }}
-                          disabled={isAiLoading}
-                          rows={2}
-                        />
-                        <Button
-                          onClick={handleSendAiMessage}
-                          disabled={!aiInputValue.trim() || isAiLoading}
-                          className="absolute right-3 bottom-3 w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed text-white shadow-md transition-all duration-200 flex items-center justify-center p-0 border-0"
-                        >
-                          {isAiLoading ? (
-                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          ) : (
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                            </svg>
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* Dynamic Input Box - Enhanced with all requested features */}
+            <DynamicInputBox
+              onSubmit={(message) => {
+                const userMessage = {
+                  id: Date.now().toString(),
+                  content: message.trim(),
+                  isUser: true,
+                  timestamp: new Date()
+                };
+
+                setThreads(prev => ({
+                  ...prev,
+                  [currentThreadId]: [...(prev[currentThreadId] || []), userMessage]
+                }));
+                setIsAiLoading(true);
+
+                // AI response handling
+                fetch('/api/ai/coaching-chat', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    message: userMessage.content,
+                    userId: user?.uid,
+                    conversationHistory: aiMessages.slice(-10)
+                  }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                  const aiResponse = {
+                    id: Date.now().toString() + '_ai',
+                    content: data.message || "I'm here to help with your counseling journey!",
+                    isUser: false,
+                    timestamp: new Date()
+                  };
+                  
+                  setThreads(prev => ({
+                    ...prev,
+                    [currentThreadId]: [...(prev[currentThreadId] || []), aiResponse]
+                  }));
+                })
+                .catch(error => {
+                  console.error('AI response error:', error);
+                  const errorResponse = {
+                    id: Date.now().toString() + '_error',
+                    content: "I'm having trouble connecting right now. Please try again.",
+                    isUser: false,
+                    timestamp: new Date()
+                  };
+                  
+                  setThreads(prev => ({
+                    ...prev,
+                    [currentThreadId]: [...(prev[currentThreadId] || []), errorResponse]
+                  }));
+                })
+                .finally(() => {
+                  setIsAiLoading(false);
+                });
+              }}
+              placeholder="Ask about counseling theories, DSM, clinical practice, or business guidance..."
+              isConversationActive={aiMessages.length > 0}
+              className="bg-[#FEFEFE] dark:bg-[#0D0D0D]"
+            />
           </div>
         </DialogContent>
       </Dialog>
