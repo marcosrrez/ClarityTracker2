@@ -72,6 +72,7 @@ function Router() {
       <Route path="/intelligence-hub" component={IntelligenceHub} />
       <Route path="/ai-coach" component={AICoachPage} />
       <Route path="/enhanced-dashboard" component={EnhancedDashboardPage} />
+      <Route path="/supervisors" component={SupervisorsPage} />
       <Route path="/account-setup">
         <AuthGuard requireAccountSetup={false}>
           <AccountSetupPage />
