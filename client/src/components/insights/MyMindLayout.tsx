@@ -971,7 +971,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
           <div className="flex flex-col h-full">
             
             {/* Ultra Minimal Header */}
-            <div className="flex items-center justify-between px-8 py-4 border-b border-gray-100/30 dark:border-gray-800/30">
+            <div className="flex-shrink-0 flex items-center justify-between px-8 py-4 border-b border-gray-100/30 dark:border-gray-800/30">
               <Button
                 variant="ghost"
                 size="sm"
@@ -999,11 +999,15 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
               </Button>
             </div>
 
-            {/* Modern Chat Interface - Mobile Optimized with Enhanced Scrolling */}
+            {/* Modern Chat Interface - Fixed Height with Proper Scrolling */}
             <div 
               ref={chatContainerRef}
-              className="flex-1 overflow-y-auto relative" 
-              style={{ scrollBehavior: 'smooth' }} 
+              className="overflow-y-auto relative" 
+              style={{ 
+                scrollBehavior: 'smooth',
+                height: 'calc(100vh - 60px - 140px)', // Viewport minus header and input area
+                maxHeight: 'calc(100vh - 60px - 140px)'
+              }} 
               id="chat-container"
               onScroll={handleScroll}
             >
@@ -1146,8 +1150,8 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
               )}
             </div>
 
-            {/* Mobile-Optimized Input Area - Fixed Position */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200/30 dark:border-gray-700/30 backdrop-blur-md bg-opacity-95 dark:bg-opacity-95 z-50">
+            {/* Mobile-Optimized Input Area - Flex Positioned */}
+            <div className="flex-shrink-0 bg-white dark:bg-gray-900 border-t border-gray-200/30 dark:border-gray-700/30 backdrop-blur-md bg-opacity-95 dark:bg-opacity-95">
               <div className="safe-area-inset-bottom">
                 <div className="px-4 md:px-8 py-4">
                   <div className="max-w-4xl mx-auto">
