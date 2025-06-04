@@ -178,64 +178,80 @@ export function SupervisorProfileManager() {
   };
 
   const SupervisorForm = () => (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField control={form.control} name="name" render={({ field }) => (
-              <FormItem className="space-y-3">
-                <FormLabel className="text-sm font-semibold text-gray-800 dark:text-gray-200">Full Name</FormLabel>
+              <FormItem className="min-h-[80px]">
+                <FormLabel className="text-sm font-semibold text-gray-800 dark:text-gray-200 block mb-2">Full Name</FormLabel>
                 <FormControl>
                   <input 
                     {...field}
                     placeholder="Dr. Jane Smith" 
-                    className="w-full h-14 px-4 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 shadow-lg focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+                    className="w-full h-12 px-4 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 shadow-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-colors duration-200 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 text-base"
+                    autoComplete="name"
+                    inputMode="text"
                   />
                 </FormControl>
-                <FormMessage />
+                <div className="h-5">
+                  <FormMessage />
+                </div>
               </FormItem>
             )} />
             <FormField control={form.control} name="title" render={({ field }) => (
-              <FormItem className="space-y-3">
-                <FormLabel className="text-sm font-semibold text-gray-800 dark:text-gray-200">Title/Credentials</FormLabel>
+              <FormItem className="min-h-[80px]">
+                <FormLabel className="text-sm font-semibold text-gray-800 dark:text-gray-200 block mb-2">Title/Credentials</FormLabel>
                 <FormControl>
                   <input 
                     {...field}
                     placeholder="LPC, PhD" 
-                    className="w-full h-14 px-4 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 shadow-lg focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+                    className="w-full h-12 px-4 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 shadow-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-colors duration-200 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 text-base"
+                    autoComplete="organization-title"
+                    inputMode="text"
                   />
                 </FormControl>
-                <FormMessage />
+                <div className="h-5">
+                  <FormMessage />
+                </div>
               </FormItem>
             )} />
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField control={form.control} name="email" render={({ field }) => (
-              <FormItem className="space-y-3">
-                <FormLabel className="text-sm font-semibold text-gray-800 dark:text-gray-200">Email (Optional)</FormLabel>
+              <FormItem className="min-h-[80px]">
+                <FormLabel className="text-sm font-semibold text-gray-800 dark:text-gray-200 block mb-2">Email (Optional)</FormLabel>
                 <FormControl>
                   <input 
                     {...field}
                     type="email" 
                     placeholder="supervisor@clinic.com" 
-                    className="w-full h-14 px-4 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 shadow-lg focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+                    className="w-full h-12 px-4 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 shadow-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-colors duration-200 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 text-base"
+                    autoComplete="email"
+                    inputMode="email"
                   />
                 </FormControl>
-                <FormMessage />
+                <div className="h-5">
+                  <FormMessage />
+                </div>
               </FormItem>
             )} />
             <FormField control={form.control} name="phone" render={({ field }) => (
-              <FormItem className="space-y-3">
-                <FormLabel className="text-sm font-semibold text-gray-800 dark:text-gray-200">Phone (Optional)</FormLabel>
+              <FormItem className="min-h-[80px]">
+                <FormLabel className="text-sm font-semibold text-gray-800 dark:text-gray-200 block mb-2">Phone (Optional)</FormLabel>
                 <FormControl>
                   <input 
                     {...field}
                     placeholder="(555) 123-4567" 
-                    className="w-full h-14 px-4 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 shadow-lg focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+                    className="w-full h-12 px-4 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 shadow-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-colors duration-200 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 text-base"
+                    autoComplete="tel"
+                    inputMode="tel"
                   />
                 </FormControl>
-                <FormMessage />
+                <div className="h-5">
+                  <FormMessage />
+                </div>
               </FormItem>
             )} />
           </div>
@@ -279,13 +295,13 @@ export function SupervisorProfileManager() {
             )}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <FormField control={form.control} name="supervisionType" render={({ field }) => (
-              <FormItem className="space-y-3">
-                <FormLabel className="text-sm font-semibold text-gray-800 dark:text-gray-200">Supervision Type</FormLabel>
+              <FormItem className="min-h-[80px]">
+                <FormLabel className="text-sm font-semibold text-gray-800 dark:text-gray-200 block mb-2">Supervision Type</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
-                    <SelectTrigger className="h-14 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 shadow-lg focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300">
+                    <SelectTrigger className="h-12 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 shadow-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors duration-200">
                       <SelectValue placeholder="Select type" />
                     </SelectTrigger>
                   </FormControl>
@@ -295,16 +311,18 @@ export function SupervisorProfileManager() {
                     <SelectItem value="both">Both</SelectItem>
                   </SelectContent>
                 </Select>
-                <FormMessage />
+                <div className="h-5">
+                  <FormMessage />
+                </div>
               </FormItem>
             )} />
             
             <FormField control={form.control} name="sessionFrequency" render={({ field }) => (
-              <FormItem className="space-y-3">
-                <FormLabel className="text-sm font-semibold text-gray-800 dark:text-gray-200">Frequency</FormLabel>
+              <FormItem className="min-h-[80px]">
+                <FormLabel className="text-sm font-semibold text-gray-800 dark:text-gray-200 block mb-2">Frequency</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
-                    <SelectTrigger className="h-14 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 shadow-lg focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300">
+                    <SelectTrigger className="h-12 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 shadow-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors duration-200">
                       <SelectValue placeholder="Select frequency" />
                     </SelectTrigger>
                   </FormControl>
@@ -315,13 +333,15 @@ export function SupervisorProfileManager() {
                     <SelectItem value="asNeeded">As Needed</SelectItem>
                   </SelectContent>
                 </Select>
-                <FormMessage />
+                <div className="h-5">
+                  <FormMessage />
+                </div>
               </FormItem>
             )} />
             
             <FormField control={form.control} name="sessionDuration" render={({ field }) => (
-              <FormItem className="space-y-3">
-                <FormLabel className="text-sm font-semibold text-gray-800 dark:text-gray-200">Duration (hours)</FormLabel>
+              <FormItem className="min-h-[80px]">
+                <FormLabel className="text-sm font-semibold text-gray-800 dark:text-gray-200 block mb-2">Duration (hours)</FormLabel>
                 <FormControl>
                   <input 
                     {...field}
@@ -330,40 +350,47 @@ export function SupervisorProfileManager() {
                     min="0.5" 
                     max="4" 
                     placeholder="1.0"
-                    className="w-full h-14 px-4 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 shadow-lg focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+                    className="w-full h-12 px-4 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 shadow-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-colors duration-200 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 text-base"
+                    inputMode="decimal"
+                    autoComplete="off"
                   />
                 </FormControl>
-                <FormMessage />
+                <div className="h-5">
+                  <FormMessage />
+                </div>
               </FormItem>
             )} />
           </div>
 
           <FormField control={form.control} name="notes" render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormLabel className="text-sm font-semibold text-gray-800 dark:text-gray-200">Notes (Optional)</FormLabel>
+            <FormItem className="min-h-[120px]">
+              <FormLabel className="text-sm font-semibold text-gray-800 dark:text-gray-200 block mb-2">Notes (Optional)</FormLabel>
               <FormControl>
                 <textarea 
                   {...field}
                   placeholder="Additional notes about this supervisor or supervision arrangement..."
-                  className="w-full h-28 px-4 py-3 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 shadow-lg focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 resize-none"
+                  className="w-full h-24 px-4 py-3 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 shadow-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-colors duration-200 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 resize-none text-base"
+                  autoComplete="off"
                 />
               </FormControl>
-              <FormMessage />
+              <div className="h-5">
+                <FormMessage />
+              </div>
             </FormItem>
           )} />
 
-          <div className="flex flex-col sm:flex-row justify-end space-y-4 sm:space-y-0 sm:space-x-6 pt-8 border-t-2 border-gray-200 dark:border-gray-700">
+          <div className="flex flex-col sm:flex-row justify-end gap-4 pt-6 border-t-2 border-gray-200 dark:border-gray-700 sticky bottom-0 bg-gradient-to-br from-white via-blue-50/30 to-purple-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 pb-4">
             <button 
               type="button" 
               onClick={() => setIsDialogOpen(false)}
-              className="h-14 px-8 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 shadow-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 text-gray-700 dark:text-gray-300 font-semibold"
+              className="h-12 px-6 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 shadow-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 text-gray-700 dark:text-gray-300 font-semibold text-base"
             >
               Cancel
             </button>
             <button 
               type="submit" 
               disabled={selectedSpecialties.length === 0}
-              className="h-14 px-8 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+              className="h-12 px-6 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white shadow-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-base"
             >
               {editingSupervisor ? 'Update' : 'Add'} Supervisor
             </button>
@@ -422,20 +449,24 @@ export function SupervisorProfileManager() {
                   </Button>
                 </DialogTrigger>
                 
-                <DialogContent className="sm:max-w-4xl max-h-[95vh] overflow-hidden p-0 gap-0 rounded-3xl border-0 bg-gradient-to-br from-white via-blue-50/30 to-purple-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 shadow-2xl">
-                  <div className="overflow-y-auto max-h-[95vh] p-8">
-                    <DialogHeader className="pb-6">
-                      <DialogTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        {editingSupervisor ? 'Edit Supervisor' : 'Add New Supervisor'}
-                      </DialogTitle>
-                      <DialogDescription className="text-gray-600 dark:text-gray-400 text-lg">
-                        {editingSupervisor 
-                          ? 'Update supervisor details, specialties, and session preferences.'
-                          : 'Add supervisor contact information and session preferences to track supervision relationships.'
-                        }
-                      </DialogDescription>
-                    </DialogHeader>
-                    <SupervisorForm />
+                <DialogContent className="sm:max-w-4xl h-[100dvh] sm:h-[90vh] overflow-hidden p-0 gap-0 rounded-none sm:rounded-3xl border-0 bg-gradient-to-br from-white via-blue-50/30 to-purple-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 shadow-2xl">
+                  <div className="h-full flex flex-col">
+                    <div className="flex-shrink-0 p-6 sm:p-8 border-b border-gray-200/50 dark:border-gray-700/50">
+                      <DialogHeader>
+                        <DialogTitle className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                          {editingSupervisor ? 'Edit Supervisor' : 'Add New Supervisor'}
+                        </DialogTitle>
+                        <DialogDescription className="text-gray-600 dark:text-gray-400 text-base sm:text-lg">
+                          {editingSupervisor 
+                            ? 'Update supervisor details, specialties, and session preferences.'
+                            : 'Add supervisor contact information and session preferences to track supervision relationships.'
+                          }
+                        </DialogDescription>
+                      </DialogHeader>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-6 sm:p-8">
+                      <SupervisorForm />
+                    </div>
                   </div>
                 </DialogContent>
               </Dialog>
