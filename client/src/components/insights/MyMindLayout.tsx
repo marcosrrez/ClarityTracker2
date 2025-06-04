@@ -971,7 +971,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
           <div className="flex flex-col h-full">
             
             {/* Ultra Minimal Header */}
-            <div className="flex-shrink-0 flex items-center justify-between px-8 py-4 border-b border-gray-100/30 dark:border-gray-800/30">
+            <div className="flex-shrink-0 flex items-center justify-between px-6 py-2 border-b border-gray-100/30 dark:border-gray-800/30">
               <Button
                 variant="ghost"
                 size="sm"
@@ -1005,13 +1005,13 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
               className="overflow-y-auto relative" 
               style={{ 
                 scrollBehavior: 'smooth',
-                height: 'calc(100vh - 60px - 140px)', // Viewport minus header and input area
-                maxHeight: 'calc(100vh - 60px - 140px)'
+                height: 'calc(100vh - 45px - 90px)', // Optimized for more chat space
+                maxHeight: 'calc(100vh - 45px - 90px)'
               }} 
               id="chat-container"
               onScroll={handleScroll}
             >
-              <div className="max-w-4xl mx-auto px-4 md:px-8 pb-32">
+              <div className="max-w-4xl mx-auto px-4 md:px-8 pb-8">
                 
                 {/* Dynamic Welcome Message - Natural Flow */}
                 {aiMessages.length === 0 && !isAiLoading && (
@@ -1129,16 +1129,16 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                 <div ref={aiMessagesEndRef} className="h-px" />
               </div>
 
-              {/* Scroll to Bottom Button - Enhanced with Lucide Icon */}
+              {/* Scroll to Bottom Button - Compact Design */}
               {showScrollToBottom && (
                 <button
                   onClick={scrollToBottom}
-                  className="absolute bottom-24 right-6 w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-40 border-2 border-white dark:border-gray-800"
+                  className="absolute bottom-16 right-4 w-10 h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center z-40 border border-white/20 dark:border-gray-800/20"
                   title="Scroll to bottom"
                   aria-label="Scroll to latest message"
                 >
                   <svg 
-                    className="w-5 h-5" 
+                    className="w-4 h-4" 
                     fill="none" 
                     stroke="currentColor" 
                     viewBox="0 0 24 24" 
@@ -1150,13 +1150,13 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
               )}
             </div>
 
-            {/* Mobile-Optimized Input Area - Flex Positioned */}
+            {/* Mobile-Optimized Input Area - Compact Design */}
             <div className="flex-shrink-0 bg-white dark:bg-gray-900 border-t border-gray-200/30 dark:border-gray-700/30 backdrop-blur-md bg-opacity-95 dark:bg-opacity-95">
               <div className="safe-area-inset-bottom">
-                <div className="px-4 md:px-8 py-4">
+                <div className="px-4 md:px-6 py-2">
                   <div className="max-w-4xl mx-auto">
-                    <div className="relative bg-gray-50/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-3xl shadow-lg border border-gray-200/50 dark:border-gray-700/50">
-                      <div className="p-3">
+                    <div className="relative bg-gray-50/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl shadow-md border border-gray-200/50 dark:border-gray-700/50">
+                      <div className="p-2">
                         <textarea
                           value={aiInputValue}
                           onChange={(e) => setAiInputValue(e.target.value)}
@@ -1178,7 +1178,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                             }
                           }}
                           placeholder="Ask about counseling theories, DSM, clinical practice, or business guidance..."
-                          className="w-full min-h-[80px] max-h-[160px] px-6 py-4 pr-16 border-none bg-transparent resize-none focus:outline-none text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 rounded-3xl text-base"
+                          className="w-full min-h-[50px] max-h-[100px] px-4 py-3 pr-14 border-none bg-transparent resize-none focus:outline-none text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 rounded-2xl text-sm"
                           style={{ 
                             fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
                             lineHeight: '1.5'
