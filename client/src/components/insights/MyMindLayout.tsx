@@ -210,9 +210,9 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                   {item.notes}
                 </p>
                 
-                {item.analysis && (
+                {item.analysis && Array.isArray(item.analysis.themes) && (
                   <div className="flex flex-wrap gap-1">
-                    {item.analysis.themes?.slice(0, 3).map((theme: string, index: number) => (
+                    {item.analysis.themes.slice(0, 3).map((theme: string, index: number) => (
                       <span
                         key={index}
                         className="text-xs bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-2 py-1 rounded"
