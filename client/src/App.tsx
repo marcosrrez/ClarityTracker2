@@ -34,7 +34,7 @@ import SpacedRepetition from "@/pages/SpacedRepetition";
 import AIInsights from "@/pages/AIInsights";
 import IntelligenceHub from "@/pages/IntelligenceHub";
 import AICoachPage from "@/pages/AICoachPage";
-
+import EnhancedDashboardPage from "@/pages/EnhancedDashboardPage";
 
 import NotFound from "@/pages/not-found";
 
@@ -70,6 +70,7 @@ function Router() {
       <Route path="/ai-insights" component={AIInsights} />
       <Route path="/intelligence-hub" component={IntelligenceHub} />
       <Route path="/ai-coach" component={AICoachPage} />
+      <Route path="/enhanced-dashboard" component={EnhancedDashboardPage} />
       <Route path="/account-setup">
         <AuthGuard requireAccountSetup={false}>
           <AccountSetupPage />

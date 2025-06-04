@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useUser } from '@/lib/auth';
+import { useUser } from '@/lib/firebase';
 import { ProgressiveMetricCard } from './ProgressiveMetricCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
