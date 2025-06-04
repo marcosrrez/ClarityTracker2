@@ -80,9 +80,9 @@ export function DynamicInputBox({
       ref={containerRef}
       className={`${getPositionClasses()} transition-all duration-500 ease-in-out ${className}`}
     >
-      <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-lg backdrop-blur-sm bg-opacity-95 dark:bg-opacity-95">
-        <div className="flex items-end gap-3 p-4">
-          {/* Dynamic Textarea */}
+      <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-xl shadow-gray-900/5 dark:shadow-black/20">
+        <div className="flex items-end gap-2 p-3">
+          {/* Dynamic Textarea with Enhanced Styling */}
           <div className="flex-1 relative">
             <textarea
               ref={textareaRef}
@@ -90,11 +90,12 @@ export function DynamicInputBox({
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
               placeholder={placeholder}
-              className="w-full resize-none border-0 bg-gray-50 dark:bg-gray-700 rounded-2xl px-4 py-3 text-sm placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-200"
+              className="w-full resize-none border-0 bg-gray-50/50 dark:bg-gray-800/50 rounded-2xl px-4 py-3 text-sm placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-400/20 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 backdrop-blur-sm"
               style={{
                 minHeight: "40px",
                 maxHeight: "150px",
-                overflowY: "hidden"
+                overflowY: "hidden",
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
               }}
               rows={1}
               aria-label="Enter your message"
@@ -102,30 +103,30 @@ export function DynamicInputBox({
             />
           </div>
 
-          {/* Submit Button - Desktop (right side) */}
+          {/* Submit Button - Desktop (right side) with Elegant Design */}
           <div className="hidden sm:block">
             <Button
               onClick={handleSubmit}
               disabled={!message.trim()}
               size="sm"
-              className="h-10 w-10 rounded-full bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center"
+              className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:scale-105 disabled:shadow-none disabled:scale-100"
               aria-label="Submit message"
             >
-              <Send className="h-4 w-4" />
+              <Send className="h-4 w-4 text-white" />
             </Button>
           </div>
         </div>
 
-        {/* Submit Button - Mobile (below input) */}
-        <div className="sm:hidden px-4 pb-4">
+        {/* Submit Button - Mobile (below input) with Enhanced Design */}
+        <div className="sm:hidden px-3 pb-3">
           <Button
             onClick={handleSubmit}
             disabled={!message.trim()}
-            className="w-full rounded-2xl bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+            className="w-full rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-300 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40"
             aria-label="Submit message"
           >
-            <Send className="h-4 w-4 mr-2" />
-            Send Message
+            <Send className="h-4 w-4 mr-2 text-white" />
+            <span className="text-white font-medium">Send Message</span>
           </Button>
         </div>
       </div>
