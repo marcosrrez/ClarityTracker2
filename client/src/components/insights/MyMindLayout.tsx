@@ -924,7 +924,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
 
       {/* AI Coach Interface - Enhanced Elegant Design */}
       <Dialog open={showAIAgent} onOpenChange={setShowAIAgent}>
-        <DialogContent className="max-w-none w-full h-full p-0 gap-0 bg-[#FEFEFE] dark:bg-[#0D0D0D]" aria-describedby="ai-coach-description">
+        <DialogContent className="max-w-none w-full h-full p-0 gap-0 bg-[#FEFEFE] dark:bg-[#0D0D0D] [&>button]:hidden" aria-describedby="ai-coach-description">
           <DialogTitle className="sr-only">AI Coach Conversation</DialogTitle>
           <div className="flex flex-col h-full">
             
