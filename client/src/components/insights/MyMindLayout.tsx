@@ -1162,10 +1162,10 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
             {/* Mobile-Optimized Input Area - Compact Design */}
             <div className="flex-shrink-0 bg-[#FEFEFE] dark:bg-[#0D0D0D]">
               <div className="safe-area-inset-bottom">
-                <div className="px-8 md:px-16 py-6">
-                  <div className="max-w-2xl mx-auto">
-                    <div className="relative bg-gray-50/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-3xl shadow-lg border border-gray-300/60 dark:border-gray-600/60">
-                      <div className="p-2">
+                <div className="p-6 md:p-8">
+                  <div className="max-w-lg mx-auto">
+                    <div className="relative bg-gray-100 dark:bg-gray-800 rounded-3xl shadow-lg border-2 border-gray-300 dark:border-gray-600">
+                      <div className="p-3">
                         <textarea
                           value={aiInputValue}
                           onChange={(e) => setAiInputValue(e.target.value)}
