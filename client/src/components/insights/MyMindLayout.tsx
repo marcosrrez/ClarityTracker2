@@ -938,23 +938,21 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
         </div>
       </div>
 
-      {/* AI Coach Interface - Enhanced Elegant Design */}
+      {/* AI Coach Interface - Enhanced Mobile Design */}
       <Dialog open={showAIAgent} onOpenChange={setShowAIAgent}>
         <DialogContent className="max-w-none w-full h-full p-0 gap-0 bg-[#FEFEFE] dark:bg-[#0D0D0D] [&>button]:hidden" aria-describedby="ai-coach-description">
           <DialogTitle className="sr-only">AI Coach Conversation</DialogTitle>
           <div className="flex flex-col h-full">
             
-            {/* Ultra Minimal Header */}
-            <div className="flex items-center justify-between px-8 py-4 border-b border-gray-100/30 dark:border-gray-800/30">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100/30 dark:border-gray-800/30">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowThreads(true)}
-                className="flex items-center justify-center w-10 h-10 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-xl transition-colors"
+                className="w-10 h-10 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 rounded-xl"
               >
                 <div className="flex items-center gap-0.5">
-                  <div className="w-1 h-1 bg-current rounded-full"></div>
-                  <div className="w-1 h-1 bg-current rounded-full"></div>
                   <div className="w-1 h-1 bg-current rounded-full"></div>
                   <div className="w-1 h-1 bg-current rounded-full"></div>
                   <div className="w-1 h-1 bg-current rounded-full"></div>
@@ -965,7 +963,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowAIAgent(false)}
-                className="flex items-center justify-center w-10 h-10 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-xl transition-colors"
+                className="w-10 h-10 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-xl"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -973,179 +971,93 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
               </Button>
             </div>
 
-            {/* Modern Chat Interface - Mobile Optimized */}
-            <div className="flex-1 overflow-y-auto pb-32" style={{ scrollBehavior: 'smooth' }} id="chat-container">
-              <div className="max-w-4xl mx-auto px-4 md:px-8 flex flex-col min-h-full">
+            {/* Chat Container - Mobile Optimized */}
+            <div className="flex-1 overflow-y-auto" style={{ paddingBottom: '120px' }} id="chat-container">
+              <div className="max-w-4xl mx-auto px-4 py-6">
                 
-                {/* Dynamic Welcome Message - Scrollable */}
+                {/* Welcome Message */}
                 {aiMessages.length === 0 && !isAiLoading && (
-                  <div className="flex-1 flex flex-col justify-center text-center space-y-6 py-8">
-                    <div className="space-y-4">
-                      <h1 
-                        className="text-2xl md:text-3xl font-light text-gray-900 dark:text-gray-100"
-                        style={{ 
-                          fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
-                          letterSpacing: '-0.01em'
-                        }}
-                      >
-                        Hey there, great to meet you. I'm Dinger, your counseling AI assistant.
-                      </h1>
-                      
-                      <p 
-                        className="text-base md:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto px-4"
-                        style={{ 
-                          fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
-                          lineHeight: '1.7'
-                        }}
-                      >
-                        I specialize in mental health, counseling theories, therapeutic modalities, the DSM, cognitive psychology, neuroscience applications, clinical practice, and business guidance for LACs and LPCs.
-                      </p>
-                      
-                      <p 
-                        className="text-sm md:text-base text-gray-500 dark:text-gray-500"
-                        style={{ 
-                          fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
-                          lineHeight: '1.6'
-                        }}
-                      >
-                        What aspect of counseling would you like to explore?
-                      </p>
-                    </div>
+                  <div className="text-center space-y-6 py-12">
+                    <h1 className="text-2xl font-light text-gray-900 dark:text-gray-100">
+                      Hey there, great to meet you. I'm Dinger, your counseling AI assistant.
+                    </h1>
+                    <p className="text-base text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                      I specialize in mental health, counseling theories, therapeutic modalities, the DSM, cognitive psychology, neuroscience applications, clinical practice, and business guidance for LACs and LPCs.
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-500">
+                      What aspect of counseling would you like to explore?
+                    </p>
                   </div>
                 )}
 
-                {/* Conversation Messages */}
-                <div className="flex-1">
-                  {aiMessages.length > 0 && (
-                    <div className="space-y-8 py-8">
-                      {aiMessages.map((message, index) => (
-                        <div key={message.id} className="space-y-1">
-                          {message.isUser ? (
-                            /* User Message - Clean, no bubble */
-                            <div className="flex justify-end mb-6">
-                              <div className="max-w-3xl">
-                                <div 
-                                  className="text-gray-900 dark:text-gray-100"
-                                  style={{ 
-                                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                                    fontSize: '1rem',
-                                    lineHeight: '1.6',
-                                    letterSpacing: '0.005em'
-                                  }}
-                                >
-                                  {message.content}
-                                </div>
-                              </div>
+                {/* Messages */}
+                {aiMessages.length > 0 && (
+                  <div className="space-y-6">
+                    {aiMessages.map((message) => (
+                      <div key={message.id}>
+                        {message.isUser ? (
+                          <div className="flex justify-end">
+                            <div className="max-w-[85%] text-gray-900 dark:text-gray-100 break-words">
+                              {message.content}
                             </div>
-                          ) : (
-                            /* AI Response - Full width, premium typography */
-                            <div className="w-full mb-8">
-                              <div 
-                                className="text-gray-800 dark:text-gray-200 max-w-none prose prose-lg dark:prose-invert"
-                                style={{ 
-                                  fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
-                                  fontSize: '1.125rem',
-                                  lineHeight: '1.8',
-                                  letterSpacing: '0.01em',
-                                  fontWeight: '400'
-                                }}
-                              >
-                                {message.content}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  
-                  {/* Dynamic Thinking Indicator */}
-                  {isAiLoading && (
-                    <div className="py-8">
-                      <div className="flex items-center gap-3 text-gray-500 dark:text-gray-400">
-                        <div className="flex space-x-1">
-                          <div className="w-2 h-2 bg-current rounded-full animate-bounce"></div>
-                          <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                          <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                        </div>
-                        <span 
-                          className="text-sm italic transition-opacity duration-300"
-                          style={{ 
-                            fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
-                          }}
-                        >
-                          {(() => {
-                            const messages = [
-                              "Dinger is thinking...",
-                              "Processing your question...",
-                              "Considering the best response...",
-                              "Gathering insights...",
-                              "Almost ready..."
-                            ];
-                            return messages[Math.floor(Date.now() / 2000) % messages.length];
-                          })()}
-                        </span>
+                          </div>
+                        ) : (
+                          <div className="text-gray-800 dark:text-gray-200 break-words whitespace-pre-wrap">
+                            {message.content}
+                          </div>
+                        )}
                       </div>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Loading Indicator */}
+                {isAiLoading && (
+                  <div className="flex items-center gap-3 text-gray-500 py-6">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-current rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                     </div>
-                  )}
-                </div>
+                    <span className="text-sm italic">Dinger is thinking...</span>
+                  </div>
+                )}
                 
                 <div ref={aiMessagesEndRef} className="h-px" />
               </div>
             </div>
 
-            {/* Mobile-Optimized Input Area - Fixed Position */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200/30 dark:border-gray-700/30 backdrop-blur-md bg-opacity-95 dark:bg-opacity-95 z-50">
-              <div className="safe-area-inset-bottom">
-                <div className="px-4 md:px-8 py-4">
-                  <div className="max-w-4xl mx-auto">
-                    <div className="relative bg-gray-50/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-3xl shadow-lg border border-gray-200/50 dark:border-gray-700/50">
-                      <div className="p-3">
-                        <textarea
-                          value={aiInputValue}
-                          onChange={(e) => setAiInputValue(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                              e.preventDefault();
-                              handleSendAiMessage();
-                            }
-                          }}
-                          onFocus={(e) => {
-                            // Improved mobile keyboard handling
-                            if (window.innerWidth <= 768) {
-                              setTimeout(() => {
-                                e.target.scrollIntoView({ 
-                                  behavior: 'smooth', 
-                                  block: 'center' 
-                                });
-                              }, 300);
-                            }
-                          }}
-                          placeholder="Ask about counseling theories, DSM, clinical practice, or business guidance..."
-                          className="w-full min-h-[80px] max-h-[160px] px-6 py-4 pr-16 border-none bg-transparent resize-none focus:outline-none text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 rounded-3xl text-base"
-                          style={{ 
-                            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                            lineHeight: '1.5'
-                          }}
-                          disabled={isAiLoading}
-                          rows={2}
-                        />
-                        <Button
-                          onClick={handleSendAiMessage}
-                          disabled={!aiInputValue.trim() || isAiLoading}
-                          className="absolute right-3 bottom-3 w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed text-white shadow-md transition-all duration-200 flex items-center justify-center p-0 border-0"
-                        >
-                          {isAiLoading ? (
-                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          ) : (
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                            </svg>
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
+            {/* Input Area */}
+            <div className="border-t border-gray-200/30 dark:border-gray-700/30 bg-white dark:bg-gray-900">
+              <div className="px-4 py-4">
+                <div className="relative bg-gray-50 dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700">
+                  <textarea
+                    value={aiInputValue}
+                    onChange={(e) => setAiInputValue(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendAiMessage();
+                      }
+                    }}
+                    placeholder="Ask about counseling theories, DSM, clinical practice, or business guidance..."
+                    className="w-full min-h-[80px] max-h-[160px] px-6 py-4 pr-16 border-none bg-transparent resize-none focus:outline-none text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 rounded-3xl text-base"
+                    disabled={isAiLoading}
+                    rows={2}
+                  />
+                  <Button
+                    onClick={handleSendAiMessage}
+                    disabled={!aiInputValue.trim() || isAiLoading}
+                    className="absolute right-3 bottom-3 w-10 h-10 rounded-2xl bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white"
+                  >
+                    {isAiLoading ? (
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                      </svg>
+                    )}
+                  </Button>
                 </div>
               </div>
             </div>
