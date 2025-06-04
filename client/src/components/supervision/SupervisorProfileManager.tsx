@@ -179,9 +179,11 @@ export function SupervisorProfileManager() {
 
   const SupervisorForm = () => {
     const handleFormSubmit = async (e: React.FormEvent) => {
+      console.log('Form submit triggered');
       e.preventDefault();
       
       if (selectedSpecialties.length === 0) {
+        console.log('Validation failed: no specialties selected');
         toast({
           title: 'Validation Error',
           description: 'Please select at least one specialty.',
@@ -190,19 +192,30 @@ export function SupervisorProfileManager() {
         return;
       }
 
+      console.log('Extracting form data...');
       const formData = new FormData(e.target as HTMLFormElement);
       const data = {
         name: formData.get('name') as string,
         title: formData.get('title') as string,
         email: formData.get('email') as string || '',
         phone: formData.get('phone') as string || '',
-        supervisionType: formData.get('supervisionType') as string || 'individual',
-        sessionFrequency: formData.get('sessionFrequency') as string || 'weekly',
+        specialties: selectedSpecialties,
+        supervisionType: formData.get('supervisionType') as ('individual' | 'group' | 'both') || 'individual',
+        sessionFrequency: formData.get('sessionFrequency') as ('weekly' | 'biweekly' | 'monthly' | 'asNeeded') || 'weekly',
         sessionDuration: formData.get('sessionDuration') as string || '1',
-        notes: formData.get('notes') as string || ''
+        notes: formData.get('notes') as string || '',
+        isActive: true
       };
 
-      await handleSubmit(data);
+      console.log('Form data extracted:', data);
+      console.log('Selected specialties:', selectedSpecialties);
+      
+      try {
+        await handleSubmit(data);
+        console.log('handleSubmit completed');
+      } catch (error) {
+        console.error('Error in handleSubmit:', error);
+      }
     };
 
     return (
