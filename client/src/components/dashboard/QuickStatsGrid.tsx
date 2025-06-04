@@ -271,10 +271,16 @@ export const QuickStatsGrid = () => {
               </div>
             </div>
           </div>
-        </div>
+          </div>
+        </ClickableMetricCard>
 
         {/* Exam Eligibility Status */}
-        <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-xl rounded-xl p-4 relative overflow-hidden">
+        <ClickableMetricCard 
+          category="exam_eligibility" 
+          value={totalClientHours >= 80 && totalSupervisionHours >= 40 ? 1 : 0}
+          className="block"
+        >
+          <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-xl rounded-xl p-4 relative overflow-hidden">
           <div className={`absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl to-transparent rounded-full -translate-y-8 translate-x-8 ${
             totalClientHours >= 80 && totalSupervisionHours >= 40 
               ? 'from-green-50/30' 
@@ -330,7 +336,8 @@ export const QuickStatsGrid = () => {
               </div>
             </div>
           </div>
-        </div>
+          </div>
+        </ClickableMetricCard>
 
         {/* Supervision Compliance */}
         <ClickableMetricCard 
@@ -376,7 +383,12 @@ export const QuickStatsGrid = () => {
         </ClickableMetricCard>
 
         {/* Time to Licensure */}
-        <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-xl rounded-xl p-4 relative overflow-hidden">
+        <ClickableMetricCard 
+          category="licensure_timeline" 
+          value={totalClientHours >= 100 ? 1 : Math.ceil((100 - totalClientHours) / Math.max(thisWeekClientHours, 1))}
+          className="block"
+        >
+          <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-xl rounded-xl p-4 relative overflow-hidden">
           <div className={`absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl to-transparent rounded-full -translate-y-8 translate-x-8 ${
             totalClientHours >= 100 ? 'from-green-50/30' : 'from-blue-50/30'
           }`} />
@@ -409,7 +421,8 @@ export const QuickStatsGrid = () => {
               }
             </div>
           </div>
-        </div>
+          </div>
+        </ClickableMetricCard>
       </div>
     </section>
   );
