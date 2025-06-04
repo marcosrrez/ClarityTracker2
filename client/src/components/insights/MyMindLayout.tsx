@@ -1159,13 +1159,13 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
               )}
             </div>
 
-            {/* Mobile-Optimized Input Area - Compact Design */}
+            {/* Mobile-Optimized Input Area - Navigation Bar Style */}
             <div className="flex-shrink-0 bg-[#FEFEFE] dark:bg-[#0D0D0D]">
               <div className="safe-area-inset-bottom">
-                <div className="p-6 md:p-8">
-                  <div className="max-w-lg mx-auto">
-                    <div className="relative bg-gray-100 dark:bg-gray-800 rounded-3xl shadow-lg border-2 border-gray-300 dark:border-gray-600">
-                      <div className="p-3">
+                <div className="px-12 py-4">
+                  <div className="max-w-sm mx-auto">
+                    <div className="relative bg-gray-100 dark:bg-gray-800 rounded-full shadow-lg border-2 border-gray-300 dark:border-gray-600">
+                      <div className="px-4 py-2">
                         <textarea
                           value={aiInputValue}
                           onChange={(e) => setAiInputValue(e.target.value)}
