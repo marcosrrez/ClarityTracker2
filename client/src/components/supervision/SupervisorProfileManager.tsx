@@ -60,7 +60,8 @@ export function SupervisorProfileManager() {
     supervisionType: 'individual' as 'individual' | 'group' | 'both',
     sessionFrequency: 'weekly' as 'weekly' | 'biweekly' | 'monthly' | 'asNeeded',
     sessionDuration: '1',
-    notes: ''
+    notes: '',
+    startDate: ''
   });
 
   useEffect(() => {
@@ -161,7 +162,8 @@ export function SupervisorProfileManager() {
       supervisionType: 'individual',
       sessionFrequency: 'weekly',
       sessionDuration: '1',
-      notes: ''
+      notes: '',
+      startDate: ''
     });
     setSelectedSpecialties([]);
     setEditingSupervisor(null);
@@ -241,7 +243,8 @@ export function SupervisorProfileManager() {
       supervisionType: supervisor.supervisionType,
       sessionFrequency: supervisor.sessionFrequency,
       sessionDuration: supervisor.sessionDuration,
-      notes: supervisor.notes || ''
+      notes: supervisor.notes || '',
+      startDate: supervisor.startDate || ''
     });
     setSelectedSpecialties(supervisor.specialties);
     setIsDialogOpen(true);
@@ -372,7 +375,7 @@ export function SupervisorProfileManager() {
 
               {/* Expanded Content - Detailed Information */}
               {isExpanded && (
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-6 mt-6 space-y-6">
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-6 mt-6 mx-6 space-y-6">
                   {/* Supervision Timeline & Compliance */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Timeline Information */}
@@ -632,21 +635,35 @@ export function SupervisorProfileManager() {
                 </div>
               </div>
 
-              {/* Duration */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Session Duration (hours)
-                </label>
-                <input
-                  value={formData.sessionDuration}
-                  onChange={(e) => handleInputChange('sessionDuration', e.target.value)}
-                  type="number"
-                  step="0.5"
-                  min="0.5"
-                  max="4"
-                  placeholder="1.0"
-                  className="w-full h-12 px-4 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
+              {/* Duration and Start Date */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Session Duration (hours)
+                  </label>
+                  <input
+                    value={formData.sessionDuration}
+                    onChange={(e) => handleInputChange('sessionDuration', e.target.value)}
+                    type="number"
+                    step="0.5"
+                    min="0.5"
+                    max="4"
+                    placeholder="1.0"
+                    className="w-full h-12 px-4 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Supervision Start Date
+                  </label>
+                  <input
+                    value={formData.startDate}
+                    onChange={(e) => handleInputChange('startDate', e.target.value)}
+                    type="date"
+                    className="w-full h-12 px-4 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
               </div>
 
               {/* Notes */}
