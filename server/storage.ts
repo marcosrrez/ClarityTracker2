@@ -1,6 +1,7 @@
 import { 
   feedbackTable, 
   userAnalyticsTable,
+  supervisorTable,
   supervisionSessionTable,
   superviseeRelationshipTable,
   competencyAssessmentTable,
@@ -18,6 +19,8 @@ import {
   type InsertFeedback, 
   type UserAnalytics, 
   type InsertUserAnalytics,
+  type Supervisor,
+  type InsertSupervisor,
   type SupervisionSession,
   type InsertSupervisionSession,
   type SuperviseeRelationship,
@@ -55,6 +58,12 @@ export interface IStorage {
   updateFeedbackStatus(id: string, status: string): Promise<void>;
   trackUserEvent(analytics: InsertUserAnalytics): Promise<void>;
   getAnalytics(): Promise<any>;
+  
+  // Supervisor functionality
+  createSupervisor(supervisor: InsertSupervisor): Promise<Supervisor>;
+  getSupervisorsByUserId(userId: string): Promise<Supervisor[]>;
+  updateSupervisor(id: string, updates: Partial<Supervisor>): Promise<void>;
+  deleteSupervisor(id: string): Promise<void>;
   
   // Supervision functionality
   createSuperviseeRelationship(relationship: InsertSuperviseeRelationship): Promise<SuperviseeRelationship>;
@@ -269,6 +278,75 @@ export class DatabaseStorage implements IStorage {
       backgroundCheckCompleted: result.backgroundCheckCompleted === 'true',
       licenseVerified: result.licenseVerified === 'true',
     };
+  }
+
+  // Supervisor methods
+  async createSupervisor(supervisorData: InsertSupervisor): Promise<Supervisor> {
+    const { db } = await import("./db");
+    const id = Date.now().toString();
+    
+    const [supervisor] = await db
+      .insert(supervisorTable)
+      .values({
+        ...supervisorData,
+        id,
+        specialties: JSON.stringify(supervisorData.specialties),
+        isActive: supervisorData.isActive ? 'true' : 'false',
+        totalHours: supervisorData.totalHours.toString(),
+      })
+      .returning();
+
+    return {
+      ...supervisor,
+      specialties: JSON.parse(supervisor.specialties),
+      isActive: supervisor.isActive === 'true',
+      totalHours: parseInt(supervisor.totalHours),
+    };
+  }
+
+  async getSupervisorsByUserId(userId: string): Promise<Supervisor[]> {
+    const { db } = await import("./db");
+    
+    const results = await db
+      .select()
+      .from(supervisorTable)
+      .where(eq(supervisorTable.userId, userId))
+      .orderBy(desc(supervisorTable.createdAt));
+
+    return results.map(result => ({
+      ...result,
+      specialties: JSON.parse(result.specialties),
+      isActive: result.isActive === 'true',
+      totalHours: parseInt(result.totalHours),
+    }));
+  }
+
+  async updateSupervisor(id: string, updates: Partial<Supervisor>): Promise<void> {
+    const { db } = await import("./db");
+    
+    const updateData: any = { ...updates };
+    if (updates.specialties) {
+      updateData.specialties = JSON.stringify(updates.specialties);
+    }
+    if (updates.isActive !== undefined) {
+      updateData.isActive = updates.isActive ? 'true' : 'false';
+    }
+    if (updates.totalHours !== undefined) {
+      updateData.totalHours = updates.totalHours.toString();
+    }
+
+    await db
+      .update(supervisorTable)
+      .set(updateData)
+      .where(eq(supervisorTable.id, id));
+  }
+
+  async deleteSupervisor(id: string): Promise<void> {
+    const { db } = await import("./db");
+    
+    await db
+      .delete(supervisorTable)
+      .where(eq(supervisorTable.id, id));
   }
 
   async getSuperviseeRelationships(supervisorId: string): Promise<SuperviseeRelationship[]> {

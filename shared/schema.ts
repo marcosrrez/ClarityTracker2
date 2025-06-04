@@ -227,6 +227,25 @@ export const insertUserAnalyticsSchema = userAnalyticsSchema.omit({
 export type UserAnalytics = z.infer<typeof userAnalyticsSchema>;
 export type InsertUserAnalytics = z.infer<typeof insertUserAnalyticsSchema>;
 
+// Supervisor Profile Schema - for managing supervisor information
+export const supervisorTable = pgTable('supervisors', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  name: varchar('name', { length: 255 }).notNull(),
+  title: varchar('title', { length: 255 }).notNull(),
+  email: varchar('email', { length: 255 }),
+  phone: varchar('phone', { length: 50 }),
+  specialties: text('specialties').notNull(), // JSON array of specialties
+  supervisionType: varchar('supervision_type', { length: 50 }).notNull(), // individual, group, both
+  sessionFrequency: varchar('session_frequency', { length: 50 }).notNull(), // weekly, biweekly, monthly, asNeeded
+  sessionDuration: varchar('session_duration', { length: 10 }).notNull(),
+  notes: text('notes'),
+  isActive: varchar('is_active', { length: 10 }).default('true'),
+  totalHours: varchar('total_hours', { length: 10 }).default('0'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 // Supervision Session Schema - for tracking supervision meetings
 export const supervisionSessionTable = pgTable('supervision_sessions', {
   id: varchar('id', { length: 255 }).primaryKey(),
@@ -274,6 +293,34 @@ export const insertSupervisionSessionSchema = supervisionSessionSchema.omit({
 
 export type SupervisionSession = z.infer<typeof supervisionSessionSchema>;
 export type InsertSupervisionSession = z.infer<typeof insertSupervisionSessionSchema>;
+
+// Supervisor Schema and Types
+export const supervisorSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  name: z.string().min(1, "Name is required"),
+  title: z.string().min(1, "Title is required"),
+  email: z.string().email().optional(),
+  phone: z.string().optional(),
+  specialties: z.array(z.string()).min(1, "At least one specialty is required"),
+  supervisionType: z.enum(['individual', 'group', 'both']),
+  sessionFrequency: z.enum(['weekly', 'biweekly', 'monthly', 'asNeeded']),
+  sessionDuration: z.string(),
+  notes: z.string().optional(),
+  isActive: z.boolean().default(true),
+  totalHours: z.number().default(0),
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date()),
+});
+
+export const insertSupervisorSchema = supervisorSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type Supervisor = z.infer<typeof supervisorSchema>;
+export type InsertSupervisor = z.infer<typeof insertSupervisorSchema>;
 
 // Supervisee Relationship Schema - for tracking supervisor-supervisee relationships
 export const superviseeRelationshipTable = pgTable('supervisee_relationships', {
