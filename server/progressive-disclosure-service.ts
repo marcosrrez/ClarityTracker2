@@ -44,10 +44,21 @@ export class ProgressiveDisclosureService {
       const [saved] = await db.insert(userProgressInsightTable)
         .values({
           id: `insight_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          ...insight
+          ...insight,
+          data: insight.data ? JSON.stringify(insight.data) : null,
+          isRead: 'false',
+          validUntil: insight.validUntil || null
         })
         .returning();
-      savedInsights.push(saved);
+      
+      // Transform back for return type
+      const transformedSaved = {
+        ...saved,
+        data: saved.data ? JSON.parse(saved.data) : undefined,
+        isRead: saved.isRead === 'true',
+        validUntil: saved.validUntil || undefined
+      };
+      savedInsights.push(transformedSaved as UserProgressInsight);
     }
     
     return savedInsights;
@@ -57,7 +68,7 @@ export class ProgressiveDisclosureService {
    * Get educational content for a specific category
    */
   async getEducationalContent(category: string, level: number = 1, targetAudience: string = 'all'): Promise<EducationalContent[]> {
-    return await db.select()
+    const results = await db.select()
       .from(educationalContentTable)
       .where(and(
         eq(educationalContentTable.category, category),
@@ -66,6 +77,16 @@ export class ProgressiveDisclosureService {
         eq(educationalContentTable.isActive, 'true')
       ))
       .orderBy(asc(educationalContentTable.orderIndex));
+    
+    // Transform database results to match schema types
+    return results.map(result => ({
+      ...result,
+      tags: result.tags ? JSON.parse(result.tags) : [],
+      isActive: result.isActive === 'true',
+      contentType: result.contentType as 'tip' | 'explanation' | 'guide' | 'definition',
+      targetAudience: result.targetAudience as 'all' | 'lac' | 'lpc' | 'supervisor',
+      orderIndex: result.orderIndex || 0
+    }));
   }
 
   /**
@@ -86,20 +107,26 @@ export class ProgressiveDisclosureService {
    * Get recent progress insights for a user
    */
   async getUserProgressInsights(userId: string, category?: string, limit: number = 10): Promise<UserProgressInsight[]> {
-    let query = db.select()
+    const baseWhere = eq(userProgressInsightTable.userId, userId);
+    const whereClause = category 
+      ? and(baseWhere, eq(userProgressInsightTable.category, category))
+      : baseWhere;
+    
+    const results = await db.select()
       .from(userProgressInsightTable)
-      .where(eq(userProgressInsightTable.userId, userId));
-    
-    if (category) {
-      query = query.where(and(
-        eq(userProgressInsightTable.userId, userId),
-        eq(userProgressInsightTable.category, category)
-      ));
-    }
-    
-    return await query
+      .where(whereClause)
       .orderBy(desc(userProgressInsightTable.createdAt))
       .limit(limit);
+    
+    // Transform database results to match schema types
+    return results.map(result => ({
+      ...result,
+      data: result.data ? JSON.parse(result.data) : undefined,
+      isRead: result.isRead === 'true',
+      validUntil: result.validUntil || undefined,
+      insightType: result.insightType as 'progress' | 'milestone' | 'trend' | 'encouragement',
+      priority: result.priority || 1
+    }));
   }
 
   /**
@@ -271,7 +298,8 @@ export class ProgressiveDisclosureService {
         target: targetSupervisionHours,
         percentage: progressPercentage
       },
-      priority: progressPercentage >= 75 ? 3 : progressPercentage >= 50 ? 2 : 1
+      priority: progressPercentage >= 75 ? 3 : progressPercentage >= 50 ? 2 : 1,
+      isRead: false
     });
 
     // Recent activity insight
@@ -293,7 +321,8 @@ export class ProgressiveDisclosureService {
           latestDate: latestEntry.dateOfContact,
           latestHours: latestEntry.supervisionHours
         },
-        priority: 2
+        priority: 2,
+        isRead: false
       });
     }
 
@@ -316,7 +345,8 @@ export class ProgressiveDisclosureService {
         target: targetDirectHours,
         percentage: progressPercentage
       },
-      priority: progressPercentage >= 75 ? 3 : progressPercentage >= 50 ? 2 : 1
+      priority: progressPercentage >= 75 ? 3 : progressPercentage >= 50 ? 2 : 1,
+      isRead: false
     });
 
     // Monthly comparison
@@ -335,7 +365,8 @@ export class ProgressiveDisclosureService {
           trend,
           difference
         },
-        priority: 2
+        priority: 2,
+        isRead: false
       });
     }
 
@@ -358,7 +389,8 @@ export class ProgressiveDisclosureService {
           target: targetPDHours,
           percentage: progressPercentage
         },
-        priority: progressPercentage >= 100 ? 3 : 2
+        priority: progressPercentage >= 100 ? 3 : 2,
+        isRead: false
       });
     }
 
