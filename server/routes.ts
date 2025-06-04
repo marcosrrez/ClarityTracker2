@@ -2034,7 +2034,7 @@ Please provide a helpful, professional response that's personalized to their sit
       let educationalTopics: any[] = [];
 
       if (dataPoint === 'total_hours') {
-        const category = context.category;
+        const category = context.category || 'unknown';
         personalAnalysis = `Your ${category.replace('_', ' ')} shows ${context.value} total hours with a ${context.trend} trend. This reflects your commitment to professional development.`;
         
         patterns = [

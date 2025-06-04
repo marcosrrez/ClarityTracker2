@@ -1,6 +1,7 @@
 import { Clock, Users, Calendar, TrendingUp } from "lucide-react";
 import { useLogEntries, useAppSettings } from "@/hooks/use-firestore";
 import { EnhancedStatsCard } from "./EnhancedStatsCard";
+import { ClickableMetricCard } from "./ClickableMetricCard";
 import { motion } from "framer-motion";
 
 export const QuickStatsGrid = () => {
@@ -100,7 +101,12 @@ export const QuickStatsGrid = () => {
   return (
     <section className="space-y-6">
       {/* Primary Metric - Dominant Focus */}
-      <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-2xl p-6 relative overflow-hidden">
+      <ClickableMetricCard 
+        category="direct_hours" 
+        value={totalClientHours}
+        className="block"
+      >
+        <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-2xl p-6 relative overflow-hidden">
         {/* Subtle background decoration */}
         <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-green-50/50 to-transparent rounded-full -translate-y-16 translate-x-16" />
         
@@ -208,12 +214,18 @@ export const QuickStatsGrid = () => {
             )}
           </div>
         </div>
-      </div>
+        </div>
+      </ClickableMetricCard>
 
       {/* Essential LAC Metrics Grid */}
       <div className="grid grid-cols-2 gap-4">
         {/* Direct vs Indirect Hours Breakdown */}
-        <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-xl rounded-xl p-4 relative overflow-hidden">
+        <ClickableMetricCard 
+          category="direct_hours_breakdown" 
+          value={totalClientHours}
+          className="block"
+        >
+          <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-xl rounded-xl p-4 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-blue-50/30 to-transparent rounded-full -translate-y-8 translate-x-8" />
           
           <div className="relative">
@@ -321,7 +333,12 @@ export const QuickStatsGrid = () => {
         </div>
 
         {/* Supervision Compliance */}
-        <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-xl rounded-xl p-4 relative overflow-hidden">
+        <ClickableMetricCard 
+          category="supervision_hours" 
+          value={totalSupervisionHours}
+          className="block"
+        >
+          <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-xl rounded-xl p-4 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-purple-50/30 to-transparent rounded-full -translate-y-8 translate-x-8" />
           
           <div className="relative">
@@ -355,7 +372,8 @@ export const QuickStatsGrid = () => {
               </span>
             </div>
           </div>
-        </div>
+          </div>
+        </ClickableMetricCard>
 
         {/* Time to Licensure */}
         <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-xl rounded-xl p-4 relative overflow-hidden">
