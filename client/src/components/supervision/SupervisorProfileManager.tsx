@@ -84,7 +84,7 @@ export function SupervisorProfileManager() {
     } catch (error) {
       console.error('Error loading supervisors:', error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
