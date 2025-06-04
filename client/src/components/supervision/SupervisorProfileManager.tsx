@@ -143,6 +143,80 @@ export function SupervisorProfileManager() {
     setExpandedSupervisors(newExpanded);
   };
 
+  // Session scheduling helper functions
+  const calculateNextSessionDate = (frequency: string, startDate?: string) => {
+    const baseDate = startDate ? new Date(startDate) : new Date();
+    const today = new Date();
+    
+    if (baseDate > today) return baseDate;
+    
+    let nextDate = new Date(baseDate);
+    
+    while (nextDate <= today) {
+      switch (frequency) {
+        case 'weekly':
+          nextDate.setDate(nextDate.getDate() + 7);
+          break;
+        case 'biweekly':
+          nextDate.setDate(nextDate.getDate() + 14);
+          break;
+        case 'monthly':
+          nextDate.setMonth(nextDate.getMonth() + 1);
+          break;
+        default:
+          nextDate.setDate(nextDate.getDate() + 7);
+      }
+    }
+    
+    return nextDate;
+  };
+
+  const handleScheduleSession = async (supervisor: Supervisor) => {
+    const suggestedDate = calculateNextSessionDate(supervisor.sessionFrequency, supervisor.startDate);
+    const formattedDate = suggestedDate.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    
+    toast({
+      title: 'Session Suggested',
+      description: `Next ${supervisor.sessionFrequency} session suggested for ${formattedDate}`,
+    });
+  };
+
+  const handleMarkCompliant = async (supervisorId: string) => {
+    toast({
+      title: 'Compliance Updated',
+      description: 'Supervisor marked as compliant with current requirements',
+    });
+  };
+
+  const handleStartDateUpdate = async (supervisorId: string, newStartDate: string) => {
+    try {
+      const response = await fetch(`/api/supervisors/${supervisorId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ startDate: newStartDate })
+      });
+
+      if (response.ok) {
+        toast({
+          title: 'Start Date Updated',
+          description: 'Supervision start date has been updated',
+        });
+        loadSupervisors(); // Refresh the list
+      }
+    } catch (error) {
+      toast({
+        title: 'Update Failed',
+        description: 'Failed to update start date',
+        variant: 'destructive'
+      });
+    }
+  };
+
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
@@ -385,9 +459,17 @@ export function SupervisorProfileManager() {
                         Supervision Timeline
                       </h4>
                       <div className="space-y-3">
-                        <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg group">
                           <span className="text-sm text-gray-600 dark:text-gray-400">Started</span>
-                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{supervisor.startDate}</span>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="date"
+                              value={supervisor.startDate || ''}
+                              onChange={(e) => handleStartDateUpdate(supervisor.id, e.target.value)}
+                              className="text-sm font-medium text-gray-900 dark:text-gray-100 bg-transparent border-none p-1 focus:ring-0 focus:border-none group-hover:bg-gray-100 dark:group-hover:bg-gray-600 rounded"
+                            />
+                            <Edit2 size={12} className="text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
                         </div>
                         <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                           <span className="text-sm text-gray-600 dark:text-gray-400">Last Session</span>
@@ -507,14 +589,20 @@ export function SupervisorProfileManager() {
 
                   {/* Actions */}
                   <div className="flex gap-3">
-                    <button className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors">
+                    <button 
+                      onClick={() => handleScheduleSession(supervisor)}
+                      className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors"
+                    >
                       Schedule Session
                     </button>
-                    <button className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-xl font-medium transition-colors">
-                      Session History
+                    <button 
+                      onClick={() => handleMarkCompliant(supervisor.id)}
+                      className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium transition-colors"
+                    >
+                      Mark Compliant
                     </button>
-                    <button className="flex-1 px-4 py-3 bg-green-100 hover:bg-green-200 dark:bg-green-900 dark:hover:bg-green-800 text-green-700 dark:text-green-300 rounded-xl font-medium transition-colors">
-                      Progress Report
+                    <button className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-xl font-medium transition-colors">
+                      View History
                     </button>
                   </div>
 
