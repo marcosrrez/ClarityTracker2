@@ -89,6 +89,13 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
   const [aiInputValue, setAiInputValue] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
   const aiMessagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    if (aiMessagesEndRef.current) {
+      aiMessagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [aiMessages, isAiLoading]);
 
   // Get current thread messages
   const aiMessages = threads[currentThreadId] || [];
@@ -957,52 +964,120 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
               </Button>
             </div>
 
-            {/* Expansive Messages - Full Width Experience */}
-            <div className="flex-1 overflow-y-auto px-12 pb-8">
-              <div className="max-w-4xl mx-auto">
-                <div className="space-y-12 pt-12">
-                  {aiMessages.map((message, index) => (
-                    <div key={message.id}>
-                      {!message.isUser ? (
-                        <div 
-                          className="text-gray-800 dark:text-gray-200 max-w-none"
-                          style={{ 
-                            fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
-                            fontSize: '1.125rem',
-                            lineHeight: '1.8',
-                            letterSpacing: '0.01em',
-                            fontWeight: '400'
-                          }}
-                        >
-                          {message.content}
-                        </div>
-                      ) : (
-                        <div 
-                          className="text-gray-600 dark:text-gray-400 bg-gray-50/50 dark:bg-gray-800/30 rounded-2xl px-6 py-4 ml-8"
-                          style={{ 
-                            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                            fontSize: '1rem',
-                            lineHeight: '1.6',
-                            letterSpacing: '0.005em',
-                            fontWeight: '400'
-                          }}
-                        >
-                          {message.content}
-                        </div>
-                      )}
+            {/* Modern Chat Interface - Claude/ChatGPT Style */}
+            <div className="flex-1 overflow-y-auto">
+              <div className="max-w-4xl mx-auto px-8">
+                
+                {/* Welcome Message - Only shown when no conversation */}
+                {aiMessages.length === 0 && !isAiLoading && (
+                  <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center space-y-8">
+                    <div className="space-y-6">
+                      <h1 
+                        className="text-3xl font-light text-gray-900 dark:text-gray-100"
+                        style={{ 
+                          fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
+                          letterSpacing: '-0.01em'
+                        }}
+                      >
+                        Hey there, great to meet you. I'm Dinger, your personal AI.
+                      </h1>
+                      
+                      <p 
+                        className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl"
+                        style={{ 
+                          fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
+                          lineHeight: '1.7'
+                        }}
+                      >
+                        My goal is to be useful, friendly and fun. Ask me for advice, for answers, or let's talk about whatever's on your mind.
+                      </p>
+                      
+                      <p 
+                        className="text-base text-gray-500 dark:text-gray-500"
+                        style={{ 
+                          fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
+                          lineHeight: '1.6'
+                        }}
+                      >
+                        How's your day going?
+                      </p>
                     </div>
-                  ))}
-                  
-                  {isAiLoading && (
-                    <div className="my-12">
-                      <LoadingQuoteCompact 
-                        context={['therapeutic alliance', 'professional development', 'counseling skills']}
-                        skillLevel="intermediate"
-                        className="max-w-4xl"
-                      />
+                  </div>
+                )}
+
+                {/* Conversation Messages */}
+                {aiMessages.length > 0 && (
+                  <div className="space-y-8 py-8">
+                    {aiMessages.map((message, index) => (
+                      <div key={message.id} className="space-y-1">
+                        {message.isUser ? (
+                          /* User Message - Clean, no bubble */
+                          <div className="flex justify-end">
+                            <div className="max-w-3xl">
+                              <div 
+                                className="text-gray-900 dark:text-gray-100"
+                                style={{ 
+                                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                                  fontSize: '1rem',
+                                  lineHeight: '1.6',
+                                  letterSpacing: '0.005em'
+                                }}
+                              >
+                                {message.content}
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          /* AI Response - Full width, premium typography */
+                          <div className="w-full">
+                            <div 
+                              className="text-gray-800 dark:text-gray-200 max-w-none"
+                              style={{ 
+                                fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
+                                fontSize: '1.125rem',
+                                lineHeight: '1.8',
+                                letterSpacing: '0.01em',
+                                fontWeight: '400'
+                              }}
+                            >
+                              {message.content}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Dynamic Thinking Indicator */}
+                {isAiLoading && (
+                  <div className="py-8">
+                    <div className="flex items-center gap-3 text-gray-500 dark:text-gray-400">
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-current rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                        <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      </div>
+                      <span 
+                        className="text-sm italic transition-opacity duration-300"
+                        style={{ 
+                          fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
+                        }}
+                      >
+                        {(() => {
+                          const messages = [
+                            "Dinger is thinking...",
+                            "Processing your question...",
+                            "Considering the best response...",
+                            "Gathering insights...",
+                            "Almost ready..."
+                          ];
+                          return messages[Math.floor(Date.now() / 2000) % messages.length];
+                        })()}
+                      </span>
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
                 
                 <div ref={aiMessagesEndRef} />
               </div>
