@@ -95,12 +95,15 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
   
   // Auto-scroll to bottom when messages change
   useEffect(() => {
-    const scrollToBottom = () => {
+    const timer = setTimeout(() => {
       if (aiMessagesEndRef.current) {
-        aiMessagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        const scrollContainer = aiMessagesEndRef.current.closest('.overflow-y-auto');
+        if (scrollContainer) {
+          scrollContainer.scrollTop = scrollContainer.scrollHeight;
+        }
       }
-    };
-    scrollToBottom();
+    }, 100);
+    return () => clearTimeout(timer);
   }, [aiMessages.length, isAiLoading]);
 
   // Handle AI Coach message sending
@@ -968,12 +971,12 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
             </div>
 
             {/* Modern Chat Interface - Claude/ChatGPT Style */}
-            <div className="flex-1 overflow-y-auto">
-              <div className="max-w-4xl mx-auto px-8">
+            <div className="flex-1 overflow-y-auto" style={{ scrollBehavior: 'smooth' }}>
+              <div className="max-w-4xl mx-auto px-8 min-h-full flex flex-col">
                 
                 {/* Welcome Message - Only shown when no conversation */}
                 {aiMessages.length === 0 && !isAiLoading && (
-                  <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center space-y-8">
+                  <div className="flex-1 flex flex-col items-center justify-center text-center space-y-8">
                     <div className="space-y-6">
                       <h1 
                         className="text-3xl font-light text-gray-900 dark:text-gray-100"
@@ -1009,80 +1012,82 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                 )}
 
                 {/* Conversation Messages */}
-                {aiMessages.length > 0 && (
-                  <div className="space-y-8 py-8">
-                    {aiMessages.map((message, index) => (
-                      <div key={message.id} className="space-y-1">
-                        {message.isUser ? (
-                          /* User Message - Clean, no bubble */
-                          <div className="flex justify-end">
-                            <div className="max-w-3xl">
+                <div className="flex-1">
+                  {aiMessages.length > 0 && (
+                    <div className="space-y-8 py-8">
+                      {aiMessages.map((message, index) => (
+                        <div key={message.id} className="space-y-1">
+                          {message.isUser ? (
+                            /* User Message - Clean, no bubble */
+                            <div className="flex justify-end mb-6">
+                              <div className="max-w-3xl">
+                                <div 
+                                  className="text-gray-900 dark:text-gray-100"
+                                  style={{ 
+                                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                                    fontSize: '1rem',
+                                    lineHeight: '1.6',
+                                    letterSpacing: '0.005em'
+                                  }}
+                                >
+                                  {message.content}
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            /* AI Response - Full width, premium typography */
+                            <div className="w-full mb-8">
                               <div 
-                                className="text-gray-900 dark:text-gray-100"
+                                className="text-gray-800 dark:text-gray-200 max-w-none prose prose-lg dark:prose-invert"
                                 style={{ 
-                                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                                  fontSize: '1rem',
-                                  lineHeight: '1.6',
-                                  letterSpacing: '0.005em'
+                                  fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
+                                  fontSize: '1.125rem',
+                                  lineHeight: '1.8',
+                                  letterSpacing: '0.01em',
+                                  fontWeight: '400'
                                 }}
                               >
                                 {message.content}
                               </div>
                             </div>
-                          </div>
-                        ) : (
-                          /* AI Response - Full width, premium typography */
-                          <div className="w-full">
-                            <div 
-                              className="text-gray-800 dark:text-gray-200 max-w-none"
-                              style={{ 
-                                fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
-                                fontSize: '1.125rem',
-                                lineHeight: '1.8',
-                                letterSpacing: '0.01em',
-                                fontWeight: '400'
-                              }}
-                            >
-                              {message.content}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-                
-                {/* Dynamic Thinking Indicator */}
-                {isAiLoading && (
-                  <div className="py-8">
-                    <div className="flex items-center gap-3 text-gray-500 dark:text-gray-400">
-                      <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-current rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                        <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                      </div>
-                      <span 
-                        className="text-sm italic transition-opacity duration-300"
-                        style={{ 
-                          fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
-                        }}
-                      >
-                        {(() => {
-                          const messages = [
-                            "Dinger is thinking...",
-                            "Processing your question...",
-                            "Considering the best response...",
-                            "Gathering insights...",
-                            "Almost ready..."
-                          ];
-                          return messages[Math.floor(Date.now() / 2000) % messages.length];
-                        })()}
-                      </span>
+                          )}
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                )}
+                  )}
+                  
+                  {/* Dynamic Thinking Indicator */}
+                  {isAiLoading && (
+                    <div className="py-8">
+                      <div className="flex items-center gap-3 text-gray-500 dark:text-gray-400">
+                        <div className="flex space-x-1">
+                          <div className="w-2 h-2 bg-current rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                          <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                        </div>
+                        <span 
+                          className="text-sm italic transition-opacity duration-300"
+                          style={{ 
+                            fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
+                          }}
+                        >
+                          {(() => {
+                            const messages = [
+                              "Dinger is thinking...",
+                              "Processing your question...",
+                              "Considering the best response...",
+                              "Gathering insights...",
+                              "Almost ready..."
+                            ];
+                            return messages[Math.floor(Date.now() / 2000) % messages.length];
+                          })()}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
                 
-                <div ref={aiMessagesEndRef} />
+                <div ref={aiMessagesEndRef} className="h-px" />
               </div>
             </div>
 
