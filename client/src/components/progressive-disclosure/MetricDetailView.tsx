@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useUser } from '@/lib/firebase';
+import { useLogEntries } from '@/hooks/use-firestore';
 
 interface MetricDetailProps {
   category: string;
@@ -26,131 +27,113 @@ interface MetricData {
 
 export function MetricDetailView({ category, onBack, onDrillDown }: MetricDetailProps) {
   const { user } = useUser();
+  const { entries: userEntries, loading: entriesLoading } = useLogEntries();
   const [data, setData] = useState<MetricData | null>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user?.uid) {
-      fetchDetailedData();
+    if (!entriesLoading && userEntries.length >= 0) {
+      calculateMetrics();
     }
-  }, [user?.uid, category]);
+  }, [entriesLoading, userEntries, category]);
 
-  const fetchDetailedData = async () => {
-    if (!user?.uid) return;
+  const calculateMetrics = () => {
+    if (!userEntries) return;
     
-    try {
-      // Import Firebase functions to get actual user data
-      const { collection, query, where, orderBy, getDocs } = await import('firebase/firestore');
-      const { db } = await import('@/lib/firebase');
+    // Calculate category-specific metrics from actual data
+    let totalHours = 0;
+    let recentEntries: any[] = [];
+    let insights: string[] = [];
+    let monthlyTrend: 'up' | 'down' | 'stable' = 'stable';
+    
+    if (category === 'direct_hours') {
+      totalHours = userEntries.reduce((sum: number, entry: any) => 
+        sum + (entry.clientContactHours || 0), 0);
       
-      // Get user's actual log entries from Firebase
-      const logEntriesRef = collection(db, 'logEntries');
-      const userQuery = query(
-        logEntriesRef,
-        where('userId', '==', user.uid),
-        orderBy('dateOfContact', 'desc')
-      );
-      const snapshot = await getDocs(userQuery);
-      const userEntries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      
-      // Calculate category-specific metrics from actual data
-      let totalHours = 0;
-      let recentEntries: any[] = [];
-      let insights: string[] = [];
-      let monthlyTrend: 'up' | 'down' | 'stable' = 'stable';
-      
-      if (category === 'direct_hours') {
-        totalHours = userEntries.reduce((sum: number, entry: any) => 
-          sum + (entry.clientContactHours || 0), 0);
-        
-        recentEntries = userEntries
-          .filter((entry: any) => entry.clientContactHours > 0)
-          .slice(0, 10)
-          .map((entry: any) => ({
-            date: entry.dateOfContact ? new Date(entry.dateOfContact.seconds * 1000).toLocaleDateString() : 'N/A',
-            hours: entry.clientContactHours || 0,
-            notes: entry.notes || 'No session notes recorded',
-            type: 'Direct Client Contact'
-          }));
+      recentEntries = userEntries
+        .filter((entry: any) => entry.clientContactHours > 0)
+        .slice(0, 10)
+        .map((entry: any) => ({
+          date: entry.dateOfContact ? new Date(entry.dateOfContact.seconds * 1000).toLocaleDateString() : 'N/A',
+          hours: entry.clientContactHours || 0,
+          notes: entry.notes || 'No session notes recorded',
+          type: 'Direct Client Contact'
+        }));
 
-        const averageSession = recentEntries.length > 0 ? 
-          (totalHours / recentEntries.length).toFixed(1) : '0';
-        
-        insights = [
-          `You've logged ${totalHours} direct client contact hours total`,
-          `Average session length: ${averageSession} hours`,
-          `${recentEntries.length} sessions recorded`,
-          recentEntries.length > 0 ? 
-            `Most recent: ${recentEntries[0]?.hours} hours on ${recentEntries[0]?.date}` :
-            'No direct client hours logged yet'
-        ];
-      } else if (category === 'supervision_hours') {
-        totalHours = userEntries.reduce((sum: number, entry: any) => 
-          sum + (entry.supervisionHours || 0), 0);
-        
-        recentEntries = userEntries
-          .filter((entry: any) => entry.supervisionHours > 0)
-          .slice(0, 10)
-          .map((entry: any) => ({
-            date: entry.dateOfContact ? new Date(entry.dateOfContact.seconds * 1000).toLocaleDateString() : 'N/A',
-            hours: entry.supervisionHours || 0,
-            notes: entry.supervisionNotes || entry.notes || 'No supervision notes recorded',
-            type: 'Clinical Supervision'
-          }));
-
-        const averageSession = recentEntries.length > 0 ? 
-          (totalHours / recentEntries.length).toFixed(1) : '1.0';
-        
-        insights = [
-          `You've completed ${totalHours} supervision hours total`,
-          `Average supervision length: ${averageSession} hours`,
-          `${recentEntries.length} supervision sessions recorded`,
-          recentEntries.length > 0 ? 
-            `Most recent: ${recentEntries[0]?.hours} hours on ${recentEntries[0]?.date}` :
-            'No supervision hours logged yet'
-        ];
-      } else if (category === 'professional_development' || category === 'ai_insights') {
-        totalHours = userEntries.reduce((sum: number, entry: any) => 
-          sum + (entry.professionalDevelopmentHours || 0), 0);
-        
-        recentEntries = userEntries
-          .filter((entry: any) => entry.professionalDevelopmentHours > 0)
-          .slice(0, 10)
-          .map((entry: any) => ({
-            date: entry.dateOfContact ? new Date(entry.dateOfContact.seconds * 1000).toLocaleDateString() : 'N/A',
-            hours: entry.professionalDevelopmentHours || 0,
-            notes: entry.notes || 'No development notes recorded',
-            type: 'Professional Development'
-          }));
-
-        insights = [
-          `You've logged ${totalHours} professional development hours total`,
-          `${recentEntries.length} learning activities recorded`,
-          `Focus: Continuing education and skill development`,
-          recentEntries.length > 0 ? 
-            `Most recent: ${recentEntries[0]?.hours} hours on ${recentEntries[0]?.date}` :
-            'No professional development logged yet'
-        ];
-      }
+      const averageSession = recentEntries.length > 0 ? 
+        (totalHours / recentEntries.length).toFixed(1) : '0';
       
-      const weeklyAverage = totalHours > 0 ? Math.round((totalHours / 12) * 10) / 10 : 0;
+      insights = [
+        `You've logged ${totalHours} direct client contact hours total`,
+        `Average session length: ${averageSession} hours`,
+        `${recentEntries.length} sessions recorded`,
+        recentEntries.length > 0 ? 
+          `Most recent: ${recentEntries[0]?.hours} hours on ${recentEntries[0]?.date}` :
+          'No direct client hours logged yet'
+      ];
+    } else if (category === 'supervision_hours') {
+      totalHours = userEntries.reduce((sum: number, entry: any) => 
+        sum + (entry.supervisionHours || 0), 0);
       
-      setData({
-        totalHours,
-        weeklyAverage,
-        monthlyTrend,
-        recentEntries,
-        insights
-      });
-    } catch (error) {
-      console.error('Error fetching detailed data:', error);
-    } finally {
-      setLoading(false);
+      recentEntries = userEntries
+        .filter((entry: any) => entry.supervisionHours > 0)
+        .slice(0, 10)
+        .map((entry: any) => ({
+          date: entry.dateOfContact ? new Date(entry.dateOfContact.seconds * 1000).toLocaleDateString() : 'N/A',
+          hours: entry.supervisionHours || 0,
+          notes: entry.supervisionNotes || entry.notes || 'No supervision notes recorded',
+          type: 'Clinical Supervision'
+        }));
+
+      const averageSession = recentEntries.length > 0 ? 
+        (totalHours / recentEntries.length).toFixed(1) : '1.0';
+      
+      insights = [
+        `You've completed ${totalHours} supervision hours total`,
+        `Average supervision length: ${averageSession} hours`,
+        `${recentEntries.length} supervision sessions recorded`,
+        recentEntries.length > 0 ? 
+          `Most recent: ${recentEntries[0]?.hours} hours on ${recentEntries[0]?.date}` :
+          'No supervision hours logged yet'
+      ];
+    } else if (category === 'professional_development' || category === 'ai_insights') {
+      totalHours = userEntries.reduce((sum: number, entry: any) => 
+        sum + (entry.professionalDevelopmentHours || 0), 0);
+      
+      recentEntries = userEntries
+        .filter((entry: any) => entry.professionalDevelopmentHours > 0)
+        .slice(0, 10)
+        .map((entry: any) => ({
+          date: entry.dateOfContact ? new Date(entry.dateOfContact.seconds * 1000).toLocaleDateString() : 'N/A',
+          hours: entry.professionalDevelopmentHours || 0,
+          notes: entry.notes || 'No development notes recorded',
+          type: 'Professional Development'
+        }));
+
+      insights = [
+        `You've logged ${totalHours} professional development hours total`,
+        `${recentEntries.length} learning activities recorded`,
+        `Focus: Continuing education and skill development`,
+        recentEntries.length > 0 ? 
+          `Most recent: ${recentEntries[0]?.hours} hours on ${recentEntries[0]?.date}` :
+          'No professional development logged yet'
+      ];
     }
+    
+    const weeklyAverage = totalHours > 0 ? Math.round((totalHours / 12) * 10) / 10 : 0;
+    
+    setData({
+      totalHours,
+      weeklyAverage,
+      monthlyTrend,
+      recentEntries,
+      insights
+    });
   };
 
   const getCategoryTitle = (category: string) => {
     switch (category) {
+      case 'direct_hours':
+        return 'Direct Client Contact Hours';
       case 'supervision_hours':
         return 'Supervision Hours';
       case 'direct_hours':
@@ -175,7 +158,7 @@ export function MetricDetailView({ category, onBack, onDrillDown }: MetricDetail
     }
   };
 
-  if (loading) {
+  if (entriesLoading) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
