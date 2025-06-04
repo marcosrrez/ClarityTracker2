@@ -83,8 +83,26 @@ export function SupervisorProfileManager() {
   const handleSubmit = async (data: z.infer<typeof supervisorSchema>) => {
     if (!user) return;
     
+    // Validate specialties selection
+    if (selectedSpecialties.length === 0) {
+      toast({
+        title: 'Validation Error',
+        description: 'Please select at least one specialty.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
     try {
-      const payload = { ...data, specialties: selectedSpecialties, userId: user.uid };
+      const payload = { 
+        ...data, 
+        specialties: selectedSpecialties, 
+        userId: user.uid,
+        totalHours: 0 // Initialize with 0 total hours
+      };
+      
+      console.log('Submitting supervisor data:', payload);
+      
       const url = editingSupervisor ? `/api/supervisors/${editingSupervisor.id}` : '/api/supervisors';
       const method = editingSupervisor ? 'PUT' : 'POST';
       
@@ -95,6 +113,9 @@ export function SupervisorProfileManager() {
       });
 
       if (response.ok) {
+        const result = await response.json();
+        console.log('Supervisor saved successfully:', result);
+        
         toast({
           title: editingSupervisor ? 'Supervisor Updated' : 'Supervisor Added',
           description: `${data.name} has been ${editingSupervisor ? 'updated' : 'added'} successfully.`
@@ -105,11 +126,20 @@ export function SupervisorProfileManager() {
         setSelectedSpecialties([]);
         form.reset();
         loadSupervisors();
+      } else {
+        const error = await response.text();
+        console.error('Server error:', error);
+        toast({
+          title: 'Error',
+          description: `Failed to save supervisor: ${error}`,
+          variant: 'destructive'
+        });
       }
     } catch (error) {
+      console.error('Submission error:', error);
       toast({
         title: 'Error',
-        description: 'Failed to save supervisor profile.',
+        description: 'Failed to save supervisor profile. Please try again.',
         variant: 'destructive'
       });
     }
@@ -148,119 +178,200 @@ export function SupervisorProfileManager() {
   };
 
   const SupervisorForm = () => (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <FormField control={form.control} name="name" render={({ field }) => (
-            <FormItem>
-              <FormLabel>Full Name</FormLabel>
-              <FormControl><Input placeholder="Dr. Jane Smith" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-          <FormField control={form.control} name="title" render={({ field }) => (
-            <FormItem>
-              <FormLabel>Title/Credentials</FormLabel>
-              <FormControl><Input placeholder="LPC, PhD" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-        </div>
-        
-        <div className="grid grid-cols-2 gap-4">
-          <FormField control={form.control} name="email" render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email (Optional)</FormLabel>
-              <FormControl><Input type="email" placeholder="supervisor@clinic.com" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-          <FormField control={form.control} name="phone" render={({ field }) => (
-            <FormItem>
-              <FormLabel>Phone (Optional)</FormLabel>
-              <FormControl><Input placeholder="(555) 123-4567" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-        </div>
-
-        <div>
-          <FormLabel>Specialties</FormLabel>
-          <div className="grid grid-cols-3 gap-2 mt-2 max-h-32 overflow-y-auto border rounded p-2">
-            {specialtyOptions.map(specialty => (
-              <label key={specialty} className="flex items-center space-x-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={selectedSpecialties.includes(specialty)}
-                  onChange={() => toggleSpecialty(specialty)}
-                  className="rounded"
-                />
-                <span>{specialty}</span>
-              </label>
-            ))}
+    <div className="bg-gradient-to-br from-blue-50/30 via-white to-purple-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 p-6 rounded-xl">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField control={form.control} name="name" render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Full Name</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="Dr. Jane Smith" 
+                    className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-lg border-0 shadow-sm focus:ring-2 focus:ring-blue-500/20" 
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="title" render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Title/Credentials</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="LPC, PhD" 
+                    className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-lg border-0 shadow-sm focus:ring-2 focus:ring-blue-500/20" 
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
           </div>
-          {selectedSpecialties.length === 0 && (
-            <p className="text-sm text-red-500 mt-1">Select at least one specialty</p>
-          )}
-        </div>
-
-        <div className="grid grid-cols-3 gap-4">
-          <FormField control={form.control} name="supervisionType" render={({ field }) => (
-            <FormItem>
-              <FormLabel>Type</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                <SelectContent>
-                  <SelectItem value="individual">Individual</SelectItem>
-                  <SelectItem value="group">Group</SelectItem>
-                  <SelectItem value="both">Both</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )} />
           
-          <FormField control={form.control} name="sessionFrequency" render={({ field }) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField control={form.control} name="email" render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Email (Optional)</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="email" 
+                    placeholder="supervisor@clinic.com" 
+                    className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-lg border-0 shadow-sm focus:ring-2 focus:ring-blue-500/20" 
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="phone" render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Phone (Optional)</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="(555) 123-4567" 
+                    className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-lg border-0 shadow-sm focus:ring-2 focus:ring-blue-500/20" 
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+          </div>
+
+          <div>
+            <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 block">
+              Specialties <span className="text-red-500">*</span>
+            </FormLabel>
+            <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-lg rounded-lg p-4 border-0 shadow-sm">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-40 overflow-y-auto">
+                {specialtyOptions.map(specialty => (
+                  <label 
+                    key={specialty} 
+                    className="flex items-center space-x-3 text-sm cursor-pointer hover:bg-blue-50/50 dark:hover:bg-blue-900/20 p-2 rounded-md transition-colors"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedSpecialties.includes(specialty)}
+                      onChange={() => toggleSpecialty(specialty)}
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                    />
+                    <span className="text-gray-700 dark:text-gray-300">{specialty}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            {selectedSpecialties.length === 0 && (
+              <p className="text-sm text-red-500 mt-2">Please select at least one specialty</p>
+            )}
+            {selectedSpecialties.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {selectedSpecialties.map(specialty => (
+                  <span 
+                    key={specialty}
+                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                  >
+                    {specialty}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <FormField control={form.control} name="supervisionType" render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Supervision Type</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-lg border-0 shadow-sm focus:ring-2 focus:ring-blue-500/20">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="individual">Individual</SelectItem>
+                    <SelectItem value="group">Group</SelectItem>
+                    <SelectItem value="both">Both</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )} />
+            
+            <FormField control={form.control} name="sessionFrequency" render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Frequency</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-lg border-0 shadow-sm focus:ring-2 focus:ring-blue-500/20">
+                      <SelectValue placeholder="Select frequency" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="biweekly">Bi-weekly</SelectItem>
+                    <SelectItem value="monthly">Monthly</SelectItem>
+                    <SelectItem value="asNeeded">As Needed</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )} />
+            
+            <FormField control={form.control} name="sessionDuration" render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Duration (hours)</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    step="0.5" 
+                    min="0.5" 
+                    max="4" 
+                    placeholder="1.0"
+                    className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-lg border-0 shadow-sm focus:ring-2 focus:ring-blue-500/20" 
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+          </div>
+
+          <FormField control={form.control} name="notes" render={({ field }) => (
             <FormItem>
-              <FormLabel>Frequency</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                <SelectContent>
-                  <SelectItem value="weekly">Weekly</SelectItem>
-                  <SelectItem value="biweekly">Bi-weekly</SelectItem>
-                  <SelectItem value="monthly">Monthly</SelectItem>
-                  <SelectItem value="asNeeded">As Needed</SelectItem>
-                </SelectContent>
-              </Select>
+              <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Notes (Optional)</FormLabel>
+              <FormControl>
+                <Textarea 
+                  placeholder="Additional notes about this supervisor or supervision arrangement..."
+                  className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-lg border-0 shadow-sm focus:ring-2 focus:ring-blue-500/20 resize-none min-h-[80px]" 
+                  {...field} 
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )} />
-          
-          <FormField control={form.control} name="sessionDuration" render={({ field }) => (
-            <FormItem>
-              <FormLabel>Duration (hours)</FormLabel>
-              <FormControl><Input type="number" step="0.5" min="0.5" max="4" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-        </div>
 
-        <FormField control={form.control} name="notes" render={({ field }) => (
-          <FormItem>
-            <FormLabel>Notes (Optional)</FormLabel>
-            <FormControl><Textarea placeholder="Additional notes..." className="resize-none" {...field} /></FormControl>
-            <FormMessage />
-          </FormItem>
-        )} />
-
-        <div className="flex justify-end space-x-2 pt-4">
-          <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-          <Button type="submit" disabled={selectedSpecialties.length === 0}>
-            {editingSupervisor ? 'Update' : 'Add'} Supervisor
-          </Button>
-        </div>
-      </form>
-    </Form>
+          <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-6 border-t border-gray-200/50 dark:border-gray-700/50">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setIsDialogOpen(false)}
+              className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-lg border-0 shadow-sm hover:bg-white/80 dark:hover:bg-gray-800/80"
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="submit" 
+              disabled={selectedSpecialties.length === 0}
+              className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {editingSupervisor ? 'Update' : 'Add'} Supervisor
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>
   );
 
   if (isLoading) {
