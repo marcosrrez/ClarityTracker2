@@ -89,16 +89,19 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
   const [aiInputValue, setAiInputValue] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
   const aiMessagesEndRef = useRef<HTMLDivElement>(null);
-  
-  // Auto-scroll to bottom when messages change
-  useEffect(() => {
-    if (aiMessagesEndRef.current) {
-      aiMessagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [aiMessages, isAiLoading]);
 
   // Get current thread messages
   const aiMessages = threads[currentThreadId] || [];
+  
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    const scrollToBottom = () => {
+      if (aiMessagesEndRef.current) {
+        aiMessagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+    };
+    scrollToBottom();
+  }, [aiMessages.length, isAiLoading]);
 
   // Handle AI Coach message sending
   const handleSendAiMessage = async () => {
