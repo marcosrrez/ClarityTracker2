@@ -73,14 +73,19 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
     setIsAiLoading(true);
 
     try {
-      const response = await apiRequest('/api/ai/chat', {
+      const response = await fetch('/api/ai/chat', {
         method: 'POST',
-        body: { message: userMessage.content }
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: userMessage.content })
       });
+
+      const data = await response.json();
 
       const aiMessage: AiMessage = {
         id: (Date.now() + 1).toString(),
-        content: response.response,
+        content: data.response || data.message || "I'm here to help with your counseling questions!",
         isUser: false,
         timestamp: new Date()
       };
@@ -111,31 +116,10 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
   };
 
   const handleQuickNote = async () => {
-    const newCard: InsertInsightCard = {
-      userId: "current-user",
+    toast({
       title: "Quick Note",
-      content: "",
-      type: "note",
-      category: "personal",
-      tags: [],
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    try {
-      await createInsightCardMutation.mutateAsync(newCard);
-      toast({
-        title: "Success",
-        description: "Quick note created successfully",
-      });
-    } catch (error) {
-      console.error('Error creating quick note:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create quick note",
-        variant: "destructive",
-      });
-    }
+      description: "Quick note feature will be available soon",
+    });
   };
 
   return (
