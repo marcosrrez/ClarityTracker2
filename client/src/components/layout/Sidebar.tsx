@@ -43,6 +43,7 @@ const getNavigationItems = (accountType: string, permissions: any) => {
 
   const trackingItems = [
     { href: "/insights", label: "Insights & Resources", icon: Brain, group: "tracking" },
+    { href: "/research-library", label: "Research Library", icon: BookOpen, group: "tracking" },
     { href: "/summary", label: "Summary", icon: BarChart3, group: "tracking" },
     { href: "/requirements", label: "Requirements", icon: ClipboardList, group: "tracking" },
     { href: "/supervisors", label: "Supervisors", icon: Users, group: "tracking" },
