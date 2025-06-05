@@ -157,7 +157,84 @@ export default function ClientDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Progress Overview */}
           <div className="lg:col-span-2 space-y-6">
-            {/* LAC-Style Progress Overview */}
+            {/* Exact LAC Welcome Card Design */}
+            <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-3xl p-8 pb-16 border border-white/20 shadow-lg relative">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <h1 className="text-4xl font-bold mb-2 text-black dark:text-white tracking-tight">
+                    {(() => {
+                      const hour = new Date().getHours();
+                      if (hour < 12) return "Good morning,";
+                      if (hour < 17) return "Good afternoon,";
+                      if (hour < 22) return "Good evening,";
+                      return "Working late,";
+                    })()}
+                  </h1>
+                  <h2 className="text-4xl font-bold mb-2 text-black dark:text-white tracking-tight">
+                    {clientInfo.name.split(' ')[0]}!
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-400 text-base font-medium leading-relaxed max-w-lg">
+                    {clientInfo.therapistName ? 
+                      "You're building momentum! Each session gets you closer to your personal growth goals." :
+                      "You're building momentum! Each reflection gets you closer to self-discovery and growth."
+                    }
+                  </p>
+                </div>
+                
+                {/* Progress Ring - Exact LAC Style */}
+                <div className="relative">
+                  <div className="w-24 h-24 relative">
+                    <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 36 36">
+                      <path
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeDasharray="100, 100"
+                        className="text-gray-200 dark:text-gray-700"
+                      />
+                      <path
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#007AFF"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeDasharray={`${Math.min((progress.completedSessions * 15), 100)}, 100`}
+                        className="transition-all duration-1500 ease-out"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-2xl font-bold text-black dark:text-white">
+                        {progress.completedSessions}
+                      </span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                        {clientInfo.therapistName ? 'sessions' : 'reflections'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Activity Indicator */}
+              <div className="absolute bottom-8 left-8">
+                <div className="flex items-center space-x-2">
+                  <div className="text-blue-600 font-medium text-sm">Strong week</div>
+                </div>
+              </div>
+              
+              {/* Action Button */}
+              <div className="absolute bottom-8 right-8">
+                <Button 
+                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-6 py-3 font-medium"
+                  onClick={() => clientInfo.therapistName ? setShowSelfReflection(true) : setShowSelfReflection(true)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  {clientInfo.therapistName ? 'Log Session' : 'Add Reflection'}
+                </Button>
+              </div>
+            </div>
+
+            {/* Progress Overview Card */}
             <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-3xl p-8 border border-white/20 shadow-lg">
               <div className="flex items-center justify-between mb-8">
                 <div className="flex-1">
@@ -172,7 +249,6 @@ export default function ClientDashboard() {
                   </p>
                 </div>
                 
-                {/* Progress Ring - Apple Watch Style */}
                 <div className="relative">
                   <div className="w-24 h-24 relative">
                     <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 36 36">
@@ -206,7 +282,6 @@ export default function ClientDashboard() {
                 </div>
               </div>
               
-              {/* LAC-Style Stats Grid */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-white/70 dark:bg-gray-800/70 rounded-3xl p-6 border border-white/20 shadow-lg">
                   <div className="flex items-center justify-between mb-4">
