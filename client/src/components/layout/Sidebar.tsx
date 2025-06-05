@@ -54,6 +54,7 @@ const getNavigationItems = (accountType: string, permissions: any) => {
 
   const supervisorItems = [
     { href: "/supervisees", label: "Supervisees", icon: Users, group: "secondary" },
+    { href: "/supervisor-analytics", label: "Analytics Dashboard", icon: BarChart3, group: "secondary" },
     { href: "/compliance", label: "Compliance", icon: Shield, group: "secondary" },
     { href: "/reports", label: "Reports", icon: FileText, group: "secondary" },
   ];
