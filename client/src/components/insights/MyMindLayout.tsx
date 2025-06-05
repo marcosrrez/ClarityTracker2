@@ -136,6 +136,47 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
     return () => window.removeEventListener('resize', handleResize);
   }, [aiMessages.length]);
 
+  // Research detection and handling
+  const detectResearchIntent = (message: string): boolean => {
+    const researchKeywords = [
+      'search', 'find', 'research', 'study', 'article', 'paper', 'evidence',
+      'pubmed', 'scholar', 'journal', 'literature', 'source', 'reference'
+    ];
+    return researchKeywords.some(keyword => 
+      message.toLowerCase().includes(keyword)
+    );
+  };
+
+  const performResearch = async (query: string) => {
+    try {
+      const response = await fetch('/api/research/search', {
+        method: 'POST',
+        body: JSON.stringify({ query, limit: 5 }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await response.json();
+      return data.results || [];
+    } catch (error) {
+      console.error('Research error:', error);
+      return [];
+    }
+  };
+
+  const summarizeContent = async (url: string, userContext: string) => {
+    try {
+      const response = await fetch('/api/research/summarize', {
+        method: 'POST',
+        body: JSON.stringify({ url, userContext }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await response.json();
+      return data.summary || 'Unable to summarize content';
+    } catch (error) {
+      console.error('Summarization error:', error);
+      return 'Failed to summarize content from this source';
+    }
+  };
+
   // Handle AI Coach message sending
   const handleSendAiMessage = async () => {
     if (!aiInputValue.trim() || isAiLoading) return;
@@ -154,34 +195,59 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
     setAiInputValue('');
     setIsAiLoading(true);
 
+    // Check if this is a research request
+    const isResearchRequest = detectResearchIntent(userMessage.content);
+
     try {
-      const response = await fetch('/api/ai/coaching-chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: userMessage.content,
-          userId: user?.uid,
-          conversationHistory: aiMessages.slice(-10)
-        }),
-      });
+      if (isResearchRequest) {
+        // Perform research first
+        const searchResults = await performResearch(userMessage.content);
+        
+        const aiMessage = {
+          id: (Date.now() + 1).toString(),
+          content: searchResults.length > 0 
+            ? `I found ${searchResults.length} relevant research sources for your query. You can click on any result to get a summary tailored to your counseling practice.`
+            : "I couldn't find specific research results for your query. You might want to try different keywords or check the sources directly.",
+          isUser: false,
+          timestamp: new Date(),
+          searchResults: searchResults.length > 0 ? searchResults : undefined,
+          isResearchMode: true
+        };
 
-      if (!response.ok) throw new Error('Failed to get response');
+        setThreads(prev => ({
+          ...prev,
+          [currentThreadId]: [...(prev[currentThreadId] || []), aiMessage]
+        }));
+      } else {
+        // Regular coaching chat
+        const response = await fetch('/api/ai/coaching-chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: userMessage.content,
+            userId: user?.uid,
+            conversationHistory: aiMessages.slice(-10)
+          }),
+        });
 
-      const data = await response.json();
-      
-      const aiMessage = {
-        id: (Date.now() + 1).toString(),
-        content: data.response,
-        isUser: false,
-        timestamp: new Date()
-      };
+        if (!response.ok) throw new Error('Failed to get response');
 
-      setThreads(prev => ({
-        ...prev,
-        [currentThreadId]: [...(prev[currentThreadId] || []), aiMessage]
-      }));
+        const data = await response.json();
+        
+        const aiMessage = {
+          id: (Date.now() + 1).toString(),
+          content: data.response,
+          isUser: false,
+          timestamp: new Date()
+        };
+
+        setThreads(prev => ({
+          ...prev,
+          [currentThreadId]: [...(prev[currentThreadId] || []), aiMessage]
+        }));
+      }
     } catch (error) {
       console.error('Error sending message:', error);
       
@@ -208,6 +274,41 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
       const errorMessage = {
         id: (Date.now() + 1).toString(),
         content: fallbackResponse,
+        isUser: false,
+        timestamp: new Date()
+      };
+      setThreads(prev => ({
+        ...prev,
+        [currentThreadId]: [...(prev[currentThreadId] || []), errorMessage]
+      }));
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
+  // Handle summarization of research results
+  const handleSummarizeClick = async (result: any) => {
+    setIsAiLoading(true);
+    
+    try {
+      const summary = await summarizeContent(result.url, "Licensed Associate Counselor seeking practical applications");
+      
+      const summaryMessage = {
+        id: Date.now().toString(),
+        content: `**Summary of "${result.title}"**\n\n${summary}\n\n*Source: ${result.domain}*`,
+        isUser: false,
+        timestamp: new Date()
+      };
+
+      setThreads(prev => ({
+        ...prev,
+        [currentThreadId]: [...(prev[currentThreadId] || []), summaryMessage]
+      }));
+    } catch (error) {
+      console.error('Summarization error:', error);
+      const errorMessage = {
+        id: Date.now().toString(),
+        content: `Unable to summarize content from ${result.domain}. You can visit the link directly for more information.`,
         isUser: false,
         timestamp: new Date()
       };
