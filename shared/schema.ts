@@ -227,6 +227,48 @@ export const insertUserAnalyticsSchema = userAnalyticsSchema.omit({
 export type UserAnalytics = z.infer<typeof userAnalyticsSchema>;
 export type InsertUserAnalytics = z.infer<typeof insertUserAnalyticsSchema>;
 
+// Supervisor Insights Schema - for supervisor sharing insights with supervisees
+export const supervisorInsightsTable = pgTable('supervisor_insights', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  supervisorId: varchar('supervisor_id', { length: 255 }).notNull(),
+  superviseeId: varchar('supervisee_id', { length: 255 }).notNull(),
+  title: varchar('title', { length: 255 }).notNull(),
+  content: text('content').notNull(),
+  type: varchar('type', { length: 50 }).notNull(), // 'guidance', 'feedback', 'development', 'recognition'
+  priority: varchar('priority', { length: 20 }).default('normal'), // 'low', 'normal', 'high', 'urgent'
+  isRead: varchar('is_read', { length: 10 }).default('false'),
+  category: varchar('category', { length: 100 }), // 'clinical_skills', 'documentation', 'ethics', 'professional_development'
+  actionRequired: varchar('action_required', { length: 10 }).default('false'),
+  dueDate: timestamp('due_date'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const supervisorInsightSchema = z.object({
+  id: z.string(),
+  supervisorId: z.string(),
+  superviseeId: z.string(),
+  title: z.string().min(1, "Title is required"),
+  content: z.string().min(1, "Content is required"),
+  type: z.enum(['guidance', 'feedback', 'development', 'recognition']),
+  priority: z.enum(['low', 'normal', 'high', 'urgent']).default('normal'),
+  isRead: z.boolean().default(false),
+  category: z.string().optional(),
+  actionRequired: z.boolean().default(false),
+  dueDate: z.date().optional(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export const insertSupervisorInsightSchema = supervisorInsightSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type SupervisorInsight = z.infer<typeof supervisorInsightSchema>;
+export type InsertSupervisorInsight = z.infer<typeof insertSupervisorInsightSchema>;
+
 // Supervisor Profile Schema - for managing supervisor information
 export const supervisorTable = pgTable('supervisors', {
   id: varchar('id', { length: 255 }).primaryKey(),

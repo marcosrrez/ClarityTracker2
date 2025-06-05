@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useLocation } from 'wouter';
-import { Heart, Calendar, MessageSquare, TrendingUp, Bell, FileText, Target, Award, Plus, UserPlus, Sparkles, Brain, Clock, Share2 } from 'lucide-react';
+import { Heart, Calendar, MessageSquare, TrendingUp, Bell, FileText, Target, Award, Plus, UserPlus, Sparkles, Brain, Clock, Share2, Settings, Home } from 'lucide-react';
 
 interface SharedInsight {
   id: string;
@@ -138,15 +138,34 @@ export default function ClientDashboard() {
                 </p>
               </div>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
               {!clientInfo.therapistName && (
-                <Button onClick={() => setInviteTherapistOpen(true)} className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700">
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Invite Therapist
+                <Button 
+                  onClick={() => setInviteTherapistOpen(true)} 
+                  size="sm" 
+                  variant="ghost" 
+                  className="h-8 w-8 p-0 hover:bg-emerald-100 dark:hover:bg-emerald-900/20"
+                  title="Invite Therapist"
+                >
+                  <UserPlus className="h-4 w-4 text-emerald-600" />
                 </Button>
               )}
-              <Button onClick={() => setLocation('/')} variant="outline">
-                Back to Home
+              <Button 
+                onClick={() => setLocation('/')} 
+                size="sm" 
+                variant="ghost" 
+                className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-800"
+                title="Back to Home"
+              >
+                <Home className="h-4 w-4 text-gray-600" />
+              </Button>
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-800"
+                title="Settings"
+              >
+                <Settings className="h-4 w-4 text-gray-600" />
               </Button>
             </div>
           </div>

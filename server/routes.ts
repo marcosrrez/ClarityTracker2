@@ -28,7 +28,8 @@ import {
   insertSavedResearchSchema,
   dingerUserProfileTable,
   dingerConversationMemoryTable,
-
+  supervisorInsightsTable,
+  insertSupervisorInsightSchema,
   clientTable,
   insertClientSchema,
   sharedInsightTable,
@@ -4000,6 +4001,144 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
     
     return `${authorsText} (${year}). ${title}. ${domainText}. Retrieved from ${url}`;
   }
+
+  // Supervisor Insights Routes
+  
+  // Create supervisor insight
+  app.post('/api/supervisor-insights', async (req, res) => {
+    try {
+      const validatedData = insertSupervisorInsightSchema.parse(req.body);
+      const id = `supervisor_insight_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      const insightData = {
+        ...validatedData,
+        id,
+        isRead: validatedData.isRead || false,
+        actionRequired: validatedData.actionRequired || false,
+        priority: validatedData.priority || 'normal',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const [insight] = await db
+        .insert(supervisorInsightsTable)
+        .values(insightData)
+        .returning();
+
+      res.json(insight);
+    } catch (error) {
+      console.error('Error creating supervisor insight:', error);
+      res.status(500).json({ error: 'Failed to create supervisor insight' });
+    }
+  });
+
+  // Get supervisor insights for a supervisee
+  app.get('/api/supervisor-insights/supervisee/:superviseeId', async (req, res) => {
+    try {
+      const { superviseeId } = req.params;
+      
+      const insights = await db
+        .select()
+        .from(supervisorInsightsTable)
+        .where(eq(supervisorInsightsTable.superviseeId, superviseeId))
+        .orderBy(desc(supervisorInsightsTable.createdAt));
+
+      res.json(insights);
+    } catch (error) {
+      console.error('Error fetching supervisor insights:', error);
+      res.status(500).json({ error: 'Failed to fetch supervisor insights' });
+    }
+  });
+
+  // Get supervisor insights created by a supervisor
+  app.get('/api/supervisor-insights/supervisor/:supervisorId', async (req, res) => {
+    try {
+      const { supervisorId } = req.params;
+      
+      const insights = await db
+        .select()
+        .from(supervisorInsightsTable)
+        .where(eq(supervisorInsightsTable.supervisorId, supervisorId))
+        .orderBy(desc(supervisorInsightsTable.createdAt));
+
+      res.json(insights);
+    } catch (error) {
+      console.error('Error fetching supervisor insights:', error);
+      res.status(500).json({ error: 'Failed to fetch supervisor insights' });
+    }
+  });
+
+  // Mark supervisor insight as read
+  app.patch('/api/supervisor-insights/:id/read', async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const [updatedInsight] = await db
+        .update(supervisorInsightsTable)
+        .set({ 
+          isRead: true,
+          updatedAt: new Date()
+        })
+        .where(eq(supervisorInsightsTable.id, id))
+        .returning();
+
+      if (!updatedInsight) {
+        return res.status(404).json({ error: 'Supervisor insight not found' });
+      }
+
+      res.json(updatedInsight);
+    } catch (error) {
+      console.error('Error marking supervisor insight as read:', error);
+      res.status(500).json({ error: 'Failed to update supervisor insight' });
+    }
+  });
+
+  // Update supervisor insight
+  app.patch('/api/supervisor-insights/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const validatedData = insertSupervisorInsightSchema.partial().parse(req.body);
+      
+      const [updatedInsight] = await db
+        .update(supervisorInsightsTable)
+        .set({ 
+          ...validatedData,
+          updatedAt: new Date()
+        })
+        .where(eq(supervisorInsightsTable.id, id))
+        .returning();
+
+      if (!updatedInsight) {
+        return res.status(404).json({ error: 'Supervisor insight not found' });
+      }
+
+      res.json(updatedInsight);
+    } catch (error) {
+      console.error('Error updating supervisor insight:', error);
+      res.status(500).json({ error: 'Failed to update supervisor insight' });
+    }
+  });
+
+  // Delete supervisor insight
+  app.delete('/api/supervisor-insights/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const [deletedInsight] = await db
+        .delete(supervisorInsightsTable)
+        .where(eq(supervisorInsightsTable.id, id))
+        .returning();
+
+      if (!deletedInsight) {
+        return res.status(404).json({ error: 'Supervisor insight not found' });
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting supervisor insight:', error);
+      res.status(500).json({ error: 'Failed to delete supervisor insight' });
+    }
+  });
 
   return httpServer;
 }
