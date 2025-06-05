@@ -1718,23 +1718,24 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                         [currentThreadId]: [...(prev[currentThreadId] || []), researchResponse]
                       }));
                     } else {
-                      // No results found, fall back to AI chat
-                      const response = await fetch('/api/ai/coaching-chat', {
+                      // No results found, fall back to enhanced AI coaching
+                      const response = await fetch('/api/dinger/enhanced-chat', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                          message: userMessage.content,
-                          userId: user?.uid,
-                          conversationHistory: aiMessages.slice(-10)
+                          query: userMessage.content,
+                          userId: user?.uid || 'anonymous',
+                          mode: 'researcher' // Use researcher mode for research queries
                         }),
                       });
                       const data = await response.json();
                       
                       const aiResponse = {
                         id: Date.now().toString() + '_ai',
-                        content: data.response || "I couldn't find specific research results, but I can help with general guidance.",
+                        content: data.response || "I couldn't find specific research results, but I can provide guidance based on my knowledge.",
                         isUser: false,
-                        timestamp: new Date()
+                        timestamp: new Date(),
+                        enhancedData: data
                       };
                       
                       setThreads(prev => ({
@@ -1743,23 +1744,51 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                       }));
                     }
                   } else {
-                    // Regular AI chat
-                    const response = await fetch('/api/ai/coaching-chat', {
+                    // Enhanced AI coaching with advanced features
+                    const response = await fetch('/api/dinger/enhanced-chat', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({
-                        message: userMessage.content,
-                        userId: user?.uid,
-                        conversationHistory: aiMessages.slice(-10)
+                        query: userMessage.content,
+                        userId: user?.uid || 'anonymous',
+                        mode: 'supervisor' // Default mode, can be made dynamic later
                       }),
                     });
                     const data = await response.json();
                     
+                    // Format enhanced response with reasoning steps and resources
+                    let formattedContent = data.response || "I'm here to help with your counseling journey!";
+                    
+                    // Add reasoning steps if available
+                    if (data.reasoningSteps && data.reasoningSteps.length > 0) {
+                      formattedContent += "\n\n**Reasoning Process:**\n";
+                      data.reasoningSteps.forEach((step: string, index: number) => {
+                        formattedContent += `${index + 1}. ${step}\n`;
+                      });
+                    }
+                    
+                    // Add resource recommendations if available
+                    if (data.resourceRecommendations && data.resourceRecommendations.length > 0) {
+                      formattedContent += "\n\n**Recommended Resources:**\n";
+                      data.resourceRecommendations.forEach((resource: any) => {
+                        formattedContent += `• **${resource.title}**: ${resource.description}\n`;
+                      });
+                    }
+                    
+                    // Add follow-up suggestions if available
+                    if (data.followUpSuggestions && data.followUpSuggestions.length > 0) {
+                      formattedContent += "\n\n**Follow-up Questions:**\n";
+                      data.followUpSuggestions.forEach((suggestion: string) => {
+                        formattedContent += `• ${suggestion}\n`;
+                      });
+                    }
+                    
                     const aiResponse = {
                       id: Date.now().toString() + '_ai',
-                      content: data.response || "I'm here to help with your counseling journey!",
+                      content: formattedContent,
                       isUser: false,
-                      timestamp: new Date()
+                      timestamp: new Date(),
+                      enhancedData: data // Store full enhanced response data
                     };
                     
                     setThreads(prev => ({
