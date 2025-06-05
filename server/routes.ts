@@ -28,6 +28,7 @@ import {
   insertSavedResearchSchema,
   dingerUserProfileTable,
   dingerConversationMemoryTable,
+
   clientTable,
   insertClientSchema,
   sharedInsightTable,
@@ -3811,7 +3812,10 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
     }
   });
 
-  // Client Invitation API Routes
+  // Client Invitation API Routes - Demo Implementation
+  // Temporary in-memory storage for client invitations
+  const clientInvitations = new Map();
+  const clientAccounts = new Map();
   
   // Send client invitation
   app.post('/api/client-invitation', async (req, res) => {
@@ -3825,10 +3829,11 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
       // Generate unique invitation token
       const inviteToken = `invite_${Date.now()}_${Math.random().toString(36).substr(2, 12)}`;
       const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+      const invitationId = `invitation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
-      // Store invitation in database
-      const [invitation] = await db.insert(clientInvitationsTable).values({
-        id: `invitation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      // Store invitation in memory
+      const invitation = {
+        id: invitationId,
         therapistId,
         clientName,
         clientEmail,
@@ -3837,7 +3842,9 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
         expiresAt,
         createdAt: new Date(),
         updatedAt: new Date()
-      }).returning();
+      };
+      
+      clientInvitations.set(inviteToken, invitation);
       
       // Generate invitation URL
       const baseUrl = process.env.NODE_ENV === 'production' 
@@ -3862,9 +3869,7 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
     try {
       const { token } = req.params;
       
-      const [invitation] = await db.select()
-        .from(clientInvitationsTable)
-        .where(eq(clientInvitationsTable.inviteToken, token));
+      const invitation = clientInvitations.get(token);
       
       if (!invitation) {
         return res.status(404).json({ error: 'Invitation not found' });
@@ -3901,9 +3906,7 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
       }
       
       // Validate invitation
-      const [invitation] = await db.select()
-        .from(clientInvitationsTable)
-        .where(eq(clientInvitationsTable.inviteToken, token));
+      const invitation = clientInvitations.get(token);
       
       if (!invitation || invitation.status !== 'pending' || new Date() > invitation.expiresAt) {
         return res.status(400).json({ error: 'Invalid or expired invitation' });
@@ -3912,7 +3915,7 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
       // Create client account
       const clientId = `client_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
-      const [client] = await db.insert(clientAccountsTable).values({
+      const client = {
         id: clientId,
         therapistId: invitation.therapistId,
         name: invitation.clientName,
@@ -3922,16 +3925,15 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
         invitationId: invitation.id,
         createdAt: new Date(),
         updatedAt: new Date()
-      }).returning();
+      };
+      
+      clientAccounts.set(clientId, client);
       
       // Mark invitation as accepted
-      await db.update(clientInvitationsTable)
-        .set({ 
-          status: 'accepted',
-          acceptedAt: new Date(),
-          updatedAt: new Date()
-        })
-        .where(eq(clientInvitationsTable.id, invitation.id));
+      invitation.status = 'accepted';
+      invitation.acceptedAt = new Date();
+      invitation.updatedAt = new Date();
+      clientInvitations.set(token, invitation);
       
       res.json({ 
         success: true,

@@ -1237,6 +1237,78 @@ export const insertCompetencyFrameworkSchema = competencyFrameworkSchema.omit({
 export type CompetencyFramework = z.infer<typeof competencyFrameworkSchema>;
 export type InsertCompetencyFramework = z.infer<typeof insertCompetencyFrameworkSchema>;
 
+// Client Invitations Schema - for dual-sided platform
+export const clientInvitationsTable = pgTable('client_invitations', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  therapistId: varchar('therapist_id', { length: 255 }).notNull(),
+  clientName: text('client_name').notNull(),
+  clientEmail: text('client_email').notNull(),
+  inviteToken: varchar('invite_token', { length: 255 }).notNull().unique(),
+  status: varchar('status', { length: 50 }).notNull().default('pending'), // pending, accepted, expired
+  expiresAt: timestamp('expires_at').notNull(),
+  acceptedAt: timestamp('accepted_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const clientInvitationSchema = z.object({
+  id: z.string(),
+  therapistId: z.string(),
+  clientName: z.string(),
+  clientEmail: z.string().email(),
+  inviteToken: z.string(),
+  status: z.enum(['pending', 'accepted', 'expired']).default('pending'),
+  expiresAt: z.date(),
+  acceptedAt: z.date().optional(),
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date()),
+});
+
+export const insertClientInvitationSchema = clientInvitationSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type ClientInvitation = z.infer<typeof clientInvitationSchema>;
+export type InsertClientInvitation = z.infer<typeof insertClientInvitationSchema>;
+
+// Client Accounts Schema - for client portal access
+export const clientAccountsTable = pgTable('client_accounts', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  therapistId: varchar('therapist_id', { length: 255 }).notNull(),
+  name: text('name').notNull(),
+  email: text('email').notNull().unique(),
+  passwordHash: text('password_hash').notNull(),
+  status: varchar('status', { length: 50 }).notNull().default('active'), // active, inactive, suspended
+  invitationId: varchar('invitation_id', { length: 255 }).references(() => clientInvitationsTable.id),
+  lastLoginAt: timestamp('last_login_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const clientAccountSchema = z.object({
+  id: z.string(),
+  therapistId: z.string(),
+  name: z.string(),
+  email: z.string().email(),
+  passwordHash: z.string(),
+  status: z.enum(['active', 'inactive', 'suspended']).default('active'),
+  invitationId: z.string().optional(),
+  lastLoginAt: z.date().optional(),
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date()),
+});
+
+export const insertClientAccountSchema = clientAccountSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type ClientAccount = z.infer<typeof clientAccountSchema>;
+export type InsertClientAccount = z.infer<typeof insertClientAccountSchema>;
+
 // Knowledge Base and Spaced Repetition Tables
 export const knowledgeEntryTable = pgTable('knowledge_entries', {
   id: varchar('id', { length: 255 }).primaryKey(),
