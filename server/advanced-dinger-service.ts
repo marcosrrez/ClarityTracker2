@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import OpenAI from 'openai';
+import { emotionalIntelligence } from './emotional-intelligence-service';
 
 // Advanced Dinger Types
 interface ReasoningContext {
@@ -50,6 +51,11 @@ interface EnhancedResponse {
   confidenceLevel: number;
   nextSessionTopics?: string[];
   supervisionPrep?: string[];
+  emotionalInsights?: {
+    detectedState: any;
+    adaptedStyle: any;
+    proactiveRecommendations: any[];
+  };
 }
 
 interface ResourceSuggestion {
@@ -93,25 +99,52 @@ export class AdvancedDingerService {
       const sessionHistory = await this.getRecentSessionHistory(userId, 10);
       const context = await this.buildReasoningContext(query, userProfile, sessionHistory, requestedMode);
 
-      // Generate response based on complexity and mode
-      const response = await this.generateContextualResponse(query, context);
+      // Analyze emotional state for adaptive response
+      const conversationHistory = sessionHistory.map(h => h.query + ' ' + h.response);
+      const emotionalState = await emotionalIntelligence.analyzeEmotionalState(
+        query, 
+        conversationHistory, 
+        userProfile
+      );
+
+      // Adapt communication style based on emotional state
+      const adaptedStyle = await emotionalIntelligence.adaptCommunicationStyle(
+        emotionalState,
+        userProfile
+      );
+
+      // Generate proactive recommendations
+      const recentTopics = sessionHistory.map(h => h.competencyAreas).flat();
+      const proactiveRecommendations = await emotionalIntelligence.generateProactiveRecommendations(
+        emotionalState,
+        userProfile,
+        recentTopics
+      );
+
+      // Generate response with emotional intelligence integration
+      const response = await this.generateContextualResponse(query, context, adaptedStyle);
       
       // Generate additional insights
       const resources = await this.generateResourceRecommendations(query, context);
       const followUps = await this.generateFollowUpSuggestions(query, context);
       
-      // Store conversation memory
+      // Store conversation memory with emotional context
       await this.storeConversationMemory(userId, query, response, context);
 
       return {
         response: response.mainResponse,
         reasoningSteps: response.reasoningSteps,
         alternativePerspectives: response.alternatives,
-        resourceRecommendations: resources,
+        resourceRecommendations: [...resources, ...this.convertProactiveToResources(proactiveRecommendations)],
         followUpSuggestions: followUps,
         confidenceLevel: response.confidence,
         nextSessionTopics: response.nextTopics,
-        supervisionPrep: response.supervisionItems
+        supervisionPrep: response.supervisionItems,
+        emotionalInsights: {
+          detectedState: emotionalState,
+          adaptedStyle: adaptedStyle,
+          proactiveRecommendations: proactiveRecommendations
+        }
       };
     } catch (error) {
       console.error('Enhanced Dinger response generation failed:', error);
@@ -147,9 +180,23 @@ export class AdvancedDingerService {
   }
 
   /**
+   * Convert proactive recommendations to resource format
+   */
+  private convertProactiveToResources(recommendations: any[]): ResourceSuggestion[] {
+    return recommendations.map(rec => ({
+      type: rec.type === 'self-care' ? 'technique' : rec.type === 'skill-building' ? 'course' : 'article',
+      title: rec.title,
+      description: rec.description,
+      relevanceScore: rec.priority === 'immediate' ? 95 : rec.priority === 'soon' ? 80 : 65,
+      priority: rec.priority,
+      competencyArea: rec.type
+    }));
+  }
+
+  /**
    * Generate contextual response using adaptive prompting
    */
-  private async generateContextualResponse(query: string, context: ReasoningContext): Promise<{
+  private async generateContextualResponse(query: string, context: ReasoningContext, adaptedStyle?: any): Promise<{
     mainResponse: string;
     reasoningSteps?: string[];
     alternatives?: string[];
