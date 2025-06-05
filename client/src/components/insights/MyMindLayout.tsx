@@ -788,39 +788,39 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                   }
                 }}
                 disabled={isProcessingSmartSearch}
-                className="pl-12 pr-24 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-full h-12 text-base"
+                className="pl-12 pr-20 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-full h-12 text-base"
               />
               
-              {/* Action Icons Inside Input */}
+              {/* Compact Action Icons */}
               {searchQuery.trim() && !isProcessingSmartSearch && (
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-0.5">
                   {/* Create Insight Card */}
                   <button
                     onClick={() => handleCreateInsightCard(searchQuery)}
-                    className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 flex items-center justify-center transition-colors"
-                    title="Create insight card from text"
+                    className="w-6 h-6 rounded-md bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 flex items-center justify-center transition-all shadow-sm hover:shadow"
+                    title="Save as insight card"
                   >
-                    <Plus className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                    <Plus className="h-3 w-3 text-gray-600 dark:text-gray-300" />
                   </button>
                   
                   {/* Scrape URL */}
                   {searchQuery.match(/^https?:\/\//) && (
                     <button
                       onClick={() => handleScrapeUrl(searchQuery)}
-                      className="w-7 h-7 rounded-full bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50 flex items-center justify-center transition-colors"
-                      title="Scrape website content"
+                      className="w-6 h-6 rounded-md bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 flex items-center justify-center transition-all shadow-sm hover:shadow"
+                      title="Save URL"
                     >
-                      <Globe className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+                      <Globe className="h-3 w-3 text-gray-600 dark:text-gray-300" />
                     </button>
                   )}
                   
                   {/* AI Analysis */}
                   <button
                     onClick={() => handleAIAnalysis(searchQuery)}
-                    className="w-7 h-7 rounded-full bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-900/50 flex items-center justify-center transition-colors"
-                    title="Get AI analysis"
+                    className="w-6 h-6 rounded-md bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 flex items-center justify-center transition-all shadow-sm hover:shadow"
+                    title="Analyze with AI"
                   >
-                    <Sparkles className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
+                    <Sparkles className="h-3 w-3 text-gray-600 dark:text-gray-300" />
                   </button>
                 </div>
               )}
