@@ -1,493 +1,384 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
-import { insertClientSchema, insertSharedInsightSchema } from '@shared/schema';
-import type { Client, SharedInsight } from '@shared/schema';
-import { z } from 'zod';
-import { Plus, Users, MessageSquare, TrendingUp, Calendar, Eye, EyeOff, Heart, Brain, Target, BookOpen } from 'lucide-react';
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Plus, Users, Share2, TrendingUp, Calendar, MessageSquare, FileText } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
 
-interface ClientPortalProps {
-  userId: string;
+interface Client {
+  id: string;
+  name: string;
+  email: string;
+  status: 'active' | 'inactive';
+  lastSession: Date;
+  totalSessions: number;
+  progressScore: number;
 }
 
-export default function ClientPortal({ userId }: ClientPortalProps) {
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+interface SharedInsight {
+  id: string;
+  clientId: string;
+  title: string;
+  content: string;
+  type: 'goal' | 'progress' | 'breakthrough' | 'homework';
+  sharedAt: Date;
+  clientViewed: boolean;
+}
+
+export default function ClientPortal({ userId }: { userId: string }) {
+  const [selectedClient, setSelectedClient] = useState<string | null>(null);
+  const [newClientForm, setNewClientForm] = useState({ name: '', email: '' });
+  const [newInsightForm, setNewInsightForm] = useState({ title: '', content: '', type: 'progress' });
   const [showAddClient, setShowAddClient] = useState(false);
-  const [showAddInsight, setShowAddInsight] = useState(false);
-  const { toast } = useToast();
+  const [showShareInsight, setShowShareInsight] = useState(false);
+
   const queryClient = useQueryClient();
 
-  // Fetch clients for this therapist
-  const { data: clientsData, isLoading: clientsLoading } = useQuery({
-    queryKey: ['/api/clients', userId],
-    queryFn: () => apiRequest(`/api/clients/${userId}`),
-  });
-
-  // Fetch insights for selected client or all clients
-  const { data: insightsData, isLoading: insightsLoading } = useQuery({
-    queryKey: ['/api/insights/therapist', userId, selectedClient?.id],
-    queryFn: () => apiRequest(`/api/insights/therapist/${userId}${selectedClient ? `?clientId=${selectedClient.id}` : ''}`),
-  });
-
-  // Add client mutation
-  const addClientMutation = useMutation({
-    mutationFn: (data: z.infer<typeof insertClientSchema>) => 
-      apiRequest('/api/clients', { method: 'POST', body: JSON.stringify(data) }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/clients'] });
-      setShowAddClient(false);
-      toast({ title: "Client added successfully" });
-    },
-    onError: () => {
-      toast({ title: "Failed to add client", variant: "destructive" });
-    },
-  });
-
-  // Add insight mutation
-  const addInsightMutation = useMutation({
-    mutationFn: (data: z.infer<typeof insertSharedInsightSchema>) => 
-      apiRequest('/api/insights', { method: 'POST', body: JSON.stringify(data) }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/insights'] });
-      setShowAddInsight(false);
-      toast({ title: "Insight shared successfully" });
-    },
-    onError: () => {
-      toast({ title: "Failed to share insight", variant: "destructive" });
-    },
-  });
-
-  // Client form
-  const clientForm = useForm<z.infer<typeof insertClientSchema>>({
-    resolver: zodResolver(insertClientSchema),
-    defaultValues: {
-      therapistId: userId,
-      firstName: '',
-      lastName: '',
-      email: '',
+  // Sample data for demonstration
+  const sampleClients: Client[] = [
+    {
+      id: '1',
+      name: 'Sarah Johnson',
+      email: 'sarah.j@email.com',
       status: 'active',
-      portalAccess: true,
-      consentToShare: false,
+      lastSession: new Date('2024-06-04'),
+      totalSessions: 12,
+      progressScore: 78
     },
-  });
-
-  // Insight form
-  const insightForm = useForm<z.infer<typeof insertSharedInsightSchema>>({
-    resolver: zodResolver(insertSharedInsightSchema),
-    defaultValues: {
-      therapistId: userId,
-      clientId: '',
-      type: 'insight',
-      title: '',
-      content: '',
-      priority: 'normal',
-      tags: [],
+    {
+      id: '2',
+      name: 'Michael Chen',
+      email: 'michael.c@email.com',
+      status: 'active',
+      lastSession: new Date('2024-06-03'),
+      totalSessions: 8,
+      progressScore: 65
     },
-  });
-
-  const clients = clientsData?.clients || [];
-  const insights = insightsData?.insights || [];
-
-  const getInsightIcon = (type: string) => {
-    switch (type) {
-      case 'insight': return <Brain className="w-4 h-4" />;
-      case 'milestone': return <Target className="w-4 h-4" />;
-      case 'homework': return <BookOpen className="w-4 h-4" />;
-      case 'resource': return <Heart className="w-4 h-4" />;
-      default: return <MessageSquare className="w-4 h-4" />;
+    {
+      id: '3',
+      name: 'Emma Rodriguez',
+      email: 'emma.r@email.com',
+      status: 'active',
+      lastSession: new Date('2024-06-02'),
+      totalSessions: 15,
+      progressScore: 85
     }
+  ];
+
+  const sampleInsights: SharedInsight[] = [
+    {
+      id: '1',
+      clientId: '1',
+      title: 'Weekly Progress Update',
+      content: 'Great progress with anxiety management techniques. Continue practicing daily breathing exercises.',
+      type: 'progress',
+      sharedAt: new Date('2024-06-04'),
+      clientViewed: true
+    },
+    {
+      id: '2',
+      clientId: '1',
+      title: 'Homework Assignment',
+      content: 'Practice mindfulness meditation for 10 minutes daily and track mood in journal.',
+      type: 'homework',
+      sharedAt: new Date('2024-06-03'),
+      clientViewed: false
+    },
+    {
+      id: '3',
+      clientId: '2',
+      title: 'Breakthrough Moment',
+      content: 'Excellent insight about relationship patterns during our session today.',
+      type: 'breakthrough',
+      sharedAt: new Date('2024-06-03'),
+      clientViewed: true
+    }
+  ];
+
+  const handleAddClient = () => {
+    console.log('Adding client:', newClientForm);
+    setNewClientForm({ name: '', email: '' });
+    setShowAddClient(false);
   };
 
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'progress': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-      case 'breakthrough': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
-      case 'challenge': return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200';
-      case 'growth': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
+  const handleShareInsight = () => {
+    if (!selectedClient) return;
+    console.log('Sharing insight:', { ...newInsightForm, clientId: selectedClient });
+    setNewInsightForm({ title: '', content: '', type: 'progress' });
+    setShowShareInsight(false);
+  };
+
+  const getProgressColor = (score: number) => {
+    if (score >= 80) return 'bg-green-500';
+    if (score >= 60) return 'bg-yellow-500';
+    return 'bg-red-500';
+  };
+
+  const getInsightTypeColor = (type: string) => {
+    switch (type) {
+      case 'goal': return 'bg-blue-100 text-blue-800';
+      case 'progress': return 'bg-green-100 text-green-800';
+      case 'breakthrough': return 'bg-purple-100 text-purple-800';
+      case 'homework': return 'bg-orange-100 text-orange-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="container mx-auto p-6 max-w-7xl">
+      <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Client Portal</h1>
           <p className="text-gray-600 dark:text-gray-300 mt-2">
-            Manage your clients and share insights for better therapeutic outcomes
+            Manage your clients and share therapeutic insights securely
           </p>
         </div>
-        <div className="flex gap-3">
-          <Dialog open={showAddClient} onOpenChange={setShowAddClient}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="w-4 h-4 mr-2" />
-                Add Client
+        <Dialog open={showAddClient} onOpenChange={setShowAddClient}>
+          <DialogTrigger asChild>
+            <Button className="flex items-center gap-2">
+              <Plus className="w-4 h-4" />
+              Add Client
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New Client</DialogTitle>
+              <DialogDescription>
+                Add a new client to your therapy practice. They will receive access to shared insights.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="name">Full Name</Label>
+                <Input
+                  id="name"
+                  value={newClientForm.name}
+                  onChange={(e) => setNewClientForm(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Enter client's full name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="email">Email Address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={newClientForm.email}
+                  onChange={(e) => setNewClientForm(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="Enter client's email"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowAddClient(false)}>
+                Cancel
               </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>Add New Client</DialogTitle>
-                <DialogDescription>
-                  Create a client profile and enable portal access for shared insights
-                </DialogDescription>
-              </DialogHeader>
-              <Form {...clientForm}>
-                <form onSubmit={clientForm.handleSubmit((data) => addClientMutation.mutate(data))} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={clientForm.control}
-                      name="firstName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>First Name</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={clientForm.control}
-                      name="lastName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Last Name</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <FormField
-                    control={clientForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input type="email" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={clientForm.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Phone (Optional)</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="flex justify-end gap-3">
-                    <Button type="button" variant="outline" onClick={() => setShowAddClient(false)}>
-                      Cancel
-                    </Button>
-                    <Button type="submit" disabled={addClientMutation.isPending}>
-                      {addClientMutation.isPending ? 'Adding...' : 'Add Client'}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
-        </div>
+              <Button onClick={handleAddClient}>Add Client</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
-      {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Client List */}
-        <div className="lg:col-span-1">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Users className="w-5 h-5 mr-2" />
-                Your Clients ({clients.length})
-              </CardTitle>
-              <CardDescription>
-                Select a client to view and manage shared insights
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {clientsLoading ? (
-                <div className="space-y-3">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-16 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
-                  ))}
-                </div>
-              ) : clients.length === 0 ? (
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                  <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>No clients added yet</p>
-                  <p className="text-sm">Add your first client to start sharing insights</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <Button
-                    variant={selectedClient === null ? "default" : "ghost"}
-                    className="w-full justify-start h-auto p-3"
-                    onClick={() => setSelectedClient(null)}
-                  >
-                    <div className="text-left">
-                      <p className="font-medium">All Clients</p>
-                      <p className="text-sm text-gray-500">View insights for all clients</p>
-                    </div>
-                  </Button>
-                  {clients.map((client: Client) => (
-                    <Button
-                      key={client.id}
-                      variant={selectedClient?.id === client.id ? "default" : "ghost"}
-                      className="w-full justify-start h-auto p-3"
-                      onClick={() => setSelectedClient(client)}
-                    >
-                      <div className="text-left">
-                        <p className="font-medium">{client.firstName} {client.lastName}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge variant={client.status === 'active' ? 'default' : 'secondary'} className="text-xs">
-                            {client.status}
-                          </Badge>
-                          {client.portalAccess ? (
-                            <Eye className="w-3 h-3 text-green-600" />
-                          ) : (
-                            <EyeOff className="w-3 h-3 text-gray-400" />
-                          )}
-                        </div>
-                      </div>
-                    </Button>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+      <Tabs defaultValue="clients" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="clients" className="flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            Client Management
+          </TabsTrigger>
+          <TabsTrigger value="insights" className="flex items-center gap-2">
+            <Share2 className="w-4 h-4" />
+            Shared Insights
+          </TabsTrigger>
+          <TabsTrigger value="progress" className="flex items-center gap-2">
+            <TrendingUp className="w-4 h-4" />
+            Progress Tracking
+          </TabsTrigger>
+        </TabsList>
 
-        {/* Insights Panel */}
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center">
-                    <MessageSquare className="w-5 h-5 mr-2" />
-                    Shared Insights
-                    {selectedClient && (
-                      <span className="ml-2 text-base font-normal text-gray-600 dark:text-gray-300">
-                        for {selectedClient.firstName} {selectedClient.lastName}
-                      </span>
-                    )}
-                  </CardTitle>
-                  <CardDescription>
-                    {selectedClient 
-                      ? "Insights shared with this specific client"
-                      : "All insights shared across your client base"
-                    }
-                  </CardDescription>
-                </div>
-                {selectedClient && (
-                  <Dialog open={showAddInsight} onOpenChange={setShowAddInsight}>
-                    <DialogTrigger asChild>
-                      <Button size="sm">
-                        <Plus className="w-4 h-4 mr-2" />
+        <TabsContent value="clients" className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {sampleClients.map((client) => (
+              <Card key={client.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle className="text-lg">{client.name}</CardTitle>
+                      <CardDescription>{client.email}</CardDescription>
+                    </div>
+                    <Badge variant={client.status === 'active' ? 'default' : 'secondary'}>
+                      {client.status}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-300">Total Sessions:</span>
+                      <span className="font-medium">{client.totalSessions}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-300">Last Session:</span>
+                      <span className="font-medium">{client.lastSession.toLocaleDateString()}</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-300">Progress Score:</span>
+                        <span className="font-medium">{client.progressScore}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div
+                          className={`h-2 rounded-full transition-all ${getProgressColor(client.progressScore)}`}
+                          style={{ width: `${client.progressScore}%` }}
+                        />
+                      </div>
+                    </div>
+                    <div className="pt-2">
+                      <Button
+                        size="sm"
+                        className="w-full"
+                        onClick={() => {
+                          setSelectedClient(client.id);
+                          setShowShareInsight(true);
+                        }}
+                      >
+                        <Share2 className="w-4 h-4 mr-2" />
                         Share Insight
                       </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-lg">
-                      <DialogHeader>
-                        <DialogTitle>Share New Insight</DialogTitle>
-                        <DialogDescription>
-                          Create an insight to share with {selectedClient.firstName} {selectedClient.lastName}
-                        </DialogDescription>
-                      </DialogHeader>
-                      <Form {...insightForm}>
-                        <form onSubmit={insightForm.handleSubmit((data) => addInsightMutation.mutate({ ...data, clientId: selectedClient.id }))} className="space-y-4">
-                          <FormField
-                            control={insightForm.control}
-                            name="type"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Type</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value="insight">Session Insight</SelectItem>
-                                    <SelectItem value="milestone">Milestone</SelectItem>
-                                    <SelectItem value="homework">Homework</SelectItem>
-                                    <SelectItem value="resource">Resource</SelectItem>
-                                    <SelectItem value="note">Note</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={insightForm.control}
-                            name="title"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Title</FormLabel>
-                                <FormControl>
-                                  <Input {...field} placeholder="Brief title for this insight" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={insightForm.control}
-                            name="content"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Content</FormLabel>
-                                <FormControl>
-                                  <Textarea 
-                                    {...field} 
-                                    placeholder="Share your insight, observation, or resource with your client"
-                                    rows={4}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={insightForm.control}
-                            name="category"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Category</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value="progress">Progress</SelectItem>
-                                    <SelectItem value="breakthrough">Breakthrough</SelectItem>
-                                    <SelectItem value="challenge">Challenge</SelectItem>
-                                    <SelectItem value="growth">Growth</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <div className="flex justify-end gap-3">
-                            <Button type="button" variant="outline" onClick={() => setShowAddInsight(false)}>
-                              Cancel
-                            </Button>
-                            <Button type="submit" disabled={addInsightMutation.isPending}>
-                              {addInsightMutation.isPending ? 'Sharing...' : 'Share Insight'}
-                            </Button>
-                          </div>
-                        </form>
-                      </Form>
-                    </DialogContent>
-                  </Dialog>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent>
-              {insightsLoading ? (
-                <div className="space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-24 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
-                  ))}
-                </div>
-              ) : insights.length === 0 ? (
-                <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-                  <MessageSquare className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                  <p className="text-lg font-medium">No insights shared yet</p>
-                  <p className="text-sm mt-2">
-                    {selectedClient 
-                      ? "Start sharing meaningful insights with this client"
-                      : "Select a client to share insights and foster better therapeutic outcomes"
-                    }
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {insights.map((insight: SharedInsight) => (
-                    <div key={insight.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          {getInsightIcon(insight.type)}
-                          <h3 className="font-medium text-gray-900 dark:text-white">
-                            {insight.title}
-                          </h3>
-                          <Badge variant="outline" className="text-xs">
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="insights" className="space-y-6">
+          <div className="space-y-4">
+            {sampleInsights.map((insight) => {
+              const client = sampleClients.find(c => c.id === insight.clientId);
+              return (
+                <Card key={insight.id}>
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          {insight.title}
+                          <Badge className={getInsightTypeColor(insight.type)}>
                             {insight.type}
                           </Badge>
-                          {insight.category && (
-                            <Badge className={`text-xs ${getCategoryColor(insight.category)}`}>
-                              {insight.category}
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                          {insight.isRead ? (
-                            <div className="flex items-center gap-1">
-                              <Eye className="w-3 h-3" />
-                              <span>Read</span>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-1">
-                              <EyeOff className="w-3 h-3" />
-                              <span>Unread</span>
-                            </div>
-                          )}
-                          <span>•</span>
-                          <span>{new Date(insight.createdAt).toLocaleDateString()}</span>
-                        </div>
+                        </CardTitle>
+                        <CardDescription>
+                          Shared with {client?.name} on {insight.sharedAt.toLocaleDateString()}
+                        </CardDescription>
                       </div>
-                      <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed mb-3">
-                        {insight.content}
-                      </p>
-                      {insight.tags && insight.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {insight.tags.map((tag, index) => (
-                            <Badge key={index} variant="secondary" className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
+                      <div className="flex items-center gap-2">
+                        <Badge variant={insight.clientViewed ? 'default' : 'secondary'}>
+                          {insight.clientViewed ? 'Viewed' : 'Unread'}
+                        </Badge>
+                      </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-700 dark:text-gray-300">{insight.content}</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="progress" className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {sampleClients.map((client) => (
+              <Card key={client.id}>
+                <CardHeader>
+                  <CardTitle className="text-lg">{client.name}</CardTitle>
+                  <CardDescription>Progress Overview</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                        {client.progressScore}%
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-300">
+                        Overall Progress
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Sessions Completed:</span>
+                        <span className="font-medium">{client.totalSessions}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Last Activity:</span>
+                        <span className="font-medium">{client.lastSession.toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      <Dialog open={showShareInsight} onOpenChange={setShowShareInsight}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Share Therapeutic Insight</DialogTitle>
+            <DialogDescription>
+              Share progress updates, goals, or homework with your client through the secure portal.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="insight-title">Insight Title</Label>
+              <Input
+                id="insight-title"
+                value={newInsightForm.title}
+                onChange={(e) => setNewInsightForm(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Enter insight title"
+              />
+            </div>
+            <div>
+              <Label htmlFor="insight-type">Type</Label>
+              <select
+                id="insight-type"
+                value={newInsightForm.type}
+                onChange={(e) => setNewInsightForm(prev => ({ ...prev, type: e.target.value }))}
+                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800"
+              >
+                <option value="progress">Progress Update</option>
+                <option value="goal">Goal Setting</option>
+                <option value="breakthrough">Breakthrough Moment</option>
+                <option value="homework">Homework Assignment</option>
+              </select>
+            </div>
+            <div>
+              <Label htmlFor="insight-content">Content</Label>
+              <Textarea
+                id="insight-content"
+                value={newInsightForm.content}
+                onChange={(e) => setNewInsightForm(prev => ({ ...prev, content: e.target.value }))}
+                placeholder="Enter insight content..."
+                rows={4}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowShareInsight(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleShareInsight}>Share Insight</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
