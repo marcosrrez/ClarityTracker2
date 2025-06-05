@@ -506,7 +506,7 @@ export const researchCollectionsTable = pgTable('research_collections', {
   name: varchar('name', { length: 255 }).notNull(),
   description: text('description'),
   color: varchar('color', { length: 7 }).default('#3B82F6'), // hex color
-  isPrivate: integer('is_private', { mode: 'boolean' }).default(1),
+  isPrivate: integer('is_private').default(1),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -528,7 +528,7 @@ export const savedResearchTable = pgTable('saved_research', {
   notes: text('notes'),
   summaryGenerated: text('summary_generated'),
   summaryType: varchar('summary_type', { length: 50 }), // key_findings, clinical_applications, etc
-  isFavorite: integer('is_favorite', { mode: 'boolean' }).default(0),
+  isFavorite: integer('is_favorite').default(0),
   accessedCount: integer('accessed_count').default(0),
   lastAccessed: timestamp('last_accessed'),
   createdAt: timestamp('created_at').defaultNow().notNull(),

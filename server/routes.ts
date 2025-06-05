@@ -2758,7 +2758,11 @@ Please provide a helpful, professional response that's personalized to their sit
       
       const [collection] = await db.insert(researchCollectionsTable).values({
         id: collectionId,
-        ...collectionData
+        userId: collectionData.userId,
+        name: collectionData.name,
+        description: collectionData.description,
+        color: collectionData.color,
+        isPrivate: collectionData.isPrivate ? 1 : 0
       }).returning();
       
       res.json({ collection });
@@ -2774,10 +2778,15 @@ Please provide a helpful, professional response that's personalized to their sit
       const { userId } = req.params;
       const { collectionId } = req.query;
       
-      let query = db.select().from(savedResearchTable).where(eq(savedResearchTable.userId, userId));
+      let query = db.select().from(savedResearchTable);
       
       if (collectionId && collectionId !== 'all') {
-        query = query.where(eq(savedResearchTable.collectionId, collectionId as string));
+        query = query.where(and(
+          eq(savedResearchTable.userId, userId),
+          eq(savedResearchTable.collectionId, collectionId as string)
+        ));
+      } else {
+        query = query.where(eq(savedResearchTable.userId, userId));
       }
       
       const savedResearch = await query.orderBy(desc(savedResearchTable.createdAt));
