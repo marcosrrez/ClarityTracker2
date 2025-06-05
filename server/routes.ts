@@ -3123,6 +3123,28 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
     }
   });
 
+  // Azure Speech Service Configuration API
+  app.get('/api/azure/speech-config', async (req, res) => {
+    try {
+      const subscriptionKey = process.env.AZURE_SPEECH_KEY;
+      const serviceRegion = process.env.AZURE_SPEECH_REGION;
+      
+      if (!subscriptionKey || !serviceRegion) {
+        return res.status(400).json({ 
+          error: 'Azure Speech Service credentials not configured' 
+        });
+      }
+      
+      res.json({
+        subscriptionKey,
+        serviceRegion
+      });
+    } catch (error) {
+      console.error('Azure Speech config error:', error);
+      res.status(500).json({ error: 'Failed to retrieve Azure Speech configuration' });
+    }
+  });
+
   // Enhanced Note Taking API with AI Integration
   app.post('/api/notes/ai-enhance', async (req, res) => {
     try {

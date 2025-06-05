@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 
 interface SessionMetadata {
   clientId: string;
@@ -73,6 +74,7 @@ export default function SessionRecording() {
 
   const [analysisResults, setAnalysisResults] = useState<AnalysisResults>({});
   const [currentTab, setCurrentTab] = useState('setup');
+  const { toast } = useToast();
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -80,6 +82,29 @@ export default function SessionRecording() {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const azureSpeechRef = useRef<AzureSpeechService | null>(null);
   const [transcriptionSegments, setTranscriptionSegments] = useState<TranscriptionSegment[]>([]);
+
+  // Initialize Azure Speech Service
+  const initializeAzureSpeech = async () => {
+    try {
+      // Get credentials from server-side environment
+      const response = await apiRequest('GET', '/api/azure/speech-config');
+      const config = await response.json();
+      
+      azureSpeechRef.current = new AzureSpeechService({
+        subscriptionKey: config.subscriptionKey,
+        serviceRegion: config.serviceRegion,
+        language: 'en-US'
+      });
+      console.log('Azure Speech Service initialized');
+    } catch (error) {
+      console.error('Failed to initialize Azure Speech Service:', error);
+      toast({
+        title: "Speech Service Error",
+        description: "Failed to initialize Azure Speech Service. Check your credentials.",
+        variant: "destructive"
+      });
+    }
+  };
 
   // Session recording functions
   const startRecording = async () => {
@@ -100,12 +125,11 @@ export default function SessionRecording() {
       mediaRecorder.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         setRecordingState(prev => ({ ...prev, audioBlob }));
-        startTranscription(audioBlob);
       };
 
       mediaRecorder.start(1000); // Collect data every second
       
-      setRecordingState(prev => ({ ...prev, isRecording: true, isPaused: false }));
+      setRecordingState(prev => ({ ...prev, isRecording: true, isPaused: false, isTranscribing: true }));
       setCurrentTab('recording');
       
       // Start duration counter
@@ -113,9 +137,52 @@ export default function SessionRecording() {
         setRecordingState(prev => ({ ...prev, duration: prev.duration + 1 }));
       }, 1000);
 
+      // Start real-time transcription with Azure
+      await startAzureTranscription();
+
     } catch (error) {
       console.error('Error starting recording:', error);
-      alert('Unable to access microphone. Please check permissions.');
+      toast({
+        title: "Recording Error",
+        description: "Unable to access microphone. Please check permissions.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Start Azure Speech Service transcription
+  const startAzureTranscription = async () => {
+    if (!azureSpeechRef.current) {
+      await initializeAzureSpeech();
+    }
+
+    try {
+      await azureSpeechRef.current?.startContinuousRecognition(
+        (segment: TranscriptionSegment) => {
+          setTranscriptionSegments(prev => [...prev, segment]);
+          
+          // Update the main transcript with the latest segment
+          setRecordingState(prev => ({
+            ...prev,
+            transcript: prev.transcript + ' ' + segment.text
+          }));
+        },
+        (error: string) => {
+          console.error('Azure Speech transcription error:', error);
+          toast({
+            title: "Transcription Error",
+            description: "Real-time transcription encountered an issue.",
+            variant: "destructive"
+          });
+        }
+      );
+    } catch (error) {
+      console.error('Failed to start Azure transcription:', error);
+      toast({
+        title: "Azure Speech Error",
+        description: "Failed to start real-time transcription. Falling back to audio recording only.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -137,24 +204,25 @@ export default function SessionRecording() {
   const stopRecording = () => {
     if (mediaRecorderRef.current && recordingState.isRecording) {
       mediaRecorderRef.current.stop();
+      
+      // Stop Azure Speech Service transcription
+      if (azureSpeechRef.current) {
+        azureSpeechRef.current.stopRecognition();
+      }
+      
       if (intervalRef.current) clearInterval(intervalRef.current);
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
       }
-      setRecordingState(prev => ({ ...prev, isRecording: false, isPaused: false }));
+      setRecordingState(prev => ({ ...prev, isRecording: false, isPaused: false, isTranscribing: false }));
+      
+      // Automatically start session analysis with Azure transcription
+      if (recordingState.transcript.length > 0) {
+        analyzeSessionMutation.mutate();
+      }
+      
+      setCurrentTab('analysis');
     }
-  };
-
-  const startTranscription = async (audioBlob: Blob) => {
-    setRecordingState(prev => ({ ...prev, isTranscribing: true }));
-    
-    // Convert blob to base64 for API transmission
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64Audio = reader.result as string;
-      transcribeMutation.mutate(base64Audio);
-    };
-    reader.readAsDataURL(audioBlob);
   };
 
   // API mutations
