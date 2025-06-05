@@ -305,7 +305,9 @@ Word Count: ${content.wordCount}
 
 Content: ${content.content}
 
-Provide a comprehensive, detailed analysis that demonstrates deep understanding of the research and its clinical applications. Use professional terminology while remaining accessible to practitioners at all levels.`;
+Provide a comprehensive, detailed analysis that demonstrates deep understanding of the research and its clinical applications. Use professional terminology while remaining accessible to practitioners at all levels.
+
+Format your response to be thorough yet scannable, with clear section headers and detailed content that practitioners can reference for clinical decision-making, supervision discussions, and professional development planning.`;
 
     try {
       // Use Google AI as primary since it's working

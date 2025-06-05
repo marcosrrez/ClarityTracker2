@@ -341,9 +341,9 @@ export default function ResearchLibrary() {
                       {paper.title.length > 80 ? `${paper.title.substring(0, 80)}...` : paper.title}
                     </h3>
 
-                    {/* Content - Premium Typography matching insight cards */}
+                    {/* Comprehensive Content Preview - Premium Typography */}
                     <div 
-                      className="text-gray-800 dark:text-gray-200 leading-relaxed"
+                      className="text-gray-800 dark:text-gray-200 leading-relaxed space-y-3"
                       style={{ 
                         fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
                         fontSize: '0.9rem',
@@ -352,9 +352,30 @@ export default function ResearchLibrary() {
                       }}
                     >
                       {(() => {
-                        const preview = paper.summary || paper.snippet || '';
-                        const cleanedText = preview.trim();
-                        return cleanedText.length > 100 ? `${cleanedText.substring(0, 100)}...` : cleanedText;
+                        const summary = paper.summary || paper.snippet || '';
+                        const cleanedText = summary.trim();
+                        
+                        // If we have a comprehensive summary, show structured preview
+                        if (cleanedText.length > 200 && (cleanedText.includes('###') || cleanedText.includes('Executive Summary'))) {
+                          // Extract first meaningful section for preview
+                          const sections = cleanedText.split(/###|##/).filter(s => s.trim());
+                          const firstSection = sections[0] || cleanedText;
+                          const preview = firstSection.substring(0, 150).trim();
+                          
+                          return (
+                            <div>
+                              <div className="mb-2">
+                                {preview}...
+                              </div>
+                              <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                                Comprehensive analysis available
+                              </div>
+                            </div>
+                          );
+                        } else {
+                          // Show regular preview for shorter content
+                          return cleanedText.length > 100 ? `${cleanedText.substring(0, 100)}...` : cleanedText;
+                        }
                       })()}
                     </div>
 
@@ -440,21 +461,34 @@ export default function ResearchLibrary() {
               </div>
             )}
 
-            {/* Summary */}
+            {/* Comprehensive Analysis */}
             {selectedPaper?.summary && (
               <div>
-                <h4 className="font-medium text-gray-900 dark:text-white mb-3">Summary</h4>
+                <h4 className="font-medium text-gray-900 dark:text-white mb-3">
+                  {selectedPaper.summary.includes('###') || selectedPaper.summary.includes('Executive Summary') 
+                    ? 'Comprehensive Analysis' 
+                    : 'Summary'}
+                </h4>
                 <div 
-                  className="text-gray-700 dark:text-gray-300 leading-relaxed"
+                  className="text-gray-700 dark:text-gray-300 leading-relaxed prose prose-sm max-w-none"
                   style={{ 
                     fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
                     fontSize: '1rem',
-                    lineHeight: '1.6',
+                    lineHeight: '1.7',
                     letterSpacing: '0.01em'
                   }}
-                >
-                  {selectedPaper.summary}
-                </div>
+                  dangerouslySetInnerHTML={{
+                    __html: selectedPaper.summary
+                      .replace(/### (.*?)$/gm, '<h4 class="font-semibold text-gray-900 dark:text-white mt-6 mb-3 text-base">$1</h4>')
+                      .replace(/## (.*?)$/gm, '<h3 class="font-semibold text-gray-900 dark:text-white mt-8 mb-4 text-lg">$1</h3>')
+                      .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-gray-900 dark:text-white">$1</strong>')
+                      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                      .replace(/- (.*?)$/gm, '<li class="ml-4 mb-1">$1</li>')
+                      .replace(/(\n|^)([^<\n]+?)$/gm, '<p class="mb-4">$2</p>')
+                      .replace(/<li/g, '<ul class="mb-4"><li')
+                      .replace(/<\/li>(?!\s*<li)/g, '</li></ul>')
+                  }}
+                />
               </div>
             )}
 
