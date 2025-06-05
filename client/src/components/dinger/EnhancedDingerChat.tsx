@@ -128,9 +128,12 @@ export default function EnhancedDingerChat() {
 
   const rateResponse = async (conversationId: string, rating: number) => {
     try {
-      await apiRequest('/api/dinger/rate-response', {
+      await fetch('/api/dinger/rate-response', {
         method: 'POST',
-        body: { conversationId, rating }
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ conversationId, rating })
       });
 
       setConversations(prev => 
