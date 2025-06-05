@@ -413,147 +413,176 @@ export default function ResearchLibrary() {
         )}
       </div>
 
-      {/* Detailed Article View Modal */}
+      {/* Research Detail Modal - Matching Insights Card Experience */}
       <Dialog open={!!selectedPaper} onOpenChange={() => setSelectedPaper(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <div className="flex items-start justify-between">
-              <div className="flex-1 pr-4">
-                <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-white leading-tight">
-                  {selectedPaper?.title}
-                </DialogTitle>
-                <div className="flex items-center gap-4 mt-3 text-sm text-gray-600 dark:text-gray-400">
-                  <span>{selectedPaper?.source}</span>
-                  {selectedPaper?.publishDate && (
-                    <span>• {selectedPaper.publishDate}</span>
+        <DialogContent className="max-w-4xl max-h-[85vh] p-0 overflow-hidden">
+          <div className="flex flex-col h-full">
+            {/* Header */}
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-start justify-between">
+                <div className="flex-1 pr-4">
+                  <h2 
+                    className="text-xl font-medium text-gray-900 dark:text-white leading-tight mb-2"
+                    style={{ 
+                      fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif'
+                    }}
+                  >
+                    {selectedPaper?.title}
+                  </h2>
+                  <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                    <span>{selectedPaper?.source}</span>
+                    {selectedPaper?.publishDate && (
+                      <span>• {selectedPaper.publishDate}</span>
+                    )}
+                    <span>• Saved {selectedPaper?.createdAt ? format(new Date(selectedPaper.createdAt), "MMM d, yyyy") : ''}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => selectedPaper && toggleFavorite(selectedPaper.id)}
+                  >
+                    {selectedPaper?.isFavorite ? (
+                      <Heart className="h-4 w-4 text-red-500 fill-current" />
+                    ) : (
+                      <Heart className="h-4 w-4 text-gray-400" />
+                    )}
+                  </Button>
+                  {selectedPaper?.url && (
+                    <Button variant="ghost" size="sm" asChild>
+                      <a href={selectedPaper.url} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+                    </Button>
                   )}
-                  <span>• Saved {selectedPaper?.createdAt ? format(new Date(selectedPaper.createdAt), "MMM d, yyyy") : ''}</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => selectedPaper && toggleFavorite(selectedPaper.id)}
-                >
-                  {selectedPaper?.isFavorite ? (
-                    <Heart className="h-4 w-4 text-red-500 fill-current" />
-                  ) : (
-                    <Heart className="h-4 w-4 text-gray-400" />
-                  )}
-                </Button>
-                {selectedPaper?.url && (
-                  <Button variant="ghost" size="sm" asChild>
-                    <a href={selectedPaper.url} target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="h-4 w-4" />
-                    </a>
-                  </Button>
+            </div>
+
+            {/* Scrollable Content - Matching Insights Card */}
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="space-y-6">
+                {/* Authors */}
+                {selectedPaper?.authors && selectedPaper.authors.length > 0 && (
+                  <div>
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-3">Authors</h4>
+                    <p 
+                      className="text-gray-700 dark:text-gray-300"
+                      style={{ 
+                        fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
+                        fontSize: '0.95rem',
+                        lineHeight: '1.6'
+                      }}
+                    >
+                      {selectedPaper.authors.join(", ")}
+                    </p>
+                  </div>
+                )}
+
+                {/* Comprehensive Analysis - Premium Typography */}
+                {(selectedPaper?.summary) && (
+                  <div>
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-4">
+                      {((selectedPaper.summary || '').includes('###') || (selectedPaper.summary || '').includes('Executive Summary'))
+                        ? 'Comprehensive Analysis' 
+                        : 'Summary'}
+                    </h4>
+                    <div 
+                      className="text-gray-800 dark:text-gray-200 leading-relaxed prose prose-sm max-w-none"
+                      style={{ 
+                        fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
+                        fontSize: '0.95rem',
+                        lineHeight: '1.7',
+                        letterSpacing: '0.01em'
+                      }}
+                      dangerouslySetInnerHTML={{
+                        __html: (selectedPaper.summary || '')
+                          .replace(/### (.*?)$/gm, '<h4 class="font-semibold text-gray-900 dark:text-white mt-8 mb-4 text-base">$1</h4>')
+                          .replace(/## (.*?)$/gm, '<h3 class="font-semibold text-gray-900 dark:text-white mt-10 mb-5 text-lg">$1</h3>')
+                          .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-gray-900 dark:text-white">$1</strong>')
+                          .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                          .replace(/- (.*?)$/gm, '<li class="ml-4 mb-2">$1</li>')
+                          .replace(/(\n|^)([^<\n]+?)$/gm, '<p class="mb-5">$2</p>')
+                          .replace(/<li/g, '<ul class="mb-5 space-y-1"><li')
+                          .replace(/<\/li>(?!\s*<li)/g, '</li></ul>')
+                      }}
+                    />
+                  </div>
+                )}
+
+                {/* Snippet if no summary */}
+                {!selectedPaper?.summary && selectedPaper?.snippet && (
+                  <div>
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-4">Abstract</h4>
+                    <div 
+                      className="text-gray-800 dark:text-gray-200 leading-relaxed"
+                      style={{ 
+                        fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
+                        fontSize: '0.95rem',
+                        lineHeight: '1.7',
+                        letterSpacing: '0.01em'
+                      }}
+                    >
+                      {selectedPaper.snippet}
+                    </div>
+                  </div>
+                )}
+
+                {/* Tags */}
+                {selectedPaper?.tags && selectedPaper.tags.length > 0 && (
+                  <div>
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-3">Tags</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedPaper.tags.map((tag) => (
+                        <Badge key={tag} variant="secondary" className="text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Citation */}
+                {selectedPaper?.citationApa && (
+                  <div>
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-3">Citation (APA)</h4>
+                    <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                      <p 
+                        className="text-sm text-gray-700 dark:text-gray-300 font-mono leading-relaxed"
+                        style={{ fontSize: '0.85rem' }}
+                      >
+                        {selectedPaper.citationApa}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Notes */}
+                {selectedPaper?.notes && (
+                  <div>
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-4">Notes</h4>
+                    <div 
+                      className="text-gray-800 dark:text-gray-200 leading-relaxed"
+                      style={{ 
+                        fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
+                        fontSize: '0.95rem',
+                        lineHeight: '1.7',
+                        letterSpacing: '0.01em'
+                      }}
+                    >
+                      {selectedPaper.notes}
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
-          </DialogHeader>
-          
-          <div className="space-y-6 mt-6">
-            {/* Authors */}
-            {selectedPaper?.authors && selectedPaper.authors.length > 0 && (
-              <div>
-                <h4 className="font-medium text-gray-900 dark:text-white mb-2">Authors</h4>
-                <p className="text-gray-700 dark:text-gray-300">{selectedPaper.authors.join(", ")}</p>
-              </div>
-            )}
-
-            {/* Comprehensive Analysis */}
-            {(selectedPaper?.summaryGenerated || selectedPaper?.summary) && (
-              <div>
-                <h4 className="font-medium text-gray-900 dark:text-white mb-3">
-                  {((selectedPaper.summaryGenerated || selectedPaper.summary || '').includes('###') || (selectedPaper.summaryGenerated || selectedPaper.summary || '').includes('Executive Summary'))
-                    ? 'Comprehensive Analysis' 
-                    : 'Summary'}
-                </h4>
-                <div 
-                  className="text-gray-700 dark:text-gray-300 leading-relaxed prose prose-sm max-w-none"
-                  style={{ 
-                    fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
-                    fontSize: '1rem',
-                    lineHeight: '1.7',
-                    letterSpacing: '0.01em'
-                  }}
-                  dangerouslySetInnerHTML={{
-                    __html: (selectedPaper.summaryGenerated || selectedPaper.summary || '')
-                      .replace(/### (.*?)$/gm, '<h4 class="font-semibold text-gray-900 dark:text-white mt-6 mb-3 text-base">$1</h4>')
-                      .replace(/## (.*?)$/gm, '<h3 class="font-semibold text-gray-900 dark:text-white mt-8 mb-4 text-lg">$1</h3>')
-                      .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-gray-900 dark:text-white">$1</strong>')
-                      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                      .replace(/- (.*?)$/gm, '<li class="ml-4 mb-1">$1</li>')
-                      .replace(/(\n|^)([^<\n]+?)$/gm, '<p class="mb-4">$2</p>')
-                      .replace(/<li/g, '<ul class="mb-4"><li')
-                      .replace(/<\/li>(?!\s*<li)/g, '</li></ul>')
-                  }}
-                />
-              </div>
-            )}
-
-            {/* Snippet if no summary */}
-            {!selectedPaper?.summary && selectedPaper?.snippet && (
-              <div>
-                <h4 className="font-medium text-gray-900 dark:text-white mb-3">Abstract</h4>
-                <div 
-                  className="text-gray-700 dark:text-gray-300 leading-relaxed"
-                  style={{ 
-                    fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
-                    fontSize: '1rem',
-                    lineHeight: '1.6',
-                    letterSpacing: '0.01em'
-                  }}
-                >
-                  {selectedPaper.snippet}
-                </div>
-              </div>
-            )}
-
-            {/* Tags */}
-            {selectedPaper?.tags && selectedPaper.tags.length > 0 && (
-              <div>
-                <h4 className="font-medium text-gray-900 dark:text-white mb-3">Tags</h4>
-                <div className="flex flex-wrap gap-2">
-                  {selectedPaper.tags.map((tag) => (
-                    <Badge key={tag} variant="secondary">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Citation */}
-            {selectedPaper?.citationApa && (
-              <div>
-                <h4 className="font-medium text-gray-900 dark:text-white mb-3">Citation (APA)</h4>
-                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                  <p className="text-sm text-gray-700 dark:text-gray-300 font-mono">
-                    {selectedPaper.citationApa}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Notes */}
-            {selectedPaper?.notes && (
-              <div>
-                <h4 className="font-medium text-gray-900 dark:text-white mb-3">Notes</h4>
-                <div 
-                  className="text-gray-700 dark:text-gray-300 leading-relaxed"
-                  style={{ 
-                    fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
-                    fontSize: '1rem',
-                    lineHeight: '1.6',
-                    letterSpacing: '0.01em'
-                  }}
-                >
-                  {selectedPaper.notes}
-                </div>
-              </div>
-            )}
           </div>
         </DialogContent>
       </Dialog>
