@@ -1,6 +1,7 @@
 import { chromium } from 'playwright';
 import * as cheerio from 'cheerio';
 import fetch from 'node-fetch';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 interface SearchResult {
   title: string;
@@ -8,6 +9,7 @@ interface SearchResult {
   snippet: string;
   source: string;
   domain: string;
+  relevanceScore?: number;
 }
 
 interface ScrapedContent {
@@ -37,6 +39,75 @@ export class ResearchService {
     'nimh.nih.gov'
   ];
 
+  private genAI: GoogleGenerativeAI | null = null;
+
+  constructor() {
+    if (process.env.GOOGLE_AI_API_KEY) {
+      this.genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
+    }
+  }
+
+  /**
+   * Calculate semantic relevance score between query and result
+   */
+  private async calculateRelevanceScore(query: string, title: string, snippet: string): Promise<number> {
+    if (!this.genAI) {
+      // Fallback to keyword matching if no AI available
+      return this.calculateKeywordRelevance(query, title, snippet);
+    }
+
+    try {
+      const model = this.genAI.getGenerativeModel({ model: "gemini-pro" });
+      
+      const prompt = `
+Rate the relevance of this research result to the query on a scale of 0-100:
+
+Query: "${query}"
+Title: "${title}"
+Abstract: "${snippet}"
+
+Consider:
+- Exact keyword matches (highest weight)
+- Semantic similarity and related concepts
+- Clinical relevance for counseling/therapy
+- Research quality indicators
+
+Return only a number between 0-100.`;
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const scoreText = response.text().trim();
+      const score = parseInt(scoreText) || 0;
+      
+      return Math.max(0, Math.min(100, score));
+    } catch (error) {
+      console.log('AI relevance scoring failed, using keyword fallback:', error);
+      return this.calculateKeywordRelevance(query, title, snippet);
+    }
+  }
+
+  /**
+   * Fallback keyword-based relevance scoring
+   */
+  private calculateKeywordRelevance(query: string, title: string, snippet: string): number {
+    const queryTerms = query.toLowerCase().split(/\s+/);
+    const text = (title + ' ' + snippet).toLowerCase();
+    
+    let score = 0;
+    for (const term of queryTerms) {
+      if (text.includes(term)) {
+        // Exact matches in title get higher weight
+        if (title.toLowerCase().includes(term)) {
+          score += 30;
+        } else {
+          score += 15;
+        }
+      }
+    }
+    
+    return Math.min(100, score);
+  }
+
   /**
    * Search for research content using multiple sources
    */
@@ -45,16 +116,30 @@ export class ResearchService {
     
     try {
       // Search PubMed first for medical/psychological research
-      const pubmedResults = await this.searchPubMed(query, Math.ceil(limit / 2));
+      const pubmedResults = await this.searchPubMed(query, Math.ceil(limit * 1.5));
       results.push(...pubmedResults);
 
       // If we need more results, search Google Scholar
-      if (results.length < limit) {
+      if (results.length < limit * 1.5) {
         const scholarResults = await this.searchGoogleScholar(query, limit - results.length);
         results.push(...scholarResults);
       }
 
-      return results.slice(0, limit);
+      // Calculate relevance scores for all results
+      const scoredResults = await Promise.all(
+        results.map(async (result) => {
+          const relevanceScore = await this.calculateRelevanceScore(query, result.title, result.snippet);
+          return { ...result, relevanceScore };
+        })
+      );
+
+      // Filter by minimum relevance threshold and sort by score
+      const filteredResults = scoredResults
+        .filter(result => result.relevanceScore! >= 25) // Minimum 25% relevance
+        .sort((a, b) => (b.relevanceScore! - a.relevanceScore!))
+        .slice(0, limit);
+
+      return filteredResults;
     } catch (error) {
       console.error('Research search error:', error);
       throw new Error('Failed to search research content');
