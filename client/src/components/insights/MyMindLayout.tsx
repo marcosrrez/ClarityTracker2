@@ -1581,7 +1581,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
 
             {/* Dynamic Input Box - Enhanced with all requested features */}
             <DynamicInputBox
-              onSubmit={(message) => {
+              onSubmit={async (message) => {
                 const userMessage = {
                   id: Date.now().toString(),
                   content: message.trim(),
@@ -1595,33 +1595,79 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                 }));
                 setIsAiLoading(true);
 
-                // AI response handling
-                fetch('/api/ai/coaching-chat', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({
-                    message: userMessage.content,
-                    userId: user?.uid,
-                    conversationHistory: aiMessages.slice(-10)
-                  }),
-                })
-                .then(response => response.json())
-                .then(data => {
-                  const aiResponse = {
-                    id: Date.now().toString() + '_ai',
-                    content: data.response || "I'm here to help with your counseling journey!",
-                    isUser: false,
-                    timestamp: new Date()
-                  };
+                try {
+                  // Check if this is a research request
+                  const isResearchQuery = detectResearchIntent(userMessage.content);
                   
-                  setThreads(prev => ({
-                    ...prev,
-                    [currentThreadId]: [...(prev[currentThreadId] || []), aiResponse]
-                  }));
-                })
-                .catch(error => {
+                  if (isResearchQuery) {
+                    // Perform research
+                    const searchResults = await performResearch(userMessage.content);
+                    
+                    if (searchResults.length > 0) {
+                      // Display research results
+                      const researchResponse = {
+                        id: Date.now().toString() + '_research',
+                        content: `I found ${searchResults.length} relevant research sources for you:`,
+                        isUser: false,
+                        timestamp: new Date(),
+                        searchResults: searchResults
+                      };
+                      
+                      setThreads(prev => ({
+                        ...prev,
+                        [currentThreadId]: [...(prev[currentThreadId] || []), researchResponse]
+                      }));
+                    } else {
+                      // No results found, fall back to AI chat
+                      const response = await fetch('/api/ai/coaching-chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          message: userMessage.content,
+                          userId: user?.uid,
+                          conversationHistory: aiMessages.slice(-10)
+                        }),
+                      });
+                      const data = await response.json();
+                      
+                      const aiResponse = {
+                        id: Date.now().toString() + '_ai',
+                        content: data.response || "I couldn't find specific research results, but I can help with general guidance.",
+                        isUser: false,
+                        timestamp: new Date()
+                      };
+                      
+                      setThreads(prev => ({
+                        ...prev,
+                        [currentThreadId]: [...(prev[currentThreadId] || []), aiResponse]
+                      }));
+                    }
+                  } else {
+                    // Regular AI chat
+                    const response = await fetch('/api/ai/coaching-chat', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        message: userMessage.content,
+                        userId: user?.uid,
+                        conversationHistory: aiMessages.slice(-10)
+                      }),
+                    });
+                    const data = await response.json();
+                    
+                    const aiResponse = {
+                      id: Date.now().toString() + '_ai',
+                      content: data.response || "I'm here to help with your counseling journey!",
+                      isUser: false,
+                      timestamp: new Date()
+                    };
+                    
+                    setThreads(prev => ({
+                      ...prev,
+                      [currentThreadId]: [...(prev[currentThreadId] || []), aiResponse]
+                    }));
+                  }
+                } catch (error) {
                   console.error('AI response error:', error);
                   const errorResponse = {
                     id: Date.now().toString() + '_error',
@@ -1634,10 +1680,9 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                     ...prev,
                     [currentThreadId]: [...(prev[currentThreadId] || []), errorResponse]
                   }));
-                })
-                .finally(() => {
+                } finally {
                   setIsAiLoading(false);
-                });
+                }
               }}
               placeholder="Ask about counseling theories, DSM, clinical practice, or business guidance..."
               isConversationActive={aiMessages.length > 0}
