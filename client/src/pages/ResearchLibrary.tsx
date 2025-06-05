@@ -234,29 +234,64 @@ export function ResearchLibrary() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      <div className="container mx-auto px-6 py-12">
-        {/* Header Section */}
-        <div className="flex flex-col space-y-8 mb-12">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-lg">
-                <Library className="h-8 w-8 text-white" />
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Minimal Header with Search-First Design */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
+          {/* Title and Search in One Row */}
+          <div className="flex flex-col lg:flex-row lg:items-center gap-6 flex-1">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl">
+                <Library className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
-                  Research Library
-                </h1>
-                <p className="text-slate-600 dark:text-slate-400 text-lg mt-1">
-                  Organize and manage your research collection
-                </p>
+                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Research Library</h1>
+                <p className="text-sm text-slate-500 dark:text-slate-400">{savedResearch.length} papers saved</p>
               </div>
             </div>
 
+            {/* Hero Search Bar */}
+            <div className="flex-1 max-w-2xl">
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 h-5 w-5" />
+                <Input
+                  placeholder="Search papers, authors, or content..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-12 h-12 text-lg rounded-xl border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm shadow-sm focus:shadow-lg transition-all"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Compact Filter Controls */}
+          <div className="flex items-center gap-3">
+            <Select value={selectedCollection} onValueChange={setSelectedCollection}>
+              <SelectTrigger className="w-40 rounded-xl border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80">
+                <SelectValue placeholder="All" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                <SelectItem value="all">All Collections</SelectItem>
+                {collections.map((collection) => (
+                  <SelectItem key={collection.id} value={collection.id}>
+                    {collection.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Button
+              variant={showFavoritesOnly ? "default" : "outline"}
+              onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+              className="rounded-xl"
+              size="sm"
+            >
+              <Star className={`h-4 w-4 ${showFavoritesOnly ? 'fill-current' : ''}`} />
+            </Button>
+
             <Dialog open={isCreateCollectionOpen} onOpenChange={setIsCreateCollectionOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl px-6 py-3">
-                  <FolderPlus className="h-5 w-5 mr-2" />
-                  New Collection
+                <Button variant="outline" className="rounded-xl" size="sm">
+                  <FolderPlus className="h-4 w-4" />
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-md">
@@ -296,241 +331,131 @@ export function ResearchLibrary() {
               </DialogContent>
             </Dialog>
           </div>
-
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <Card className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border-slate-200/50 dark:border-slate-700/50 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl">
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
-                    <BookOpen className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">Total Papers</p>
-                    <p className="text-2xl font-bold text-slate-900 dark:text-white">{savedResearch.length}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border-slate-200/50 dark:border-slate-700/50 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl">
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-xl">
-                    <Star className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">Favorites</p>
-                    <p className="text-2xl font-bold text-slate-900 dark:text-white">{favoriteCount}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border-slate-200/50 dark:border-slate-700/50 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl">
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
-                    <Folder className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">Collections</p>
-                    <p className="text-2xl font-bold text-slate-900 dark:text-white">{collections.length}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border-slate-200/50 dark:border-slate-700/50 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl">
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-xl">
-                    <Archive className="h-5 w-5 text-green-600 dark:text-green-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">This Month</p>
-                    <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                      {savedResearch.filter(paper => {
-                        const paperDate = new Date(paper.createdAt);
-                        const now = new Date();
-                        return paperDate.getMonth() === now.getMonth() && paperDate.getFullYear() === now.getFullYear();
-                      }).length}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Search and Filter Controls */}
-          <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
-            <div className="flex flex-col sm:flex-row gap-4 flex-1">
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 h-5 w-5" />
-                <Input
-                  placeholder="Search papers, authors, or content..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 rounded-xl border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50"
-                />
-              </div>
-
-              <Select value={selectedCollection} onValueChange={setSelectedCollection}>
-                <SelectTrigger className="w-full sm:w-48 rounded-xl border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50">
-                  <SelectValue placeholder="All Collections" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  <SelectItem value="all">All Collections</SelectItem>
-                  {collections.map((collection) => (
-                    <SelectItem key={collection.id} value={collection.id}>
-                      {collection.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Button
-              variant={showFavoritesOnly ? "default" : "outline"}
-              onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-              className="rounded-xl"
-            >
-              <Heart className={`h-4 w-4 mr-2 ${showFavoritesOnly ? 'fill-current' : ''}`} />
-              Favorites Only
-            </Button>
-          </div>
         </div>
 
-        {/* Research Papers Grid */}
+        {/* Research Papers List */}
         {filteredResearch.length === 0 ? (
-          <Card className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border-slate-200/50 dark:border-slate-700/50 shadow-lg rounded-2xl">
-            <CardContent className="p-12 text-center">
-              <div className="flex flex-col items-center space-y-4">
-                <div className="p-4 bg-slate-100 dark:bg-slate-700 rounded-full">
-                  <BookOpen className="h-12 w-12 text-slate-400" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
-                    {savedResearch.length === 0 ? "No research papers yet" : "No papers match your filters"}
-                  </h3>
-                  <p className="text-slate-600 dark:text-slate-400 max-w-md mx-auto">
-                    {savedResearch.length === 0 
-                      ? "Start building your research library by saving papers from the AI Coach in Insights & Resources."
-                      : "Try adjusting your search terms or collection filter to find more papers."
-                    }
-                  </p>
-                </div>
+          <div className="text-center py-16">
+            <div className="max-w-md mx-auto">
+              <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-2xl w-fit mx-auto mb-4">
+                <BookOpen className="h-8 w-8 text-slate-400" />
               </div>
-            </CardContent>
-          </Card>
+              <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
+                {savedResearch.length === 0 ? "No research papers yet" : "No papers match your filters"}
+              </h3>
+              <p className="text-slate-600 dark:text-slate-400">
+                {savedResearch.length === 0 
+                  ? "Start building your research library by saving papers from the AI Coach."
+                  : "Try adjusting your search terms or collection filter to find more papers."
+                }
+              </p>
+            </div>
+          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="space-y-4">
             {filteredResearch.map((paper) => (
               <Card 
                 key={paper.id} 
-                className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border-slate-200/50 dark:border-slate-700/50 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl group cursor-pointer"
+                className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 hover:bg-white/90 dark:hover:bg-slate-800/90 hover:shadow-lg transition-all duration-200 group cursor-pointer"
                 onClick={() => setSelectedPaper(paper)}
               >
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                          <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-6">
+                    {/* Main Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <Badge variant="secondary" className="text-xs px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                              {paper.domain}
+                            </Badge>
+                            {paper.publishDate && (
+                              <span className="text-xs text-slate-500 dark:text-slate-400">
+                                {new Date(paper.publishDate).getFullYear()}
+                              </span>
+                            )}
+                          </div>
+                          <h3 className="text-lg font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-tight mb-2 line-clamp-2">
+                            {paper.title}
+                          </h3>
+                          {paper.authors.length > 0 && (
+                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
+                              {paper.authors.slice(0, 3).join(', ')}
+                              {paper.authors.length > 3 && ` +${paper.authors.length - 3} more`}
+                            </p>
+                          )}
                         </div>
-                        <Badge variant="secondary" className="text-xs rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
-                          {paper.domain}
-                        </Badge>
                       </div>
-                      <CardTitle className="text-lg leading-tight text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
-                        {paper.title}
-                      </CardTitle>
-                    </div>
-                    
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleFavorite(paper.id);
-                      }}
-                      className="ml-2 p-2 rounded-xl hover:bg-yellow-100 dark:hover:bg-yellow-900/30"
-                    >
-                      {paper.isFavorite ? (
-                        <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                      ) : (
-                        <StarOff className="h-4 w-4 text-slate-400" />
-                      )}
-                    </Button>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-3">
-                    {paper.snippet}
-                  </p>
-
-                  {paper.authors.length > 0 && (
-                    <div className="flex items-center space-x-2">
-                      <User className="h-4 w-4 text-slate-400" />
-                      <p className="text-sm text-slate-600 dark:text-slate-400 truncate">
-                        {paper.authors.slice(0, 2).join(', ')}
-                        {paper.authors.length > 2 && ` +${paper.authors.length - 2} more`}
+                      
+                      <p className="text-slate-700 dark:text-slate-300 leading-relaxed line-clamp-3 mb-4">
+                        {paper.snippet}
                       </p>
-                    </div>
-                  )}
 
-                  {paper.publishDate && (
-                    <div className="flex items-center space-x-2">
-                      <Calendar className="h-4 w-4 text-slate-400" />
-                      <p className="text-sm text-slate-600 dark:text-slate-400">
-                        {new Date(paper.publishDate).getFullYear()}
-                      </p>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          {paper.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                              {paper.tags.slice(0, 4).map((tag) => (
+                                <Badge key={tag} variant="outline" className="text-xs px-2 py-1 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-600">
+                                  {tag}
+                                </Badge>
+                              ))}
+                              {paper.tags.length > 4 && (
+                                <Badge variant="outline" className="text-xs px-2 py-1 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-600">
+                                  +{paper.tags.length - 4}
+                                </Badge>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleFavorite(paper.id);
+                            }}
+                            className="h-8 w-8 p-0 hover:bg-yellow-100 dark:hover:bg-yellow-900/30"
+                          >
+                            {paper.isFavorite ? (
+                              <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                            ) : (
+                              <Star className="h-4 w-4 text-slate-400" />
+                            )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.open(paper.url, '_blank');
+                            }}
+                            className="h-8 w-8 p-0 hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                          >
+                            <ExternalLink className="h-4 w-4 text-slate-400" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deletePaper(paper.id);
+                            }}
+                            className="h-8 w-8 p-0 hover:bg-red-100 dark:hover:bg-red-900/30"
+                          >
+                            <Trash2 className="h-4 w-4 text-slate-400" />
+                          </Button>
+                        </div>
+                      </div>
                     </div>
-                  )}
 
-                  {paper.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {paper.tags.slice(0, 3).map((tag) => (
-                        <Badge key={tag} variant="outline" className="text-xs rounded-full bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-600">
-                          {tag}
-                        </Badge>
-                      ))}
-                      {paper.tags.length > 3 && (
-                        <Badge variant="outline" className="text-xs rounded-full bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-600">
-                          +{paper.tags.length - 3}
-                        </Badge>
+                    {/* Favorite Star - Always Visible */}
+                    <div className="flex-shrink-0">
+                      {paper.isFavorite && (
+                        <Star className="h-5 w-5 text-yellow-500 fill-current" />
                       )}
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-200/50 dark:border-slate-700/50">
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      Saved {new Date(paper.createdAt).toLocaleDateString()}
-                    </p>
-                    <div className="flex items-center space-x-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          window.open(paper.url, '_blank');
-                        }}
-                        className="p-2 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/30"
-                      >
-                        <ExternalLink className="h-4 w-4 text-slate-400 hover:text-blue-600" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deletePaper(paper.id);
-                        }}
-                        className="p-2 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/30"
-                      >
-                        <Trash2 className="h-4 w-4 text-slate-400 hover:text-red-600" />
-                      </Button>
                     </div>
                   </div>
                 </CardContent>
