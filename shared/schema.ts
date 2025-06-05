@@ -544,6 +544,163 @@ export const dingerConversationMemorySchema = z.object({
 
 export type DingerConversationMemory = z.infer<typeof dingerConversationMemorySchema>;
 
+// Session Intelligence Tables for Phase 1 Implementation
+export const sessionRecordingTable = pgTable('session_recordings', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  logEntryId: varchar('log_entry_id', { length: 255 }).notNull(),
+  sessionDate: timestamp('session_date').notNull(),
+  duration: integer('duration').notNull(), // in minutes
+  transcriptPath: varchar('transcript_path', { length: 500 }),
+  transcript: text('transcript'),
+  status: varchar('status', { length: 20 }).notNull().default('recording'),
+  aiAnalysis: text('ai_analysis'), // JSON object
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const progressNoteTable = pgTable('progress_notes', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  logEntryId: varchar('log_entry_id', { length: 255 }).notNull(),
+  sessionRecordingId: varchar('session_recording_id', { length: 255 }),
+  noteType: varchar('note_type', { length: 20 }).notNull().default('manual'),
+  content: text('content').notNull(),
+  aiSuggestions: text('ai_suggestions'), // JSON object
+  timeToComplete: integer('time_to_complete'), // in minutes
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const supervisionAnalyticsTable = pgTable('supervision_analytics', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  supervisorId: varchar('supervisor_id', { length: 255 }).notNull(),
+  superviseeId: varchar('supervisee_id', { length: 255 }).notNull(),
+  analysisDate: timestamp('analysis_date').notNull(),
+  period: varchar('period', { length: 20 }).notNull().default('monthly'),
+  metrics: text('metrics').notNull(), // JSON object
+  supervisionNotes: text('supervision_notes'),
+  actionItems: text('action_items'), // JSON array
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const riskAssessmentTable = pgTable('risk_assessments', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  sessionRecordingId: varchar('session_recording_id', { length: 255 }),
+  logEntryId: varchar('log_entry_id', { length: 255 }).notNull(),
+  assessmentType: varchar('assessment_type', { length: 20 }).notNull().default('automated'),
+  riskLevel: varchar('risk_level', { length: 20 }).notNull().default('low'),
+  indicators: text('indicators').notNull(), // JSON object
+  immediateActions: text('immediate_actions'), // JSON array
+  supervisionRequired: integer('supervision_required').default(0), // boolean as int
+  followUpDate: timestamp('follow_up_date'),
+  resolution: text('resolution'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Session Intelligence Schemas
+export const sessionRecordingSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  logEntryId: z.string(),
+  sessionDate: z.date(),
+  duration: z.number(), // in minutes
+  transcriptPath: z.string().optional(),
+  transcript: z.string().optional(),
+  status: z.enum(["recording", "processing", "completed", "error"]).default("recording"),
+  aiAnalysis: z.object({
+    themes: z.array(z.string()),
+    interventions: z.array(z.string()),
+    riskIndicators: z.array(z.string()),
+    therapeuticAlliance: z.number().min(1).max(10),
+    ebpUsage: z.array(z.string()),
+    suggestedNotes: z.string(),
+    confidenceScore: z.number().min(0).max(1)
+  }).optional(),
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date()),
+});
+
+export const insertSessionRecordingSchema = sessionRecordingSchema.omit({
+  id: true,
+  userId: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type SessionRecording = z.infer<typeof sessionRecordingSchema>;
+export type InsertSessionRecording = z.infer<typeof insertSessionRecordingSchema>;
+
+export const progressNoteSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  logEntryId: z.string(),
+  sessionRecordingId: z.string().optional(),
+  noteType: z.enum(["manual", "ai_assisted", "auto_generated"]).default("manual"),
+  content: z.string(),
+  aiSuggestions: z.object({
+    originalContent: z.string(),
+    suggestedImprovements: z.array(z.string()),
+    complianceChecks: z.array(z.object({
+      rule: z.string(),
+      status: z.enum(["pass", "warning", "fail"]),
+      suggestion: z.string()
+    })),
+    billingCodes: z.array(z.string())
+  }).optional(),
+  timeToComplete: z.number().optional(),
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date()),
+});
+
+export const insertProgressNoteSchema = progressNoteSchema.omit({
+  id: true,
+  userId: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type ProgressNote = z.infer<typeof progressNoteSchema>;
+export type InsertProgressNote = z.infer<typeof insertProgressNoteSchema>;
+
+// Risk Assessment Schemas
+export const riskAssessmentSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  sessionRecordingId: z.string().optional(),
+  logEntryId: z.string(),
+  assessmentType: z.enum(["automated", "manual", "triggered"]).default("automated"),
+  riskLevel: z.enum(["low", "medium", "high", "critical"]).default("low"),
+  indicators: z.object({
+    suicidalIdeation: z.boolean().default(false),
+    homicidalIdeation: z.boolean().default(false),
+    substanceAbuse: z.boolean().default(false),
+    domesticViolence: z.boolean().default(false),
+    childAbuse: z.boolean().default(false),
+    psychosis: z.boolean().default(false),
+    selfHarm: z.boolean().default(false)
+  }),
+  immediateActions: z.array(z.string()).default([]),
+  supervisionRequired: z.boolean().default(false),
+  followUpDate: z.date().optional(),
+  resolution: z.string().optional(),
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date()),
+});
+
+export const insertRiskAssessmentSchema = riskAssessmentSchema.omit({
+  id: true,
+  userId: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type RiskAssessment = z.infer<typeof riskAssessmentSchema>;
+export type InsertRiskAssessment = z.infer<typeof insertRiskAssessmentSchema>;
+
 // Dinger User Profile Schema - for personalized AI coaching
 export const dingerUserProfileTable = pgTable('dinger_user_profiles', {
   id: varchar('id', { length: 255 }).primaryKey(),
