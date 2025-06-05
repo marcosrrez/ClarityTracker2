@@ -35,29 +35,30 @@ import {
 } from "lucide-react";
 
 const getNavigationItems = (accountType: string, permissions: any) => {
-  // Routine-inspired organization: Primary navigation first, admin/settings separated
+  // Primary navigation - top 6 most used items
   const primaryItems = [
-    { href: "/dashboard", label: "Dashboard", icon: ChartLine, group: "main" },
-    { href: "/add-entry", label: "Add Entry", icon: Plus, group: "main" },
+    { href: "/dashboard", label: "Dashboard", icon: ChartLine, group: "primary" },
+    { href: "/add-entry", label: "Add Entry", icon: Plus, group: "primary" },
+    { href: "/insights", label: "Insights & Resources", icon: Brain, group: "primary" },
+    { href: "/research-library", label: "Research Library", icon: BookOpen, group: "primary" },
+    { href: "/summary", label: "Summary", icon: BarChart3, group: "primary" },
+    { href: "/requirements", label: "Requirements", icon: ClipboardList, group: "primary" },
   ];
 
-  const trackingItems = [
-    { href: "/insights", label: "Insights & Resources", icon: Brain, group: "tracking" },
-    { href: "/research-library", label: "Research Library", icon: BookOpen, group: "tracking" },
-    { href: "/summary", label: "Summary", icon: BarChart3, group: "tracking" },
-    { href: "/requirements", label: "Requirements", icon: ClipboardList, group: "tracking" },
-    { href: "/supervisors", label: "Supervisors", icon: Users, group: "tracking" },
+  // Secondary items - less frequently used
+  const secondaryItems = [
+    { href: "/supervisors", label: "Supervisors", icon: Users, group: "secondary" },
   ];
 
   const supervisorItems = [
-    { href: "/supervisees", label: "Supervisees", icon: Users, group: "supervision" },
-    { href: "/compliance", label: "Compliance", icon: Shield, group: "supervision" },
-    { href: "/reports", label: "Reports", icon: FileText, group: "supervision" },
+    { href: "/supervisees", label: "Supervisees", icon: Users, group: "secondary" },
+    { href: "/compliance", label: "Compliance", icon: Shield, group: "secondary" },
+    { href: "/reports", label: "Reports", icon: FileText, group: "secondary" },
   ];
 
   const enterpriseItems = [
-    { href: "/organization", label: "Organization", icon: Building2, group: "admin" },
-    { href: "/user-management", label: "User Management", icon: Users, group: "admin" },
+    { href: "/organization", label: "Organization", icon: Building2, group: "secondary" },
+    { href: "/user-management", label: "User Management", icon: Users, group: "secondary" },
   ];
 
   const settingsItems = [
@@ -66,15 +67,16 @@ const getNavigationItems = (accountType: string, permissions: any) => {
     { href: "/help", label: "Help", icon: HelpCircle, group: "settings" },
   ];
 
-  let items = [...primaryItems, ...trackingItems];
+  // Combine all secondary items
+  const allSecondaryItems = [
+    ...secondaryItems,
+    ...(permissions?.supervisor ? supervisorItems : []),
+    ...(accountType === 'enterprise' ? enterpriseItems : []),
+    ...settingsItems,
+  ];
 
-  if (accountType === 'enterprise') {
-    items = [...items, ...supervisorItems, ...enterpriseItems];
-  } else if (accountType === 'supervisor') {
-    items = [...items, ...supervisorItems];
-  }
-
-  return [...items, ...settingsItems];
+  // Return primary items first, then all secondary items
+  return [...primaryItems, ...allSecondaryItems];
 };
 
 interface SidebarProps {
@@ -115,10 +117,10 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
           </SheetTitle>
         </SheetHeader>
 
-        <nav className="flex-1 p-6 space-y-8">
-          {/* Main navigation - prominent placement like Routine */}
+        <nav className="flex-1 p-6 flex flex-col">
+          {/* Primary navigation - top 6 items with tight spacing */}
           <div className="space-y-1">
-            {navigationItems.filter(item => item.group === 'main').map((item) => {
+            {navigationItems.filter(item => item.group === 'primary').map((item) => {
               const Icon = item.icon;
               const isActive = location === item.href;
               
@@ -144,45 +146,13 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
             })}
           </div>
 
-          {/* Secondary navigation groups with wide spacing like Routine */}
-          {['tracking', 'supervision', 'admin'].map((group) => {
-            const groupItems = navigationItems.filter(item => item.group === group);
-            if (groupItems.length === 0) return null;
-            
-            return (
-              <div key={group} className="space-y-1">
-                {groupItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = location === item.href;
-                  
-                  return (
-                    <Link key={item.href} href={item.href}>
-                      <div
-                        className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer ${
-                          isActive
-                            ? 'bg-blue-600 text-white shadow-sm'
-                            : 'text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
-                        }`}
-                        onClick={() => onOpenChange(false)}
-                      >
-                        <Icon className={`h-4 w-4 flex-shrink-0 ${
-                          isActive 
-                            ? 'text-white' 
-                            : 'text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300'
-                        }`} />
-                        <span className="truncate">{item.label}</span>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            );
-          })}
+          {/* Spacer to push secondary items to bottom */}
+          <div className="flex-1" />
           
-          {/* Settings section - widely separated at bottom like Routine */}
-          <div className="pt-8 border-t border-gray-200 dark:border-gray-700">
+          {/* Secondary navigation - all other items at bottom with border separator */}
+          <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
             <div className="space-y-1">
-              {navigationItems.filter(item => item.group === 'settings').map((item) => {
+              {navigationItems.filter(item => item.group === 'secondary' || item.group === 'settings').map((item) => {
                 const Icon = item.icon;
                 const isActive = location === item.href;
                 
