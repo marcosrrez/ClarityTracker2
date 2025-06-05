@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Calendar, Sparkles, Search, Plus, Filter, Tags, Upload, Download, Mail, X, Send, MessageCircle, Globe, BookmarkPlus } from "lucide-react";
+import { Calendar, Sparkles, Search, Plus, Filter, Tags, Upload, Download, Mail, X, Send, MessageCircle, Globe, BookmarkPlus, Copy } from "lucide-react";
 import { LoadingQuoteCompact } from "@/components/ui/loading-quote";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -1530,7 +1530,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                                     if (!user) return;
                                     try {
                                       const newCard = {
-                                        type: 'insight' as const,
+                                        type: 'note' as const,
                                         title: `AI Coaching Insight - ${format(new Date(), "MMM d, yyyy")}`,
                                         content: message.content,
                                         tags: ['ai-coaching', 'dinger-response'],

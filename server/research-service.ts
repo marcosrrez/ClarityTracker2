@@ -261,20 +261,51 @@ export class ResearchService {
    */
   async summarizeContent(content: ScrapedContent, userContext?: string): Promise<string> {
     const prompt = `
-Summarize this research article for a Licensed Associate Counselor. Focus on:
-- Key findings and conclusions
-- Practical applications for therapy
-- Important insights for professional practice
-- Relevant therapeutic techniques or approaches
+As a senior clinical supervisor and research expert, provide a comprehensive, structured summary of this research article for Licensed Associate Counselors and mental health professionals. 
 
-${userContext ? `User context: ${userContext}` : ''}
+Structure your response with clear sections:
+
+### Executive Summary
+Brief overview of the study's purpose and main findings
+
+### Key Findings & Results
+Detailed breakdown of research outcomes, statistical significance, and clinical implications
+
+### Methodology & Participants
+Study design, sample size, demographics, and research methods used
+
+### Clinical Applications
+Specific, actionable applications for therapeutic practice including:
+- Treatment protocols and techniques
+- Assessment considerations
+- Intervention strategies
+- Client population considerations
+
+### Theoretical Implications
+How findings relate to existing counseling theories and frameworks
+
+### Professional Development Insights
+What practitioners should know, including:
+- Supervision topics
+- Training considerations
+- Ethical implications
+- Cultural competency factors
+
+### Limitations & Future Research
+Study limitations and directions for future investigation
+
+### Practice Recommendations
+Specific recommendations for implementation in clinical settings
+
+${userContext ? `\nUser Context: ${userContext}` : ''}
 
 Article: ${content.title}
 Source: ${content.source}
+Word Count: ${content.wordCount}
 
 Content: ${content.content}
 
-Provide a clear, professional summary in 3-4 paragraphs.`;
+Provide a comprehensive, detailed analysis that demonstrates deep understanding of the research and its clinical applications. Use professional terminology while remaining accessible to practitioners at all levels.`;
 
     try {
       // Use Google AI as primary since it's working
