@@ -27,7 +27,13 @@ import {
   insertResearchCollectionSchema,
   insertSavedResearchSchema,
   dingerUserProfileTable,
-  dingerConversationMemoryTable
+  dingerConversationMemoryTable,
+  clientTable,
+  insertClientSchema,
+  sharedInsightTable,
+  insertSharedInsightSchema,
+  clientProgressTable,
+  insertClientProgressSchema
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql } from "drizzle-orm";
@@ -3487,6 +3493,214 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
     } catch (error) {
       console.error('Get Dinger analytics error:', error);
       res.status(500).json({ error: 'Failed to get analytics' });
+    }
+  });
+
+  // Client Portal API Routes
+  
+  // Get all clients for a therapist
+  app.get('/api/clients/:therapistId', async (req, res) => {
+    try {
+      const { therapistId } = req.params;
+      const clients = await db.select().from(clientTable)
+        .where(eq(clientTable.therapistId, therapistId))
+        .orderBy(desc(clientTable.createdAt));
+      
+      res.json({ clients });
+    } catch (error) {
+      console.error('Get clients error:', error);
+      res.status(500).json({ error: 'Failed to get clients' });
+    }
+  });
+
+  // Create new client
+  app.post('/api/clients', async (req, res) => {
+    try {
+      const clientData = insertClientSchema.parse(req.body);
+      const clientId = `client_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      const [client] = await db.insert(clientTable).values({
+        id: clientId,
+        ...clientData,
+        emergencyContact: clientData.emergencyContact ? JSON.stringify(clientData.emergencyContact) : null,
+        portalAccess: clientData.portalAccess ? 'true' : 'false',
+        consentToShare: clientData.consentToShare ? 'true' : 'false'
+      }).returning();
+      
+      res.json({ client });
+    } catch (error) {
+      console.error('Create client error:', error);
+      res.status(500).json({ error: 'Failed to create client' });
+    }
+  });
+
+  // Update client
+  app.put('/api/clients/:clientId', async (req, res) => {
+    try {
+      const { clientId } = req.params;
+      const updateData = req.body;
+      
+      const [client] = await db.update(clientTable)
+        .set({
+          ...updateData,
+          emergencyContact: updateData.emergencyContact ? JSON.stringify(updateData.emergencyContact) : null,
+          portalAccess: updateData.portalAccess ? 'true' : 'false',
+          consentToShare: updateData.consentToShare ? 'true' : 'false',
+          updatedAt: new Date()
+        })
+        .where(eq(clientTable.id, clientId))
+        .returning();
+      
+      res.json({ client });
+    } catch (error) {
+      console.error('Update client error:', error);
+      res.status(500).json({ error: 'Failed to update client' });
+    }
+  });
+
+  // Shared Insights API Routes
+  
+  // Get shared insights for a client
+  app.get('/api/insights/client/:clientId', async (req, res) => {
+    try {
+      const { clientId } = req.params;
+      const insights = await db.select().from(sharedInsightTable)
+        .where(and(
+          eq(sharedInsightTable.clientId, clientId),
+          eq(sharedInsightTable.isArchived, 'false')
+        ))
+        .orderBy(desc(sharedInsightTable.createdAt));
+      
+      const parsedInsights = insights.map(insight => ({
+        ...insight,
+        tags: typeof insight.tags === 'string' ? JSON.parse(insight.tags) : insight.tags || [],
+        isRead: insight.isRead === 'true',
+        isArchived: insight.isArchived === 'true'
+      }));
+      
+      res.json({ insights: parsedInsights });
+    } catch (error) {
+      console.error('Get client insights error:', error);
+      res.status(500).json({ error: 'Failed to get insights' });
+    }
+  });
+
+  // Get shared insights for a therapist
+  app.get('/api/insights/therapist/:therapistId', async (req, res) => {
+    try {
+      const { therapistId } = req.params;
+      const { clientId } = req.query;
+      
+      let query = db.select().from(sharedInsightTable)
+        .where(eq(sharedInsightTable.therapistId, therapistId));
+      
+      if (clientId) {
+        query = query.where(and(
+          eq(sharedInsightTable.therapistId, therapistId),
+          eq(sharedInsightTable.clientId, clientId as string)
+        ));
+      }
+      
+      const insights = await query.orderBy(desc(sharedInsightTable.createdAt));
+      
+      const parsedInsights = insights.map(insight => ({
+        ...insight,
+        tags: typeof insight.tags === 'string' ? JSON.parse(insight.tags) : insight.tags || [],
+        isRead: insight.isRead === 'true',
+        isArchived: insight.isArchived === 'true'
+      }));
+      
+      res.json({ insights: parsedInsights });
+    } catch (error) {
+      console.error('Get therapist insights error:', error);
+      res.status(500).json({ error: 'Failed to get insights' });
+    }
+  });
+
+  // Create shared insight
+  app.post('/api/insights', async (req, res) => {
+    try {
+      const insightData = insertSharedInsightSchema.parse(req.body);
+      const insightId = `insight_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      const [insight] = await db.insert(sharedInsightTable).values({
+        id: insightId,
+        ...insightData,
+        tags: JSON.stringify(insightData.tags || []),
+        isRead: 'false',
+        isArchived: 'false'
+      }).returning();
+      
+      res.json({ insight });
+    } catch (error) {
+      console.error('Create insight error:', error);
+      res.status(500).json({ error: 'Failed to create insight' });
+    }
+  });
+
+  // Mark insight as read
+  app.put('/api/insights/:insightId/read', async (req, res) => {
+    try {
+      const { insightId } = req.params;
+      
+      const [insight] = await db.update(sharedInsightTable)
+        .set({
+          isRead: 'true',
+          readAt: new Date(),
+          updatedAt: new Date()
+        })
+        .where(eq(sharedInsightTable.id, insightId))
+        .returning();
+      
+      res.json({ insight });
+    } catch (error) {
+      console.error('Mark read error:', error);
+      res.status(500).json({ error: 'Failed to mark insight as read' });
+    }
+  });
+
+  // Client Progress API Routes
+  
+  // Get client progress data
+  app.get('/api/progress/:clientId', async (req, res) => {
+    try {
+      const { clientId } = req.params;
+      const { progressType } = req.query;
+      
+      let query = db.select().from(clientProgressTable)
+        .where(eq(clientProgressTable.clientId, clientId));
+      
+      if (progressType) {
+        query = query.where(and(
+          eq(clientProgressTable.clientId, clientId),
+          eq(clientProgressTable.progressType, progressType as string)
+        ));
+      }
+      
+      const progress = await query.orderBy(desc(clientProgressTable.measuredAt));
+      
+      res.json({ progress });
+    } catch (error) {
+      console.error('Get progress error:', error);
+      res.status(500).json({ error: 'Failed to get progress data' });
+    }
+  });
+
+  // Add progress data point
+  app.post('/api/progress', async (req, res) => {
+    try {
+      const progressData = insertClientProgressSchema.parse(req.body);
+      const progressId = `progress_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      const [progress] = await db.insert(clientProgressTable).values({
+        id: progressId,
+        ...progressData
+      }).returning();
+      
+      res.json({ progress });
+    } catch (error) {
+      console.error('Add progress error:', error);
+      res.status(500).json({ error: 'Failed to add progress data' });
     }
   });
 

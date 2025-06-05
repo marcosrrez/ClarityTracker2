@@ -41,6 +41,7 @@ import ResearchLibrary from "@/pages/ResearchLibrary";
 import TestSessionIntelligence from "@/pages/TestSessionIntelligence";
 import SessionRecording from "@/pages/SessionRecording";
 import SupervisorAnalytics from "@/pages/SupervisorAnalytics";
+import ClientPortal from "@/pages/ClientPortal";
 
 import NotFound from "@/pages/not-found";
 
@@ -83,6 +84,11 @@ function Router() {
       <Route path="/test-session-intelligence" component={TestSessionIntelligence} />
       <Route path="/session-recording" component={SessionRecording} />
       <Route path="/supervisor-analytics" component={SupervisorAnalytics} />
+      <Route path="/client-portal">
+        <AuthGuard>
+          {({ user }) => <ClientPortal userId={user.uid} />}
+        </AuthGuard>
+      </Route>
       <Route path="/account-setup">
         <AuthGuard requireAccountSetup={false}>
           <AccountSetupPage />

@@ -42,6 +42,7 @@ const getNavigationItems = (accountType: string, permissions: any) => {
     { href: "/dashboard", label: "Dashboard", icon: ChartLine, group: "primary" },
     { href: "/add-entry", label: "Add Entry", icon: Plus, group: "primary" },
     { href: "/session-recording", label: "Session Recording", icon: Mic, group: "primary" },
+    { href: "/client-portal", label: "Client Portal", icon: MessageSquare, group: "primary" },
     { href: "/insights", label: "Insights & Resources", icon: Brain, group: "primary" },
     { href: "/research-library", label: "Research Library", icon: BookOpen, group: "primary" },
     { href: "/supervisors", label: "Supervisors", icon: Users, group: "primary" },
