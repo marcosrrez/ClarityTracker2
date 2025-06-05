@@ -42,12 +42,12 @@ const getNavigationItems = (accountType: string, permissions: any) => {
     { href: "/insights", label: "Insights & Resources", icon: Brain, group: "primary" },
     { href: "/research-library", label: "Research Library", icon: BookOpen, group: "primary" },
     { href: "/summary", label: "Summary", icon: BarChart3, group: "primary" },
-    { href: "/requirements", label: "Requirements", icon: ClipboardList, group: "primary" },
+    { href: "/supervisors", label: "Supervisors", icon: Users, group: "primary" },
   ];
 
   // Secondary items - less frequently used
   const secondaryItems = [
-    { href: "/supervisors", label: "Supervisors", icon: Users, group: "secondary" },
+    { href: "/requirements", label: "Requirements", icon: ClipboardList, group: "secondary" },
   ];
 
   const supervisorItems = [
