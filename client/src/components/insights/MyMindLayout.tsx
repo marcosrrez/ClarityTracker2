@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Calendar, Sparkles, Search, Plus, Filter, Tags, Upload, Download, Mail, X, Send, MessageCircle, Globe } from "lucide-react";
+import { Calendar, Sparkles, Search, Plus, Filter, Tags, Upload, Download, Mail, X, Send, MessageCircle, Globe, BookmarkPlus } from "lucide-react";
 import { LoadingQuoteCompact } from "@/components/ui/loading-quote";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -318,6 +318,45 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
       }));
     } finally {
       setIsAiLoading(false);
+    }
+  };
+
+  // Handle saving research to collections
+  const handleSaveResearch = async (result: any) => {
+    if (!user?.uid) return;
+    
+    try {
+      const response = await fetch('/api/research/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.uid,
+          title: result.title,
+          url: result.url,
+          domain: result.domain,
+          source: result.source,
+          snippet: result.snippet,
+          authors: result.authors || [],
+          publishDate: result.publishDate,
+          tags: []
+        })
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Research Saved",
+          description: `"${result.title}" has been saved to your research collection.`,
+        });
+      } else {
+        throw new Error('Failed to save research');
+      }
+    } catch (error) {
+      console.error('Save research error:', error);
+      toast({
+        title: "Save Failed",
+        description: "Unable to save research paper. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -1501,6 +1540,15 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                                               <Search className="h-3 w-3 mr-1" />
                                             )}
                                             Summarize
+                                          </Button>
+                                          <Button
+                                            size="sm"
+                                            variant="default"
+                                            onClick={() => handleSaveResearch(result)}
+                                            className="text-xs h-8 bg-emerald-600 hover:bg-emerald-700"
+                                          >
+                                            <BookmarkPlus className="h-3 w-3 mr-1" />
+                                            Save
                                           </Button>
                                           <Button
                                             size="sm"

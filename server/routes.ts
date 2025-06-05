@@ -26,6 +26,8 @@ import {
   insertResearchCollectionSchema,
   insertSavedResearchSchema 
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, desc } from "drizzle-orm";
 
 // Email reminder scheduling function
 async function scheduleSessionReminders(session: any, reminderDays: number) {
