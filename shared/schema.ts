@@ -370,6 +370,145 @@ export const insertSuperviseeRelationshipSchema = superviseeRelationshipSchema.o
 export type SuperviseeRelationship = z.infer<typeof superviseeRelationshipSchema>;
 export type InsertSuperviseeRelationship = z.infer<typeof insertSuperviseeRelationshipSchema>;
 
+// Client Portal Schema - for managing client accounts and access
+export const clientTable = pgTable('clients', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  therapistId: varchar('therapist_id', { length: 255 }).notNull(),
+  firstName: varchar('first_name', { length: 100 }).notNull(),
+  lastName: varchar('last_name', { length: 100 }).notNull(),
+  email: varchar('email', { length: 255 }).notNull(),
+  phone: varchar('phone', { length: 50 }),
+  dateOfBirth: timestamp('date_of_birth'),
+  emergencyContact: text('emergency_contact'), // JSON object
+  status: varchar('status', { length: 20 }).notNull().default('active'), // active, inactive, discharged
+  portalAccess: varchar('portal_access', { length: 10 }).default('true'),
+  consentToShare: varchar('consent_to_share', { length: 10 }).default('false'),
+  lastLogin: timestamp('last_login'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const clientSchema = z.object({
+  id: z.string(),
+  therapistId: z.string(),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  email: z.string().email("Valid email required"),
+  phone: z.string().optional(),
+  dateOfBirth: z.date().optional(),
+  emergencyContact: z.object({
+    name: z.string(),
+    relationship: z.string(),
+    phone: z.string(),
+    email: z.string().optional()
+  }).optional(),
+  status: z.enum(['active', 'inactive', 'discharged']).default('active'),
+  portalAccess: z.boolean().default(true),
+  consentToShare: z.boolean().default(false),
+  lastLogin: z.date().optional(),
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date()),
+});
+
+export const insertClientSchema = clientSchema.omit({
+  id: true,
+  lastLogin: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type Client = z.infer<typeof clientSchema>;
+export type InsertClient = z.infer<typeof insertClientSchema>;
+
+// Shared Session Insights Schema - for therapist-client shared content
+export const sharedInsightTable = pgTable('shared_insights', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  therapistId: varchar('therapist_id', { length: 255 }).notNull(),
+  clientId: varchar('client_id', { length: 255 }).notNull(),
+  sessionId: varchar('session_id', { length: 255 }), // Optional link to log entry
+  type: varchar('type', { length: 50 }).notNull(), // insight, note, resource, milestone, homework
+  title: varchar('title', { length: 255 }).notNull(),
+  content: text('content').notNull(),
+  therapistNotes: text('therapist_notes'), // Private notes for therapist only
+  category: varchar('category', { length: 50 }), // progress, breakthrough, challenge, growth
+  tags: text('tags'), // JSON array of tags
+  isRead: varchar('is_read', { length: 10 }).default('false'),
+  readAt: timestamp('read_at'),
+  priority: varchar('priority', { length: 20 }).default('normal'), // low, normal, high
+  expiresAt: timestamp('expires_at'), // Optional expiration for homework/tasks
+  isArchived: varchar('is_archived', { length: 10 }).default('false'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const sharedInsightSchema = z.object({
+  id: z.string(),
+  therapistId: z.string(),
+  clientId: z.string(),
+  sessionId: z.string().optional(),
+  type: z.enum(['insight', 'note', 'resource', 'milestone', 'homework']),
+  title: z.string().min(1, "Title is required"),
+  content: z.string().min(1, "Content is required"),
+  therapistNotes: z.string().optional(),
+  category: z.enum(['progress', 'breakthrough', 'challenge', 'growth']).optional(),
+  tags: z.array(z.string()).default([]),
+  isRead: z.boolean().default(false),
+  readAt: z.date().optional(),
+  priority: z.enum(['low', 'normal', 'high']).default('normal'),
+  expiresAt: z.date().optional(),
+  isArchived: z.boolean().default(false),
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date()),
+});
+
+export const insertSharedInsightSchema = sharedInsightSchema.omit({
+  id: true,
+  isRead: true,
+  readAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type SharedInsight = z.infer<typeof sharedInsightSchema>;
+export type InsertSharedInsight = z.infer<typeof insertSharedInsightSchema>;
+
+// Client Progress Tracking Schema
+export const clientProgressTable = pgTable('client_progress', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  clientId: varchar('client_id', { length: 255 }).notNull(),
+  therapistId: varchar('therapist_id', { length: 255 }).notNull(),
+  sessionId: varchar('session_id', { length: 255 }).notNull(),
+  progressType: varchar('progress_type', { length: 50 }).notNull(), // mood, goals, symptoms, skills
+  metric: varchar('metric', { length: 100 }).notNull(),
+  value: varchar('value', { length: 50 }).notNull(), // Could be number, scale, text
+  scale: varchar('scale', { length: 50 }), // 1-10, percentage, etc.
+  notes: text('notes'),
+  measuredAt: timestamp('measured_at').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const clientProgressSchema = z.object({
+  id: z.string(),
+  clientId: z.string(),
+  therapistId: z.string(),
+  sessionId: z.string(),
+  progressType: z.enum(['mood', 'goals', 'symptoms', 'skills']),
+  metric: z.string().min(1, "Metric is required"),
+  value: z.string().min(1, "Value is required"),
+  scale: z.string().optional(),
+  notes: z.string().optional(),
+  measuredAt: z.date(),
+  createdAt: z.date().default(() => new Date()),
+});
+
+export const insertClientProgressSchema = clientProgressSchema.omit({
+  id: true,
+  createdAt: true,
+});
+
+export type ClientProgress = z.infer<typeof clientProgressSchema>;
+export type InsertClientProgress = z.infer<typeof insertClientProgressSchema>;
+
 // Competency Assessment Schema - for tracking supervisee development
 export const competencyAssessmentTable = pgTable('competency_assessments', {
   id: varchar('id', { length: 255 }).primaryKey(),
