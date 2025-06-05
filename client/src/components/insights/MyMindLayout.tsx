@@ -547,15 +547,39 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
       await createInsightCard(user.uid, newCard);
       setSearchQuery("");
       
+      const remaining = data.remainingAnalyses || 0;
       toast({
         title: "AI Analysis Complete",
-        description: "Content analyzed and saved as insight card",
+        description: `Content analyzed and saved. ${remaining} AI analyses remaining today.`,
       });
 
       if (onRefresh) {
         await onRefresh();
       }
     } catch (error) {
+      // Check if it's a limit error
+      if (error instanceof Error && error.message.includes('Failed to analyze content')) {
+        try {
+          const errorResponse = await fetch('/api/ai/analyze-content', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: content.trim(), userId: user.uid }),
+          });
+          
+          if (errorResponse.status === 429) {
+            const errorData = await errorResponse.json();
+            await handleCreateInsightCard(content);
+            toast({
+              title: "Daily Limit Reached",
+              description: errorData.analysis,
+            });
+            return;
+          }
+        } catch (limitCheckError) {
+          // Continue with fallback
+        }
+      }
+      
       // Fallback to simple save if AI analysis fails
       await handleCreateInsightCard(content);
       toast({

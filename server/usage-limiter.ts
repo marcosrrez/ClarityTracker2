@@ -7,6 +7,7 @@ interface UserUsage {
   userId: string;
   date: string;
   aiCallsUsed: number;
+  analysisCallsUsed: number;
   lastReset: Date;
 }
 
@@ -16,6 +17,8 @@ const usageStore = new Map<string, UserUsage>();
 // Configuration
 const DAILY_AI_LIMIT = 50; // Free tier: 50 AI responses per day
 const PREMIUM_AI_LIMIT = 200; // Premium tier: 200 AI responses per day
+const DAILY_ANALYSIS_LIMIT = 10; // Free tier: 10 AI analyses per day
+const PREMIUM_ANALYSIS_LIMIT = 30; // Premium tier: 30 AI analyses per day
 const RESET_HOUR = 0; // Reset at midnight UTC
 
 export class UsageLimiter {
@@ -37,6 +40,35 @@ export class UsageLimiter {
     const usage = this.getUserUsage(userId);
     usage.aiCallsUsed += 1;
     usageStore.set(userId, usage);
+  }
+
+  /**
+   * Check if user can make an AI analysis call
+   */
+  static canUseAnalysis(userId: string, isPremium: boolean = false): boolean {
+    const usage = this.getUserUsage(userId);
+    const limit = isPremium ? PREMIUM_ANALYSIS_LIMIT : DAILY_ANALYSIS_LIMIT;
+    
+    return usage.analysisCallsUsed < limit;
+  }
+
+  /**
+   * Record an AI analysis call
+   */
+  static recordAnalysisCall(userId: string): void {
+    const usage = this.getUserUsage(userId);
+    usage.analysisCallsUsed += 1;
+    usageStore.set(userId, usage);
+  }
+
+  /**
+   * Get remaining analysis calls for user
+   */
+  static getRemainingAnalysis(userId: string, isPremium: boolean = false): number {
+    const usage = this.getUserUsage(userId);
+    const limit = isPremium ? PREMIUM_ANALYSIS_LIMIT : DAILY_ANALYSIS_LIMIT;
+    
+    return Math.max(0, limit - usage.analysisCallsUsed);
   }
   
   /**
@@ -62,6 +94,7 @@ export class UsageLimiter {
         userId,
         date: today,
         aiCallsUsed: 0,
+        analysisCallsUsed: 0,
         lastReset: new Date()
       };
       usageStore.set(userId, newUsage);

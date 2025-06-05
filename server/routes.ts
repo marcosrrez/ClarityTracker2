@@ -1362,11 +1362,17 @@ Respond as a knowledgeable colleague who understands the nuances of mental healt
       // Import usage limiter
       const { UsageLimiter } = await import('./usage-limiter');
       
-      // Check if user has remaining AI calls
-      if (!UsageLimiter.canUseAI(userId)) {
+      // Check if user has remaining analysis calls
+      if (!UsageLimiter.canUseAnalysis(userId)) {
+        const remaining = UsageLimiter.getRemainingAnalysis(userId);
+        const nextReset = new Date();
+        nextReset.setDate(nextReset.getDate() + 1);
+        nextReset.setHours(0, 0, 0, 0);
+        const hoursUntilReset = Math.ceil((nextReset.getTime() - Date.now()) / (1000 * 60 * 60));
+        
         return res.status(429).json({ 
-          error: 'AI usage limit reached',
-          analysis: 'AI analysis temporarily unavailable due to usage limits.'
+          error: 'Daily AI analysis limit reached',
+          analysis: `You've reached your daily limit of 10 AI analyses. Your limit resets in ${hoursUntilReset} hours. Content has been saved as a regular insight card instead.`
         });
       }
 
@@ -1420,14 +1426,17 @@ Keep the analysis practical and relevant to counseling practice.`;
         }
       }
 
-      // Record successful AI call
+      // Record successful analysis call
       if (usedProvider !== 'none') {
-        UsageLimiter.recordAICall(userId);
+        UsageLimiter.recordAnalysisCall(userId);
       }
 
+      const remainingAnalyses = UsageLimiter.getRemainingAnalysis(userId);
+      
       res.json({ 
         analysis: analysisResult,
-        provider: usedProvider
+        provider: usedProvider,
+        remainingAnalyses: remainingAnalyses
       });
     } catch (error) {
       console.error('AI content analysis error:', error);
