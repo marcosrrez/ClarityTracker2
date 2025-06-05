@@ -45,6 +45,7 @@ interface SavedResearch {
   publishDate?: string;
   citationApa?: string;
   summary?: string;
+  summaryGenerated?: string;
   tags: string[];
   notes?: string;
   isFavorite: boolean;
@@ -353,7 +354,7 @@ export default function ResearchLibrary() {
                     >
                       {(() => {
                         // Use comprehensive summary if available, fallback to snippet
-                        const summary = paper.summary || paper.snippet || '';
+                        const summary = paper.summaryGenerated || paper.summary || paper.snippet || '';
                         const cleanedText = summary.trim();
                         
                         // If we have a comprehensive summary, show structured preview
@@ -482,10 +483,10 @@ export default function ResearchLibrary() {
                 )}
 
                 {/* Comprehensive Analysis - Premium Typography */}
-                {selectedPaper?.summary && (
+                {(selectedPaper?.summaryGenerated || selectedPaper?.summary) && (
                   <div>
                     <h4 className="font-medium text-gray-900 dark:text-white mb-4">
-                      {(selectedPaper.summary.includes('###') || selectedPaper.summary.includes('Executive Summary'))
+                      {((selectedPaper.summaryGenerated || selectedPaper.summary || '').includes('###') || (selectedPaper.summaryGenerated || selectedPaper.summary || '').includes('Executive Summary'))
                         ? 'Comprehensive Analysis' 
                         : 'Summary'}
                     </h4>
@@ -498,7 +499,7 @@ export default function ResearchLibrary() {
                         letterSpacing: '0.01em'
                       }}
                       dangerouslySetInnerHTML={{
-                        __html: selectedPaper.summary
+                        __html: (selectedPaper.summaryGenerated || selectedPaper.summary || '')
                           .replace(/### (.*?)$/gm, '<h4 class="font-semibold text-gray-900 dark:text-white mt-8 mb-4 text-base">$1</h4>')
                           .replace(/## (.*?)$/gm, '<h3 class="font-semibold text-gray-900 dark:text-white mt-10 mb-5 text-lg">$1</h3>')
                           .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-gray-900 dark:text-white">$1</strong>')
@@ -513,7 +514,7 @@ export default function ResearchLibrary() {
                 )}
 
                 {/* Snippet if no summary */}
-                {!selectedPaper?.summary && selectedPaper?.snippet && (
+                {!(selectedPaper?.summaryGenerated || selectedPaper?.summary) && selectedPaper?.snippet && (
                   <div>
                     <h4 className="font-medium text-gray-900 dark:text-white mb-4">Abstract</h4>
                     <div 
