@@ -2930,6 +2930,185 @@ Please provide a helpful, professional response that's personalized to their sit
     }
   });
 
+  // Advanced Dinger API Routes
+  app.post('/api/dinger/enhanced-chat', async (req, res) => {
+    try {
+      const { query, userId, mode } = req.body;
+      
+      if (!query || !userId) {
+        return res.status(400).json({ error: 'Query and userId are required' });
+      }
+
+      const { advancedDinger } = await import('./advanced-dinger-service');
+      const response = await advancedDinger.generateEnhancedResponse(query, userId, mode);
+      
+      res.json(response);
+    } catch (error) {
+      console.error('Enhanced Dinger chat error:', error);
+      res.status(500).json({ error: 'Failed to generate enhanced response' });
+    }
+  });
+
+  app.get('/api/dinger/profile/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      const profile = await db.select()
+        .from(dingerUserProfileTable)
+        .where(eq(dingerUserProfileTable.userId, userId))
+        .limit(1);
+        
+      if (profile.length === 0) {
+        return res.json({ profile: null });
+      }
+      
+      // Parse JSON fields
+      const profileData = {
+        ...profile[0],
+        primaryModalities: JSON.parse(profile[0].primaryModalities || '[]'),
+        clientPopulations: JSON.parse(profile[0].clientPopulations || '[]'),
+        strengthAreas: JSON.parse(profile[0].strengthAreas || '[]'),
+        challengeAreas: JSON.parse(profile[0].challengeAreas || '[]'),
+        recentFocusAreas: JSON.parse(profile[0].recentFocusAreas || '[]'),
+        adaptiveSettings: JSON.parse(profile[0].adaptiveSettings || '{}')
+      };
+      
+      res.json({ profile: profileData });
+    } catch (error) {
+      console.error('Get Dinger profile error:', error);
+      res.status(500).json({ error: 'Failed to get user profile' });
+    }
+  });
+
+  app.post('/api/dinger/profile', async (req, res) => {
+    try {
+      const profileData = req.body;
+      
+      // Convert arrays to JSON strings for storage
+      const dataToStore = {
+        ...profileData,
+        id: `dinger_profile_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        primaryModalities: JSON.stringify(profileData.primaryModalities || []),
+        clientPopulations: JSON.stringify(profileData.clientPopulations || []),
+        strengthAreas: JSON.stringify(profileData.strengthAreas || []),
+        challengeAreas: JSON.stringify(profileData.challengeAreas || []),
+        recentFocusAreas: JSON.stringify(profileData.recentFocusAreas || []),
+        adaptiveSettings: JSON.stringify(profileData.adaptiveSettings || {})
+      };
+
+      const result = await db.insert(dingerUserProfileTable)
+        .values(dataToStore)
+        .onConflictDoUpdate({
+          target: dingerUserProfileTable.userId,
+          set: {
+            experienceLevel: dataToStore.experienceLevel,
+            monthsOfExperience: dataToStore.monthsOfExperience,
+            primaryModalities: dataToStore.primaryModalities,
+            clientPopulations: dataToStore.clientPopulations,
+            strengthAreas: dataToStore.strengthAreas,
+            challengeAreas: dataToStore.challengeAreas,
+            learningStyle: dataToStore.learningStyle,
+            communicationPreference: dataToStore.communicationPreference,
+            recentFocusAreas: dataToStore.recentFocusAreas,
+            confidenceLevel: dataToStore.confidenceLevel,
+            preferredMode: dataToStore.preferredMode,
+            adaptiveSettings: dataToStore.adaptiveSettings,
+            updatedAt: new Date()
+          }
+        })
+        .returning();
+        
+      res.json({ profile: result[0] });
+    } catch (error) {
+      console.error('Save Dinger profile error:', error);
+      res.status(500).json({ error: 'Failed to save user profile' });
+    }
+  });
+
+  app.get('/api/dinger/conversation-history/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { limit = 20 } = req.query;
+      
+      const conversations = await db.select()
+        .from(dingerConversationMemoryTable)
+        .where(eq(dingerConversationMemoryTable.userId, userId))
+        .orderBy(desc(dingerConversationMemoryTable.timestamp))
+        .limit(parseInt(limit as string));
+        
+      // Parse JSON fields
+      const parsedConversations = conversations.map(conv => ({
+        ...conv,
+        competencyAreas: JSON.parse(conv.competencyAreas || '[]'),
+        tags: JSON.parse(conv.tags || '[]'),
+        resourcesProvided: JSON.parse(conv.resourcesProvided || '[]'),
+        supervisionItems: JSON.parse(conv.supervisionItems || '[]'),
+        followUpNeeded: Boolean(conv.followUpNeeded)
+      }));
+      
+      res.json({ conversations: parsedConversations });
+    } catch (error) {
+      console.error('Get conversation history error:', error);
+      res.status(500).json({ error: 'Failed to get conversation history' });
+    }
+  });
+
+  app.post('/api/dinger/rate-response', async (req, res) => {
+    try {
+      const { conversationId, rating } = req.body;
+      
+      if (!conversationId || !rating) {
+        return res.status(400).json({ error: 'Conversation ID and rating are required' });
+      }
+      
+      await db.update(dingerConversationMemoryTable)
+        .set({ outcomeRating: rating })
+        .where(eq(dingerConversationMemoryTable.id, conversationId));
+        
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Rate response error:', error);
+      res.status(500).json({ error: 'Failed to rate response' });
+    }
+  });
+
+  app.get('/api/dinger/analytics/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      // Get conversation analytics
+      const conversationStats = await db.select({
+        totalConversations: sql<number>`count(*)`,
+        avgConfidence: sql<number>`avg(confidence)`,
+        avgComplexity: sql<number>`avg(complexity)`,
+        avgRating: sql<number>`avg(outcome_rating)`,
+        mostUsedMode: sql<string>`mode(mode)`,
+        recentConversations: sql<number>`count(*) filter (where timestamp > now() - interval '7 days')`
+      })
+      .from(dingerConversationMemoryTable)
+      .where(eq(dingerConversationMemoryTable.userId, userId));
+      
+      // Get competency area distribution
+      const competencyDistribution = await db.select({
+        competencyArea: sql<string>`unnest(array(select jsonb_array_elements_text(competency_areas::jsonb)))`,
+        count: sql<number>`count(*)`
+      })
+      .from(dingerConversationMemoryTable)
+      .where(eq(dingerConversationMemoryTable.userId, userId))
+      .groupBy(sql`unnest(array(select jsonb_array_elements_text(competency_areas::jsonb)))`)
+      .orderBy(sql`count(*) desc`)
+      .limit(10);
+      
+      res.json({
+        stats: conversationStats[0] || {},
+        competencyDistribution: competencyDistribution || []
+      });
+    } catch (error) {
+      console.error('Get Dinger analytics error:', error);
+      res.status(500).json({ error: 'Failed to get analytics' });
+    }
+  });
+
   // Helper function to generate APA citation
   function generateApaCitation(research: any): string {
     const { title, authors, publishDate, domain, url } = research;

@@ -499,6 +499,107 @@ export const aiAnalysisCacheTable = pgTable('ai_analysis_cache', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+// Dinger Conversation Memory Schema - for contextual AI conversations
+export const dingerConversationMemoryTable = pgTable('dinger_conversation_memory', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  sessionId: varchar('session_id', { length: 255 }).notNull(),
+  query: text('query').notNull(),
+  response: text('response').notNull(),
+  mode: varchar('mode', { length: 50 }).notNull(), // supervisor, peer, clinician, researcher
+  reasoningType: varchar('reasoning_type', { length: 50 }).notNull(),
+  competencyAreas: text('competency_areas'), // JSON array
+  emotionalTone: varchar('emotional_tone', { length: 50 }), // confident, uncertain, frustrated, etc.
+  complexity: integer('complexity').notNull(), // 1-100 scale
+  confidence: integer('confidence').notNull(), // AI confidence in response
+  outcomeRating: integer('outcome_rating'), // User rating of helpfulness
+  followUpNeeded: integer('follow_up_needed').default(0), // boolean as int
+  tags: text('tags'), // JSON array of categorization tags
+  resourcesProvided: text('resources_provided'), // JSON array of resources
+  supervisionItems: text('supervision_items'), // JSON array of supervision prep items
+  timestamp: timestamp('timestamp').defaultNow().notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const dingerConversationMemorySchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  sessionId: z.string(),
+  query: z.string(),
+  response: z.string(),
+  mode: z.enum(['supervisor', 'peer', 'clinician', 'researcher']),
+  reasoningType: z.enum(['chain-of-thought', 'tree-of-thought', 'direct']),
+  competencyAreas: z.array(z.string()).default([]),
+  emotionalTone: z.enum(['confident', 'uncertain', 'frustrated', 'curious', 'overwhelmed']).optional(),
+  complexity: z.number().min(1).max(100),
+  confidence: z.number().min(1).max(100),
+  outcomeRating: z.number().min(1).max(5).optional(),
+  followUpNeeded: z.boolean().default(false),
+  tags: z.array(z.string()).default([]),
+  resourcesProvided: z.array(z.any()).default([]),
+  supervisionItems: z.array(z.string()).default([]),
+  timestamp: z.date().default(() => new Date()),
+  createdAt: z.date().default(() => new Date()),
+});
+
+export type DingerConversationMemory = z.infer<typeof dingerConversationMemorySchema>;
+
+// Dinger User Profile Schema - for personalized AI coaching
+export const dingerUserProfileTable = pgTable('dinger_user_profiles', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull().unique(),
+  experienceLevel: varchar('experience_level', { length: 50 }).notNull(),
+  monthsOfExperience: integer('months_of_experience').notNull(),
+  primaryModalities: text('primary_modalities'), // JSON array
+  clientPopulations: text('client_populations'), // JSON array
+  strengthAreas: text('strength_areas'), // JSON array
+  challengeAreas: text('challenge_areas'), // JSON array
+  learningStyle: varchar('learning_style', { length: 50 }),
+  communicationPreference: varchar('communication_preference', { length: 50 }),
+  recentFocusAreas: text('recent_focus_areas'), // JSON array
+  confidenceLevel: integer('confidence_level').notNull(), // 1-100
+  preferredMode: varchar('preferred_mode', { length: 50 }),
+  adaptiveSettings: text('adaptive_settings'), // JSON object with personalization settings
+  conversationCount: integer('conversation_count').default(0),
+  averageSessionLength: integer('average_session_length').default(0), // in minutes
+  lastInteraction: timestamp('last_interaction').defaultNow(),
+  profileVersion: integer('profile_version').default(1), // for profile evolution tracking
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const dingerUserProfileSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  experienceLevel: z.enum(['novice', 'developing', 'proficient', 'expert']),
+  monthsOfExperience: z.number().min(0),
+  primaryModalities: z.array(z.string()).default([]),
+  clientPopulations: z.array(z.string()).default([]),
+  strengthAreas: z.array(z.string()).default([]),
+  challengeAreas: z.array(z.string()).default([]),
+  learningStyle: z.enum(['visual', 'auditory', 'kinesthetic', 'reading']).optional(),
+  communicationPreference: z.enum(['direct', 'supportive', 'collaborative', 'analytical']).optional(),
+  recentFocusAreas: z.array(z.string()).default([]),
+  confidenceLevel: z.number().min(1).max(100),
+  preferredMode: z.enum(['supervisor', 'peer', 'clinician', 'researcher']).optional(),
+  adaptiveSettings: z.record(z.any()).default({}),
+  conversationCount: z.number().default(0),
+  averageSessionLength: z.number().default(0),
+  lastInteraction: z.date().default(() => new Date()),
+  profileVersion: z.number().default(1),
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date()),
+});
+
+export const insertDingerUserProfileSchema = dingerUserProfileSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type DingerUserProfile = z.infer<typeof dingerUserProfileSchema>;
+export type InsertDingerUserProfile = z.infer<typeof insertDingerUserProfileSchema>;
+
 // Research Collections Schema - organize and save research papers
 export const researchCollectionsTable = pgTable('research_collections', {
   id: varchar('id', { length: 255 }).primaryKey(),
