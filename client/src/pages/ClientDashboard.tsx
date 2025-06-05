@@ -157,226 +157,323 @@ export default function ClientDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Progress Overview */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Overall Progress */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <TrendingUp className="h-5 w-5" />
-                  <span>Your Progress</span>
-                </CardTitle>
-                <CardDescription>
-                  Overall therapy progress and achievements
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span>Overall Progress</span>
-                    <span>{progress.overallProgress}%</span>
-                  </div>
-                  <Progress value={progress.overallProgress} className="h-2" />
+            {/* LAC-Style Progress Overview */}
+            <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-3xl p-8 border border-white/20 shadow-lg">
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex-1">
+                  <h2 className="text-4xl font-bold mb-2 text-black dark:text-white tracking-tight">
+                    Your Progress
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-400 text-base font-medium leading-relaxed">
+                    {clientInfo.therapistName ? 
+                      'Track your therapeutic journey and shared insights' :
+                      'Building self-awareness through reflection and growth'
+                    }
+                  </p>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                  <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">{progress.completedSessions}</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">Sessions Completed</div>
-                  </div>
-                  <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">{progress.currentGoals.length}</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">Active Goals</div>
-                  </div>
-                  <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600">{progress.recentAchievements.length}</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">Recent Achievements</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Self-Reflection or Shared Insights */}
-            <Card className="backdrop-blur-sm bg-white/70 dark:bg-gray-900/70 border-blue-100/50">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    {clientInfo.therapistName ? <MessageSquare className="h-5 w-5 text-blue-600" /> : <Brain className="h-5 w-5 text-purple-600" />}
-                    <span>{clientInfo.therapistName ? 'Shared Insights' : 'Self-Reflection Journal'}</span>
-                  </div>
-                  {!clientInfo.therapistName && (
-                    <Button 
-                      size="sm" 
-                      onClick={() => setShowSelfReflection(true)}
-                      className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700"
-                    >
-                      <Plus className="h-4 w-4 mr-1" />
-                      Add Reflection
-                    </Button>
-                  )}
-                </CardTitle>
-                <CardDescription>
-                  {clientInfo.therapistName ? 
-                    'Updates and insights shared by your therapist' :
-                    'Your personal insights, patterns, and growth moments'
-                  }
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {sharedInsights.map((insight) => (
-                    <div key={insight.id} className="border rounded-lg p-4 bg-white dark:bg-gray-800/50">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center space-x-2">
-                          {getInsightIcon(insight.type)}
-                          <h3 className="font-semibold">{insight.title}</h3>
-                        </div>
-                        <Badge className={getInsightColor(insight.type)}>
-                          {insight.type}
-                        </Badge>
-                      </div>
-                      <p className="text-gray-700 dark:text-gray-300 mb-2">{insight.content}</p>
-                      {insight.therapistNote && (
-                        <p className="text-sm text-blue-600 dark:text-blue-400 italic">
-                          Note: {insight.therapistNote}
-                        </p>
-                      )}
-                      <p className="text-xs text-gray-500 mt-2">
-                        Shared {insight.sharedAt.toLocaleDateString()}
-                      </p>
+                {/* Progress Ring - Apple Watch Style */}
+                <div className="relative">
+                  <div className="w-24 h-24 relative">
+                    <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 36 36">
+                      <path
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeDasharray="100, 100"
+                        className="text-gray-200 dark:text-gray-700"
+                      />
+                      <path
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#007AFF"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeDasharray={`${progress.overallProgress}, 100`}
+                        className="transition-all duration-1500 ease-out"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-xl font-bold text-black dark:text-white">
+                        {progress.overallProgress}%
+                      </span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                        Complete
+                      </span>
                     </div>
-                  ))}
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+              
+              {/* LAC-Style Stats Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white/70 dark:bg-gray-800/70 rounded-3xl p-6 border border-white/20 shadow-lg">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center">
+                      <Calendar className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <TrendingUp className="h-3 w-3 text-green-500" />
+                      <span className="text-xs font-medium text-green-600">+2 this week</span>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-3xl font-bold text-black dark:text-white tracking-tight">
+                      {progress.completedSessions}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                      Sessions Completed
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/70 dark:bg-gray-800/70 rounded-3xl p-6 border border-white/20 shadow-lg">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-2xl flex items-center justify-center">
+                      <Target className="h-6 w-6 text-green-600" />
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <TrendingUp className="h-3 w-3 text-green-500" />
+                      <span className="text-xs font-medium text-green-600">Active</span>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-3xl font-bold text-black dark:text-white tracking-tight">
+                      {progress.currentGoals.length}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                      Current Goals
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/70 dark:bg-gray-800/70 rounded-3xl p-6 border border-white/20 shadow-lg">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-2xl flex items-center justify-center">
+                      <Award className="h-6 w-6 text-purple-600" />
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <Sparkles className="h-3 w-3 text-yellow-500" />
+                      <span className="text-xs font-medium text-purple-600">Recent</span>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-3xl font-bold text-black dark:text-white tracking-tight">
+                      {progress.recentAchievements.length}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                      Achievements
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* LAC-Style Insights Section */}
+            <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-3xl p-8 border border-white/20 shadow-lg">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-2xl flex items-center justify-center">
+                    {clientInfo.therapistName ? <MessageSquare className="h-6 w-6 text-blue-600" /> : <Brain className="h-6 w-6 text-purple-600" />}
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-black dark:text-white tracking-tight">
+                      {clientInfo.therapistName ? 'Shared Insights' : 'Self-Reflection Journal'}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm font-medium">
+                      {clientInfo.therapistName ? 
+                        'Updates and insights shared by your therapist' :
+                        'Your personal insights, patterns, and growth moments'
+                      }
+                    </p>
+                  </div>
+                </div>
+                {!clientInfo.therapistName && (
+                  <Button 
+                    onClick={() => setShowSelfReflection(true)}
+                    className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 rounded-2xl px-6 py-3 font-medium"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Reflection
+                  </Button>
+                )}
+              </div>
+              
+              <div className="space-y-4">
+                {sharedInsights.map((insight) => (
+                  <div key={insight.id} className="bg-white/70 dark:bg-gray-800/70 rounded-2xl p-6 border border-white/20 shadow-sm hover:shadow-md transition-all duration-200">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl flex items-center justify-center">
+                          {getInsightIcon(insight.type)}
+                        </div>
+                        <h4 className="font-semibold text-black dark:text-white text-lg">{insight.title}</h4>
+                      </div>
+                      <div className={`px-3 py-1 rounded-full text-xs font-medium ${getInsightColor(insight.type)}`}>
+                        {insight.type}
+                      </div>
+                    </div>
+                    <p className="text-gray-700 dark:text-gray-300 mb-3 leading-relaxed">{insight.content}</p>
+                    {insight.therapistNote && (
+                      <div className="bg-blue-50/50 dark:bg-blue-900/20 rounded-xl p-3 mb-3">
+                        <p className="text-sm text-blue-700 dark:text-blue-300 italic">
+                          <strong>Therapist Note:</strong> {insight.therapistNote}
+                        </p>
+                      </div>
+                    )}
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                      {clientInfo.therapistName ? 'Shared' : 'Reflected'} {insight.sharedAt.toLocaleDateString()}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Next Appointment or Standalone Tools */}
+            {/* LAC-Style Next Session or Spaced Repetition */}
             {clientInfo.therapistName ? (
-              <Card className="backdrop-blur-sm bg-white/70 dark:bg-gray-900/70 border-blue-100/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Calendar className="h-5 w-5 text-blue-600" />
-                    <span>Next Session</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center">
-                    <div className="text-lg font-semibold">
-                      {progress.nextAppointment.toLocaleDateString()}
-                    </div>
-                    <div className="text-sm text-slate-600 dark:text-slate-400">
-                      {progress.nextAppointment.toLocaleTimeString([], { 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
-                      })}
-                    </div>
-                    <Button className="w-full mt-4" variant="outline">
-                      <Bell className="h-4 w-4 mr-2" />
-                      Set Reminder
-                    </Button>
+              <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-3xl p-6 border border-white/20 shadow-lg">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center">
+                    <Calendar className="h-6 w-6 text-blue-600" />
                   </div>
-                </CardContent>
-              </Card>
+                  <div>
+                    <h3 className="text-xl font-bold text-black dark:text-white tracking-tight">Next Session</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Upcoming appointment</p>
+                  </div>
+                </div>
+                <div className="text-center space-y-2">
+                  <div className="text-2xl font-bold text-black dark:text-white">
+                    {progress.nextAppointment.toLocaleDateString()}
+                  </div>
+                  <div className="text-base text-gray-600 dark:text-gray-400 font-medium">
+                    {progress.nextAppointment.toLocaleTimeString([], { 
+                      hour: '2-digit', 
+                      minute: '2-digit' 
+                    })}
+                  </div>
+                  <Button className="w-full mt-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-medium py-3">
+                    <Bell className="h-4 w-4 mr-2" />
+                    Set Reminder
+                  </Button>
+                </div>
+              </div>
             ) : (
-              <Card className="backdrop-blur-sm bg-white/70 dark:bg-gray-900/70 border-green-100/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Clock className="h-5 w-5 text-green-600" />
-                    <span>Spaced Repetition</span>
-                  </CardTitle>
-                  <CardDescription>
-                    Build long-term memory of insights
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="text-sm text-slate-600 dark:text-slate-400">
-                    <strong>3 insights</strong> ready for review
+              <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-3xl p-6 border border-white/20 shadow-lg">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-2xl flex items-center justify-center">
+                    <Clock className="h-6 w-6 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-black dark:text-white tracking-tight">Spaced Repetition</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Build long-term memory</p>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">3</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">insights ready for review</div>
                   </div>
                   <Button 
-                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-2xl font-medium py-3"
                     onClick={() => setShowSpacedRepetition(true)}
                   >
                     <Brain className="h-4 w-4 mr-2" />
                     Start Review
                   </Button>
-                  <div className="text-xs text-slate-500">
+                  <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
                     Next review: Tomorrow at 9:00 AM
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             )}
 
-            {/* Current Goals */}
-            <Card className="backdrop-blur-sm bg-white/70 dark:bg-gray-900/70 border-blue-100/50">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Target className="h-5 w-5 text-blue-600" />
-                  <span>Current Goals</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {progress.currentGoals.map((goal, index) => (
-                    <div key={index} className="flex items-center space-x-2 p-3 bg-blue-50/50 dark:bg-blue-900/20 rounded-lg border border-blue-100/50">
-                      <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                      <span className="text-sm text-slate-700 dark:text-slate-300">{goal}</span>
-                    </div>
-                  ))}
+            {/* LAC-Style Current Goals */}
+            <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-3xl p-6 border border-white/20 shadow-lg">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center">
+                  <Target className="h-6 w-6 text-blue-600" />
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Recent Achievements */}
-            <Card className="backdrop-blur-sm bg-white/70 dark:bg-gray-900/70 border-green-100/50">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Award className="h-5 w-5 text-green-600" />
-                  <span>Achievements</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {progress.recentAchievements.map((achievement, index) => (
-                    <div key={index} className="flex items-center space-x-2 p-3 bg-green-50/50 dark:bg-green-900/20 rounded-lg border border-green-100/50">
-                      <Award className="h-4 w-4 text-green-600" />
-                      <span className="text-sm text-slate-700 dark:text-slate-300">{achievement}</span>
-                    </div>
-                  ))}
+                <div>
+                  <h3 className="text-xl font-bold text-black dark:text-white tracking-tight">Current Goals</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Active objectives</p>
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Standalone Account: Invite Therapist CTA */}
-            {!clientInfo.therapistName && (
-              <Card className="backdrop-blur-sm bg-gradient-to-br from-emerald-50/70 to-green-50/70 dark:from-emerald-900/20 dark:to-green-900/20 border-emerald-200/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Share2 className="h-5 w-5 text-emerald-600" />
-                    <span>Ready for Professional Support?</span>
-                  </CardTitle>
-                  <CardDescription>
-                    Connect with a licensed therapist to enhance your journey
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="text-sm text-slate-600 dark:text-slate-400">
-                    You've built a solid foundation with self-reflection. Consider inviting a therapist to:
+              </div>
+              <div className="space-y-3">
+                {progress.currentGoals.map((goal, index) => (
+                  <div key={index} className="flex items-center space-x-3 p-4 bg-white/70 dark:bg-gray-800/70 rounded-2xl border border-white/20">
+                    <div className="w-3 h-3 bg-blue-600 rounded-full flex-shrink-0"></div>
+                    <span className="text-sm text-gray-700 dark:text-gray-300 font-medium leading-relaxed">{goal}</span>
                   </div>
-                  <ul className="text-xs text-slate-500 space-y-1 ml-4">
-                    <li>• Share your insights and progress</li>
-                    <li>• Get professional guidance</li>
-                    <li>• Accelerate your growth</li>
-                  </ul>
+                ))}
+              </div>
+            </div>
+
+            {/* LAC-Style Recent Achievements */}
+            <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-3xl p-6 border border-white/20 shadow-lg">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-2xl flex items-center justify-center">
+                  <Award className="h-6 w-6 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-black dark:text-white tracking-tight">Achievements</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Recent milestones</p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {progress.recentAchievements.map((achievement, index) => (
+                  <div key={index} className="flex items-center space-x-3 p-4 bg-white/70 dark:bg-gray-800/70 rounded-2xl border border-white/20">
+                    <Award className="h-4 w-4 text-green-600 flex-shrink-0" />
+                    <span className="text-sm text-gray-700 dark:text-gray-300 font-medium leading-relaxed">{achievement}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* LAC-Style Invite Therapist CTA */}
+            {!clientInfo.therapistName && (
+              <div className="bg-gradient-to-br from-emerald-50/80 to-green-50/80 dark:from-emerald-900/30 dark:to-green-900/30 backdrop-blur-xl rounded-3xl p-6 border border-emerald-200/30 shadow-lg">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl flex items-center justify-center">
+                    <Share2 className="h-6 w-6 text-emerald-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-black dark:text-white tracking-tight">Ready for Professional Support?</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Connect with a licensed therapist</p>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                    You've built a solid foundation with self-reflection. Consider inviting a therapist to:
+                  </p>
+                  <div className="bg-white/50 dark:bg-gray-800/50 rounded-2xl p-4">
+                    <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-2">
+                      <li className="flex items-center space-x-2">
+                        <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+                        <span>Share your insights and progress</span>
+                      </li>
+                      <li className="flex items-center space-x-2">
+                        <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+                        <span>Get professional guidance</span>
+                      </li>
+                      <li className="flex items-center space-x-2">
+                        <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+                        <span>Accelerate your growth</span>
+                      </li>
+                    </ul>
+                  </div>
                   <Button 
-                    className="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700"
+                    className="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 rounded-2xl font-medium py-3"
                     onClick={() => setInviteTherapistOpen(true)}
                   >
                     <UserPlus className="h-4 w-4 mr-2" />
                     Invite a Therapist
                   </Button>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             )}
           </div>
         </div>
