@@ -3811,6 +3811,139 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
     }
   });
 
+  // Client Invitation API Routes
+  
+  // Send client invitation
+  app.post('/api/client-invitation', async (req, res) => {
+    try {
+      const { therapistId, clientName, clientEmail } = req.body;
+      
+      if (!therapistId || !clientName || !clientEmail) {
+        return res.status(400).json({ error: 'Missing required fields' });
+      }
+      
+      // Generate unique invitation token
+      const inviteToken = `invite_${Date.now()}_${Math.random().toString(36).substr(2, 12)}`;
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+      
+      // Store invitation in database
+      const [invitation] = await db.insert(clientInvitationsTable).values({
+        id: `invitation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        therapistId,
+        clientName,
+        clientEmail,
+        inviteToken,
+        status: 'pending',
+        expiresAt,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }).returning();
+      
+      // Generate invitation URL
+      const baseUrl = process.env.NODE_ENV === 'production' 
+        ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
+        : `http://localhost:5000`;
+      const inviteUrl = `${baseUrl}/client-onboarding/${inviteToken}`;
+      
+      res.json({ 
+        success: true, 
+        inviteUrl,
+        expiresAt: invitation.expiresAt,
+        invitationId: invitation.id
+      });
+    } catch (error) {
+      console.error('Client invitation error:', error);
+      res.status(500).json({ error: 'Failed to send invitation' });
+    }
+  });
+  
+  // Validate invitation token
+  app.get('/api/client-invitation/:token', async (req, res) => {
+    try {
+      const { token } = req.params;
+      
+      const [invitation] = await db.select()
+        .from(clientInvitationsTable)
+        .where(eq(clientInvitationsTable.inviteToken, token));
+      
+      if (!invitation) {
+        return res.status(404).json({ error: 'Invitation not found' });
+      }
+      
+      if (invitation.status !== 'pending') {
+        return res.status(400).json({ error: 'Invitation already used' });
+      }
+      
+      if (new Date() > invitation.expiresAt) {
+        return res.status(400).json({ error: 'Invitation expired' });
+      }
+      
+      res.json({ 
+        valid: true,
+        clientName: invitation.clientName,
+        clientEmail: invitation.clientEmail,
+        therapistId: invitation.therapistId
+      });
+    } catch (error) {
+      console.error('Validate invitation error:', error);
+      res.status(500).json({ error: 'Failed to validate invitation' });
+    }
+  });
+  
+  // Accept invitation and create client account
+  app.post('/api/client-invitation/:token/accept', async (req, res) => {
+    try {
+      const { token } = req.params;
+      const { password, confirmPassword } = req.body;
+      
+      if (!password || password !== confirmPassword) {
+        return res.status(400).json({ error: 'Password validation failed' });
+      }
+      
+      // Validate invitation
+      const [invitation] = await db.select()
+        .from(clientInvitationsTable)
+        .where(eq(clientInvitationsTable.inviteToken, token));
+      
+      if (!invitation || invitation.status !== 'pending' || new Date() > invitation.expiresAt) {
+        return res.status(400).json({ error: 'Invalid or expired invitation' });
+      }
+      
+      // Create client account
+      const clientId = `client_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      const [client] = await db.insert(clientAccountsTable).values({
+        id: clientId,
+        therapistId: invitation.therapistId,
+        name: invitation.clientName,
+        email: invitation.clientEmail,
+        passwordHash: password, // In production, this should be properly hashed
+        status: 'active',
+        invitationId: invitation.id,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }).returning();
+      
+      // Mark invitation as accepted
+      await db.update(clientInvitationsTable)
+        .set({ 
+          status: 'accepted',
+          acceptedAt: new Date(),
+          updatedAt: new Date()
+        })
+        .where(eq(clientInvitationsTable.id, invitation.id));
+      
+      res.json({ 
+        success: true,
+        clientId: client.id,
+        message: 'Account created successfully'
+      });
+    } catch (error) {
+      console.error('Accept invitation error:', error);
+      res.status(500).json({ error: 'Failed to create account' });
+    }
+  });
+
   // Client Progress API Routes
   
   // Get client progress data

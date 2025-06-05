@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Users, Share2, TrendingUp, Calendar, MessageSquare, FileText } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { ClientInvitationManager } from "@/components/client-portal/ClientInvitationManager";
 
 interface Client {
   id: string;
@@ -198,6 +199,10 @@ export default function ClientPortal({ userId }: { userId: string }) {
             <TrendingUp className="w-4 h-4" />
             Progress Tracking
           </TabsTrigger>
+          <TabsTrigger value="invitations" className="flex items-center gap-2">
+            <MessageSquare className="w-4 h-4" />
+            Client Invitations
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="clients" className="space-y-6">
@@ -325,6 +330,10 @@ export default function ClientPortal({ userId }: { userId: string }) {
               </Card>
             ))}
           </div>
+        </TabsContent>
+
+        <TabsContent value="invitations" className="space-y-6">
+          <ClientInvitationManager therapistId={userId} />
         </TabsContent>
       </Tabs>
 
