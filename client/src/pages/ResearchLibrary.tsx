@@ -5,7 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { 
@@ -30,7 +31,9 @@ import {
   Archive,
   FileText,
   Globe,
-  X
+  X,
+  ChevronDown,
+  MoreHorizontal
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -409,175 +412,184 @@ export default function ResearchLibrary() {
         )}
       </div>
 
-      {/* Research Detail Modal - Matching Insights Card Experience */}
+      {/* Research Detail Modal - Full Page Insights Card Experience */}
       <Dialog open={!!selectedPaper} onOpenChange={() => setSelectedPaper(null)}>
-        <DialogContent className="max-w-4xl max-h-[85vh] p-0 overflow-hidden">
-          <div className="flex flex-col h-full">
-            {/* Header */}
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <div className="flex items-start justify-between">
-                <div className="flex-1 pr-4">
-                  <h2 
-                    className="text-xl font-medium text-gray-900 dark:text-white leading-tight mb-2"
+        <DialogContent className="max-w-none w-full h-full p-0 gap-0 bg-gray-100 dark:bg-gray-900 [&>button]:hidden overflow-hidden m-0 border-0 rounded-none" aria-describedby="research-description">
+          <DialogTitle className="sr-only">Research Paper Details</DialogTitle>
+          <DialogDescription id="research-description" className="sr-only">
+            View comprehensive analysis and details of the saved research paper
+          </DialogDescription>
+          
+          {/* Full Screen Content Area */}
+          <div className="flex-1 overflow-y-auto pt-4 px-0">
+            <div className="w-full bg-white dark:bg-gray-800 min-h-full rounded-t-3xl shadow-lg pt-8 px-6 pb-8 space-y-16">
+              
+              {/* Header with Dropdown - No Divider */}
+              <div className="flex items-center justify-between">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setSelectedPaper(null)}
+                  className="p-2 -ml-2"
+                >
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="p-2">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem 
+                      onClick={() => window.open(selectedPaper?.url, '_blank')}
+                      className="flex items-center gap-2"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Open Original
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => selectedPaper && toggleFavorite(selectedPaper.id)}
+                      className="flex items-center gap-2"
+                    >
+                      <Heart className="h-4 w-4" />
+                      {selectedPaper?.isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="flex items-center gap-2 text-red-600">
+                      <Trash2 className="h-4 w-4" />
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              {/* Paper Title and Metadata */}
+              <div className="space-y-6">
+                <h1 
+                  className="text-3xl font-light text-gray-900 dark:text-gray-100 leading-tight"
+                  style={{ 
+                    fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
+                    letterSpacing: '-0.01em'
+                  }}
+                >
+                  {selectedPaper?.title}
+                </h1>
+                
+                {/* Enhanced Metadata */}
+                <div className="flex flex-wrap gap-3">
+                  <Badge variant="secondary" className="text-sm px-4 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-0 rounded-full">
+                    {selectedPaper?.source}
+                  </Badge>
+                  <Badge variant="secondary" className="text-sm px-4 py-2 bg-gray-50 dark:bg-gray-700/50 text-gray-600 dark:text-gray-300 border-0 rounded-full">
+                    {selectedPaper?.domain}
+                  </Badge>
+                  {selectedPaper?.publishDate && (
+                    <Badge variant="secondary" className="text-sm px-4 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-0 rounded-full">
+                      {selectedPaper.publishDate}
+                    </Badge>
+                  )}
+                  <Badge variant="secondary" className="text-sm px-4 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 border-0 rounded-full">
+                    Saved {selectedPaper?.createdAt ? format(new Date(selectedPaper.createdAt), "MMM d, yyyy") : ''}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Authors Section */}
+              {selectedPaper?.authors && selectedPaper.authors.length > 0 && (
+                <div className="space-y-4">
+                  <span className="text-sm text-gray-500 uppercase tracking-wide font-medium">AUTHORS</span>
+                  <div 
+                    className="text-gray-700 dark:text-gray-300 leading-relaxed"
                     style={{ 
-                      fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif'
+                      fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
+                      lineHeight: '1.7',
+                      fontSize: '1.05rem'
                     }}
                   >
-                    {selectedPaper?.title}
-                  </h2>
-                  <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-                    <span>{selectedPaper?.source}</span>
-                    {selectedPaper?.publishDate && (
-                      <span>• {selectedPaper.publishDate}</span>
-                    )}
-                    <span>• Saved {selectedPaper?.createdAt ? format(new Date(selectedPaper.createdAt), "MMM d, yyyy") : ''}</span>
+                    {selectedPaper.authors.join(', ')}
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => selectedPaper && toggleFavorite(selectedPaper.id)}
+              )}
+
+              {/* Comprehensive Analysis - Premium Typography */}
+              {(selectedPaper?.summaryGenerated || selectedPaper?.summary) && (
+                <div className="space-y-4">
+                  <span className="text-sm text-gray-500 uppercase tracking-wide font-medium">
+                    {((selectedPaper.summaryGenerated || selectedPaper.summary || '').includes('###') || (selectedPaper.summaryGenerated || selectedPaper.summary || '').includes('Executive Summary'))
+                      ? 'COMPREHENSIVE ANALYSIS' 
+                      : 'SUMMARY'}
+                  </span>
+                  <div 
+                    className="text-gray-700 dark:text-gray-300 leading-relaxed prose prose-lg max-w-none"
+                    style={{ 
+                      fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
+                      lineHeight: '1.7',
+                      fontSize: '1.05rem',
+                      letterSpacing: '0.015em'
+                    }}
+                    dangerouslySetInnerHTML={{
+                      __html: (selectedPaper.summaryGenerated || selectedPaper.summary || '')
+                        .replace(/### (.*?)$/gm, '<h3 class="font-semibold text-gray-900 dark:text-white mt-10 mb-5 text-xl">$1</h3>')
+                        .replace(/## (.*?)$/gm, '<h2 class="font-semibold text-gray-900 dark:text-white mt-12 mb-6 text-2xl">$1</h2>')
+                        .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-gray-900 dark:text-white">$1</strong>')
+                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                        .replace(/- (.*?)$/gm, '<li class="ml-4 mb-3">$1</li>')
+                        .replace(/(\n|^)([^<\n]+?)$/gm, '<p class="mb-6">$2</p>')
+                        .replace(/<li/g, '<ul class="mb-6 space-y-2"><li')
+                        .replace(/<\/li>(?!\s*<li)/g, '</li></ul>')
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* Snippet if no summary */}
+              {!(selectedPaper?.summaryGenerated || selectedPaper?.summary) && selectedPaper?.snippet && (
+                <div className="space-y-4">
+                  <span className="text-sm text-gray-500 uppercase tracking-wide font-medium">ABSTRACT</span>
+                  <div 
+                    className="text-gray-700 dark:text-gray-300 leading-relaxed"
+                    style={{ 
+                      fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
+                      lineHeight: '1.7',
+                      fontSize: '1.05rem',
+                      letterSpacing: '0.015em'
+                    }}
                   >
-                    {selectedPaper?.isFavorite ? (
-                      <Heart className="h-4 w-4 text-red-500 fill-current" />
-                    ) : (
-                      <Heart className="h-4 w-4 text-gray-400" />
-                    )}
-                  </Button>
-                  {selectedPaper?.url && (
-                    <Button variant="ghost" size="sm" asChild>
-                      <a href={selectedPaper.url} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-                    </Button>
+                    {selectedPaper.snippet}
+                  </div>
+                </div>
+              )}
+
+              {/* Research Tags at Bottom */}
+              <div className="space-y-4 pt-8">
+                <h3 
+                  className="text-lg font-light text-gray-500 dark:text-gray-400"
+                  style={{ 
+                    fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif'
+                  }}
+                >
+                  Research Tags
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="secondary" className="text-xs px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full">
+                    #{selectedPaper?.source || 'research'}
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full">
+                    #{selectedPaper?.domain || 'academic'}
+                  </Badge>
+                  {selectedPaper?.publishDate && (
+                    <Badge variant="secondary" className="text-xs px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full">
+                      #{selectedPaper.publishDate}
+                    </Badge>
                   )}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
+                  {selectedPaper?.tags && selectedPaper.tags.map((tag) => (
+                    <Badge key={tag} variant="secondary" className="text-xs px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full">
+                      #{tag}
+                    </Badge>
+                  ))}
                 </div>
               </div>
-            </div>
 
-            {/* Scrollable Content - Matching Insights Card */}
-            <div className="flex-1 overflow-y-auto p-6">
-              <div className="space-y-6">
-                {/* Authors */}
-                {selectedPaper?.authors && selectedPaper.authors.length > 0 && (
-                  <div>
-                    <h4 className="font-medium text-gray-900 dark:text-white mb-3">Authors</h4>
-                    <p 
-                      className="text-gray-700 dark:text-gray-300"
-                      style={{ 
-                        fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
-                        fontSize: '0.95rem',
-                        lineHeight: '1.6'
-                      }}
-                    >
-                      {selectedPaper.authors.join(", ")}
-                    </p>
-                  </div>
-                )}
-
-                {/* Comprehensive Analysis - Premium Typography */}
-                {(selectedPaper?.summaryGenerated || selectedPaper?.summary) && (
-                  <div>
-                    <h4 className="font-medium text-gray-900 dark:text-white mb-4">
-                      {((selectedPaper.summaryGenerated || selectedPaper.summary || '').includes('###') || (selectedPaper.summaryGenerated || selectedPaper.summary || '').includes('Executive Summary'))
-                        ? 'Comprehensive Analysis' 
-                        : 'Summary'}
-                    </h4>
-                    <div 
-                      className="text-gray-800 dark:text-gray-200 leading-relaxed prose prose-sm max-w-none"
-                      style={{ 
-                        fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
-                        fontSize: '0.95rem',
-                        lineHeight: '1.7',
-                        letterSpacing: '0.01em'
-                      }}
-                      dangerouslySetInnerHTML={{
-                        __html: (selectedPaper.summaryGenerated || selectedPaper.summary || '')
-                          .replace(/### (.*?)$/gm, '<h4 class="font-semibold text-gray-900 dark:text-white mt-8 mb-4 text-base">$1</h4>')
-                          .replace(/## (.*?)$/gm, '<h3 class="font-semibold text-gray-900 dark:text-white mt-10 mb-5 text-lg">$1</h3>')
-                          .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-gray-900 dark:text-white">$1</strong>')
-                          .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                          .replace(/- (.*?)$/gm, '<li class="ml-4 mb-2">$1</li>')
-                          .replace(/(\n|^)([^<\n]+?)$/gm, '<p class="mb-5">$2</p>')
-                          .replace(/<li/g, '<ul class="mb-5 space-y-1"><li')
-                          .replace(/<\/li>(?!\s*<li)/g, '</li></ul>')
-                      }}
-                    />
-                  </div>
-                )}
-
-                {/* Snippet if no summary */}
-                {!(selectedPaper?.summaryGenerated || selectedPaper?.summary) && selectedPaper?.snippet && (
-                  <div>
-                    <h4 className="font-medium text-gray-900 dark:text-white mb-4">Abstract</h4>
-                    <div 
-                      className="text-gray-800 dark:text-gray-200 leading-relaxed"
-                      style={{ 
-                        fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
-                        fontSize: '0.95rem',
-                        lineHeight: '1.7',
-                        letterSpacing: '0.01em'
-                      }}
-                    >
-                      {selectedPaper.snippet}
-                    </div>
-                  </div>
-                )}
-
-                {/* Tags */}
-                {selectedPaper?.tags && selectedPaper.tags.length > 0 && (
-                  <div>
-                    <h4 className="font-medium text-gray-900 dark:text-white mb-3">Tags</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedPaper.tags.map((tag) => (
-                        <Badge key={tag} variant="secondary" className="text-xs">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Citation */}
-                {selectedPaper?.citationApa && (
-                  <div>
-                    <h4 className="font-medium text-gray-900 dark:text-white mb-3">Citation (APA)</h4>
-                    <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                      <p 
-                        className="text-sm text-gray-700 dark:text-gray-300 font-mono leading-relaxed"
-                        style={{ fontSize: '0.85rem' }}
-                      >
-                        {selectedPaper.citationApa}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Notes */}
-                {selectedPaper?.notes && (
-                  <div>
-                    <h4 className="font-medium text-gray-900 dark:text-white mb-4">Notes</h4>
-                    <div 
-                      className="text-gray-800 dark:text-gray-200 leading-relaxed"
-                      style={{ 
-                        fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
-                        fontSize: '0.95rem',
-                        lineHeight: '1.7',
-                        letterSpacing: '0.01em'
-                      }}
-                    >
-                      {selectedPaper.notes}
-                    </div>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
         </DialogContent>
