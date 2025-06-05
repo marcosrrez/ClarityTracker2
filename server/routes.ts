@@ -2911,32 +2911,10 @@ Please provide a helpful, professional response that's personalized to their sit
         return res.status(400).json({ error: 'Audio data is required' });
       }
 
-      // For now, we'll simulate transcription with a demo transcript
-      // In production, this would integrate with speech-to-text services
-      const transcript = `Counselor: Good morning, how are you feeling today?
-
-Client: I've been struggling with anxiety this week, especially around work presentations.
-
-Counselor: That sounds challenging. Can you tell me more about what specifically triggers your anxiety during presentations?
-
-Client: It's mainly the fear of being judged. I keep thinking everyone will notice if I make a mistake.
-
-Counselor: Those thoughts about being judged are very common. Let's explore some techniques to help manage that anxiety.
-
-Client: I'd really appreciate that. It's affecting my work performance.
-
-Counselor: We can work on cognitive restructuring to challenge those automatic thoughts. What evidence do you have that people are actually judging you harshly?
-
-Client: When I think about it rationally, most people are probably focused on their own things. My last presentation actually went well.
-
-Counselor: Exactly. That's a great insight. How might we use that evidence next time you're preparing for a presentation?`;
-
-      res.json({ 
-        transcript,
-        confidence: 0.95,
-        processingTime: 2.3,
-        wordCount: transcript.split(' ').length
-      });
+      // Use the session intelligence service for real transcription
+      const result = await sessionIntelligence.transcribeAudio(audio);
+      
+      res.json(result);
     } catch (error) {
       console.error('Transcription error:', error);
       res.status(500).json({ error: 'Failed to transcribe audio' });
