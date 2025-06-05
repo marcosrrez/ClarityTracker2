@@ -18,6 +18,7 @@ import { ResourceRecommendationEngine } from "./services/resource-recommendation
 import { ConversationAnalysisService } from "./services/conversation-analysis-service";
 import { SupervisionService } from "./services/supervision-service";
 import { progressiveDisclosureService } from "./progressive-disclosure-service";
+import { researchService } from "./research-service";
 
 // Email reminder scheduling function
 async function scheduleSessionReminders(session: any, reminderDays: number) {
@@ -2664,6 +2665,68 @@ Please provide a helpful, professional response that's personalized to their sit
     } catch (error) {
       console.error('Error deleting supervisor:', error);
       res.status(500).json({ error: 'Failed to delete supervisor' });
+    }
+  });
+
+  // Research and web scraping endpoints
+  app.post('/api/research/search', async (req, res) => {
+    try {
+      const { query, limit = 5 } = req.body;
+      
+      if (!query || typeof query !== 'string') {
+        return res.status(400).json({ error: 'Query is required' });
+      }
+
+      const results = await researchService.searchResearch(query, limit);
+      res.json({ results });
+    } catch (error) {
+      console.error('Research search error:', error);
+      res.status(500).json({ error: 'Failed to search research content' });
+    }
+  });
+
+  app.post('/api/research/scrape', async (req, res) => {
+    try {
+      const { url } = req.body;
+      
+      if (!url || typeof url !== 'string') {
+        return res.status(400).json({ error: 'URL is required' });
+      }
+
+      const content = await researchService.scrapeContent(url);
+      res.json({ content });
+    } catch (error) {
+      console.error('Web scraping error:', error);
+      res.status(500).json({ error: 'Failed to scrape content from URL' });
+    }
+  });
+
+  app.post('/api/research/summarize', async (req, res) => {
+    try {
+      const { url, userContext } = req.body;
+      
+      if (!url || typeof url !== 'string') {
+        return res.status(400).json({ error: 'URL is required' });
+      }
+
+      // Scrape content
+      const content = await researchService.scrapeContent(url);
+      
+      // Summarize using AI
+      const summary = await researchService.summarizeContent(content, userContext);
+      
+      res.json({ 
+        summary,
+        source: {
+          title: content.title,
+          url: content.url,
+          domain: content.source,
+          wordCount: content.wordCount
+        }
+      });
+    } catch (error) {
+      console.error('Content summarization error:', error);
+      res.status(500).json({ error: 'Failed to summarize content' });
     }
   });
 
