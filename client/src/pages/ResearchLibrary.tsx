@@ -463,10 +463,10 @@ export default function ResearchLibrary() {
             )}
 
             {/* Comprehensive Analysis */}
-            {selectedPaper?.summary && (
+            {(selectedPaper?.summaryGenerated || selectedPaper?.summary) && (
               <div>
                 <h4 className="font-medium text-gray-900 dark:text-white mb-3">
-                  {selectedPaper.summary.includes('###') || selectedPaper.summary.includes('Executive Summary') 
+                  {((selectedPaper.summaryGenerated || selectedPaper.summary || '').includes('###') || (selectedPaper.summaryGenerated || selectedPaper.summary || '').includes('Executive Summary'))
                     ? 'Comprehensive Analysis' 
                     : 'Summary'}
                 </h4>
@@ -479,7 +479,7 @@ export default function ResearchLibrary() {
                     letterSpacing: '0.01em'
                   }}
                   dangerouslySetInnerHTML={{
-                    __html: selectedPaper.summary
+                    __html: (selectedPaper.summaryGenerated || selectedPaper.summary || '')
                       .replace(/### (.*?)$/gm, '<h4 class="font-semibold text-gray-900 dark:text-white mt-6 mb-3 text-base">$1</h4>')
                       .replace(/## (.*?)$/gm, '<h3 class="font-semibold text-gray-900 dark:text-white mt-8 mb-4 text-lg">$1</h3>')
                       .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-gray-900 dark:text-white">$1</strong>')

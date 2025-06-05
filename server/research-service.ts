@@ -256,6 +256,94 @@ export class ResearchService {
     }
   }
 
+  async extractContentFromUrl(url: string): Promise<{ title: string; content: string; wordCount: number; source: string; } | null> {
+    try {
+      const scrapedContent = await this.scrapeContent(url);
+      return {
+        title: scrapedContent.title,
+        content: scrapedContent.content,
+        wordCount: scrapedContent.wordCount,
+        source: scrapedContent.source
+      };
+    } catch (error) {
+      console.error('Content extraction failed:', error);
+      return null;
+    }
+  }
+
+  async generateComprehensiveSummary(content: { title: string; content: string; wordCount: number; source: string; }, userContext?: string): Promise<string> {
+    const prompt = `
+As a senior clinical supervisor and research expert, provide a comprehensive, structured summary of this research article for Licensed Associate Counselors and mental health professionals. 
+
+Structure your response with clear sections:
+
+### Executive Summary
+Brief overview of the study's purpose and main findings
+
+### Research Methodology & Design
+Study design, participants, measures, and procedures
+
+### Key Findings & Results
+Primary results and statistical significance
+
+### Clinical Applications
+Direct applications to counseling practice including:
+- Assessment considerations
+- Intervention strategies
+- Client population considerations
+
+### Theoretical Implications
+How findings relate to existing counseling theories and frameworks
+
+### Professional Development Insights
+What practitioners should know, including:
+- Supervision topics
+- Training considerations
+- Ethical implications
+- Cultural competency factors
+
+### Limitations & Future Research
+Study limitations and directions for future investigation
+
+### Practice Recommendations
+Specific recommendations for implementation in clinical settings
+
+${userContext ? `\nUser Context: ${userContext}` : ''}
+
+Article: ${content.title}
+Source: ${content.source}
+Word Count: ${content.wordCount}
+
+Content: ${content.content}
+
+Provide a comprehensive, detailed analysis that demonstrates deep understanding of the research and its clinical applications. Use professional terminology while remaining accessible to practitioners at all levels.
+
+Format your response to be thorough yet scannable, with clear section headers and detailed content that practitioners can reference for clinical decision-making, supervision discussions, and professional development planning.`;
+
+    try {
+      // Use Google AI as primary since it's working
+      const { GoogleGenerativeAI } = await import('@google/generative-ai');
+      
+      if (!process.env.GOOGLE_AI_API_KEY) {
+        throw new Error('Google AI API key not configured');
+      }
+
+      const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
+      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      return response.text();
+
+    } catch (googleError) {
+      console.error('Google AI failed for content summarization:', googleError);
+      
+      // Fallback to basic content extraction
+      const summary = content.content.substring(0, 1000);
+      return `Summary of "${content.title}" from ${content.source}:\n\n${summary}...`;
+    }
+  }
+
   /**
    * Summarize scraped content using AI
    */
