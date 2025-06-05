@@ -1166,7 +1166,7 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                 .then(data => {
                   const aiResponse = {
                     id: Date.now().toString() + '_ai',
-                    content: data.message || "I'm here to help with your counseling journey!",
+                    content: data.response || "I'm here to help with your counseling journey!",
                     isUser: false,
                     timestamp: new Date()
                   };
