@@ -1,34 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation, useRoute } from 'wouter';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useLocation, useRoute } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { Heart, Shield, Users, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 
 const clientRegistrationSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  email: z.string().email("Valid email is required"),
-  phone: z.string().optional(),
-  dateOfBirth: z.string().optional(),
-  emergencyContactName: z.string().optional(),
-  emergencyContactPhone: z.string().optional(),
-  emergencyContactRelationship: z.string().optional(),
-  consentToShare: z.boolean().default(false),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  confirmPassword: z.string().min(8, "Password confirmation is required"),
   privacyAgreement: z.boolean().refine(val => val === true, {
     message: "You must agree to the privacy policy"
   }),
   communicationConsent: z.boolean().default(true)
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"]
 });
 
 type ClientRegistrationForm = z.infer<typeof clientRegistrationSchema>;
@@ -36,61 +30,61 @@ type ClientRegistrationForm = z.infer<typeof clientRegistrationSchema>;
 export default function ClientOnboarding() {
   const [location, setLocation] = useLocation();
   const [isMatch, params] = useRoute('/client-onboarding/:inviteToken');
-  const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+
+  const inviteToken = params?.inviteToken;
+
+  // Validate invitation token
+  const { data: invitation, isLoading: isValidating, error: validationError } = useQuery({
+    queryKey: ['/api/client-invitation', inviteToken],
+    enabled: !!inviteToken,
+    retry: false
+  });
 
   const form = useForm<ClientRegistrationForm>({
     resolver: zodResolver(clientRegistrationSchema),
     defaultValues: {
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: '',
-      dateOfBirth: '',
-      emergencyContactName: '',
-      emergencyContactPhone: '',
-      emergencyContactRelationship: '',
-      consentToShare: false,
+      password: '',
+      confirmPassword: '',
       privacyAgreement: false,
       communicationConsent: true
     }
   });
 
   const onSubmit = async (data: ClientRegistrationForm) => {
+    if (!inviteToken) {
+      toast({
+        title: "Invalid Access",
+        description: "You need a valid invitation to register.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      const emergencyContact = data.emergencyContactName ? {
-        name: data.emergencyContactName,
-        phone: data.emergencyContactPhone || '',
-        relationship: data.emergencyContactRelationship || ''
-      } : undefined;
-
-      const response = await fetch('/api/client-registration', {
+      // Accept the invitation and create client account
+      const response = await apiRequest(`/api/client-invitation/${inviteToken}/accept`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...data,
-          inviteToken: params?.inviteToken,
-          emergencyContact,
-          dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : undefined
+          password: data.password,
+          confirmPassword: data.confirmPassword
         })
       });
 
-      if (response.ok) {
-        const result = await response.json();
-        toast({
-          title: "Registration Complete!",
-          description: "Welcome to your therapy portal. You can now access your shared insights and track your progress."
-        });
-        setLocation(`/client-dashboard/${result.clientId}`);
-      } else {
-        throw new Error('Registration failed');
-      }
+      toast({
+        title: "Account Created Successfully",
+        description: "Welcome to ClarityLog! You can now access your client portal.",
+      });
+
+      // Redirect to client portal
+      setLocation('/client-portal');
     } catch (error) {
+      console.error('Registration error:', error);
       toast({
         title: "Registration Failed",
-        description: "Please check your information and try again.",
+        description: "Please check your password and try again.",
         variant: "destructive"
       });
     } finally {
@@ -98,291 +92,205 @@ export default function ClientOnboarding() {
     }
   };
 
-  if (!isMatch) {
+  // Show loading state while validating invitation
+  if (isValidating) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-center space-x-2">
+              <Clock className="h-5 w-5 animate-spin" />
+              <span>Validating invitation...</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show error if invitation is invalid
+  if (validationError || !invitation?.valid) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl text-red-600">Invalid Access</CardTitle>
+            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <CardTitle className="text-red-600">Invalid Invitation</CardTitle>
             <CardDescription>
-              This link is not valid. Please contact your therapist for a new invitation.
+              This invitation link is invalid, expired, or has already been used.
             </CardDescription>
           </CardHeader>
+          <CardContent>
+            <Button 
+              onClick={() => setLocation('/')} 
+              className="w-full"
+            >
+              Return to Home
+            </Button>
+          </CardContent>
         </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl">
-        {step === 1 && (
-          <Card>
-            <CardHeader className="text-center">
-              <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-                <Heart className="w-8 h-8 text-blue-600" />
-              </div>
-              <CardTitle className="text-3xl">Welcome to Your Therapy Portal</CardTitle>
-              <CardDescription className="text-lg">
-                Your therapist has invited you to join ClarityLog, a secure platform for sharing insights and tracking your progress together.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid md:grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <Shield className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                  <h3 className="font-semibold">Secure & Private</h3>
-                  <p className="text-sm text-gray-600">Your information is protected with enterprise-grade security</p>
-                </div>
-                <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <Users className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                  <h3 className="font-semibold">Collaborative Care</h3>
-                  <p className="text-sm text-gray-600">Work together with your therapist on your journey</p>
-                </div>
-                <div className="text-center p-4 bg-purple-50 rounded-lg">
-                  <Heart className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-                  <h3 className="font-semibold">Track Progress</h3>
-                  <p className="text-sm text-gray-600">See your growth and celebrate milestones</p>
-                </div>
-              </div>
-              <Button 
-                onClick={() => setStep(2)} 
-                className="w-full bg-blue-600 hover:bg-blue-700"
-                size="lg"
-              >
-                Get Started
-              </Button>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+      <div className="w-full max-w-2xl space-y-8">
+        {/* Header */}
+        <div className="text-center">
+          <div className="flex items-center justify-center space-x-2 mb-4">
+            <Heart className="h-8 w-8 text-blue-600" />
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">ClarityLog</h1>
+          </div>
+          <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
+            Welcome {invitation.clientName}
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400">
+            Complete your registration to access your therapy portal
+          </p>
+        </div>
+
+        {/* Benefits Cards */}
+        <div className="grid md:grid-cols-3 gap-4 mb-8">
+          <Card className="text-center">
+            <CardContent className="p-4">
+              <Shield className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+              <h3 className="font-semibold mb-1">Secure & Private</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Your data is encrypted and protected
+              </p>
             </CardContent>
           </Card>
-        )}
+          <Card className="text-center">
+            <CardContent className="p-4">
+              <Users className="h-8 w-8 text-green-600 mx-auto mb-2" />
+              <h3 className="font-semibold mb-1">Shared Insights</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Collaborate with your therapist
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="text-center">
+            <CardContent className="p-4">
+              <CheckCircle className="h-8 w-8 text-purple-600 mx-auto mb-2" />
+              <h3 className="font-semibold mb-1">Track Progress</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Monitor your therapy journey
+              </p>
+            </CardContent>
+          </Card>
+        </div>
 
-        {step === 2 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl">Create Your Account</CardTitle>
-              <CardDescription>
-                Please provide your information to set up your secure portal access.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="firstName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>First Name *</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="lastName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Last Name *</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
+        {/* Registration Form */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Create Your Account</CardTitle>
+            <CardDescription>
+              Set up your secure password to access your client portal
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <div className="space-y-4">
                   <FormField
                     control={form.control}
-                    name="email"
+                    name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email Address *</FormLabel>
+                        <FormLabel>Password</FormLabel>
                         <FormControl>
-                          <Input type="email" {...field} />
+                          <Input
+                            type="password"
+                            placeholder="Create a secure password"
+                            {...field}
+                          />
                         </FormControl>
-                        <FormDescription>
-                          This will be used for portal access and important updates
-                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
 
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="phone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Phone Number</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
+                  <FormField
+                    control={form.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Confirm Password</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="password"
+                            placeholder="Confirm your password"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="privacyAgreement"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="text-sm">
+                            I agree to the Privacy Policy and Terms of Service
+                          </FormLabel>
                           <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="dateOfBirth"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Date of Birth</FormLabel>
-                          <FormControl>
-                            <Input type="date" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
 
-                  <div className="border-t pt-6">
-                    <h3 className="text-lg font-semibold mb-4">Emergency Contact (Optional)</h3>
-                    <div className="grid md:grid-cols-3 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="emergencyContactName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Name</FormLabel>
-                            <FormControl>
-                              <Input {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="emergencyContactPhone"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Phone</FormLabel>
-                            <FormControl>
-                              <Input {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="emergencyContactRelationship"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Relationship</FormLabel>
-                            <FormControl>
-                              <Input {...field} placeholder="Parent, Spouse, etc." />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="communicationConsent"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="text-sm">
+                            I consent to receive therapy-related communications
+                          </FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
-                  <div className="border-t pt-6 space-y-4">
-                    <h3 className="text-lg font-semibold">Privacy & Communication Preferences</h3>
-                    
-                    <FormField
-                      control={form.control}
-                      name="consentToShare"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel>
-                              Allow sharing of insights and progress with my therapist
-                            </FormLabel>
-                            <FormDescription>
-                              Your therapist can view your progress notes, mood tracking, and goal updates
-                            </FormDescription>
-                          </div>
-                        </FormItem>
-                      )}
-                    />
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Creating Account...' : 'Create Account'}
+                </Button>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
 
-                    <FormField
-                      control={form.control}
-                      name="communicationConsent"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel>
-                              Receive helpful reminders and updates
-                            </FormLabel>
-                            <FormDescription>
-                              Get notifications about new insights, appointment reminders, and progress milestones
-                            </FormDescription>
-                          </div>
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="privacyAgreement"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel>
-                              I agree to the Privacy Policy and Terms of Service *
-                            </FormLabel>
-                            <FormDescription>
-                              Required to create your account
-                            </FormDescription>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="flex gap-4">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setStep(1)}
-                      className="flex-1"
-                    >
-                      Back
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="flex-1 bg-blue-600 hover:bg-blue-700"
-                    >
-                      {isSubmitting ? 'Creating Account...' : 'Create Account'}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-        )}
+        {/* Footer */}
+        <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+          <p>
+            By creating an account, you're joining a secure platform designed to enhance your therapy experience.
+          </p>
+        </div>
       </div>
     </div>
   );
