@@ -1350,6 +1350,94 @@ Respond as a knowledgeable colleague who understands the nuances of mental healt
     }
   });
 
+  // AI Content Analysis endpoint
+  app.post('/api/ai/analyze-content', express.json(), async (req, res) => {
+    try {
+      const { content, userId } = req.body;
+
+      if (!content || !userId) {
+        return res.status(400).json({ error: 'Content and userId are required' });
+      }
+
+      // Import usage limiter
+      const { UsageLimiter } = await import('./usage-limiter');
+      
+      // Check if user has remaining AI calls
+      if (!UsageLimiter.canUseAI(userId)) {
+        return res.status(429).json({ 
+          error: 'AI usage limit reached',
+          analysis: 'AI analysis temporarily unavailable due to usage limits.'
+        });
+      }
+
+      const analysisPrompt = `As a professional counseling supervisor and mentor, analyze the following content for insights, themes, and learning opportunities relevant to Licensed Associate Counselors (LACs):
+
+Content: "${content}"
+
+Provide a thoughtful analysis covering:
+- Key themes and concepts
+- Professional development insights
+- Potential learning opportunities
+- Connections to counseling theory or practice
+- Suggestions for further exploration
+
+Keep the analysis practical and relevant to counseling practice.`;
+
+      let analysisResult;
+      let usedProvider = 'none';
+
+      // Try OpenAI first
+      try {
+        const openai = new OpenAI({
+          apiKey: process.env.OPENAI_API_KEY,
+        });
+
+        const response = await openai.chat.completions.create({
+          model: 'gpt-4o',
+          messages: [{ role: 'user', content: analysisPrompt }],
+          max_tokens: 500,
+          temperature: 0.7,
+        });
+
+        analysisResult = response.choices[0]?.message?.content || 'Analysis completed but no content received.';
+        usedProvider = 'openai';
+      } catch (openaiError) {
+        console.log('OpenAI failed, trying Google AI:', openaiError);
+        
+        // Fallback to Google AI
+        try {
+          const { GoogleGenerativeAI } = await import('@google/generative-ai');
+          const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
+          const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+          
+          const result = await model.generateContent(analysisPrompt);
+          const response = await result.response;
+          analysisResult = response.text();
+          usedProvider = 'google';
+        } catch (googleError) {
+          console.log('Google AI also failed:', googleError);
+          throw new Error('Both AI providers failed');
+        }
+      }
+
+      // Record successful AI call
+      if (usedProvider !== 'none') {
+        UsageLimiter.recordAICall(userId);
+      }
+
+      res.json({ 
+        analysis: analysisResult,
+        provider: usedProvider
+      });
+    } catch (error) {
+      console.error('AI content analysis error:', error);
+      res.status(500).json({ 
+        error: 'Analysis failed',
+        analysis: 'AI analysis is currently unavailable. Please try again later.'
+      });
+    }
+  });
+
   // AI Chat endpoint for conversational assistant
   app.post('/api/ai/chat', express.json(), async (req, res) => {
     try {
