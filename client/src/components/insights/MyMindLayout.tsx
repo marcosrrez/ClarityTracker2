@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Calendar, Sparkles, Search, Plus, Filter, Tags, Upload, Download, Mail, X, Send, MessageCircle } from "lucide-react";
+import { Calendar, Sparkles, Search, Plus, Filter, Tags, Upload, Download, Mail, X, Send, MessageCircle, Globe } from "lucide-react";
 import { LoadingQuoteCompact } from "@/components/ui/loading-quote";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -445,6 +445,128 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
     }
   };
 
+  // Action handlers for smart search buttons
+  const handleCreateInsightCard = async (content: string) => {
+    if (!user || !content.trim()) return;
+    
+    setIsProcessingSmartSearch(true);
+    try {
+      const newCard = {
+        type: 'note' as const,
+        title: `Quick Note - ${new Date().toLocaleDateString()}`,
+        content: content.trim(),
+        tags: ['quick-note'],
+      };
+
+      await createInsightCard(user.uid, newCard);
+      setSearchQuery("");
+      
+      toast({
+        title: "Insight Created",
+        description: "Your content has been saved as an insight card",
+      });
+
+      if (onRefresh) {
+        await onRefresh();
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create insight card",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessingSmartSearch(false);
+    }
+  };
+
+  const handleScrapeUrl = async (url: string) => {
+    if (!user || !url.trim()) return;
+    
+    setIsProcessingSmartSearch(true);
+    try {
+      // For now, save URL as placeholder - web scraping would need backend endpoint
+      const newCard = {
+        type: 'note' as const,
+        title: `Web Content: ${new URL(url).hostname}`,
+        content: `URL: ${url}\n\nNote: Web scraping feature coming soon. URL saved for reference.`,
+        tags: ['url-content', 'web-scraping'],
+      };
+
+      await createInsightCard(user.uid, newCard);
+      setSearchQuery("");
+      
+      toast({
+        title: "URL Saved",
+        description: "URL saved as insight card. Web scraping feature coming soon.",
+      });
+
+      if (onRefresh) {
+        await onRefresh();
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save URL",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessingSmartSearch(false);
+    }
+  };
+
+  const handleAIAnalysis = async (content: string) => {
+    if (!user || !content.trim()) return;
+    
+    setIsProcessingSmartSearch(true);
+    try {
+      const response = await fetch('/api/ai/analyze-content', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: content.trim(),
+          userId: user.uid,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to analyze content');
+      }
+
+      const data = await response.json();
+      
+      const newCard = {
+        type: 'note' as const,
+        title: `AI Analysis - ${new Date().toLocaleDateString()}`,
+        content: `Original Content:\n${content}\n\nAI Analysis:\n${data.analysis}`,
+        tags: ['ai-analysis', 'analyzed-content'],
+      };
+
+      await createInsightCard(user.uid, newCard);
+      setSearchQuery("");
+      
+      toast({
+        title: "AI Analysis Complete",
+        description: "Content analyzed and saved as insight card",
+      });
+
+      if (onRefresh) {
+        await onRefresh();
+      }
+    } catch (error) {
+      // Fallback to simple save if AI analysis fails
+      await handleCreateInsightCard(content);
+      toast({
+        title: "Content Saved",
+        description: "AI analysis unavailable, content saved as insight card",
+      });
+    } finally {
+      setIsProcessingSmartSearch(false);
+    }
+  };
+
   const handleSearchSubmit = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       handleSmartSearch(searchQuery);
@@ -519,15 +641,15 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
       const analysis = item.analysis;
       const analysisContent = [];
       
-      // Collect all analysis text
+      // Collect all analysis text with safe array checks
       if (analysis.summary) analysisContent.push(cleanText(analysis.summary).toLowerCase());
-      if (analysis.themes) analysisContent.push(...analysis.themes.map((t: string) => cleanText(t).toLowerCase()));
-      if (analysis.therapeuticModalities) analysisContent.push(...analysis.therapeuticModalities.map((t: string) => cleanText(t).toLowerCase()));
-      if (analysis.clientPresentation) analysisContent.push(...analysis.clientPresentation.map((t: string) => cleanText(t).toLowerCase()));
-      if (analysis.competencyAreas) analysisContent.push(...analysis.competencyAreas.map((t: string) => cleanText(t).toLowerCase()));
-      if (analysis.emotionalContent) analysisContent.push(...analysis.emotionalContent.map((t: string) => cleanText(t).toLowerCase()));
-      if (analysis.keyLearnings) analysisContent.push(...analysis.keyLearnings.map((t: string) => cleanText(t).toLowerCase()));
-      if (analysis.reflectivePrompts) analysisContent.push(...analysis.reflectivePrompts.map((t: string) => cleanText(t).toLowerCase()));
+      if (analysis.themes && Array.isArray(analysis.themes)) analysisContent.push(...analysis.themes.map((t: string) => cleanText(t).toLowerCase()));
+      if (analysis.therapeuticModalities && Array.isArray(analysis.therapeuticModalities)) analysisContent.push(...analysis.therapeuticModalities.map((t: string) => cleanText(t).toLowerCase()));
+      if (analysis.clientPresentation && Array.isArray(analysis.clientPresentation)) analysisContent.push(...analysis.clientPresentation.map((t: string) => cleanText(t).toLowerCase()));
+      if (analysis.competencyAreas && Array.isArray(analysis.competencyAreas)) analysisContent.push(...analysis.competencyAreas.map((t: string) => cleanText(t).toLowerCase()));
+      if (analysis.emotionalContent && Array.isArray(analysis.emotionalContent)) analysisContent.push(...analysis.emotionalContent.map((t: string) => cleanText(t).toLowerCase()));
+      if (analysis.keyLearnings && Array.isArray(analysis.keyLearnings)) analysisContent.push(...analysis.keyLearnings.map((t: string) => cleanText(t).toLowerCase()));
+      if (analysis.reflectivePrompts && Array.isArray(analysis.reflectivePrompts)) analysisContent.push(...analysis.reflectivePrompts.map((t: string) => cleanText(t).toLowerCase()));
       if (analysis.supervisionTopics) analysisContent.push(...analysis.supervisionTopics.map((t: string) => cleanText(t).toLowerCase()));
       if (analysis.professionalGrowthAreas) analysisContent.push(...analysis.professionalGrowthAreas.map((t: string) => cleanText(t).toLowerCase()));
       
@@ -651,18 +773,58 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
       {/* Search Bar & Smart Spaces - Auto-hide on scroll */}
       <div className={`bg-gray-50 dark:bg-gray-900 p-4 pt-1 flex-shrink-0 transition-transform duration-300 ${showBottomNav ? 'translate-y-0' : '-translate-y-full'}`}>
         <div className="space-y-4">
-          {/* Main Search Bar */}
+          {/* Main Search Bar with Action Buttons */}
           <div className="flex items-center gap-3 max-w-5xl">
             <div className="flex-1 relative">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
               <Input
-                placeholder="Search insights, paste content, or add URLs..."
+                placeholder="Type to search or use action buttons..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={handleSearchSubmit}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    // Default to search/filter when Enter is pressed
+                    e.preventDefault();
+                  }
+                }}
                 disabled={isProcessingSmartSearch}
-                className="pl-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-full h-12 text-base"
+                className="pl-12 pr-24 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-full h-12 text-base"
               />
+              
+              {/* Action Icons Inside Input */}
+              {searchQuery.trim() && !isProcessingSmartSearch && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+                  {/* Create Insight Card */}
+                  <button
+                    onClick={() => handleCreateInsightCard(searchQuery)}
+                    className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 flex items-center justify-center transition-colors"
+                    title="Create insight card from text"
+                  >
+                    <Plus className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                  </button>
+                  
+                  {/* Scrape URL */}
+                  {searchQuery.match(/^https?:\/\//) && (
+                    <button
+                      onClick={() => handleScrapeUrl(searchQuery)}
+                      className="w-7 h-7 rounded-full bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50 flex items-center justify-center transition-colors"
+                      title="Scrape website content"
+                    >
+                      <Globe className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+                    </button>
+                  )}
+                  
+                  {/* AI Analysis */}
+                  <button
+                    onClick={() => handleAIAnalysis(searchQuery)}
+                    className="w-7 h-7 rounded-full bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-900/50 flex items-center justify-center transition-colors"
+                    title="Get AI analysis"
+                  >
+                    <Sparkles className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
+                  </button>
+                </div>
+              )}
+              
               {isProcessingSmartSearch && (
                 <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
                   <div className="w-5 h-5 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin" />
