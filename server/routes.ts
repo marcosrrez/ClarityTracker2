@@ -3617,6 +3617,85 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
     }
   });
 
+  // Client Portal API Routes
+  
+  // Get clients for therapist
+  app.get('/api/clients/:therapistId', async (req, res) => {
+    try {
+      const { therapistId } = req.params;
+      
+      const clients = await db.select().from(clientTable)
+        .where(eq(clientTable.therapistId, therapistId))
+        .orderBy(desc(clientTable.createdAt));
+      
+      const parsedClients = clients.map(client => ({
+        ...client,
+        emergencyContact: typeof client.emergencyContact === 'string' ? 
+          JSON.parse(client.emergencyContact) : client.emergencyContact,
+        portalAccess: client.portalAccess === 'true',
+        consentToShare: client.consentToShare === 'true'
+      }));
+      
+      res.json(parsedClients);
+    } catch (error) {
+      console.error('Error fetching clients:', error);
+      res.status(500).json({ error: 'Failed to fetch clients' });
+    }
+  });
+
+  // Create new client
+  app.post('/api/clients', async (req, res) => {
+    try {
+      const clientData = insertClientSchema.parse(req.body);
+      const clientId = crypto.randomUUID();
+      
+      const [newClient] = await db.insert(clientTable).values({
+        id: clientId,
+        ...clientData,
+        emergencyContact: clientData.emergencyContact ? JSON.stringify(clientData.emergencyContact) : null,
+        portalAccess: clientData.portalAccess ? 'true' : 'false',
+        consentToShare: clientData.consentToShare ? 'true' : 'false'
+      }).returning();
+      
+      res.json({
+        ...newClient,
+        emergencyContact: typeof newClient.emergencyContact === 'string' ? 
+          JSON.parse(newClient.emergencyContact) : newClient.emergencyContact,
+        portalAccess: newClient.portalAccess === 'true',
+        consentToShare: newClient.consentToShare === 'true'
+      });
+    } catch (error) {
+      console.error('Error creating client:', error);
+      res.status(500).json({ error: 'Failed to create client' });
+    }
+  });
+
+  // Get client progress for therapist view
+  app.get('/api/client-progress/:therapistId', async (req, res) => {
+    try {
+      const { therapistId } = req.params;
+      const { clientId } = req.query;
+      
+      let query = db.select().from(clientProgressTable)
+        .where(eq(clientProgressTable.therapistId, therapistId));
+      
+      if (clientId) {
+        query = db.select().from(clientProgressTable)
+          .where(and(
+            eq(clientProgressTable.therapistId, therapistId),
+            eq(clientProgressTable.clientId, clientId as string)
+          ));
+      }
+      
+      const progress = await query.orderBy(desc(clientProgressTable.createdAt));
+      
+      res.json(progress);
+    } catch (error) {
+      console.error('Error fetching client progress:', error);
+      res.status(500).json({ error: 'Failed to fetch client progress' });
+    }
+  });
+
   // Create shared insight
   app.post('/api/insights', async (req, res) => {
     try {
