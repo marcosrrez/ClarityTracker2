@@ -418,13 +418,43 @@ export default function SessionRecording() {
                 </div>
               </div>
 
+              {/* Real-time Transcription Display */}
               {recordingState.isTranscribing && (
-                <Alert>
-                  <Clock className="h-4 w-4" />
-                  <AlertDescription>
-                    Session ended. Processing audio transcription...
-                  </AlertDescription>
-                </Alert>
+                <div className="space-y-4">
+                  <Alert>
+                    <Activity className="h-4 w-4" />
+                    <AlertDescription>
+                      Azure Speech Service is actively transcribing audio in real-time
+                    </AlertDescription>
+                  </Alert>
+                  
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h4 className="font-medium mb-2">Live Transcript</h4>
+                    <div className="max-h-40 overflow-y-auto">
+                      {transcriptionSegments.length > 0 ? (
+                        <div className="space-y-2">
+                          {transcriptionSegments.slice(-10).map((segment, index) => (
+                            <div key={index} className="text-sm">
+                              <span className="text-xs text-muted-foreground mr-2">
+                                {new Date(segment.timestamp).toLocaleTimeString()}
+                              </span>
+                              <span className={segment.confidence > 0.7 ? 'text-gray-900' : 'text-gray-600'}>
+                                {segment.text}
+                              </span>
+                              {segment.confidence <= 0.5 && (
+                                <span className="text-xs text-yellow-600 ml-2">(low confidence)</span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-sm text-muted-foreground">
+                          Listening for speech...
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
               )}
             </CardContent>
           </Card>
