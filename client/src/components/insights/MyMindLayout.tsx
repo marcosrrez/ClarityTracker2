@@ -537,10 +537,18 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
 
       const data = await response.json();
       
+      // Format the analysis with proper structure
+      const formattedAnalysis = data.analysis
+        .replace(/\*\*(.*?)\*\*/g, '**$1**') // Keep markdown bold
+        .replace(/## /g, '\n## ') // Add spacing before headings
+        .replace(/\* /g, '\n• ') // Convert asterisks to bullets
+        .replace(/\n{3,}/g, '\n\n') // Clean up excessive line breaks
+        .trim();
+
       const newCard = {
         type: 'note' as const,
         title: `AI Analysis - ${new Date().toLocaleDateString()}`,
-        content: `Original Content:\n${content}\n\nAI Analysis:\n${data.analysis}`,
+        content: `## Original Content\n${content}\n\n## Professional Analysis\n${formattedAnalysis}`,
         tags: ['ai-analysis', 'analyzed-content'],
       };
 
