@@ -276,9 +276,28 @@ Content: ${content.content}
 
 Provide a clear, professional summary in 3-4 paragraphs.`;
 
-    // This would integrate with the existing AI service
-    // For now, return a placeholder that indicates AI processing is needed
-    return `[AI Summary needed for: ${content.title}]`;
+    try {
+      // Use Google AI as primary since it's working
+      const { GoogleGenerativeAI } = await import('@google/generative-ai');
+      
+      if (!process.env.GOOGLE_AI_API_KEY) {
+        throw new Error('Google AI API key not configured');
+      }
+
+      const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
+      const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      return response.text();
+
+    } catch (googleError) {
+      console.error('Google AI failed for content summarization:', googleError);
+      
+      // Fallback to basic content extraction
+      const summary = content.content.substring(0, 1000);
+      return `Summary of "${content.title}" from ${content.source}:\n\n${summary}...`;
+    }
   }
 }
 
