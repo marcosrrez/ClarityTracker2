@@ -777,23 +777,10 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
           <div className="flex items-center gap-3 max-w-5xl">
             <div className="flex-1 relative">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <Input
-                placeholder="Type to search or use action buttons..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    // Default to search/filter when Enter is pressed
-                    e.preventDefault();
-                  }
-                }}
-                disabled={isProcessingSmartSearch}
-                className="pl-12 pr-20 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-full h-12 text-base"
-              />
               
-              {/* Minimal Action Icons - Like Attachment */}
+              {/* Action Icons Next to Search Icon */}
               {searchQuery.trim() && !isProcessingSmartSearch && (
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center">
+                <div className="absolute left-12 top-1/2 transform -translate-y-1/2 flex items-center">
                   {/* Create Insight Card */}
                   <button
                     onClick={() => handleCreateInsightCard(searchQuery)}
@@ -824,6 +811,20 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                   </button>
                 </div>
               )}
+              
+              <Input
+                placeholder="Type to search or use action buttons..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    // Default to search/filter when Enter is pressed
+                    e.preventDefault();
+                  }
+                }}
+                disabled={isProcessingSmartSearch}
+                className={`${searchQuery.trim() && !isProcessingSmartSearch ? 'pl-36' : 'pl-12'} pr-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-full h-12 text-base transition-all`}
+              />
               
               {isProcessingSmartSearch && (
                 <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
