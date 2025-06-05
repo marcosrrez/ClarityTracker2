@@ -122,17 +122,11 @@ export function ConversationContainer({
       />
 
       {!isConversationActive && (
-        <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center max-w-md">
-          <div className="mb-8">
-            <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Bot className="h-8 w-8 text-purple-600" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              AI Coaching Assistant
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">
-              I'm here to support your professional development journey. Ask me about counseling techniques, supervision topics, or career guidance.
-            </p>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center max-w-md">
+          <div className="mb-20">
+            <h1 className="text-4xl font-semibold text-gray-900 dark:text-white mb-4">
+              Ready when you are.
+            </h1>
           </div>
         </div>
       )}

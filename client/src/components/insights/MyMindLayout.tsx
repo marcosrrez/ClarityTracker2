@@ -1014,39 +1014,13 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
             >
               <div className="max-w-4xl mx-auto px-4 md:px-8 pb-8">
                 
-                {/* Dynamic Welcome Message - Natural Flow */}
+                {/* ChatGPT Style Welcome State */}
                 {aiMessages.length === 0 && !isAiLoading && (
                   <div className="text-center space-y-6 py-16 min-h-[60vh] flex flex-col justify-center">
-                    <div className="space-y-4">
-                      <h1 
-                        className="text-2xl md:text-3xl font-light text-gray-900 dark:text-gray-100"
-                        style={{ 
-                          fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
-                          letterSpacing: '-0.01em'
-                        }}
-                      >
-                        Hey there, great to meet you. I'm Dinger, your counseling AI assistant.
+                    <div className="mb-20">
+                      <h1 className="text-4xl font-normal text-gray-900 dark:text-white">
+                        Ready when you are.
                       </h1>
-                      
-                      <p 
-                        className="text-base md:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto px-4"
-                        style={{ 
-                          fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
-                          lineHeight: '1.7'
-                        }}
-                      >
-                        I specialize in mental health, counseling theories, therapeutic modalities, the DSM, cognitive psychology, neuroscience applications, clinical practice, and business guidance for LACs and LPCs.
-                      </p>
-                      
-                      <p 
-                        className="text-sm md:text-base text-gray-500 dark:text-gray-500"
-                        style={{ 
-                          fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
-                          lineHeight: '1.6'
-                        }}
-                      >
-                        What aspect of counseling would you like to explore?
-                      </p>
                     </div>
                   </div>
                 )}
