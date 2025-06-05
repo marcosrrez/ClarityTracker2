@@ -24,10 +24,12 @@ import {
   savedResearchTable, 
   researchHistoryTable,
   insertResearchCollectionSchema,
-  insertSavedResearchSchema 
+  insertSavedResearchSchema,
+  dingerUserProfileTable,
+  dingerConversationMemoryTable
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, sql } from "drizzle-orm";
 
 // Email reminder scheduling function
 async function scheduleSessionReminders(session: any, reminderDays: number) {

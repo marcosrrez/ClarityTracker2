@@ -23,7 +23,7 @@ import {
   Target,
   Lightbulb
 } from 'lucide-react';
-import { useUser } from '@/hooks/useUser';
+import { useAuth } from '@/hooks/use-auth';
 import { apiRequest } from '@/lib/queryClient';
 
 interface EnhancedResponse {
@@ -89,19 +89,24 @@ export default function EnhancedDingerChat() {
     setCurrentMessage('');
 
     try {
-      const response = await apiRequest('/api/dinger/enhanced-chat', {
+      const response = await fetch('/api/dinger/enhanced-chat', {
         method: 'POST',
-        body: {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           query: userMessage,
-          userId: user.uid,
+          userId: user?.uid || 'anonymous',
           mode: selectedMode
-        }
+        })
       });
+
+      const result = await response.json();
 
       const newConversation: Conversation = {
         id: `conv_${Date.now()}`,
         query: userMessage,
-        response,
+        response: result,
         mode: selectedMode,
         timestamp: new Date()
       };
