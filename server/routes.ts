@@ -27,7 +27,7 @@ import {
   insertSavedResearchSchema 
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 
 // Email reminder scheduling function
 async function scheduleSessionReminders(session: any, reminderDays: number) {
@@ -2807,10 +2807,19 @@ Please provide a helpful, professional response that's personalized to their sit
       
       const [savedResearch] = await db.insert(savedResearchTable).values({
         id: savedId,
-        ...savedData,
-        citationApa,
+        userId: savedData.userId,
+        collectionId: savedData.collectionId,
+        title: savedData.title,
+        url: savedData.url,
+        domain: savedData.domain,
+        source: savedData.source,
+        snippet: savedData.snippet,
         authors: JSON.stringify(savedData.authors || []),
-        tags: JSON.stringify(savedData.tags || [])
+        publishDate: savedData.publishDate,
+        tags: JSON.stringify(savedData.tags || []),
+        notes: savedData.notes,
+        summaryGenerated: savedData.summaryGenerated,
+        isFavorite: 0
       }).returning();
       
       res.json({ savedResearch });
