@@ -341,42 +341,47 @@ export default function ResearchLibrary() {
                       {paper.title.length > 80 ? `${paper.title.substring(0, 80)}...` : paper.title}
                     </h3>
 
-                    {/* Summary/Snippet Preview */}
+                    {/* Content - Premium Typography matching insight cards */}
                     <div 
-                      className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed"
+                      className="text-gray-800 dark:text-gray-200 leading-relaxed"
                       style={{ 
                         fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
-                        fontSize: '0.85rem',
-                        lineHeight: '1.5',
+                        fontSize: '0.9rem',
+                        lineHeight: '1.6',
                         letterSpacing: '0.01em'
                       }}
                     >
                       {(() => {
                         const preview = paper.summary || paper.snippet || '';
-                        return preview.length > 100 ? `${preview.substring(0, 100)}...` : preview;
+                        const cleanedText = preview.trim();
+                        return cleanedText.length > 100 ? `${cleanedText.substring(0, 100)}...` : cleanedText;
                       })()}
                     </div>
 
-                    {/* Source and Tags Preview */}
-                    <div className="space-y-2">
-                      <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                        {paper.source}
-                      </div>
-                      
-                      {paper.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
+                    {/* Elegant Insights Preview - matching insight cards structure */}
+                    {paper.tags && paper.tags.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                        <div className="flex flex-wrap gap-1.5">
                           {paper.tags.slice(0, 2).map((tag) => (
-                            <Badge key={tag} variant="secondary" className="text-xs px-2 py-0.5">
+                            <span 
+                              key={tag}
+                              className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300"
+                            >
                               {tag}
-                            </Badge>
+                            </span>
                           ))}
                           {paper.tags.length > 2 && (
-                            <Badge variant="outline" className="text-xs px-2 py-0.5">
-                              +{paper.tags.length - 2}
-                            </Badge>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                              +{paper.tags.length - 2} more
+                            </span>
                           )}
                         </div>
-                      )}
+                      </div>
+                    )}
+
+                    {/* Source info - minimal */}
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                      {paper.source}
                     </div>
                   </div>
                 </CardContent>

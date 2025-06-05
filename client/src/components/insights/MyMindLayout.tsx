@@ -1506,6 +1506,58 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                                 }}
                               />
 
+                              {/* Action Buttons for AI Response */}
+                              <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700 flex gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(message.content);
+                                    toast({
+                                      title: "Copied",
+                                      description: "Response copied to clipboard",
+                                    });
+                                  }}
+                                  className="text-xs h-8 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+                                >
+                                  <Copy className="h-3 w-3 mr-1" />
+                                  Copy
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={async () => {
+                                    if (!user) return;
+                                    try {
+                                      const newCard = {
+                                        type: 'insight' as const,
+                                        title: `AI Coaching Insight - ${format(new Date(), "MMM d, yyyy")}`,
+                                        content: message.content,
+                                        tags: ['ai-coaching', 'dinger-response'],
+                                      };
+                                      await createInsightCard(user.uid, newCard);
+                                      toast({
+                                        title: "Saved as Insight",
+                                        description: "AI response saved to your insights",
+                                      });
+                                      if (onRefresh) {
+                                        await onRefresh();
+                                      }
+                                    } catch (error) {
+                                      toast({
+                                        title: "Error",
+                                        description: "Failed to save insight",
+                                        variant: "destructive",
+                                      });
+                                    }
+                                  }}
+                                  className="text-xs h-8 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+                                >
+                                  <BookmarkPlus className="h-3 w-3 mr-1" />
+                                  Save as Insight
+                                </Button>
+                              </div>
+
                               {/* Search Results Display */}
                               {message.searchResults && message.searchResults.length > 0 && (
                                 <div className="mt-6 space-y-4">
