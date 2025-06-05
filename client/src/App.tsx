@@ -88,7 +88,7 @@ function Router() {
       <Route path="/supervisor-analytics" component={SupervisorAnalytics} />
       <Route path="/client-portal" component={() => <ClientPortal userId="demo-user" />} />
       <Route path="/client-onboarding/:inviteToken" component={ClientOnboarding} />
-      <Route path="/client-dashboard/:clientId" component={({ params }) => <ClientDashboard clientId={params?.clientId || 'demo-client'} />} />
+      <Route path="/client-dashboard" component={ClientDashboard} />
       <Route path="/account-setup">
         <AuthGuard requireAccountSetup={false}>
           <AccountSetupPage />
