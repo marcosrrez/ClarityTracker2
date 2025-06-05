@@ -791,36 +791,36 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                 className="pl-12 pr-20 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-full h-12 text-base"
               />
               
-              {/* Compact Action Icons */}
+              {/* Minimal Action Icons - Like Attachment */}
               {searchQuery.trim() && !isProcessingSmartSearch && (
-                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-0.5">
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center">
                   {/* Create Insight Card */}
                   <button
                     onClick={() => handleCreateInsightCard(searchQuery)}
-                    className="w-6 h-6 rounded-md bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 flex items-center justify-center transition-all shadow-sm hover:shadow"
+                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
                     title="Save as insight card"
                   >
-                    <Plus className="h-3 w-3 text-gray-600 dark:text-gray-300" />
+                    <Plus className="h-4 w-4 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" />
                   </button>
                   
                   {/* Scrape URL */}
                   {searchQuery.match(/^https?:\/\//) && (
                     <button
                       onClick={() => handleScrapeUrl(searchQuery)}
-                      className="w-6 h-6 rounded-md bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 flex items-center justify-center transition-all shadow-sm hover:shadow"
+                      className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
                       title="Save URL"
                     >
-                      <Globe className="h-3 w-3 text-gray-600 dark:text-gray-300" />
+                      <Globe className="h-4 w-4 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" />
                     </button>
                   )}
                   
                   {/* AI Analysis */}
                   <button
                     onClick={() => handleAIAnalysis(searchQuery)}
-                    className="w-6 h-6 rounded-md bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 flex items-center justify-center transition-all shadow-sm hover:shadow"
+                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
                     title="Analyze with AI"
                   >
-                    <Sparkles className="h-3 w-3 text-gray-600 dark:text-gray-300" />
+                    <Sparkles className="h-4 w-4 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" />
                   </button>
                 </div>
               )}
