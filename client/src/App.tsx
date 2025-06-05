@@ -38,6 +38,7 @@ import AICoach from "@/pages/AICoach";
 import EnhancedDashboardPage from "@/pages/EnhancedDashboardPage";
 import { SupervisorsPage } from "@/pages/SupervisorsPage";
 import ResearchLibrary from "@/pages/ResearchLibrary";
+import TestSessionIntelligence from "@/pages/TestSessionIntelligence";
 
 import NotFound from "@/pages/not-found";
 
@@ -77,6 +78,7 @@ function Router() {
       <Route path="/enhanced-dashboard" component={EnhancedDashboardPage} />
       <Route path="/supervisors" component={SupervisorsPage} />
       <Route path="/research-library" component={ResearchLibrary} />
+      <Route path="/test-session-intelligence" component={TestSessionIntelligence} />
       <Route path="/account-setup">
         <AuthGuard requireAccountSetup={false}>
           <AccountSetupPage />
