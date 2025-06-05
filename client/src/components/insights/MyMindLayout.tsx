@@ -537,19 +537,60 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
 
       const data = await response.json();
       
-      // Format the analysis with clean typography and proper spacing
-      const formattedAnalysis = data.analysis
-        .replace(/\*\*(.*?)\*\*/g, '\n\n$1\n\n') // Remove bold markdown but add spacing
-        .replace(/## (.*?)(\n|$)/g, '\n\n$1:\n\n') // Convert headings to titles with colons and spacing
-        .replace(/\* /g, '\n\n• ') // Convert asterisks to bullets with double line breaks
-        .replace(/([A-Z][A-Za-z\s]+:)/g, '\n\n$1\n') // Break before and after topic headers ending with colon
-        .replace(/(\.)(\s*)([A-Z][A-Za-z\s]*Theory)/g, '$1\n\n$3') // Break before therapy types
-        .replace(/(\.)(\s*)([A-Z][A-Za-z\s]*Therapy)/g, '$1\n\n$3') // Break before therapy mentions
-        .replace(/(\.)(\s*)(Suggestions|Research|Explore|Examine|Investigate)/g, '$1\n\n$3') // Break before suggestion words
-        .replace(/(\.)(\s*)([A-Z])/g, '$1\n\n$3') // Break sentences into paragraphs
-        .replace(/([a-z]:)(\s*)([A-Z])/g, '$1\n\n$3') // Break after colons
-        .replace(/\n{4,}/g, '\n\n') // Clean up excessive line breaks
-        .trim();
+      // Advanced text formatting with structured sections
+      const formatInsights = (text: string): string => {
+        // Remove markdown formatting
+        let cleanText = text
+          .replace(/\*\*(.*?)\*\*/g, '$1')
+          .replace(/## /g, '')
+          .replace(/\* /g, '• ');
+
+        // Parse sections based on therapy types, concepts, and suggestions
+        const sections: Array<{title: string, content: string}> = [];
+        
+        // Split on major therapy/concept indicators
+        const majorSections = cleanText.split(/(?=(?:Attachment Theory|Cognitive Behavioral Therapy|Psychodynamic Therapy|Play Therapy|Suggestions? for Further Exploration|Research|Key Themes|Analysis of))/i);
+        
+        majorSections.forEach((section, index) => {
+          if (!section.trim()) return;
+          
+          // Extract title and content
+          const lines = section.trim().split(/[:.]/);
+          let title = lines[0].trim();
+          let content = lines.slice(1).join('.').trim();
+          
+          // If no clear title found, use first few words
+          if (!content || content.length < 20) {
+            const words = section.trim().split(' ');
+            title = words.slice(0, 3).join(' ') || `Section ${index + 1}`;
+            content = words.slice(3).join(' ') || section.trim();
+          }
+          
+          // Clean up title
+          title = title.replace(/^(Analysis of|Key Themes and Concepts|Suggestions for Further Exploration)/i, '$1');
+          
+          // Format content with proper paragraph breaks
+          content = content
+            .replace(/\s*\.\s*([A-Z])/g, '.\n\n$1') // Break after sentences
+            .replace(/:\s*([A-Z])/g, ':\n\n$1') // Break after colons
+            .replace(/\n{3,}/g, '\n\n') // Clean excessive breaks
+            .trim();
+          
+          if (title && content) {
+            sections.push({ title, content });
+          }
+        });
+        
+        // Generate formatted HTML-like structure
+        return sections.map((section, index) => {
+          const paragraphs = section.content.split('\n\n').filter(p => p.trim());
+          const formattedParagraphs = paragraphs.map(p => `${p.trim()}`).join('\n\n');
+          
+          return `${section.title}:\n\n${formattedParagraphs}`;
+        }).join('\n\n\n');
+      };
+
+      const formattedAnalysis = formatInsights(data.analysis);
 
       const newCard = {
         type: 'note' as const,
