@@ -58,7 +58,7 @@ export class SessionIntelligenceService {
   }
 
   /**
-   * Analyze session transcript for therapeutic insights
+   * Analyze session transcript for therapeutic insights using Google AI (Dinger integration)
    */
   async analyzeSessionTranscript(
     transcript: string,
@@ -67,22 +67,72 @@ export class SessionIntelligenceService {
     counselorExperience?: string
   ): Promise<SessionAnalysisResult> {
     try {
+      // Prioritize Google AI for reliable analysis
+      if (this.genAI) {
+        const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+        
+        const prompt = `You are Dinger, ClarityLog's AI clinical supervisor analyzing therapy session transcripts. Provide professional insights for LAC development.
+
+        Analyze this session for:
+        1. Key therapeutic themes and patterns
+        2. Evidence-based practice interventions used
+        3. Risk indicators requiring attention
+        4. Therapeutic alliance quality (1-10 scale)
+        5. Missed opportunities for intervention
+        6. Progress note suggestions
+
+        Session transcript (${sessionDuration} minutes):
+        ${transcript}
+        
+        Client population: ${clientPopulation || 'General adult population'}
+        Counselor experience: ${counselorExperience || 'LAC in training'}
+        
+        Respond with valid JSON containing: themes (array), interventions (array), riskIndicators (array), therapeuticAlliance (number 1-10), ebpUsage (array), suggestedNotes (string), confidenceScore (number 0-1).`;
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const responseText = response.text();
+        
+        // Parse JSON response
+        try {
+          const analysis = JSON.parse(responseText.replace(/```json|```/g, '').trim());
+          
+          return {
+            themes: analysis.themes || [],
+            interventions: analysis.interventions || [],
+            riskIndicators: analysis.riskIndicators || [],
+            therapeuticAlliance: analysis.therapeuticAlliance || 7,
+            ebpUsage: analysis.ebpUsage || [],
+            suggestedNotes: analysis.suggestedNotes || '',
+            confidenceScore: analysis.confidenceScore || 0.8,
+            timeEfficiencyMetrics: {
+              estimatedNoteTime: this.estimateNoteWritingTime(transcript.length),
+              actualTranscriptionTime: Math.ceil(sessionDuration * 0.1),
+              timeSaved: this.calculateTimeSaved(transcript.length, sessionDuration)
+            }
+          };
+        } catch (parseError) {
+          console.log('JSON parse error, using fallback analysis');
+          return this.createFallbackAnalysis(transcript, sessionDuration);
+        }
+      }
+
+      // Fallback to OpenAI if Google AI fails
       if (this.openai) {
         const response = await this.openai.chat.completions.create({
-          model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+          model: "gpt-4o",
           messages: [
             {
               role: "system",
-              content: `You are a clinical supervisor analyzing therapy session transcripts to provide insights for LAC development. Analyze the session for:
+              content: `You are Dinger, ClarityLog's AI clinical supervisor analyzing therapy session transcripts. Provide insights for LAC development.
 
+              Analyze the session for:
               1. Key therapeutic themes and patterns
               2. Evidence-based practice interventions used
               3. Risk indicators requiring attention
               4. Therapeutic alliance quality (1-10 scale)
               5. Missed opportunities for intervention
               6. Progress note suggestions
-
-              Focus on professional development feedback for Licensed Associate Counselors working toward LPC licensure.
 
               Respond with JSON format containing: themes, interventions, riskIndicators, therapeuticAlliance, ebpUsage, suggestedNotes, confidenceScore.`
             },
@@ -92,9 +142,7 @@ export class SessionIntelligenceService {
               ${transcript}
               
               Client population: ${clientPopulation || 'General adult population'}
-              Counselor experience: ${counselorExperience || 'LAC in training'}
-              
-              Provide comprehensive analysis for supervision and professional development.`
+              Counselor experience: ${counselorExperience || 'LAC in training'}`
             }
           ],
           response_format: { type: "json_object" },
@@ -127,7 +175,7 @@ export class SessionIntelligenceService {
   }
 
   /**
-   * Generate AI-assisted progress notes
+   * Generate AI-assisted progress notes using Google AI (Dinger integration)
    */
   async generateProgressNoteAssistance(
     sessionTranscript: string,
@@ -135,13 +183,56 @@ export class SessionIntelligenceService {
     sessionAnalysis?: SessionAnalysisResult
   ): Promise<ProgressNoteAssistance> {
     try {
+      // Prioritize Google AI
+      if (this.genAI) {
+        const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+        
+        const prompt = `You are Dinger, ClarityLog's AI documentation assistant helping LACs create compliant progress notes.
+
+        Generate improvements that:
+        1. Meet insurance and state licensing requirements
+        2. Include objective observations and interventions
+        3. Document therapeutic progress and goals
+        4. Suggest appropriate billing codes
+        5. Ensure HIPAA compliance and professional language
+
+        Session transcript: ${sessionTranscript}
+        Current progress notes: ${existingNotes}
+        ${sessionAnalysis ? `AI Analysis: ${JSON.stringify(sessionAnalysis)}` : ''}
+
+        Respond with valid JSON containing:
+        - originalContent (string)
+        - suggestedImprovements (array of strings)
+        - complianceChecks (array of objects with rule, status, suggestion)
+        - billingCodes (array of strings)`;
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const responseText = response.text();
+        
+        try {
+          const assistance = JSON.parse(responseText.replace(/```json|```/g, '').trim());
+          
+          return {
+            originalContent: existingNotes,
+            suggestedImprovements: assistance.suggestedImprovements || [],
+            complianceChecks: assistance.complianceChecks || [],
+            billingCodes: assistance.billingCodes || [],
+            estimatedCompletionTime: this.estimateNoteCompletionTime(sessionTranscript.length)
+          };
+        } catch (parseError) {
+          return this.createFallbackNoteAssistance(existingNotes);
+        }
+      }
+
+      // Fallback to OpenAI
       if (this.openai) {
         const response = await this.openai.chat.completions.create({
           model: "gpt-4o",
           messages: [
             {
               role: "system",
-              content: `You are an expert clinical documentation assistant helping LACs create compliant, comprehensive progress notes. 
+              content: `You are Dinger, ClarityLog's AI documentation assistant helping LACs create compliant progress notes. 
 
               Generate improvements that:
               1. Meet insurance and state licensing requirements
@@ -155,12 +246,8 @@ export class SessionIntelligenceService {
             {
               role: "user",
               content: `Session transcript: ${sessionTranscript}
-
               Current progress notes: ${existingNotes}
-
-              ${sessionAnalysis ? `AI Analysis: ${JSON.stringify(sessionAnalysis)}` : ''}
-
-              Provide note improvements and compliance verification.`
+              ${sessionAnalysis ? `AI Analysis: ${JSON.stringify(sessionAnalysis)}` : ''}`
             }
           ],
           response_format: { type: "json_object" },
