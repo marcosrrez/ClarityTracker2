@@ -280,33 +280,71 @@ export class SessionIntelligenceService {
     sessionAnalysis?: SessionAnalysisResult
   ): Promise<InsertRiskAssessment> {
     try {
+      // Prioritize Google AI
+      if (this.genAI) {
+        const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+        
+        const prompt = `You are Dinger, ClarityLog's AI risk assessment specialist analyzing therapy sessions for safety concerns.
+
+        Identify:
+        1. Suicide risk indicators
+        2. Homicide/violence risk  
+        3. Substance abuse concerns
+        4. Domestic violence indicators
+        5. Child/elder abuse signs
+        6. Psychotic symptoms
+        7. Self-harm behaviors
+
+        Session transcript: ${sessionTranscript}
+        ${sessionAnalysis ? `Session analysis: ${JSON.stringify(sessionAnalysis)}` : ''}
+
+        Respond with valid JSON containing:
+        - riskLevel (string: low/medium/high/critical)
+        - indicators (object with boolean flags for each risk type)
+        - immediateActions (array of strings)
+        - supervisionRequired (boolean)`;
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const responseText = response.text();
+        
+        try {
+          const riskData = JSON.parse(responseText.replace(/```json|```/g, '').trim());
+          
+          return {
+            assessmentType: 'automated' as const,
+            riskLevel: riskData.riskLevel || 'low',
+            indicators: {
+              suicidalIdeation: riskData.indicators?.suicidalIdeation || false,
+              homicidalIdeation: riskData.indicators?.homicidalIdeation || false,
+              substanceAbuse: riskData.indicators?.substanceAbuse || false,
+              domesticViolence: riskData.indicators?.domesticViolence || false,
+              childAbuse: riskData.indicators?.childAbuse || false,
+              psychosis: riskData.indicators?.psychosis || false,
+              selfHarm: riskData.indicators?.selfHarm || false
+            },
+            immediateActions: riskData.immediateActions || [],
+            supervisionRequired: riskData.supervisionRequired || false,
+            logEntryId: ''
+          };
+        } catch (parseError) {
+          return this.createFallbackRiskAssessment();
+        }
+      }
+
+      // Fallback to OpenAI
       if (this.openai) {
         const response = await this.openai.chat.completions.create({
           model: "gpt-4o",
           messages: [
             {
               role: "system",
-              content: `You are a clinical risk assessment specialist analyzing therapy sessions for safety concerns. Identify:
-
-              1. Suicide risk indicators
-              2. Homicide/violence risk
-              3. Substance abuse concerns
-              4. Domestic violence indicators
-              5. Child/elder abuse signs
-              6. Psychotic symptoms
-              7. Self-harm behaviors
-
-              Assess overall risk level and recommend immediate actions if needed.
-
-              Respond with JSON containing: riskLevel, indicators (object with boolean flags), immediateActions, supervisionRequired.`
+              content: `You are Dinger, ClarityLog's AI risk assessment specialist. Analyze for safety concerns and respond with JSON containing: riskLevel, indicators, immediateActions, supervisionRequired.`
             },
             {
               role: "user",
               content: `Session transcript: ${sessionTranscript}
-
-              ${sessionAnalysis ? `Session analysis: ${JSON.stringify(sessionAnalysis)}` : ''}
-
-              Provide comprehensive risk assessment.`
+              ${sessionAnalysis ? `Analysis: ${JSON.stringify(sessionAnalysis)}` : ''}`
             }
           ],
           response_format: { type: "json_object" },
@@ -354,29 +392,59 @@ export class SessionIntelligenceService {
     recommendations: string[];
   }> {
     try {
+      // Prioritize Google AI
+      if (this.genAI) {
+        const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+        
+        const prompt = `You are Dinger, ClarityLog's AI evidence-based practice specialist analyzing therapy sessions.
+
+        Identify:
+        1. Specific EBP interventions used (CBT, DBT, MI, etc.)
+        2. Quality of intervention implementation
+        3. Missed opportunities for EBP application
+        4. Adherence to chosen therapeutic modality
+        5. Recommendations for improvement
+
+        Session transcript: ${transcript}
+        Counselor's preferred modalities: ${counselorModalities.join(', ') || 'General counseling'}
+
+        Respond with valid JSON containing:
+        - interventionsUsed (array of strings)
+        - missedOpportunities (array of strings)
+        - adherenceScore (number 0-1)
+        - recommendations (array of strings)`;
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const responseText = response.text();
+        
+        try {
+          const ebpData = JSON.parse(responseText.replace(/```json|```/g, '').trim());
+          
+          return {
+            interventionsUsed: ebpData.interventionsUsed || [],
+            missedOpportunities: ebpData.missedOpportunities || [],
+            adherenceScore: ebpData.adherenceScore || 0.7,
+            recommendations: ebpData.recommendations || []
+          };
+        } catch (parseError) {
+          return this.createFallbackEBPAnalysis();
+        }
+      }
+
+      // Fallback to OpenAI
       if (this.openai) {
         const response = await this.openai.chat.completions.create({
           model: "gpt-4o",
           messages: [
             {
               role: "system",
-              content: `You are an evidence-based practice specialist analyzing therapy sessions. Identify:
-
-              1. Specific EBP interventions used (CBT, DBT, MI, etc.)
-              2. Quality of intervention implementation
-              3. Missed opportunities for EBP application
-              4. Adherence to chosen therapeutic modality
-              5. Recommendations for improvement
-
-              Respond with JSON containing: interventionsUsed, missedOpportunities, adherenceScore (0-1), recommendations.`
+              content: `You are Dinger, ClarityLog's AI EBP specialist. Analyze interventions and respond with JSON containing: interventionsUsed, missedOpportunities, adherenceScore, recommendations.`
             },
             {
               role: "user",
               content: `Session transcript: ${transcript}
-
-              Counselor's preferred modalities: ${counselorModalities.join(', ') || 'General counseling'}
-
-              Analyze EBP usage and provide development feedback.`
+              Counselor modalities: ${counselorModalities.join(', ') || 'General counseling'}`
             }
           ],
           response_format: { type: "json_object" },
