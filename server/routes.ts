@@ -2740,10 +2740,13 @@ Please provide a helpful, professional response that's personalized to their sit
   });
 
   // Research Collections API Routes
-  app.get('/api/research/collections/:userId', async (req, res) => {
+  app.get('/api/research/collections', async (req, res) => {
     try {
-      const { userId } = req.params;
-      const collections = await db.select().from(researchCollectionsTable).where(eq(researchCollectionsTable.userId, userId));
+      const { userId } = req.query;
+      if (!userId) {
+        return res.status(400).json({ error: 'userId is required' });
+      }
+      const collections = await db.select().from(researchCollectionsTable).where(eq(researchCollectionsTable.userId, userId as string));
       res.json({ collections });
     } catch (error) {
       console.error('Get collections error:', error);
