@@ -537,19 +537,20 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
 
       const data = await response.json();
       
-      // Format the analysis with proper structure and spacing
+      // Format the analysis with clean typography - remove markdown
       const formattedAnalysis = data.analysis
-        .replace(/\*\*(.*?)\*\*/g, '\n\n**$1**\n') // Bold with spacing
-        .replace(/## /g, '\n\n## ') // Headings with spacing
-        .replace(/\* /g, '\n\n• ') // Bullets with spacing
-        .replace(/(\w)\.(\s*)(\w)/g, '$1.\n\n$3') // Break sentences into paragraphs
-        .replace(/\n{4,}/g, '\n\n') // Clean up excessive line breaks
+        .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold markdown
+        .replace(/## /g, '') // Remove heading markdown
+        .replace(/\* /g, '• ') // Convert asterisks to bullets
+        .replace(/(\.)(\s*)([A-Z])/g, '$1\n\n$3') // Break sentences into paragraphs
+        .replace(/([a-z]:)(\s*)([A-Z])/g, '$1\n\n$3') // Break after colons
+        .replace(/\n{3,}/g, '\n\n') // Clean up excessive line breaks
         .trim();
 
       const newCard = {
         type: 'note' as const,
         title: `AI Analysis - ${new Date().toLocaleDateString()}`,
-        content: `## Original Content\n${content}\n\n## Professional Analysis\n${formattedAnalysis}`,
+        content: `Original Content:\n\n${content}\n\n\nProfessional Analysis:\n\n${formattedAnalysis}`,
         tags: ['ai-analysis', 'analyzed-content'],
       };
 
