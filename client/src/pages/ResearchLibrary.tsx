@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { 
@@ -29,8 +29,10 @@ import {
   Heart,
   Archive,
   FileText,
-  Globe
+  Globe,
+  X
 } from "lucide-react";
+import { format } from "date-fns";
 
 interface SavedResearch {
   id: string;
@@ -48,72 +50,90 @@ interface SavedResearch {
   isFavorite: boolean;
   collectionId?: string;
   createdAt: Date;
-  lastAccessed?: Date;
 }
 
-interface Collection {
+interface ResearchCollection {
   id: string;
   name: string;
   description?: string;
-  color?: string;
+  color: string;
   isPrivate: boolean;
-  paperCount: number;
-  createdAt: Date;
-  updatedAt: Date;
+  userId: string;
 }
 
-export function ResearchLibrary() {
+export default function ResearchLibrary() {
   const { user } = useAuth();
   const { toast } = useToast();
   
   const [savedResearch, setSavedResearch] = useState<SavedResearch[]>([]);
-  const [collections, setCollections] = useState<Collection[]>([]);
+  const [collections, setCollections] = useState<ResearchCollection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCollection, setSelectedCollection] = useState<string>("all");
-  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState<"all" | "favorites" | "recent" | "collections">("all");
   const [selectedPaper, setSelectedPaper] = useState<SavedResearch | null>(null);
-  const [isCreateCollectionOpen, setIsCreateCollectionOpen] = useState(false);
+  const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
+  const [showCreateCollection, setShowCreateCollection] = useState(false);
   const [newCollectionName, setNewCollectionName] = useState("");
   const [newCollectionDescription, setNewCollectionDescription] = useState("");
+  const [newCollectionColor, setNewCollectionColor] = useState("#3B82F6");
 
+  // Load saved research and collections
   useEffect(() => {
-    if (user?.uid) {
-      loadResearchData();
+    if (user) {
+      loadSavedResearch();
+      loadCollections();
     }
-  }, [user?.uid]);
+  }, [user]);
 
-  const loadResearchData = async () => {
-    setIsLoading(true);
+  const loadSavedResearch = async () => {
     try {
-      const [researchResponse, collectionsResponse] = await Promise.all([
-        fetch(`/api/research/saved/${user?.uid}`),
-        fetch(`/api/research/collections?userId=${user?.uid}`)
-      ]);
-
-      if (researchResponse.ok) {
-        const researchData = await researchResponse.json();
-        setSavedResearch(researchData.savedResearch || []);
-      }
-
-      if (collectionsResponse.ok) {
-        const collectionsData = await collectionsResponse.json();
-        setCollections(collectionsData.collections || []);
+      const response = await fetch(`/api/research/saved/${user?.uid}`);
+      if (response.ok) {
+        const data = await response.json();
+        setSavedResearch(data.savedResearch || []);
       }
     } catch (error) {
-      console.error('Error loading research data:', error);
-      toast({
-        title: "Loading Error",
-        description: "Failed to load research data. Please try again.",
-        variant: "destructive",
-      });
+      console.error('Error loading saved research:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const loadCollections = async () => {
+    try {
+      const response = await fetch(`/api/research/collections?userId=${user?.uid}`);
+      if (response.ok) {
+        const data = await response.json();
+        setCollections(data.collections || []);
+      }
+    } catch (error) {
+      console.error('Error loading collections:', error);
+    }
+  };
+
+  const toggleFavorite = async (paperId: string) => {
+    try {
+      const paper = savedResearch.find(p => p.id === paperId);
+      if (!paper) return;
+
+      const response = await fetch(`/api/research/saved/${paperId}/favorite`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isFavorite: !paper.isFavorite })
+      });
+
+      if (response.ok) {
+        setSavedResearch(prev => 
+          prev.map(p => p.id === paperId ? { ...p, isFavorite: !p.isFavorite } : p)
+        );
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+    }
+  };
+
   const createCollection = async () => {
-    if (!newCollectionName.trim() || !user?.uid) return;
+    if (!newCollectionName.trim() || !user) return;
 
     try {
       const response = await fetch('/api/research/collections', {
@@ -123,335 +143,239 @@ export function ResearchLibrary() {
           userId: user.uid,
           name: newCollectionName.trim(),
           description: newCollectionDescription.trim(),
-          isPrivate: true
+          color: newCollectionColor,
+          isPrivate: false
         })
       });
 
       if (response.ok) {
-        const newCollection = await response.json();
-        setCollections(prev => [...prev, newCollection.collection]);
+        const data = await response.json();
+        setCollections(prev => [...prev, data.collection]);
         setNewCollectionName("");
         setNewCollectionDescription("");
-        setIsCreateCollectionOpen(false);
+        setNewCollectionColor("#3B82F6");
+        setShowCreateCollection(false);
         toast({
-          title: "Collection Created",
-          description: `"${newCollectionName}" has been created successfully.`,
+          title: "Collection created",
+          description: "Your new collection has been created successfully."
         });
       }
     } catch (error) {
       console.error('Error creating collection:', error);
       toast({
-        title: "Creation Error",
-        description: "Failed to create collection. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const toggleFavorite = async (paperId: string) => {
-    try {
-      const response = await fetch(`/api/research/saved/${paperId}/favorite`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-      });
-
-      if (response.ok) {
-        setSavedResearch(prev => 
-          prev.map(paper => 
-            paper.id === paperId 
-              ? { ...paper, isFavorite: !paper.isFavorite }
-              : paper
-          )
-        );
-      }
-    } catch (error) {
-      console.error('Error toggling favorite:', error);
-      toast({
         title: "Error",
-        description: "Failed to update favorite status.",
-        variant: "destructive",
+        description: "Failed to create collection. Please try again.",
+        variant: "destructive"
       });
     }
   };
 
-  const deletePaper = async (paperId: string) => {
-    try {
-      const response = await fetch(`/api/research/saved/${paperId}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        setSavedResearch(prev => prev.filter(paper => paper.id !== paperId));
-        setSelectedPaper(null);
-        toast({
-          title: "Paper Deleted",
-          description: "Research paper has been removed from your library.",
-        });
-      }
-    } catch (error) {
-      console.error('Error deleting paper:', error);
-      toast({
-        title: "Delete Error",
-        description: "Failed to delete paper. Please try again.",
-        variant: "destructive",
-      });
+  // Filter research papers
+  const filteredResearch = savedResearch.filter(paper => {
+    // Text search
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      const searchFields = [
+        paper.title,
+        paper.source,
+        paper.snippet,
+        paper.summary || '',
+        paper.authors.join(' '),
+        paper.tags.join(' ')
+      ].join(' ').toLowerCase();
+      
+      if (!searchFields.includes(query)) return false;
     }
-  };
 
-  // Filter and sort research papers
-  const filteredResearch = (Array.isArray(savedResearch) ? savedResearch : [])
-    .filter(paper => {
-      const matchesSearch = searchQuery === "" || 
-        paper.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        paper.snippet.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        paper.authors.some(author => author.toLowerCase().includes(searchQuery.toLowerCase()));
-      
-      const matchesCollection = selectedCollection === "all" || paper.collectionId === selectedCollection;
-      const matchesFavorites = !showFavoritesOnly || paper.isFavorite;
-      
-      return matchesSearch && matchesCollection && matchesFavorites;
-    })
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    // Filter by type
+    switch (selectedFilter) {
+      case "favorites":
+        return paper.isFavorite;
+      case "recent":
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        return new Date(paper.createdAt) > weekAgo;
+      case "collections":
+        return paper.collectionId !== null;
+      default:
+        return true;
+    }
+  });
 
-  const favoriteCount = savedResearch.filter(paper => paper.isFavorite).length;
+  const filteredCollections = collections.filter(collection => {
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      return collection.name.toLowerCase().includes(query) ||
+             collection.description?.toLowerCase().includes(query);
+    }
+    return true;
+  });
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-        <div className="container mx-auto px-6 py-12">
-          <div className="animate-pulse space-y-8">
-            <div className="h-12 bg-slate-200 dark:bg-slate-700 rounded-xl w-1/3"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-64 bg-slate-200 dark:bg-slate-700 rounded-xl"></div>
-              ))}
-            </div>
-          </div>
+      <div className="h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-gray-400">Loading research library...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Minimal Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center gap-4 mb-6">
-          {/* Compact Title */}
-          <div className="flex items-center gap-2">
-            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full p-1.5">
-              <Library className="h-4 w-4 text-white" />
-            </div>
-            <h1 className="text-lg font-semibold text-slate-900 dark:text-white">Research Library</h1>
-            <span className="text-sm text-slate-500 dark:text-slate-400">·</span>
-            <span className="text-sm text-slate-500 dark:text-slate-400">{savedResearch.length}</span>
-          </div>
-
-          {/* Elegant Search Bar */}
-          <div className="flex-1 max-w-xl">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+    <div className="h-screen bg-gray-50 dark:bg-gray-900 flex flex-col overflow-hidden">
+      {/* Minimalist Header with Search */}
+      <div className="bg-gray-50 dark:bg-gray-900 p-4 pt-1 flex-shrink-0">
+        <div className="space-y-4">
+          {/* Main Search Bar */}
+          <div className="flex items-center gap-3 max-w-5xl">
+            <div className="flex-1 relative">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
               <Input
-                placeholder="Search papers, authors, or content..."
+                placeholder="Search your research library..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-10 rounded-full border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm shadow-sm focus:shadow-md focus:ring-2 focus:ring-blue-500/20 transition-all"
+                className="pl-12 pr-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-full h-12 text-base"
               />
             </div>
-          </div>
-
-          {/* Compact Filter Controls */}
-          <div className="flex items-center gap-2">
-            <Select value={selectedCollection} onValueChange={setSelectedCollection}>
-              <SelectTrigger className="w-32 h-9 rounded-full border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90 text-sm">
-                <SelectValue placeholder="All" />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl">
-                <SelectItem value="all">All Collections</SelectItem>
-                {collections.map((collection) => (
-                  <SelectItem key={collection.id} value={collection.id}>
-                    {collection.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Button
-              variant={showFavoritesOnly ? "default" : "outline"}
-              onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-              className="h-9 w-9 rounded-full p-0"
-              size="sm"
-            >
-              <Star className={`h-3.5 w-3.5 ${showFavoritesOnly ? 'fill-current' : ''}`} />
+            
+            <Button onClick={() => setShowCreateCollection(true)} variant="outline" size="sm" className="rounded-full">
+              <Plus className="h-4 w-4" />
             </Button>
-
-            <Dialog open={isCreateCollectionOpen} onOpenChange={setIsCreateCollectionOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="h-9 w-9 rounded-full p-0" size="sm">
-                  <FolderPlus className="h-3.5 w-3.5" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle className="flex items-center space-x-2">
-                    <FolderPlus className="h-5 w-5 text-blue-600" />
-                    <span>Create Collection</span>
-                  </DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 pt-4">
-                  <Input
-                    placeholder="Collection name"
-                    value={newCollectionName}
-                    onChange={(e) => setNewCollectionName(e.target.value)}
-                    className="rounded-xl"
-                  />
-                  <Textarea
-                    placeholder="Description (optional)"
-                    value={newCollectionDescription}
-                    onChange={(e) => setNewCollectionDescription(e.target.value)}
-                    className="rounded-xl resize-none"
-                    rows={3}
-                  />
-                  <div className="flex justify-end space-x-3">
-                    <Button variant="outline" onClick={() => setIsCreateCollectionOpen(false)} className="rounded-xl">
-                      Cancel
-                    </Button>
-                    <Button 
-                      onClick={createCollection}
-                      className="bg-blue-600 hover:bg-blue-700 rounded-xl"
-                      disabled={!newCollectionName.trim()}
-                    >
-                      Create
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+          </div>
+          
+          {/* Filter Buttons */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant={selectedFilter === "all" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedFilter("all")}
+              className="rounded-full h-8 px-4 text-xs"
+            >
+              All
+            </Button>
+            <Button
+              variant={selectedFilter === "favorites" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedFilter("favorites")}
+              className="rounded-full h-8 px-4 text-xs"
+            >
+              Favorites
+            </Button>
+            <Button
+              variant={selectedFilter === "recent" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedFilter("recent")}
+              className="rounded-full h-8 px-4 text-xs"
+            >
+              Recent
+            </Button>
+            {filteredCollections.length > 0 && (
+              <Button
+                variant={selectedFilter === "collections" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedFilter("collections")}
+                className="rounded-full h-8 px-4 text-xs"
+              >
+                Collections
+              </Button>
+            )}
           </div>
         </div>
+      </div>
 
-        {/* Research Papers List */}
+      {/* Research Cards Grid - MyMind Style */}
+      <div className="flex-1 px-4 pb-20 overflow-y-auto scrollbar-hide">
         {filteredResearch.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="max-w-md mx-auto">
-              <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-2xl w-fit mx-auto mb-4">
-                <BookOpen className="h-8 w-8 text-slate-400" />
-              </div>
-              <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
-                {savedResearch.length === 0 ? "No research papers yet" : "No papers match your filters"}
-              </h3>
-              <p className="text-slate-600 dark:text-slate-400">
-                {savedResearch.length === 0 
-                  ? "Start building your research library by saving papers from the AI Coach."
-                  : "Try adjusting your search terms or collection filter to find more papers."
-                }
-              </p>
+          <div className="text-center py-12">
+            <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-lg mx-auto mb-4 flex items-center justify-center">
+              <BookOpen className="h-6 w-6 text-gray-400" />
             </div>
+            <h3 className="text-lg font-semibold text-foreground mb-2">No Research Papers Yet</h3>
+            <p className="text-muted-foreground">
+              Start building your research library by saving papers from search results.
+            </p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {filteredResearch.map((paper) => (
               <Card 
-                key={paper.id} 
-                className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 hover:bg-white/90 dark:hover:bg-slate-800/90 hover:shadow-lg transition-all duration-200 group cursor-pointer"
+                key={paper.id}
+                className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-white dark:bg-gray-800 border-0 rounded-2xl overflow-hidden h-fit shadow-sm"
                 onClick={() => setSelectedPaper(paper)}
               >
                 <CardContent className="p-6">
-                  <div className="flex items-start gap-6">
-                    {/* Main Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <Badge variant="secondary" className="text-xs px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
-                              {paper.domain}
-                            </Badge>
-                            {paper.publishDate && (
-                              <span className="text-xs text-slate-500 dark:text-slate-400">
-                                {new Date(paper.publishDate).getFullYear()}
-                              </span>
-                            )}
-                          </div>
-                          <h3 className="text-lg font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-tight mb-2 line-clamp-2">
-                            {paper.title}
-                          </h3>
-                          {paper.authors.length > 0 && (
-                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
-                              {paper.authors.slice(0, 3).join(', ')}
-                              {paper.authors.length > 3 && ` +${paper.authors.length - 3} more`}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <p className="text-slate-700 dark:text-slate-300 leading-relaxed line-clamp-3 mb-4">
-                        {paper.snippet}
-                      </p>
-
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          {paper.tags.length > 0 && (
-                            <div className="flex flex-wrap gap-2">
-                              {paper.tags.slice(0, 4).map((tag) => (
-                                <Badge key={tag} variant="outline" className="text-xs px-2 py-1 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-600">
-                                  {tag}
-                                </Badge>
-                              ))}
-                              {paper.tags.length > 4 && (
-                                <Badge variant="outline" className="text-xs px-2 py-1 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-600">
-                                  +{paper.tags.length - 4}
-                                </Badge>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleFavorite(paper.id);
-                            }}
-                            className="h-8 w-8 p-0 hover:bg-yellow-100 dark:hover:bg-yellow-900/30"
-                          >
-                            {paper.isFavorite ? (
-                              <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                            ) : (
-                              <Star className="h-4 w-4 text-slate-400" />
-                            )}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              window.open(paper.url, '_blank');
-                            }}
-                            className="h-8 w-8 p-0 hover:bg-blue-100 dark:hover:bg-blue-900/30"
-                          >
-                            <ExternalLink className="h-4 w-4 text-slate-400" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deletePaper(paper.id);
-                            }}
-                            className="h-8 w-8 p-0 hover:bg-red-100 dark:hover:bg-red-900/30"
-                          >
-                            <Trash2 className="h-4 w-4 text-slate-400" />
-                          </Button>
-                        </div>
-                      </div>
+                  <div className="space-y-4">
+                    {/* Date and Source - Minimal */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-gray-400 dark:text-gray-500 tracking-wide">
+                        {format(new Date(paper.createdAt), "MMM d")}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavorite(paper.id);
+                        }}
+                        className="p-1 h-auto hover:bg-transparent"
+                      >
+                        {paper.isFavorite ? (
+                          <Heart className="h-3 w-3 text-red-500 fill-current" />
+                        ) : (
+                          <Heart className="h-3 w-3 text-gray-400" />
+                        )}
+                      </Button>
                     </div>
 
-                    {/* Favorite Star - Always Visible */}
-                    <div className="flex-shrink-0">
-                      {paper.isFavorite && (
-                        <Star className="h-5 w-5 text-yellow-500 fill-current" />
+                    {/* Title - Premium Typography */}
+                    <h3 
+                      className="text-gray-800 dark:text-gray-200 font-medium leading-snug"
+                      style={{ 
+                        fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
+                        fontSize: '0.95rem',
+                        lineHeight: '1.4',
+                        letterSpacing: '0.01em'
+                      }}
+                    >
+                      {paper.title.length > 80 ? `${paper.title.substring(0, 80)}...` : paper.title}
+                    </h3>
+
+                    {/* Summary/Snippet Preview */}
+                    <div 
+                      className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed"
+                      style={{ 
+                        fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
+                        fontSize: '0.85rem',
+                        lineHeight: '1.5',
+                        letterSpacing: '0.01em'
+                      }}
+                    >
+                      {(() => {
+                        const preview = paper.summary || paper.snippet || '';
+                        return preview.length > 100 ? `${preview.substring(0, 100)}...` : preview;
+                      })()}
+                    </div>
+
+                    {/* Source and Tags Preview */}
+                    <div className="space-y-2">
+                      <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                        {paper.source}
+                      </div>
+                      
+                      {paper.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {paper.tags.slice(0, 2).map((tag) => (
+                            <Badge key={tag} variant="secondary" className="text-xs px-2 py-0.5">
+                              {tag}
+                            </Badge>
+                          ))}
+                          {paper.tags.length > 2 && (
+                            <Badge variant="outline" className="text-xs px-2 py-0.5">
+                              +{paper.tags.length - 2}
+                            </Badge>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>
@@ -460,139 +384,189 @@ export function ResearchLibrary() {
             ))}
           </div>
         )}
-
-        {/* Paper Details Modal */}
-        <Dialog open={!!selectedPaper} onOpenChange={() => setSelectedPaper(null)}>
-          <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
-            {selectedPaper && (
-              <>
-                <DialogHeader className="space-y-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
-                        <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <Badge variant="secondary" className="rounded-full">
-                        {selectedPaper.domain}
-                      </Badge>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      onClick={() => toggleFavorite(selectedPaper.id)}
-                      className="rounded-xl"
-                    >
-                      {selectedPaper.isFavorite ? (
-                        <Star className="h-5 w-5 text-yellow-500 fill-current" />
-                      ) : (
-                        <StarOff className="h-5 w-5 text-slate-400" />
-                      )}
-                    </Button>
-                  </div>
-                  <DialogTitle className="text-2xl font-bold text-slate-900 dark:text-white leading-tight">
-                    {selectedPaper.title}
-                  </DialogTitle>
-                </DialogHeader>
-
-                <div className="space-y-6 pt-4">
-                  {selectedPaper.authors.length > 0 && (
-                    <div className="flex items-center space-x-2">
-                      <User className="h-5 w-5 text-slate-400" />
-                      <p className="text-slate-600 dark:text-slate-400">
-                        <strong>Authors:</strong> {selectedPaper.authors.join(', ')}
-                      </p>
-                    </div>
-                  )}
-
-                  {selectedPaper.publishDate && (
-                    <div className="flex items-center space-x-2">
-                      <Calendar className="h-5 w-5 text-slate-400" />
-                      <p className="text-slate-600 dark:text-slate-400">
-                        <strong>Published:</strong> {new Date(selectedPaper.publishDate).toLocaleDateString()}
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="space-y-3">
-                    <h4 className="font-semibold text-slate-900 dark:text-white">Abstract</h4>
-                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                      {selectedPaper.snippet}
-                    </p>
-                  </div>
-
-                  {selectedPaper.summary && (
-                    <div className="space-y-3">
-                      <h4 className="font-semibold text-slate-900 dark:text-white">Summary</h4>
-                      <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                        {selectedPaper.summary}
-                      </p>
-                    </div>
-                  )}
-
-                  {selectedPaper.citationApa && (
-                    <div className="space-y-3">
-                      <h4 className="font-semibold text-slate-900 dark:text-white">APA Citation</h4>
-                      <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4">
-                        <p className="text-sm text-slate-700 dark:text-slate-300 font-mono">
-                          {selectedPaper.citationApa}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedPaper.tags.length > 0 && (
-                    <div className="space-y-3">
-                      <h4 className="font-semibold text-slate-900 dark:text-white">Tags</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedPaper.tags.map((tag) => (
-                          <Badge key={tag} variant="outline" className="rounded-full">
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedPaper.notes && (
-                    <div className="space-y-3">
-                      <h4 className="font-semibold text-slate-900 dark:text-white">Notes</h4>
-                      <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                        {selectedPaper.notes}
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between pt-6 border-t border-slate-200 dark:border-slate-700">
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
-                      Saved on {new Date(selectedPaper.createdAt).toLocaleDateString()}
-                    </p>
-                    <div className="flex items-center space-x-3">
-                      <Button
-                        variant="outline"
-                        onClick={() => window.open(selectedPaper.url, '_blank')}
-                        className="rounded-xl"
-                      >
-                        <ExternalLink className="h-4 w-4 mr-2" />
-                        View Original
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={() => {
-                          deletePaper(selectedPaper.id);
-                          setSelectedPaper(null);
-                        }}
-                        className="rounded-xl"
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-          </DialogContent>
-        </Dialog>
       </div>
+
+      {/* Detailed Article View Modal */}
+      <Dialog open={!!selectedPaper} onOpenChange={() => setSelectedPaper(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <div className="flex items-start justify-between">
+              <div className="flex-1 pr-4">
+                <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-white leading-tight">
+                  {selectedPaper?.title}
+                </DialogTitle>
+                <div className="flex items-center gap-4 mt-3 text-sm text-gray-600 dark:text-gray-400">
+                  <span>{selectedPaper?.source}</span>
+                  {selectedPaper?.publishDate && (
+                    <span>• {selectedPaper.publishDate}</span>
+                  )}
+                  <span>• Saved {selectedPaper?.createdAt ? format(new Date(selectedPaper.createdAt), "MMM d, yyyy") : ''}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => selectedPaper && toggleFavorite(selectedPaper.id)}
+                >
+                  {selectedPaper?.isFavorite ? (
+                    <Heart className="h-4 w-4 text-red-500 fill-current" />
+                  ) : (
+                    <Heart className="h-4 w-4 text-gray-400" />
+                  )}
+                </Button>
+                {selectedPaper?.url && (
+                  <Button variant="ghost" size="sm" asChild>
+                    <a href={selectedPaper.url} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  </Button>
+                )}
+              </div>
+            </div>
+          </DialogHeader>
+          
+          <div className="space-y-6 mt-6">
+            {/* Authors */}
+            {selectedPaper?.authors && selectedPaper.authors.length > 0 && (
+              <div>
+                <h4 className="font-medium text-gray-900 dark:text-white mb-2">Authors</h4>
+                <p className="text-gray-700 dark:text-gray-300">{selectedPaper.authors.join(", ")}</p>
+              </div>
+            )}
+
+            {/* Summary */}
+            {selectedPaper?.summary && (
+              <div>
+                <h4 className="font-medium text-gray-900 dark:text-white mb-3">Summary</h4>
+                <div 
+                  className="text-gray-700 dark:text-gray-300 leading-relaxed"
+                  style={{ 
+                    fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
+                    fontSize: '1rem',
+                    lineHeight: '1.6',
+                    letterSpacing: '0.01em'
+                  }}
+                >
+                  {selectedPaper.summary}
+                </div>
+              </div>
+            )}
+
+            {/* Snippet if no summary */}
+            {!selectedPaper?.summary && selectedPaper?.snippet && (
+              <div>
+                <h4 className="font-medium text-gray-900 dark:text-white mb-3">Abstract</h4>
+                <div 
+                  className="text-gray-700 dark:text-gray-300 leading-relaxed"
+                  style={{ 
+                    fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
+                    fontSize: '1rem',
+                    lineHeight: '1.6',
+                    letterSpacing: '0.01em'
+                  }}
+                >
+                  {selectedPaper.snippet}
+                </div>
+              </div>
+            )}
+
+            {/* Tags */}
+            {selectedPaper?.tags && selectedPaper.tags.length > 0 && (
+              <div>
+                <h4 className="font-medium text-gray-900 dark:text-white mb-3">Tags</h4>
+                <div className="flex flex-wrap gap-2">
+                  {selectedPaper.tags.map((tag) => (
+                    <Badge key={tag} variant="secondary">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Citation */}
+            {selectedPaper?.citationApa && (
+              <div>
+                <h4 className="font-medium text-gray-900 dark:text-white mb-3">Citation (APA)</h4>
+                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <p className="text-sm text-gray-700 dark:text-gray-300 font-mono">
+                    {selectedPaper.citationApa}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Notes */}
+            {selectedPaper?.notes && (
+              <div>
+                <h4 className="font-medium text-gray-900 dark:text-white mb-3">Notes</h4>
+                <div 
+                  className="text-gray-700 dark:text-gray-300 leading-relaxed"
+                  style={{ 
+                    fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
+                    fontSize: '1rem',
+                    lineHeight: '1.6',
+                    letterSpacing: '0.01em'
+                  }}
+                >
+                  {selectedPaper.notes}
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Collection Modal */}
+      <Dialog open={showCreateCollection} onOpenChange={setShowCreateCollection}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New Collection</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+              <Input
+                value={newCollectionName}
+                onChange={(e) => setNewCollectionName(e.target.value)}
+                placeholder="Collection name"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+              <Textarea
+                value={newCollectionDescription}
+                onChange={(e) => setNewCollectionDescription(e.target.value)}
+                placeholder="Brief description (optional)"
+                className="mt-1"
+                rows={3}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Color</label>
+              <div className="flex items-center gap-2 mt-1">
+                <input
+                  type="color"
+                  value={newCollectionColor}
+                  onChange={(e) => setNewCollectionColor(e.target.value)}
+                  className="w-12 h-10 rounded border border-gray-300 dark:border-gray-600"
+                />
+                <span className="text-sm text-gray-600 dark:text-gray-400">{newCollectionColor}</span>
+              </div>
+            </div>
+            <div className="flex gap-2 pt-4">
+              <Button onClick={createCollection} className="flex-1">
+                Create Collection
+              </Button>
+              <Button variant="outline" onClick={() => setShowCreateCollection(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

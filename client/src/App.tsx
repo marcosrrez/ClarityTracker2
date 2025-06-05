@@ -37,7 +37,7 @@ import AICoachPage from "@/pages/AICoachPage";
 import AICoach from "@/pages/AICoach";
 import EnhancedDashboardPage from "@/pages/EnhancedDashboardPage";
 import { SupervisorsPage } from "@/pages/SupervisorsPage";
-import { ResearchLibrary } from "@/pages/ResearchLibrary";
+import ResearchLibrary from "@/pages/ResearchLibrary";
 
 import NotFound from "@/pages/not-found";
 
