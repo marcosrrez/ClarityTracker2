@@ -57,19 +57,17 @@ export default function TestSessionIntelligence() {
   // Session Analysis
   const analyzeSessionMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest('/api/session/analyze', {
-        method: 'POST',
-        body: JSON.stringify({
-          transcript,
-          sessionDuration: duration,
-          clientPopulation: 'Adult anxiety disorders',
-          counselorExperience: 'LAC in training',
-          userId
-        })
+      const response = await apiRequest('POST', '/api/session/analyze', {
+        transcript,
+        sessionDuration: duration,
+        clientPopulation: 'Adult anxiety disorders',
+        counselorExperience: 'LAC in training',
+        userId
       });
+      return await response.json();
     },
     onSuccess: (data) => {
-      setResults(prev => ({ ...prev, sessionAnalysis: data }));
+      setResults((prev: any) => ({ ...prev, sessionAnalysis: data }));
     }
   });
 
@@ -78,53 +76,47 @@ export default function TestSessionIntelligence() {
     mutationFn: async () => {
       const sampleNote = "Client presented with anxiety symptoms related to work presentations. Used CBT techniques to address automatic thoughts.";
       
-      return await apiRequest('/api/session/progress-note-assist', {
-        method: 'POST',
-        body: JSON.stringify({
-          transcript,
-          existingNotes: sampleNote,
-          sessionAnalysis: results?.sessionAnalysis?.analysis,
-          userId
-        })
+      const response = await apiRequest('POST', '/api/session/progress-note-assist', {
+        transcript,
+        existingNotes: sampleNote,
+        sessionAnalysis: results?.sessionAnalysis?.analysis,
+        userId
       });
+      return await response.json();
     },
     onSuccess: (data) => {
-      setResults(prev => ({ ...prev, noteAssistance: data }));
+      setResults((prev: any) => ({ ...prev, noteAssistance: data }));
     }
   });
 
   // Risk Assessment
   const riskAssessmentMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest('/api/session/risk-assessment', {
-        method: 'POST',
-        body: JSON.stringify({
-          transcript,
-          sessionAnalysis: results?.sessionAnalysis?.analysis,
-          userId,
-          logEntryId
-        })
+      const response = await apiRequest('POST', '/api/session/risk-assessment', {
+        transcript,
+        sessionAnalysis: results?.sessionAnalysis?.analysis,
+        userId,
+        logEntryId
       });
+      return await response.json();
     },
     onSuccess: (data) => {
-      setResults(prev => ({ ...prev, riskAssessment: data }));
+      setResults((prev: any) => ({ ...prev, riskAssessment: data }));
     }
   });
 
   // EBP Analysis
   const ebpAnalysisMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest('/api/session/ebp-analysis', {
-        method: 'POST',
-        body: JSON.stringify({
-          transcript,
-          counselorModalities: ['CBT', 'Mindfulness', 'Person-Centered'],
-          userId
-        })
+      const response = await apiRequest('POST', '/api/session/ebp-analysis', {
+        transcript,
+        counselorModalities: ['CBT', 'Mindfulness', 'Person-Centered'],
+        userId
       });
+      return await response.json();
     },
     onSuccess: (data) => {
-      setResults(prev => ({ ...prev, ebpAnalysis: data }));
+      setResults((prev: any) => ({ ...prev, ebpAnalysis: data }));
     }
   });
 
