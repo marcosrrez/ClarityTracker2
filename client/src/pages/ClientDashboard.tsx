@@ -5,6 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useLocation } from 'wouter';
 import { Heart, Calendar, MessageSquare, TrendingUp, Bell, FileText, Target, Award, Plus, UserPlus, Sparkles, Brain, Clock, Share2, Settings, Home } from 'lucide-react';
+import { ClientNavigation } from '@/components/client-portal/ClientNavigation';
+import { ReflectionJournal } from '@/components/client-portal/ReflectionJournal';
+import { GrowthResources } from '@/components/client-portal/GrowthResources';
 
 interface SharedInsight {
   id: string;
