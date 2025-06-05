@@ -93,18 +93,18 @@ export function ResearchLibrary() {
     setIsLoading(true);
     try {
       const [researchResponse, collectionsResponse] = await Promise.all([
-        fetch(`/api/research/saved?userId=${user?.uid}`),
+        fetch(`/api/research/saved/${user?.uid}`),
         fetch(`/api/research/collections?userId=${user?.uid}`)
       ]);
 
       if (researchResponse.ok) {
-        const research = await researchResponse.json();
-        setSavedResearch(research);
+        const researchData = await researchResponse.json();
+        setSavedResearch(researchData.savedResearch || []);
       }
 
       if (collectionsResponse.ok) {
-        const collections = await collectionsResponse.json();
-        setCollections(collections);
+        const collectionsData = await collectionsResponse.json();
+        setCollections(collectionsData.collections || []);
       }
     } catch (error) {
       console.error('Error loading research data:', error);
@@ -207,7 +207,7 @@ export function ResearchLibrary() {
   };
 
   // Filter and sort research papers
-  const filteredResearch = savedResearch
+  const filteredResearch = (Array.isArray(savedResearch) ? savedResearch : [])
     .filter(paper => {
       const matchesSearch = searchQuery === "" || 
         paper.title.toLowerCase().includes(searchQuery.toLowerCase()) ||

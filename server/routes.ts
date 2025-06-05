@@ -2789,7 +2789,15 @@ Please provide a helpful, professional response that's personalized to their sit
         query = query.where(eq(savedResearchTable.userId, userId));
       }
       
-      const savedResearch = await query.orderBy(desc(savedResearchTable.createdAt));
+      const rawResearch = await query.orderBy(desc(savedResearchTable.createdAt));
+      
+      // Parse JSON strings back to arrays
+      const savedResearch = rawResearch.map(item => ({
+        ...item,
+        authors: typeof item.authors === 'string' ? JSON.parse(item.authors) : item.authors || [],
+        tags: typeof item.tags === 'string' ? JSON.parse(item.tags) : item.tags || []
+      }));
+      
       res.json({ savedResearch });
     } catch (error) {
       console.error('Get saved research error:', error);
