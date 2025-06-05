@@ -3827,9 +3827,9 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
       }
       
       // Generate unique invitation token
-      const inviteToken = `invite_${Date.now()}_${Math.random().toString(36).substr(2, 12)}`;
+      const inviteToken = `invite_${Date.now()}_${Math.random().toString(36).substring(2, 12)}`;
       const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
-      const invitationId = `invitation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const invitationId = `invitation_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
       
       // Store invitation in memory
       const invitation = {
