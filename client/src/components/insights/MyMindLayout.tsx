@@ -537,57 +537,105 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
 
       const data = await response.json();
       
-      // Advanced text formatting with structured sections
+      // Enhanced text formatting with structured HTML-like output
       const formatInsights = (text: string): string => {
-        // Remove markdown formatting
+        // Clean text and remove markdown
         let cleanText = text
           .replace(/\*\*(.*?)\*\*/g, '$1')
           .replace(/## /g, '')
-          .replace(/\* /g, '• ');
+          .replace(/\* /g, '• ')
+          .trim();
 
-        // Parse sections based on therapy types, concepts, and suggestions
-        const sections: Array<{title: string, content: string}> = [];
+        // More comprehensive section detection patterns
+        const sectionPatterns = [
+          /(?=Attachment Theory[:\s])/i,
+          /(?=Cognitive Behavioral Therapy[:\s])/i,
+          /(?=Psychodynamic Therapy[:\s])/i,
+          /(?=Play Therapy[:\s])/i,
+          /(?=Suggestions? for Further Exploration[:\s])/i,
+          /(?=Research[:\s])/i,
+          /(?=Key Themes[:\s])/i,
+          /(?=Analysis of[:\s])/i,
+          /(?=Explore[:\s])/i,
+          /(?=Investigate[:\s])/i,
+          /(?=Examine[:\s])/i
+        ];
+
+        // Split text into potential sections
+        let sections: Array<{title: string, content: string}> = [];
         
-        // Split on major therapy/concept indicators
-        const majorSections = cleanText.split(/(?=(?:Attachment Theory|Cognitive Behavioral Therapy|Psychodynamic Therapy|Play Therapy|Suggestions? for Further Exploration|Research|Key Themes|Analysis of))/i);
+        // Try pattern-based splitting first
+        let remainingText = cleanText;
+        const allMatches: Array<{index: number, title: string}> = [];
         
-        majorSections.forEach((section, index) => {
-          if (!section.trim()) return;
+        sectionPatterns.forEach(pattern => {
+          const matches = [...remainingText.matchAll(new RegExp(pattern.source, 'gi'))];
+          matches.forEach(match => {
+            if (match.index !== undefined) {
+              const titleEnd = remainingText.indexOf(':', match.index);
+              if (titleEnd > match.index) {
+                const title = remainingText.substring(match.index, titleEnd).trim();
+                allMatches.push({index: match.index, title});
+              }
+            }
+          });
+        });
+
+        // Sort matches by position and extract sections
+        allMatches.sort((a, b) => a.index - b.index);
+        
+        for (let i = 0; i < allMatches.length; i++) {
+          const currentMatch = allMatches[i];
+          const nextMatch = allMatches[i + 1];
           
-          // Extract title and content
-          const lines = section.trim().split(/[:.]/);
-          let title = lines[0].trim();
-          let content = lines.slice(1).join('.').trim();
+          const contentStart = remainingText.indexOf(':', currentMatch.index) + 1;
+          const contentEnd = nextMatch ? nextMatch.index : remainingText.length;
           
-          // If no clear title found, use first few words
-          if (!content || content.length < 20) {
-            const words = section.trim().split(' ');
-            title = words.slice(0, 3).join(' ') || `Section ${index + 1}`;
-            content = words.slice(3).join(' ') || section.trim();
-          }
+          let content = remainingText.substring(contentStart, contentEnd).trim();
           
-          // Clean up title
-          title = title.replace(/^(Analysis of|Key Themes and Concepts|Suggestions for Further Exploration)/i, '$1');
-          
-          // Format content with proper paragraph breaks
+          // Break content into readable paragraphs
           content = content
-            .replace(/\s*\.\s*([A-Z])/g, '.\n\n$1') // Break after sentences
-            .replace(/:\s*([A-Z])/g, ':\n\n$1') // Break after colons
-            .replace(/\n{3,}/g, '\n\n') // Clean excessive breaks
+            .replace(/\.\s+([A-Z])/g, '.\n\n$1') // New paragraph after sentences
+            .replace(/:\s+([A-Z])/g, ':\n\n$1') // New paragraph after colons
+            .replace(/\s*•\s*/g, '\n\n• ') // Format bullet points
+            .replace(/\n{3,}/g, '\n\n') // Clean up extra breaks
             .trim();
           
-          if (title && content) {
-            sections.push({ title, content });
+          if (content.length > 10) {
+            sections.push({title: currentMatch.title, content});
           }
-        });
-        
-        // Generate formatted HTML-like structure
+        }
+
+        // Fallback: if no sections found, try sentence-based splitting
+        if (sections.length === 0) {
+          const sentences = cleanText.split(/\.\s+/).filter(s => s.trim().length > 20);
+          sentences.forEach((sentence, index) => {
+            const words = sentence.trim().split(' ');
+            const title = words.slice(0, 4).join(' ') || `Insight ${index + 1}`;
+            const content = words.slice(4).join(' ') || sentence;
+            
+            if (content.length > 10) {
+              sections.push({title, content});
+            }
+          });
+        }
+
+        // Format sections with clear separation
+        if (sections.length === 0) {
+          return cleanText; // Return original if parsing fails
+        }
+
         return sections.map((section, index) => {
-          const paragraphs = section.content.split('\n\n').filter(p => p.trim());
-          const formattedParagraphs = paragraphs.map(p => `${p.trim()}`).join('\n\n');
+          // Break content into smaller paragraphs for readability
+          const paragraphs = section.content
+            .split('\n\n')
+            .filter(p => p.trim().length > 0)
+            .map(p => p.trim());
           
-          return `${section.title}:\n\n${formattedParagraphs}`;
-        }).join('\n\n\n');
+          const formattedContent = paragraphs.join('\n\n');
+          
+          return `${section.title}\n\n${formattedContent}`;
+        }).join('\n\n\n─────────\n\n');
       };
 
       const formattedAnalysis = formatInsights(data.analysis);
