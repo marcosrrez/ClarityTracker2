@@ -770,8 +770,8 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
 
   return (
     <div className="h-screen bg-gray-50 dark:bg-gray-900 flex flex-col overflow-hidden">
-      {/* Search Bar & Smart Spaces - Auto-hide on scroll */}
-      <div className={`bg-gray-50 dark:bg-gray-900 p-4 pt-1 flex-shrink-0 transition-transform duration-300 ${showBottomNav ? 'translate-y-0' : '-translate-y-full'}`}>
+      {/* Search Bar & Smart Spaces - Always visible when typing */}
+      <div className={`bg-gray-50 dark:bg-gray-900 p-4 pt-1 flex-shrink-0 transition-transform duration-300 ${(showBottomNav || searchQuery.trim()) ? 'translate-y-0' : '-translate-y-full'}`}>
         <div className="space-y-4">
           {/* Main Search Bar with Action Buttons */}
           <div className="flex items-center gap-3 max-w-5xl">
