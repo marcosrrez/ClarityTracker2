@@ -352,7 +352,8 @@ export default function ResearchLibrary() {
                       }}
                     >
                       {(() => {
-                        const summary = paper.summary || paper.snippet || '';
+                        // Use comprehensive summary if available, fallback to snippet
+                        const summary = paper.summaryGenerated || paper.summary || paper.snippet || '';
                         const cleanedText = summary.trim();
                         
                         // If we have a comprehensive summary, show structured preview

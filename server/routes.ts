@@ -2872,6 +2872,22 @@ Please provide a helpful, professional response that's personalized to their sit
       const savedData = insertSavedResearchSchema.parse(req.body);
       const savedId = `saved_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
+      // Generate comprehensive summary for the saved research
+      let comprehensiveSummary = savedData.snippet || '';
+      
+      if (savedData.url) {
+        try {
+          // Extract content and generate comprehensive analysis
+          const content = await researchService.extractContentFromUrl(savedData.url);
+          if (content && content.content && content.content.length > 200) {
+            comprehensiveSummary = await researchService.generateComprehensiveSummary(content);
+          }
+        } catch (summaryError) {
+          console.log('Could not generate comprehensive summary, using snippet:', summaryError);
+          // Continue with original snippet if comprehensive summary fails
+        }
+      }
+      
       // Generate APA citation
       const citationApa = generateApaCitation(savedData);
       
@@ -2884,11 +2900,12 @@ Please provide a helpful, professional response that's personalized to their sit
         domain: savedData.domain,
         source: savedData.source,
         snippet: savedData.snippet,
+        summaryGenerated: comprehensiveSummary, // Store the comprehensive analysis
         authors: JSON.stringify(savedData.authors || []),
         publishDate: savedData.publishDate,
         tags: JSON.stringify(savedData.tags || []),
         notes: savedData.notes,
-        summaryGenerated: savedData.summaryGenerated,
+        citationApa: citationApa,
         isFavorite: 0
       }).returning();
       
