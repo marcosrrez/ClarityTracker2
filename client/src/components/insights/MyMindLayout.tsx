@@ -1466,6 +1466,57 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                                     .join('')
                                 }}
                               />
+
+                              {/* Search Results Display */}
+                              {message.searchResults && message.searchResults.length > 0 && (
+                                <div className="mt-6 space-y-4">
+                                  {message.searchResults.map((result: any, index: number) => (
+                                    <div key={index} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
+                                      <div className="flex items-start justify-between gap-4">
+                                        <div className="flex-1">
+                                          <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100 mb-2">
+                                            {result.title}
+                                          </h4>
+                                          <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+                                            {result.snippet}
+                                          </p>
+                                          <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                                            <span className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">
+                                              {result.source}
+                                            </span>
+                                            <span>{result.domain}</span>
+                                          </div>
+                                        </div>
+                                        <div className="flex flex-col gap-2">
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => handleSummarizeClick(result)}
+                                            disabled={isAiLoading}
+                                            className="text-xs h-8"
+                                          >
+                                            {isAiLoading ? (
+                                              <span className="animate-spin">⟳</span>
+                                            ) : (
+                                              <Search className="h-3 w-3 mr-1" />
+                                            )}
+                                            Summarize
+                                          </Button>
+                                          <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() => window.open(result.url, '_blank')}
+                                            className="text-xs h-8"
+                                          >
+                                            <Globe className="h-3 w-3 mr-1" />
+                                            View
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
