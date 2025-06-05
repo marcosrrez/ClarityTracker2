@@ -353,20 +353,15 @@ export default function ResearchLibrary() {
                     >
                       {(() => {
                         // Use comprehensive summary if available, fallback to snippet
-                        const summary = paper.summaryGenerated || paper.summary || paper.snippet || '';
+                        const summary = paper.summary || paper.snippet || '';
                         const cleanedText = summary.trim();
                         
                         // If we have a comprehensive summary, show structured preview
                         if (cleanedText.length > 200 && (cleanedText.includes('###') || cleanedText.includes('Executive Summary'))) {
-                          // Extract first meaningful section for preview
-                          const sections = cleanedText.split(/###|##/).filter(s => s.trim());
-                          const firstSection = sections[0] || cleanedText;
-                          const preview = firstSection.substring(0, 150).trim();
-                          
                           return (
                             <div>
                               <div className="mb-2">
-                                {preview}...
+                                Executive Summary
                               </div>
                               <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">
                                 Comprehensive analysis available
@@ -487,10 +482,10 @@ export default function ResearchLibrary() {
                 )}
 
                 {/* Comprehensive Analysis - Premium Typography */}
-                {(selectedPaper?.summary) && (
+                {selectedPaper?.summary && (
                   <div>
                     <h4 className="font-medium text-gray-900 dark:text-white mb-4">
-                      {((selectedPaper.summary || '').includes('###') || (selectedPaper.summary || '').includes('Executive Summary'))
+                      {(selectedPaper.summary.includes('###') || selectedPaper.summary.includes('Executive Summary'))
                         ? 'Comprehensive Analysis' 
                         : 'Summary'}
                     </h4>
@@ -503,7 +498,7 @@ export default function ResearchLibrary() {
                         letterSpacing: '0.01em'
                       }}
                       dangerouslySetInnerHTML={{
-                        __html: (selectedPaper.summary || '')
+                        __html: selectedPaper.summary
                           .replace(/### (.*?)$/gm, '<h4 class="font-semibold text-gray-900 dark:text-white mt-8 mb-4 text-base">$1</h4>')
                           .replace(/## (.*?)$/gm, '<h3 class="font-semibold text-gray-900 dark:text-white mt-10 mb-5 text-lg">$1</h3>')
                           .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-gray-900 dark:text-white">$1</strong>')
