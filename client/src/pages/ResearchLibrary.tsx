@@ -235,38 +235,35 @@ export function ResearchLibrary() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Minimal Header with Search-First Design */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
-          {/* Title and Search in One Row */}
-          <div className="flex flex-col lg:flex-row lg:items-center gap-6 flex-1">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl">
-                <Library className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Research Library</h1>
-                <p className="text-sm text-slate-500 dark:text-slate-400">{savedResearch.length} papers saved</p>
-              </div>
+        {/* Minimal Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center gap-4 mb-6">
+          {/* Compact Title */}
+          <div className="flex items-center gap-2">
+            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full p-1.5">
+              <Library className="h-4 w-4 text-white" />
             </div>
+            <h1 className="text-lg font-semibold text-slate-900 dark:text-white">Research Library</h1>
+            <span className="text-sm text-slate-500 dark:text-slate-400">·</span>
+            <span className="text-sm text-slate-500 dark:text-slate-400">{savedResearch.length}</span>
+          </div>
 
-            {/* Hero Search Bar */}
-            <div className="flex-1 max-w-2xl">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 h-5 w-5" />
-                <Input
-                  placeholder="Search papers, authors, or content..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 h-12 text-lg rounded-xl border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm shadow-sm focus:shadow-lg transition-all"
-                />
-              </div>
+          {/* Elegant Search Bar */}
+          <div className="flex-1 max-w-xl">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+              <Input
+                placeholder="Search papers, authors, or content..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 h-10 rounded-full border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm shadow-sm focus:shadow-md focus:ring-2 focus:ring-blue-500/20 transition-all"
+              />
             </div>
           </div>
 
           {/* Compact Filter Controls */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <Select value={selectedCollection} onValueChange={setSelectedCollection}>
-              <SelectTrigger className="w-40 rounded-xl border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80">
+              <SelectTrigger className="w-32 h-9 rounded-full border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90 text-sm">
                 <SelectValue placeholder="All" />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
@@ -282,16 +279,16 @@ export function ResearchLibrary() {
             <Button
               variant={showFavoritesOnly ? "default" : "outline"}
               onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-              className="rounded-xl"
+              className="h-9 w-9 rounded-full p-0"
               size="sm"
             >
-              <Star className={`h-4 w-4 ${showFavoritesOnly ? 'fill-current' : ''}`} />
+              <Star className={`h-3.5 w-3.5 ${showFavoritesOnly ? 'fill-current' : ''}`} />
             </Button>
 
             <Dialog open={isCreateCollectionOpen} onOpenChange={setIsCreateCollectionOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" className="rounded-xl" size="sm">
-                  <FolderPlus className="h-4 w-4" />
+                <Button variant="outline" className="h-9 w-9 rounded-full p-0" size="sm">
+                  <FolderPlus className="h-3.5 w-3.5" />
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-md">
