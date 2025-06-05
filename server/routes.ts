@@ -3696,6 +3696,79 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
     }
   });
 
+  // Client invitation and registration system
+  
+  // Send client invitation
+  app.post('/api/client-invitation', async (req, res) => {
+    try {
+      const { therapistId, clientEmail, clientName } = req.body;
+      const inviteToken = crypto.randomUUID();
+      
+      // Store invitation in database (you could create an invitations table)
+      const inviteData = {
+        id: crypto.randomUUID(),
+        therapistId,
+        clientEmail,
+        clientName,
+        inviteToken,
+        status: 'pending',
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+        createdAt: new Date()
+      };
+      
+      // For now, return the invitation URL
+      const inviteUrl = `${req.protocol}://${req.get('host')}/client-onboarding/${inviteToken}`;
+      
+      res.json({
+        success: true,
+        inviteUrl,
+        inviteToken,
+        expiresAt: inviteData.expiresAt
+      });
+    } catch (error) {
+      console.error('Error sending client invitation:', error);
+      res.status(500).json({ error: 'Failed to send invitation' });
+    }
+  });
+
+  // Client registration endpoint
+  app.post('/api/client-registration', async (req, res) => {
+    try {
+      const { inviteToken, ...clientData } = req.body;
+      
+      // Validate invite token (in production, check against invitations table)
+      if (!inviteToken) {
+        return res.status(400).json({ error: 'Invalid invitation token' });
+      }
+      
+      const clientId = crypto.randomUUID();
+      
+      // Create client record
+      const [newClient] = await db.insert(clientTable).values({
+        id: clientId,
+        therapistId: req.body.therapistId || 'demo-therapist', // In production, get from invitation
+        firstName: clientData.firstName,
+        lastName: clientData.lastName,
+        email: clientData.email,
+        phone: clientData.phone || null,
+        dateOfBirth: clientData.dateOfBirth ? new Date(clientData.dateOfBirth) : null,
+        emergencyContact: clientData.emergencyContact ? JSON.stringify(clientData.emergencyContact) : null,
+        status: 'active',
+        portalAccess: 'true',
+        consentToShare: clientData.consentToShare ? 'true' : 'false'
+      }).returning();
+      
+      res.json({
+        success: true,
+        clientId: newClient.id,
+        message: 'Registration completed successfully'
+      });
+    } catch (error) {
+      console.error('Error registering client:', error);
+      res.status(500).json({ error: 'Registration failed' });
+    }
+  });
+
   // Create shared insight
   app.post('/api/insights', async (req, res) => {
     try {
