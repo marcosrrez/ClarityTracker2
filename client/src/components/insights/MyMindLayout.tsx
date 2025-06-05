@@ -439,6 +439,9 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
       } finally {
         setIsProcessingSmartSearch(false);
       }
+    } else {
+      // For regular search queries, don't clear the input - just filter the results
+      // The filtering is already handled by the search logic in the display items
     }
   };
 
