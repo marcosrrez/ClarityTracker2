@@ -32,6 +32,8 @@ import {
   Building2,
   Shield,
   FileText,
+  Mic,
+  Activity,
 } from "lucide-react";
 
 const getNavigationItems = (accountType: string, permissions: any) => {
@@ -39,9 +41,9 @@ const getNavigationItems = (accountType: string, permissions: any) => {
   const primaryItems = [
     { href: "/dashboard", label: "Dashboard", icon: ChartLine, group: "primary" },
     { href: "/add-entry", label: "Add Entry", icon: Plus, group: "primary" },
+    { href: "/session-recording", label: "Session Recording", icon: Mic, group: "primary" },
     { href: "/insights", label: "Insights & Resources", icon: Brain, group: "primary" },
     { href: "/research-library", label: "Research Library", icon: BookOpen, group: "primary" },
-    { href: "/summary", label: "Summary", icon: BarChart3, group: "primary" },
     { href: "/supervisors", label: "Supervisors", icon: Users, group: "primary" },
   ];
 
