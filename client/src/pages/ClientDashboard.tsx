@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useLocation } from 'wouter';
-import { Heart, Calendar, MessageSquare, TrendingUp, Bell, FileText, Target, Award } from 'lucide-react';
+import { Heart, Calendar, MessageSquare, TrendingUp, Bell, FileText, Target, Award, Plus, UserPlus, Sparkles, Brain, Clock, Share2 } from 'lucide-react';
 
 interface SharedInsight {
   id: string;
@@ -25,15 +25,20 @@ interface ClientProgress {
 
 export default function ClientDashboard() {
   const [location, setLocation] = useLocation();
+  const [inviteTherapistOpen, setInviteTherapistOpen] = useState(false);
+  const [showSelfReflection, setShowSelfReflection] = useState(false);
+  const [showSpacedRepetition, setShowSpacedRepetition] = useState(false);
   
-  // Sample data demonstrating the dual-sided platform
+  // Sample data demonstrating both standalone and connected accounts
   const clientInfo = {
     name: "Sarah Johnson",
-    therapistName: "Dr. Emily Chen",
-    memberSince: "March 2024"
+    therapistName: null, // Set to null to show standalone account features
+    memberSince: "March 2024",
+    accountType: "standalone" // or "connected"
   };
 
-  const sharedInsights: SharedInsight[] = [
+  // For standalone accounts, show self-reflection insights instead of therapist insights
+  const sharedInsights: SharedInsight[] = clientInfo.therapistName ? [
     {
       id: "1",
       title: "Weekly Reflection Completed",
@@ -49,11 +54,26 @@ export default function ClientDashboard() {
       type: "homework",
       sharedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
       therapistNote: "Use this when you feel anxiety building up."
+    }
+  ] : [
+    {
+      id: "1",
+      title: "Self-Reflection: Stress Patterns",
+      content: "I noticed I feel most anxious during Monday morning meetings. Writing this down helps me see the pattern.",
+      type: "progress",
+      sharedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000)
+    },
+    {
+      id: "2",
+      title: "Personal Goal Set",
+      content: "Goal: Practice deep breathing for 5 minutes every morning this week.",
+      type: "goal",
+      sharedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
     },
     {
       id: "3",
       title: "Breakthrough Moment",
-      content: "Successfully used breathing techniques during a stressful work meeting. This shows real progress in applying our sessions to daily life.",
+      content: "Successfully used the breathing technique I learned from my reflection during today's stressful situation.",
       type: "breakthrough",
       sharedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
     }
@@ -96,25 +116,39 @@ export default function ClientDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-900 shadow-sm border-b">
+      <div className="backdrop-blur-sm bg-white/70 dark:bg-gray-900/70 shadow-sm border-b border-blue-100/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <div className="flex items-center space-x-3">
-              <Heart className="h-8 w-8 text-blue-600" />
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <Heart className="h-8 w-8 text-blue-600" />
+                <Sparkles className="h-3 w-3 text-yellow-500 absolute -top-1 -right-1" />
+              </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                   Welcome back, {clientInfo.name}
                 </h1>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Working with {clientInfo.therapistName} • Member since {clientInfo.memberSince}
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  {clientInfo.therapistName ? 
+                    `Working with ${clientInfo.therapistName} • Member since ${clientInfo.memberSince}` :
+                    `Standalone account • Member since ${clientInfo.memberSince}`
+                  }
                 </p>
               </div>
             </div>
-            <Button onClick={() => setLocation('/')} variant="outline">
-              Back to Home
-            </Button>
+            <div className="flex items-center space-x-3">
+              {!clientInfo.therapistName && (
+                <Button onClick={() => setInviteTherapistOpen(true)} className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700">
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Invite Therapist
+                </Button>
+              )}
+              <Button onClick={() => setLocation('/')} variant="outline">
+                Back to Home
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -160,15 +194,30 @@ export default function ClientDashboard() {
               </CardContent>
             </Card>
 
-            {/* Shared Insights */}
-            <Card>
+            {/* Self-Reflection or Shared Insights */}
+            <Card className="backdrop-blur-sm bg-white/70 dark:bg-gray-900/70 border-blue-100/50">
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <MessageSquare className="h-5 w-5" />
-                  <span>Shared Insights</span>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    {clientInfo.therapistName ? <MessageSquare className="h-5 w-5 text-blue-600" /> : <Brain className="h-5 w-5 text-purple-600" />}
+                    <span>{clientInfo.therapistName ? 'Shared Insights' : 'Self-Reflection Journal'}</span>
+                  </div>
+                  {!clientInfo.therapistName && (
+                    <Button 
+                      size="sm" 
+                      onClick={() => setShowSelfReflection(true)}
+                      className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add Reflection
+                    </Button>
+                  )}
                 </CardTitle>
                 <CardDescription>
-                  Updates and insights shared by your therapist
+                  {clientInfo.therapistName ? 
+                    'Updates and insights shared by your therapist' :
+                    'Your personal insights, patterns, and growth moments'
+                  }
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -202,47 +251,76 @@ export default function ClientDashboard() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Next Appointment */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Calendar className="h-5 w-5" />
-                  <span>Next Session</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center">
-                  <div className="text-lg font-semibold">
-                    {progress.nextAppointment.toLocaleDateString()}
+            {/* Next Appointment or Standalone Tools */}
+            {clientInfo.therapistName ? (
+              <Card className="backdrop-blur-sm bg-white/70 dark:bg-gray-900/70 border-blue-100/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Calendar className="h-5 w-5 text-blue-600" />
+                    <span>Next Session</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center">
+                    <div className="text-lg font-semibold">
+                      {progress.nextAppointment.toLocaleDateString()}
+                    </div>
+                    <div className="text-sm text-slate-600 dark:text-slate-400">
+                      {progress.nextAppointment.toLocaleTimeString([], { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                      })}
+                    </div>
+                    <Button className="w-full mt-4" variant="outline">
+                      <Bell className="h-4 w-4 mr-2" />
+                      Set Reminder
+                    </Button>
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                    {progress.nextAppointment.toLocaleTimeString([], { 
-                      hour: '2-digit', 
-                      minute: '2-digit' 
-                    })}
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="backdrop-blur-sm bg-white/70 dark:bg-gray-900/70 border-green-100/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Clock className="h-5 w-5 text-green-600" />
+                    <span>Spaced Repetition</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Build long-term memory of insights
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="text-sm text-slate-600 dark:text-slate-400">
+                    <strong>3 insights</strong> ready for review
                   </div>
-                  <Button className="w-full mt-4" variant="outline">
-                    <Bell className="h-4 w-4 mr-2" />
-                    Set Reminder
+                  <Button 
+                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                    onClick={() => setShowSpacedRepetition(true)}
+                  >
+                    <Brain className="h-4 w-4 mr-2" />
+                    Start Review
                   </Button>
-                </div>
-              </CardContent>
-            </Card>
+                  <div className="text-xs text-slate-500">
+                    Next review: Tomorrow at 9:00 AM
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Current Goals */}
-            <Card>
+            <Card className="backdrop-blur-sm bg-white/70 dark:bg-gray-900/70 border-blue-100/50">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
-                  <Target className="h-5 w-5" />
+                  <Target className="h-5 w-5 text-blue-600" />
                   <span>Current Goals</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   {progress.currentGoals.map((goal, index) => (
-                    <div key={index} className="flex items-center space-x-2 p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                    <div key={index} className="flex items-center space-x-2 p-3 bg-blue-50/50 dark:bg-blue-900/20 rounded-lg border border-blue-100/50">
                       <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                      <span className="text-sm">{goal}</span>
+                      <span className="text-sm text-slate-700 dark:text-slate-300">{goal}</span>
                     </div>
                   ))}
                 </div>
@@ -250,24 +328,56 @@ export default function ClientDashboard() {
             </Card>
 
             {/* Recent Achievements */}
-            <Card>
+            <Card className="backdrop-blur-sm bg-white/70 dark:bg-gray-900/70 border-green-100/50">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
-                  <Award className="h-5 w-5" />
+                  <Award className="h-5 w-5 text-green-600" />
                   <span>Achievements</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   {progress.recentAchievements.map((achievement, index) => (
-                    <div key={index} className="flex items-center space-x-2 p-2 bg-green-50 dark:bg-green-900/20 rounded">
+                    <div key={index} className="flex items-center space-x-2 p-3 bg-green-50/50 dark:bg-green-900/20 rounded-lg border border-green-100/50">
                       <Award className="h-4 w-4 text-green-600" />
-                      <span className="text-sm">{achievement}</span>
+                      <span className="text-sm text-slate-700 dark:text-slate-300">{achievement}</span>
                     </div>
                   ))}
                 </div>
               </CardContent>
             </Card>
+
+            {/* Standalone Account: Invite Therapist CTA */}
+            {!clientInfo.therapistName && (
+              <Card className="backdrop-blur-sm bg-gradient-to-br from-emerald-50/70 to-green-50/70 dark:from-emerald-900/20 dark:to-green-900/20 border-emerald-200/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Share2 className="h-5 w-5 text-emerald-600" />
+                    <span>Ready for Professional Support?</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Connect with a licensed therapist to enhance your journey
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="text-sm text-slate-600 dark:text-slate-400">
+                    You've built a solid foundation with self-reflection. Consider inviting a therapist to:
+                  </div>
+                  <ul className="text-xs text-slate-500 space-y-1 ml-4">
+                    <li>• Share your insights and progress</li>
+                    <li>• Get professional guidance</li>
+                    <li>• Accelerate your growth</li>
+                  </ul>
+                  <Button 
+                    className="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700"
+                    onClick={() => setInviteTherapistOpen(true)}
+                  >
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Invite a Therapist
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>
