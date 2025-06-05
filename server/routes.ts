@@ -4013,8 +4013,8 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
       const insightData = {
         ...validatedData,
         id,
-        isRead: validatedData.isRead || false,
-        actionRequired: validatedData.actionRequired || false,
+        isRead: validatedData.isRead ? 'true' : 'false',
+        actionRequired: validatedData.actionRequired ? 'true' : 'false',
         priority: validatedData.priority || 'normal',
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -4076,7 +4076,7 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
       const [updatedInsight] = await db
         .update(supervisorInsightsTable)
         .set({ 
-          isRead: true,
+          isRead: 'true',
           updatedAt: new Date()
         })
         .where(eq(supervisorInsightsTable.id, id))
