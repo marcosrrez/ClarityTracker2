@@ -393,14 +393,13 @@ export const clientSchema = z.object({
   therapistId: z.string(),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
-  email: z.string().email("Valid email required"),
+  email: z.string().email("Valid email is required"),
   phone: z.string().optional(),
   dateOfBirth: z.date().optional(),
   emergencyContact: z.object({
     name: z.string(),
-    relationship: z.string(),
     phone: z.string(),
-    email: z.string().optional()
+    relationship: z.string()
   }).optional(),
   status: z.enum(['active', 'inactive', 'discharged']).default('active'),
   portalAccess: z.boolean().default(true),
@@ -412,7 +411,6 @@ export const clientSchema = z.object({
 
 export const insertClientSchema = clientSchema.omit({
   id: true,
-  lastLogin: true,
   createdAt: true,
   updatedAt: true,
 });
