@@ -541,11 +541,14 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
       const formattedAnalysis = data.analysis
         .replace(/\*\*(.*?)\*\*/g, '\n\n$1\n\n') // Remove bold markdown but add spacing
         .replace(/## (.*?)(\n|$)/g, '\n\n$1:\n\n') // Convert headings to titles with colons and spacing
-        .replace(/\* /g, '\n• ') // Convert asterisks to bullets with line breaks
-        .replace(/(\.)(\s*)([A-Z][^.]*:)/g, '$1\n\n$3') // Break before topic headers
+        .replace(/\* /g, '\n\n• ') // Convert asterisks to bullets with double line breaks
+        .replace(/([A-Z][A-Za-z\s]+:)/g, '\n\n$1\n') // Break before and after topic headers ending with colon
+        .replace(/(\.)(\s*)([A-Z][A-Za-z\s]*Theory)/g, '$1\n\n$3') // Break before therapy types
+        .replace(/(\.)(\s*)([A-Z][A-Za-z\s]*Therapy)/g, '$1\n\n$3') // Break before therapy mentions
+        .replace(/(\.)(\s*)(Suggestions|Research|Explore|Examine|Investigate)/g, '$1\n\n$3') // Break before suggestion words
         .replace(/(\.)(\s*)([A-Z])/g, '$1\n\n$3') // Break sentences into paragraphs
         .replace(/([a-z]:)(\s*)([A-Z])/g, '$1\n\n$3') // Break after colons
-        .replace(/\n{4,}/g, '\n\n\n') // Allow triple spacing for better section breaks
+        .replace(/\n{4,}/g, '\n\n') // Clean up excessive line breaks
         .trim();
 
       const newCard = {
