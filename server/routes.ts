@@ -19,6 +19,13 @@ import { ConversationAnalysisService } from "./services/conversation-analysis-se
 import { SupervisionService } from "./services/supervision-service";
 import { progressiveDisclosureService } from "./progressive-disclosure-service";
 import { researchService } from "./research-service";
+import { 
+  researchCollectionsTable, 
+  savedResearchTable, 
+  researchHistoryTable,
+  insertResearchCollectionSchema,
+  insertSavedResearchSchema 
+} from "@shared/schema";
 
 // Email reminder scheduling function
 async function scheduleSessionReminders(session: any, reminderDays: number) {
@@ -2729,6 +2736,102 @@ Please provide a helpful, professional response that's personalized to their sit
       res.status(500).json({ error: 'Failed to summarize content' });
     }
   });
+
+  // Research Collections API Routes
+  app.get('/api/research/collections/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const collections = await db.select().from(researchCollectionsTable).where(eq(researchCollectionsTable.userId, userId));
+      res.json({ collections });
+    } catch (error) {
+      console.error('Get collections error:', error);
+      res.status(500).json({ error: 'Failed to get collections' });
+    }
+  });
+
+  app.post('/api/research/collections', async (req, res) => {
+    try {
+      const collectionData = insertResearchCollectionSchema.parse(req.body);
+      const collectionId = `collection_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      const [collection] = await db.insert(researchCollectionsTable).values({
+        id: collectionId,
+        ...collectionData
+      }).returning();
+      
+      res.json({ collection });
+    } catch (error) {
+      console.error('Create collection error:', error);
+      res.status(500).json({ error: 'Failed to create collection' });
+    }
+  });
+
+  // Saved Research API Routes
+  app.get('/api/research/saved/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { collectionId } = req.query;
+      
+      let query = db.select().from(savedResearchTable).where(eq(savedResearchTable.userId, userId));
+      
+      if (collectionId && collectionId !== 'all') {
+        query = query.where(eq(savedResearchTable.collectionId, collectionId as string));
+      }
+      
+      const savedResearch = await query.orderBy(desc(savedResearchTable.createdAt));
+      res.json({ savedResearch });
+    } catch (error) {
+      console.error('Get saved research error:', error);
+      res.status(500).json({ error: 'Failed to get saved research' });
+    }
+  });
+
+  app.post('/api/research/save', async (req, res) => {
+    try {
+      const savedData = insertSavedResearchSchema.parse(req.body);
+      const savedId = `saved_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Generate APA citation
+      const citationApa = generateApaCitation(savedData);
+      
+      const [savedResearch] = await db.insert(savedResearchTable).values({
+        id: savedId,
+        ...savedData,
+        citationApa,
+        authors: JSON.stringify(savedData.authors || []),
+        tags: JSON.stringify(savedData.tags || [])
+      }).returning();
+      
+      res.json({ savedResearch });
+    } catch (error) {
+      console.error('Save research error:', error);
+      res.status(500).json({ error: 'Failed to save research' });
+    }
+  });
+
+  app.get('/api/research/history/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const history = await db.select().from(researchHistoryTable)
+        .where(eq(researchHistoryTable.userId, userId))
+        .orderBy(desc(researchHistoryTable.createdAt))
+        .limit(50);
+      res.json({ history });
+    } catch (error) {
+      console.error('Get research history error:', error);
+      res.status(500).json({ error: 'Failed to get research history' });
+    }
+  });
+
+  // Helper function to generate APA citation
+  function generateApaCitation(research: any): string {
+    const { title, authors, publishDate, domain, url } = research;
+    const authorsText = authors && authors.length > 0 ? authors.join(', ') : 'Unknown Author';
+    const year = publishDate ? new Date(publishDate).getFullYear() : 'n.d.';
+    const domainText = domain || 'Unknown Source';
+    
+    return `${authorsText} (${year}). ${title}. ${domainText}. Retrieved from ${url}`;
+  }
 
   return httpServer;
 }

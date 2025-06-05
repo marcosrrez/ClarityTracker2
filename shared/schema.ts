@@ -499,6 +499,119 @@ export const aiAnalysisCacheTable = pgTable('ai_analysis_cache', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+// Research Collections Schema - organize and save research papers
+export const researchCollectionsTable = pgTable('research_collections', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  name: varchar('name', { length: 255 }).notNull(),
+  description: text('description'),
+  color: varchar('color', { length: 7 }).default('#3B82F6'), // hex color
+  isPrivate: integer('is_private', { mode: 'boolean' }).default(1),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Saved Research Papers Schema - individual research papers
+export const savedResearchTable = pgTable('saved_research', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  collectionId: varchar('collection_id', { length: 255 }),
+  title: text('title').notNull(),
+  url: text('url').notNull(),
+  domain: varchar('domain', { length: 255 }).notNull(),
+  source: varchar('source', { length: 100 }).notNull(), // pubmed, scholar, etc
+  snippet: text('snippet'),
+  authors: text('authors'), // JSON array
+  publishDate: varchar('publish_date', { length: 50 }),
+  citationApa: text('citation_apa'),
+  tags: text('tags'), // JSON array
+  notes: text('notes'),
+  summaryGenerated: text('summary_generated'),
+  summaryType: varchar('summary_type', { length: 50 }), // key_findings, clinical_applications, etc
+  isFavorite: integer('is_favorite', { mode: 'boolean' }).default(0),
+  accessedCount: integer('accessed_count').default(0),
+  lastAccessed: timestamp('last_accessed'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Research History Schema - track all research queries
+export const researchHistoryTable = pgTable('research_history', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  query: text('query').notNull(),
+  resultsCount: integer('results_count').default(0),
+  searchContext: varchar('search_context', { length: 100 }), // ai_coach, manual_search, etc
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Research Collections Zod Schemas
+export const researchCollectionSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  name: z.string().min(1, "Collection name is required"),
+  description: z.string().optional(),
+  color: z.string().default('#3B82F6'),
+  isPrivate: z.boolean().default(true),
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date()),
+});
+
+export const insertResearchCollectionSchema = researchCollectionSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const savedResearchSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  collectionId: z.string().optional(),
+  title: z.string().min(1, "Title is required"),
+  url: z.string().url("Valid URL is required"),
+  domain: z.string(),
+  source: z.string(),
+  snippet: z.string().optional(),
+  authors: z.array(z.string()).default([]),
+  publishDate: z.string().optional(),
+  citationApa: z.string().optional(),
+  tags: z.array(z.string()).default([]),
+  notes: z.string().optional(),
+  summaryGenerated: z.string().optional(),
+  summaryType: z.enum(['key_findings', 'clinical_applications', 'limitations', 'methodology']).optional(),
+  isFavorite: z.boolean().default(false),
+  accessedCount: z.number().default(0),
+  lastAccessed: z.date().optional(),
+  createdAt: z.date().default(() => new Date()),
+});
+
+export const insertSavedResearchSchema = savedResearchSchema.omit({
+  id: true,
+  accessedCount: true,
+  lastAccessed: true,
+  createdAt: true,
+});
+
+export const researchHistorySchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  query: z.string(),
+  resultsCount: z.number().default(0),
+  searchContext: z.string().optional(),
+  createdAt: z.date().default(() => new Date()),
+});
+
+export const insertResearchHistorySchema = researchHistorySchema.omit({
+  id: true,
+  createdAt: true,
+});
+
+export type ResearchCollection = z.infer<typeof researchCollectionSchema>;
+export type InsertResearchCollection = z.infer<typeof insertResearchCollectionSchema>;
+export type SavedResearch = z.infer<typeof savedResearchSchema>;
+export type InsertSavedResearch = z.infer<typeof insertSavedResearchSchema>;
+export type ResearchHistory = z.infer<typeof researchHistorySchema>;
+export type InsertResearchHistory = z.infer<typeof insertResearchHistorySchema>;
+
 export const aiAnalysisCacheSchema = z.object({
   id: z.string(),
   contentHash: z.string(),
