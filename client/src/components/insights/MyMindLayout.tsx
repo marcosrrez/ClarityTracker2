@@ -537,14 +537,15 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
 
       const data = await response.json();
       
-      // Format the analysis with clean typography - remove markdown
+      // Format the analysis with clean typography and proper spacing
       const formattedAnalysis = data.analysis
-        .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold markdown
-        .replace(/## /g, '') // Remove heading markdown
-        .replace(/\* /g, '• ') // Convert asterisks to bullets
+        .replace(/\*\*(.*?)\*\*/g, '\n\n$1\n\n') // Remove bold markdown but add spacing
+        .replace(/## (.*?)(\n|$)/g, '\n\n$1:\n\n') // Convert headings to titles with colons and spacing
+        .replace(/\* /g, '\n• ') // Convert asterisks to bullets with line breaks
+        .replace(/(\.)(\s*)([A-Z][^.]*:)/g, '$1\n\n$3') // Break before topic headers
         .replace(/(\.)(\s*)([A-Z])/g, '$1\n\n$3') // Break sentences into paragraphs
         .replace(/([a-z]:)(\s*)([A-Z])/g, '$1\n\n$3') // Break after colons
-        .replace(/\n{3,}/g, '\n\n') // Clean up excessive line breaks
+        .replace(/\n{4,}/g, '\n\n\n') // Allow triple spacing for better section breaks
         .trim();
 
       const newCard = {
