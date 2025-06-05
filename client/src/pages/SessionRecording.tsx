@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { AzureSpeechService, TranscriptionSegment } from '@/services/azureSpeechService';
 import { 
   Mic, 
   MicOff, 
@@ -77,6 +78,8 @@ export default function SessionRecording() {
   const audioChunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const azureSpeechRef = useRef<AzureSpeechService | null>(null);
+  const [transcriptionSegments, setTranscriptionSegments] = useState<TranscriptionSegment[]>([]);
 
   // Session recording functions
   const startRecording = async () => {
