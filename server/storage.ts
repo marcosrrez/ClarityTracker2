@@ -130,6 +130,10 @@ export interface IStorage {
   getAiInsightsHistory(userId: string, insightType?: string): Promise<AiInsightsHistory[]>;
   createAiInsight(insight: InsertAiInsightsHistory): Promise<AiInsightsHistory>;
   updateAiInsight(id: string, updates: Partial<AiInsightsHistory>): Promise<void>;
+  
+  // Log Entries functionality
+  createLogEntry(entry: any): Promise<any>;
+  getLogEntries(userId: string): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1326,12 +1330,23 @@ ${content}`;
       .where(eq(aiInsightsHistoryTable.id, id));
   }
 
+  // Log Entries functionality
+  async createLogEntry(entry: any): Promise<any> {
+    // For now, return a simple mock response since this is for onboarding
+    // In production, this would integrate with the actual log entries table
+    const id = `entry_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return {
+      id,
+      ...entry,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+  }
 
-
-  async updateAiInsight(id: string, updates: Partial<InsertAiInsightsHistory>): Promise<void> {
-    await db.update(aiInsightsHistoryTable)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(eq(aiInsightsHistoryTable.id, id));
+  async getLogEntries(userId: string): Promise<any[]> {
+    // For now, return empty array since this is primarily for onboarding
+    // In production, this would query the actual log entries table
+    return [];
   }
 }
 

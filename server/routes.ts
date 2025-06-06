@@ -906,6 +906,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
 
+  // Log Entries Routes
+  app.post('/api/entries', async (req, res) => {
+    try {
+      const entryData = req.body;
+      
+      // Convert dates to proper Date objects
+      if (entryData.dateOfContact) {
+        entryData.dateOfContact = new Date(entryData.dateOfContact);
+      }
+      if (entryData.supervisionDate) {
+        entryData.supervisionDate = new Date(entryData.supervisionDate);
+      }
+      
+      // Create the log entry
+      const entry = await storage.createLogEntry(entryData);
+      res.json(entry);
+    } catch (error) {
+      console.error('Error creating log entry:', error);
+      res.status(400).json({ error: 'Failed to create log entry' });
+    }
+  });
+
+  app.get('/api/entries/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const entries = await storage.getLogEntries(userId);
+      res.json(entries);
+    } catch (error) {
+      console.error('Error fetching log entries:', error);
+      res.status(500).json({ error: 'Failed to fetch log entries' });
+    }
+  });
+
   // Knowledge Base Routes
   app.post('/api/knowledge-entries', async (req, res) => {
     try {
