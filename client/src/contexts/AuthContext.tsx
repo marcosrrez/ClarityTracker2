@@ -70,10 +70,55 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-    } catch (error) {
-      console.error("Error signing in:", error);
-      throw error;
+      // Add detailed logging for debugging
+      console.log("Attempting Firebase sign in...", { 
+        email, 
+        hasPassword: !!password,
+        firebaseConfigured: !!auth.app.options.apiKey 
+      });
+      
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      console.log("Sign in successful:", result.user.email);
+      
+      return result;
+    } catch (error: any) {
+      console.error("Detailed sign in error:", {
+        code: error.code,
+        message: error.message,
+        email,
+        firebaseProject: auth.app.options.projectId
+      });
+      
+      // Provide user-friendly error messages
+      let userMessage = "Failed to sign in. Please check your credentials.";
+      
+      switch (error.code) {
+        case 'auth/user-not-found':
+          userMessage = "No account found with this email address.";
+          break;
+        case 'auth/wrong-password':
+          userMessage = "Incorrect password.";
+          break;
+        case 'auth/invalid-email':
+          userMessage = "Invalid email address.";
+          break;
+        case 'auth/user-disabled':
+          userMessage = "This account has been disabled.";
+          break;
+        case 'auth/too-many-requests':
+          userMessage = "Too many failed attempts. Please try again later.";
+          break;
+        case 'auth/network-request-failed':
+          userMessage = "Network error. Please check your connection.";
+          break;
+        case 'auth/configuration-not-found':
+          userMessage = "Authentication service is not properly configured.";
+          break;
+      }
+      
+      const enhancedError = new Error(userMessage);
+      enhancedError.name = error.code;
+      throw enhancedError;
     }
   };
 
