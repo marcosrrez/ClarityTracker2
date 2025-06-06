@@ -1,75 +1,670 @@
-import React from 'react';
-import { Brain, Shield } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { EnhancedSessionRecorder } from '@/components/session-intelligence/EnhancedSessionRecorder';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import { AzureSpeechService, TranscriptionSegment } from '@/services/azureSpeechService';
+import { 
+  Mic, 
+  MicOff, 
+  Square, 
+  Play, 
+  Pause,
+  FileText, 
+  Shield,
+  TrendingUp,
+  Clock,
+  AlertTriangle,
+  CheckCircle,
+  Activity,
+  Brain
+} from 'lucide-react';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 
-const SessionRecording = () => {
+interface SessionMetadata {
+  clientId: string;
+  sessionType: 'individual' | 'group' | 'family';
+  duration: number;
+  goals: string[];
+  notes: string;
+}
+
+interface RecordingState {
+  isRecording: boolean;
+  isPaused: boolean;
+  duration: number;
+  audioBlob: Blob | null;
+  transcript: string;
+  isTranscribing: boolean;
+}
+
+interface AnalysisResults {
+  sessionAnalysis?: any;
+  riskAssessment?: any;
+  progressNotes?: any;
+  ebpAnalysis?: any;
+  treatmentRecommendations?: any;
+}
+
+export default function SessionRecording() {
+  const [sessionMetadata, setSessionMetadata] = useState<SessionMetadata>({
+    clientId: '',
+    sessionType: 'individual',
+    duration: 0,
+    goals: [],
+    notes: ''
+  });
+  
+  const [recordingState, setRecordingState] = useState<RecordingState>({
+    isRecording: false,
+    isPaused: false,
+    duration: 0,
+    audioBlob: null,
+    transcript: '',
+    isTranscribing: false
+  });
+
+  const [analysisResults, setAnalysisResults] = useState<AnalysisResults>({});
+  const [currentTab, setCurrentTab] = useState('setup');
+  const { toast } = useToast();
+
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const streamRef = useRef<MediaStream | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const azureSpeechRef = useRef<AzureSpeechService | null>(null);
+  const [transcriptionSegments, setTranscriptionSegments] = useState<TranscriptionSegment[]>([]);
+
+  // Initialize Azure Speech Service
+  const initializeAzureSpeech = async () => {
+    try {
+      // Get credentials from server-side environment
+      const response = await apiRequest('GET', '/api/azure/speech-config');
+      const config = await response.json();
+      
+      azureSpeechRef.current = new AzureSpeechService({
+        subscriptionKey: config.subscriptionKey,
+        serviceRegion: config.serviceRegion,
+        language: 'en-US'
+      });
+      console.log('Azure Speech Service initialized');
+    } catch (error) {
+      console.error('Failed to initialize Azure Speech Service:', error);
+      toast({
+        title: "Speech Service Error",
+        description: "Failed to initialize Azure Speech Service. Check your credentials.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Session recording functions
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        setRecordingState(prev => ({ ...prev, audioBlob }));
+      };
+
+      mediaRecorder.start(1000); // Collect data every second
+      
+      setRecordingState(prev => ({ ...prev, isRecording: true, isPaused: false, isTranscribing: true }));
+      setCurrentTab('recording');
+      
+      // Start duration counter
+      intervalRef.current = setInterval(() => {
+        setRecordingState(prev => ({ ...prev, duration: prev.duration + 1 }));
+      }, 1000);
+
+      // Start real-time transcription with Azure
+      await startAzureTranscription();
+
+    } catch (error) {
+      console.error('Error starting recording:', error);
+      toast({
+        title: "Recording Error",
+        description: "Unable to access microphone. Please check permissions.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Start Azure Speech Service transcription
+  const startAzureTranscription = async () => {
+    if (!azureSpeechRef.current) {
+      await initializeAzureSpeech();
+    }
+
+    try {
+      await azureSpeechRef.current?.startContinuousRecognition(
+        (segment: TranscriptionSegment) => {
+          setTranscriptionSegments(prev => [...prev, segment]);
+          
+          // Update the main transcript with the latest segment
+          setRecordingState(prev => ({
+            ...prev,
+            transcript: prev.transcript + ' ' + segment.text
+          }));
+        },
+        (error: string) => {
+          console.error('Azure Speech transcription error:', error);
+          toast({
+            title: "Transcription Error",
+            description: "Real-time transcription encountered an issue.",
+            variant: "destructive"
+          });
+        }
+      );
+    } catch (error) {
+      console.error('Failed to start Azure transcription:', error);
+      toast({
+        title: "Azure Speech Error",
+        description: "Failed to start real-time transcription. Falling back to audio recording only.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const pauseRecording = () => {
+    if (mediaRecorderRef.current && recordingState.isRecording) {
+      if (recordingState.isPaused) {
+        mediaRecorderRef.current.resume();
+        intervalRef.current = setInterval(() => {
+          setRecordingState(prev => ({ ...prev, duration: prev.duration + 1 }));
+        }, 1000);
+      } else {
+        mediaRecorderRef.current.pause();
+        if (intervalRef.current) clearInterval(intervalRef.current);
+      }
+      setRecordingState(prev => ({ ...prev, isPaused: !prev.isPaused }));
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && recordingState.isRecording) {
+      mediaRecorderRef.current.stop();
+      
+      // Stop Azure Speech Service transcription
+      if (azureSpeechRef.current) {
+        azureSpeechRef.current.stopRecognition();
+      }
+      
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+      setRecordingState(prev => ({ ...prev, isRecording: false, isPaused: false, isTranscribing: false }));
+      
+      // Automatically start session analysis with Azure transcription
+      if (recordingState.transcript.length > 0) {
+        analyzeSessionMutation.mutate();
+      }
+      
+      setCurrentTab('analysis');
+    }
+  };
+
+  // API mutations
+  const transcribeMutation = useMutation({
+    mutationFn: async (audioBase64: string) => {
+      const response = await apiRequest('POST', '/api/session/transcribe', {
+        audio: audioBase64,
+        sessionMetadata
+      });
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      setRecordingState(prev => ({ 
+        ...prev, 
+        transcript: data.transcript,
+        isTranscribing: false 
+      }));
+      setCurrentTab('analysis');
+      // Automatically start session analysis
+      analyzeSessionMutation.mutate();
+    },
+    onError: (error) => {
+      console.error('Transcription error:', error);
+      setRecordingState(prev => ({ ...prev, isTranscribing: false }));
+    }
+  });
+
+  const analyzeSessionMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/session/full-analysis', {
+        transcript: recordingState.transcript,
+        sessionDuration: recordingState.duration,
+        sessionMetadata,
+        userId: 'current-user'
+      });
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      setAnalysisResults(data);
+      setCurrentTab('results');
+    }
+  });
+
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const getRecordingStatus = () => {
+    if (recordingState.isTranscribing) return 'Transcribing...';
+    if (recordingState.isPaused) return 'Paused';
+    if (recordingState.isRecording) return 'Recording';
+    return 'Ready';
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-      <div className="container mx-auto px-4 py-8">
-        {/* Simple Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Brain className="h-8 w-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Session Recording
-            </h1>
-          </div>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Start recording your therapy session with AI-powered insights
-          </p>
-        </div>
+    <div className="container mx-auto px-4 py-8 space-y-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Session Recording & Analysis</h1>
+        <p className="text-muted-foreground">
+          Complete session intelligence platform competing with industry leaders like Eleos Health
+        </p>
+      </div>
 
-        {/* Main Recording Interface */}
-        <div className="max-w-6xl mx-auto mb-12">
-          <EnhancedSessionRecorder />
-        </div>
+      <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="setup">Session Setup</TabsTrigger>
+          <TabsTrigger value="recording">Recording</TabsTrigger>
+          <TabsTrigger value="analysis">Transcription</TabsTrigger>
+          <TabsTrigger value="results">Analysis Results</TabsTrigger>
+        </TabsList>
 
-        {/* Privacy Information */}
-        <div className="max-w-4xl mx-auto">
-          <Card className="border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
+        {/* Session Setup */}
+        <TabsContent value="setup">
+          <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-green-700 dark:text-green-300">
-                <Shield className="h-5 w-5" />
-                Privacy & Security
-              </CardTitle>
+              <CardTitle>Session Configuration</CardTitle>
             </CardHeader>
-            <CardContent>
-              <Alert className="mb-6 border-green-200 bg-green-50 dark:bg-green-950">
-                <Shield className="h-4 w-4" />
-                <AlertDescription className="text-green-700 dark:text-green-200">
-                  All video analysis is performed locally in your browser. No raw video data is transmitted to servers.
-                </AlertDescription>
-              </Alert>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h4 className="font-medium mb-3 text-green-700 dark:text-green-300">Client-Side Processing</h4>
-                  <ul className="space-y-2 text-sm text-green-700 dark:text-green-200">
-                    <li>• Video analysis runs entirely in browser</li>
-                    <li>• No video data leaves your device</li>
-                    <li>• Only anonymized metrics are stored</li>
-                    <li>• Complete user control over data</li>
-                  </ul>
+                  <Label htmlFor="clientId">Client ID</Label>
+                  <Input
+                    id="clientId"
+                    value={sessionMetadata.clientId}
+                    onChange={(e) => setSessionMetadata(prev => ({ 
+                      ...prev, 
+                      clientId: e.target.value 
+                    }))}
+                    placeholder="Enter client identifier"
+                  />
                 </div>
-
                 <div>
-                  <h4 className="font-medium mb-3 text-green-700 dark:text-green-300">HIPAA Compliance</h4>
-                  <ul className="space-y-2 text-sm text-green-700 dark:text-green-200">
-                    <li>• End-to-end encryption for all data</li>
-                    <li>• Secure speech service integration</li>
-                    <li>• Audit trails for all processing</li>
-                    <li>• Professional-grade security standards</li>
-                  </ul>
+                  <Label htmlFor="sessionType">Session Type</Label>
+                  <select 
+                    className="w-full p-2 border rounded-md"
+                    value={sessionMetadata.sessionType}
+                    onChange={(e) => setSessionMetadata(prev => ({ 
+                      ...prev, 
+                      sessionType: e.target.value as any 
+                    }))}
+                  >
+                    <option value="individual">Individual Therapy</option>
+                    <option value="group">Group Therapy</option>
+                    <option value="family">Family Therapy</option>
+                  </select>
                 </div>
               </div>
+
+              <div>
+                <Label htmlFor="notes">Session Notes</Label>
+                <Textarea
+                  id="notes"
+                  value={sessionMetadata.notes}
+                  onChange={(e) => setSessionMetadata(prev => ({ 
+                    ...prev, 
+                    notes: e.target.value 
+                  }))}
+                  placeholder="Pre-session notes, goals, or observations"
+                  className="min-h-[100px]"
+                />
+              </div>
+
+              <Button 
+                onClick={startRecording}
+                disabled={!sessionMetadata.clientId.trim()}
+                className="w-full"
+                size="lg"
+              >
+                <Mic className="h-5 w-5 mr-2" />
+                Start Session Recording
+              </Button>
             </CardContent>
           </Card>
-        </div>
-      </div>
+        </TabsContent>
+
+        {/* Recording Interface */}
+        <TabsContent value="recording">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Session in Progress</span>
+                <Badge variant={recordingState.isRecording ? 'destructive' : 'secondary'}>
+                  {getRecordingStatus()}
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="text-center">
+                <div className="text-6xl font-mono font-bold mb-4">
+                  {formatDuration(recordingState.duration)}
+                </div>
+                
+                <div className="flex justify-center gap-4">
+                  <Button
+                    onClick={pauseRecording}
+                    disabled={!recordingState.isRecording}
+                    variant="outline"
+                    size="lg"
+                  >
+                    {recordingState.isPaused ? 
+                      <Play className="h-5 w-5" /> : 
+                      <Pause className="h-5 w-5" />
+                    }
+                  </Button>
+                  
+                  <Button
+                    onClick={stopRecording}
+                    disabled={!recordingState.isRecording}
+                    variant="destructive"
+                    size="lg"
+                  >
+                    <Square className="h-5 w-5 mr-2" />
+                    End Session
+                  </Button>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-4">
+                <h3 className="font-semibold">Session Information</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Client:</span>
+                    <div className="font-medium">{sessionMetadata.clientId}</div>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Type:</span>
+                    <div className="font-medium">{sessionMetadata.sessionType}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Real-time Transcription Display */}
+              {recordingState.isTranscribing && (
+                <div className="space-y-4">
+                  <Alert>
+                    <Activity className="h-4 w-4" />
+                    <AlertDescription>
+                      Azure Speech Service is actively transcribing audio in real-time
+                    </AlertDescription>
+                  </Alert>
+                  
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h4 className="font-medium mb-2">Live Transcript</h4>
+                    <div className="max-h-40 overflow-y-auto">
+                      {transcriptionSegments.length > 0 ? (
+                        <div className="space-y-2">
+                          {transcriptionSegments.slice(-10).map((segment, index) => (
+                            <div key={index} className="text-sm">
+                              <span className="text-xs text-muted-foreground mr-2">
+                                {new Date(segment.timestamp).toLocaleTimeString()}
+                              </span>
+                              <span className={segment.confidence > 0.7 ? 'text-gray-900' : 'text-gray-600'}>
+                                {segment.text}
+                              </span>
+                              {segment.confidence <= 0.5 && (
+                                <span className="text-xs text-yellow-600 ml-2">(low confidence)</span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-sm text-muted-foreground">
+                          Listening for speech...
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Transcription Results */}
+        <TabsContent value="analysis">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Session Transcript
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {transcribeMutation.isPending ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p>Processing audio transcription...</p>
+                </div>
+              ) : recordingState.transcript ? (
+                <div className="space-y-4">
+                  <div className="p-4 bg-gray-50 rounded-lg max-h-96 overflow-y-auto">
+                    <pre className="whitespace-pre-wrap text-sm">
+                      {recordingState.transcript}
+                    </pre>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <div className="text-sm text-muted-foreground">
+                      Session Duration: {formatDuration(recordingState.duration)}
+                    </div>
+                    <Button
+                      onClick={() => analyzeSessionMutation.mutate()}
+                      disabled={analyzeSessionMutation.isPending}
+                    >
+                      <Brain className="h-4 w-4 mr-2" />
+                      {analyzeSessionMutation.isPending ? 'Analyzing...' : 'Analyze Session'}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  No transcript available. Please record a session first.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Analysis Results */}
+        <TabsContent value="results">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Session Intelligence */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-5 w-5" />
+                  Session Intelligence
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {analysisResults.sessionAnalysis ? (
+                  <div className="space-y-3">
+                    <div>
+                      <h4 className="font-medium mb-2">Key Themes</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {analysisResults.sessionAnalysis.themes?.map((theme: string, i: number) => (
+                          <Badge key={i} variant="secondary">{theme}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <Separator />
+                    
+                    <div>
+                      <h4 className="font-medium mb-2">Therapeutic Alliance</h4>
+                      <div className="flex items-center gap-2">
+                        <Progress value={analysisResults.sessionAnalysis.therapeuticAlliance * 10} className="flex-1" />
+                        <span className="font-bold">{analysisResults.sessionAnalysis.therapeuticAlliance}/10</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center text-muted-foreground">
+                    Analysis pending...
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Risk Assessment */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  Risk Assessment
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {analysisResults.riskAssessment ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span>Risk Level:</span>
+                      <Badge variant={
+                        analysisResults.riskAssessment.riskLevel === 'low' ? 'secondary' : 'destructive'
+                      }>
+                        {analysisResults.riskAssessment.riskLevel.toUpperCase()}
+                      </Badge>
+                    </div>
+                    
+                    {analysisResults.riskAssessment.immediateActions?.length > 0 && (
+                      <Alert>
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertDescription>
+                          <strong>Immediate Actions Required:</strong>
+                          <ul className="list-disc list-inside mt-1">
+                            {analysisResults.riskAssessment.immediateActions.map((action: string, i: number) => (
+                              <li key={i}>{action}</li>
+                            ))}
+                          </ul>
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center text-muted-foreground">
+                    Assessment pending...
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Progress Notes */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Auto-Generated Notes
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {analysisResults.progressNotes ? (
+                  <div className="space-y-3">
+                    <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm">
+                      {analysisResults.progressNotes.generatedNotes}
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-medium mb-2">Billing Codes</h4>
+                      <div className="flex gap-2">
+                        {analysisResults.progressNotes.billingCodes?.map((code: string, i: number) => (
+                          <Badge key={i} variant="outline">{code}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center text-muted-foreground">
+                    Notes generation pending...
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Time Efficiency */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  Efficiency Metrics
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {analysisResults.sessionAnalysis?.timeEfficiency ? (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <span className="text-sm text-muted-foreground">Manual Time:</span>
+                        <div className="text-lg font-semibold">
+                          {analysisResults.sessionAnalysis.timeEfficiency.estimatedManualTime} min
+                        </div>
+                      </div>
+                      <div>
+                        <span className="text-sm text-muted-foreground">AI Time:</span>
+                        <div className="text-lg font-semibold">
+                          {analysisResults.sessionAnalysis.timeEfficiency.aiAssistedTime} min
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <Alert>
+                      <CheckCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        <strong>Time Saved: {analysisResults.sessionAnalysis.timeEfficiency.timeSaved} minutes</strong>
+                        <br />
+                        Efficiency Gain: {analysisResults.sessionAnalysis.timeEfficiency.efficiencyGain}
+                      </AlertDescription>
+                    </Alert>
+                  </div>
+                ) : (
+                  <div className="text-center text-muted-foreground">
+                    Efficiency calculation pending...
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
-};
-
-export default SessionRecording;
+}
