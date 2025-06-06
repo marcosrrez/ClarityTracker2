@@ -749,63 +749,276 @@ export default function AdminPage() {
         </TabsContent>
 
         <TabsContent value="insights" className="space-y-6">
+          {/* Product Analytics Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Active Users Today</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {productAnalytics?.engagement?.activeUsers?.daily || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {productAnalytics?.engagement?.newUsers?.today || 0} new today
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Weekly Active Users</CardTitle>
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {productAnalytics?.engagement?.activeUsers?.weekly || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {productAnalytics?.engagement?.newUsers?.thisWeek || 0} new this week
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Monthly Active Users</CardTitle>
+                <BarChart3 className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {productAnalytics?.engagement?.activeUsers?.monthly || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {productAnalytics?.engagement?.newUsers?.thisMonth || 0} new this month
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {productAnalytics?.engagement?.totalUsers || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  All registered users
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Feature Usage Analytics */}
           <Card>
             <CardHeader>
-              <CardTitle>Feature Insights</CardTitle>
-              <CardDescription>Deep insights into how counselors use ClarityLog features</CardDescription>
+              <CardTitle>Feature Usage Analytics</CardTitle>
+              <CardDescription>
+                Which features are most popular and how users engage with them
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-semibold mb-4">Feedback by Type</h4>
+              {productAnalytics?.features?.length > 0 ? (
+                <div className="space-y-4">
+                  {productAnalytics.features.slice(0, 8).map((feature: any, index: number) => (
+                    <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-3 h-3 rounded-full ${
+                          index === 0 ? 'bg-blue-500' :
+                          index === 1 ? 'bg-purple-500' :
+                          index === 2 ? 'bg-green-500' :
+                          index === 3 ? 'bg-orange-500' :
+                          index === 4 ? 'bg-red-500' : 'bg-gray-500'
+                        }`} />
+                        <div>
+                          <p className="font-medium capitalize">{feature.featureName.replace('_', ' ')}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {feature.totalUsers} users • {feature.totalUsage} total uses
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium">
+                          {feature.monthlyActiveUsers} MAU
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {feature.averageSessionDuration}min avg
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Activity className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                  <p>No feature usage data available yet</p>
+                  <p className="text-xs mt-2">Usage data will appear as users interact with ClarityLog features</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* User Insights Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>User Onboarding Flow</CardTitle>
+                <CardDescription>
+                  Completion rates for each onboarding step
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {productAnalytics?.insights?.userJourney?.length > 0 ? (
                   <div className="space-y-3">
-                    {['bug', 'feature', 'general'].map(type => {
-                      const count = feedback.filter(f => f.type === type).length;
-                      const percentage = totalFeedback > 0 ? (count / totalFeedback) * 100 : 0;
-                      return (
-                        <div key={type} className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            {getTypeIcon(type)}
-                            <span className="capitalize">{type}</span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <div className="w-24 bg-muted rounded-full h-2">
-                              <div 
-                                className="bg-primary h-2 rounded-full" 
-                                style={{ width: `${percentage}%` }}
-                              />
-                            </div>
-                            <span className="text-sm text-muted-foreground w-12">{count}</span>
+                    {productAnalytics.insights.userJourney.map((step: any, index: number) => (
+                      <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                        <div className="flex-1">
+                          <p className="font-medium">{step.step}</p>
+                          <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                            <div 
+                              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                              style={{ width: `${step.completionRate}%` }}
+                            />
                           </div>
                         </div>
-                      );
-                    })}
+                        <div className="text-right ml-4">
+                          <p className="font-medium">{step.completionRate}%</p>
+                          <p className="text-sm text-red-500">
+                            -{step.dropoffRate}% drop
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Users className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                    <p>No user journey data available yet</p>
+                    <p className="text-xs mt-2">Data will populate as users complete onboarding steps</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Feature Adoption Rates</CardTitle>
+                <CardDescription>
+                  How quickly users adopt new features after signup
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {productAnalytics?.insights?.featureAdoption?.length > 0 ? (
+                  <div className="space-y-3">
+                    {productAnalytics.insights.featureAdoption.map((feature: any, index: number) => (
+                      <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                        <div>
+                          <p className="font-medium">{feature.feature}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Avg. {feature.timeToFirstUse} days to first use
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-medium">{feature.adoptionRate}%</p>
+                          <p className="text-sm text-muted-foreground">adoption</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Zap className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                    <p>No adoption data available yet</p>
+                    <p className="text-xs mt-2">Data will appear as users adopt features over time</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* User Growth and Engagement Insights */}
+          <Card>
+            <CardHeader>
+              <CardTitle>User Growth Trends</CardTitle>
+              <CardDescription>
+                Daily new users and activity patterns over the last 30 days
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {productAnalytics?.insights?.userGrowth?.length > 0 ? (
+                <div className="space-y-2">
+                  {productAnalytics.insights.userGrowth.slice(-7).map((day: any, index: number) => (
+                    <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                      <div>
+                        <p className="font-medium">{new Date(day.date).toLocaleDateString()}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {day.activeUsers} active users
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium text-green-600">+{day.newUsers}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {day.retentionRate.toFixed(1)}% retention
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <TrendingUp className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                  <p>No growth data available yet</p>
+                  <p className="text-xs mt-2">Growth trends will appear as your user base expands</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Product Enhancement Recommendations */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Product Enhancement Recommendations</CardTitle>
+              <CardDescription>
+                Data-driven insights to improve user experience and feature adoption
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="p-4 border rounded-lg bg-blue-50 dark:bg-blue-950/20">
+                  <div className="flex items-start space-x-3">
+                    <Lightbulb className="h-5 w-5 text-blue-600 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium text-blue-900 dark:text-blue-100">Focus on High-Usage Features</h4>
+                      <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                        Enhance your most popular features based on user engagement data to maximize impact
+                      </p>
+                    </div>
                   </div>
                 </div>
-
-                <div>
-                  <h4 className="font-semibold mb-4">Key Usage Metrics</h4>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center space-x-2">
-                        <Timer className="h-4 w-4" />
-                        <span>Avg. Session Time</span>
-                      </div>
-                      <span className="font-medium">Coming Soon</span>
+                
+                <div className="p-4 border rounded-lg bg-green-50 dark:bg-green-950/20">
+                  <div className="flex items-start space-x-3">
+                    <Target className="h-5 w-5 text-green-600 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium text-green-900 dark:text-green-100">Improve Onboarding</h4>
+                      <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                        Monitor completion rates to identify and address onboarding friction points
+                      </p>
                     </div>
-                    <div className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center space-x-2">
-                        <Activity className="h-4 w-4" />
-                        <span>Most Active Time</span>
-                      </div>
-                      <span className="font-medium">Coming Soon</span>
-                    </div>
-                    <div className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center space-x-2">
-                        <BarChart3 className="h-4 w-4" />
-                        <span>Feature Adoption</span>
-                      </div>
-                      <span className="font-medium">Coming Soon</span>
+                  </div>
+                </div>
+                
+                <div className="p-4 border rounded-lg bg-purple-50 dark:bg-purple-950/20">
+                  <div className="flex items-start space-x-3">
+                    <Users className="h-5 w-5 text-purple-600 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium text-purple-900 dark:text-purple-100">Boost Feature Discovery</h4>
+                      <p className="text-sm text-purple-700 dark:text-purple-300 mt-1">
+                        Use adoption timing data to guide users to valuable features they haven't discovered yet
+                      </p>
                     </div>
                   </div>
                 </div>
