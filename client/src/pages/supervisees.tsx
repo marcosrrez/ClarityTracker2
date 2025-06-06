@@ -53,6 +53,39 @@ export default function SuperviseesPage() {
     enabled: !!user?.uid && !isIndividual,
   });
 
+  // Fetch session analyses for supervision
+  const { data: sessionAnalyses = [] } = useQuery({
+    queryKey: ['/api/supervision/session-analyses'],
+    queryFn: async () => {
+      const response = await fetch('/api/supervision/session-analyses');
+      if (!response.ok) throw new Error('Failed to fetch session analyses');
+      return response.json();
+    },
+    enabled: !!user?.uid && !isIndividual,
+  });
+
+  // Fetch competency areas
+  const { data: competencyAreas = [] } = useQuery({
+    queryKey: ['/api/supervision/competency-areas'],
+    queryFn: async () => {
+      const response = await fetch('/api/supervision/competency-areas');
+      if (!response.ok) throw new Error('Failed to fetch competency areas');
+      return response.json();
+    },
+    enabled: !!user?.uid && !isIndividual,
+  });
+
+  // Fetch supervision metrics
+  const { data: supervisionMetrics = {} } = useQuery({
+    queryKey: ['/api/supervision/metrics-summary'],
+    queryFn: async () => {
+      const response = await fetch('/api/supervision/metrics-summary');
+      if (!response.ok) throw new Error('Failed to fetch supervision metrics');
+      return response.json();
+    },
+    enabled: !!user?.uid && !isIndividual,
+  });
+
   // Fetch compliance data
   const { data: complianceData } = useQuery({
     queryKey: ['/api/supervision/compliance', user?.uid],
@@ -160,45 +193,45 @@ export default function SuperviseesPage() {
       <div className="grid md:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Supervisees</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Sessions</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{displaySupervisees.length}</div>
-            <p className="text-xs text-muted-foreground">Active under supervision</p>
+            <div className="text-2xl font-bold">{supervisionMetrics.totalSuperviseeSessions || 0}</div>
+            <p className="text-xs text-muted-foreground">Analyzed sessions</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Supervision Hours</CardTitle>
+            <CardTitle className="text-sm font-medium">Avg Compliance</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">145</div>
-            <p className="text-xs text-muted-foreground">This month</p>
+            <div className="text-2xl font-bold">{supervisionMetrics.averageComplianceScore || 0}%</div>
+            <p className="text-xs text-muted-foreground">EBP adherence</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">At Risk</CardTitle>
+            <CardTitle className="text-sm font-medium">Pending Reviews</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">1</div>
-            <p className="text-xs text-muted-foreground">Needs attention</p>
+            <div className="text-2xl font-bold text-red-600">{supervisionMetrics.pendingReviews || 0}</div>
+            <p className="text-xs text-muted-foreground">Need attention</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">On Track</CardTitle>
+            <CardTitle className="text-sm font-medium">Risk Indicators</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">2</div>
-            <p className="text-xs text-muted-foreground">Meeting goals</p>
+            <div className="text-2xl font-bold text-orange-600">{supervisionMetrics.riskIndicatorsCount || 0}</div>
+            <p className="text-xs text-muted-foreground">Across all sessions</p>
           </CardContent>
         </Card>
       </div>
@@ -221,6 +254,7 @@ export default function SuperviseesPage() {
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="progress">Progress Tracking</TabsTrigger>
+          <TabsTrigger value="analyses">Session Intelligence</TabsTrigger>
           <TabsTrigger value="supervision">Supervision Schedule</TabsTrigger>
         </TabsList>
 
