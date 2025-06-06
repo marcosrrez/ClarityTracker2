@@ -15,6 +15,7 @@ import { ClientInvitationManager } from "@/components/client-portal/ClientInvita
 import { AddClientModal } from "@/components/client-portal/AddClientModal";
 import { EditClientModal } from "@/components/client-portal/EditClientModal";
 import { ClientProgressView } from "@/components/client-portal/ClientProgressView";
+import { ClientProgressCard } from "@/components/client-portal/ClientProgressCard";
 
 interface Client {
   id: string;
@@ -300,62 +301,9 @@ export default function ClientPortal({ userId }: { userId: string }) {
         </TabsContent>
 
         <TabsContent value="progress" className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="space-y-4">
             {clients.map((client) => (
-              <Card key={client.id}>
-                <CardHeader>
-                  <CardTitle className="text-lg">{client.name}</CardTitle>
-                  <CardDescription>Progress Overview</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <div className="font-medium">{client.firstName} {client.lastName}</div>
-                        <div className="text-sm text-gray-600 dark:text-gray-300">{client.email}</div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setSelectedClient(client);
-                            setIsEditModalOpen(true);
-                          }}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setSelectedClient(client);
-                            setSelectedView('progress');
-                          }}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>Status:</span>
-                        <Badge variant={client.status === 'active' ? 'default' : 'secondary'}>
-                          {client.status}
-                        </Badge>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Portal Access:</span>
-                        <span className="font-medium">{client.portalAccess ? 'Enabled' : 'Disabled'}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Last Login:</span>
-                        <span className="font-medium">{client.lastLogin ? new Date(client.lastLogin).toLocaleDateString() : "Never"}</span>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <ClientProgressCard key={client.id} client={client} />
             ))}
           </div>
         </TabsContent>
