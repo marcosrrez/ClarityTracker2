@@ -585,8 +585,7 @@ export default function SupervisionHubView() {
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
+    );
   }
 
   function renderSessionAnalysisTab() {
