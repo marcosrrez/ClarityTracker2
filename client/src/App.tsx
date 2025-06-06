@@ -9,6 +9,7 @@ import { AuthGuard } from "@/components/auth/AuthGuard";
 import { OnboardingTrigger } from "@/components/onboarding/OnboardingTrigger";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { V2Layout } from "@/components/layout/V2Layout";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 // V1 Pages
 import AuthPage from "@/pages/auth";
@@ -116,25 +117,27 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <AuthProvider>
-          <TooltipProvider>
-            <AuthGuard fallback={
-              <div className="min-h-screen">
-                <SuperhumanLandingPage />
-              </div>
-            }>
-              <AppLayout>
-                <Router />
-              </AppLayout>
-              <OnboardingTrigger />
-            </AuthGuard>
-            <Toaster />
-          </TooltipProvider>
-        </AuthProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <AuthProvider>
+            <TooltipProvider>
+              <AuthGuard fallback={
+                <div className="min-h-screen">
+                  <SuperhumanLandingPage />
+                </div>
+              }>
+                <AppLayout>
+                  <Router />
+                </AppLayout>
+                <OnboardingTrigger />
+              </AuthGuard>
+              <Toaster />
+            </TooltipProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
