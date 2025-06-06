@@ -268,26 +268,26 @@ export const SuperhumanLandingPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 overflow-hidden">
-      {/* Navigation - Clean White Style */}
-      <nav className="relative z-50 flex items-center justify-between p-6 sm:p-8 border-b border-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-purple-900 text-white overflow-hidden">
+      {/* Navigation - Superhuman Dark Style */}
+      <nav className="relative z-50 flex items-center justify-between p-6 sm:p-8">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
-            <Sprout className="w-5 h-5 text-white" />
+          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+            <Sprout className="w-5 h-5 text-slate-900" />
           </div>
-          <span className="text-gray-900 text-lg font-semibold tracking-tight">ClarityLog</span>
+          <span className="text-white text-lg font-semibold tracking-tight">ClarityLog</span>
         </div>
         
         <div className="flex items-center gap-4">
           <Button 
             variant="ghost"
-            className="text-gray-600 hover:bg-gray-100 hidden sm:inline-flex"
+            className="text-gray-300 hover:bg-white/10 hidden sm:inline-flex"
           >
             Features
           </Button>
           <Button 
             variant="ghost"
-            className="text-gray-600 hover:bg-gray-100 hidden sm:inline-flex"
+            className="text-gray-300 hover:bg-white/10 hidden sm:inline-flex"
           >
             Pricing
           </Button>
@@ -300,7 +300,7 @@ export const SuperhumanLandingPage = () => {
           <Button 
             variant="ghost"
             size="sm"
-            className="text-gray-600 hover:bg-gray-100 sm:hidden"
+            className="text-gray-300 hover:bg-white/10 sm:hidden"
           >
             <Menu className="w-5 h-5" />
           </Button>
@@ -316,14 +316,14 @@ export const SuperhumanLandingPage = () => {
             transition={{ duration: 0.8 }}
             className="mb-6"
           >
-            <div className="inline-flex items-center gap-2 bg-purple-50 rounded-full px-4 py-2 text-sm text-purple-700 mb-8">
+            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 text-sm text-gray-300 mb-8">
               <Zap className="w-4 h-4" />
               The simplest counseling journey tracker ever made
             </div>
           </motion.div>
           
           <motion.h1 
-            className="text-4xl sm:text-6xl lg:text-7xl font-bold mb-8 leading-tight text-gray-900"
+            className="text-4xl sm:text-6xl lg:text-7xl font-bold mb-8 leading-tight text-white"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
@@ -332,7 +332,7 @@ export const SuperhumanLandingPage = () => {
           </motion.h1>
           
           <motion.p 
-            className="text-xl sm:text-2xl text-gray-600 mb-12 leading-relaxed max-w-3xl mx-auto font-light"
+            className="text-xl sm:text-2xl text-gray-300 mb-12 leading-relaxed max-w-3xl mx-auto font-light"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
