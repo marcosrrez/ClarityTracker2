@@ -202,6 +202,13 @@ const LiveSessionRecorder: React.FC = () => {
     };
   }, []);
 
+  // Connect video stream to video element
+  useEffect(() => {
+    if (videoStream && videoElementRef.current) {
+      videoElementRef.current.srcObject = videoStream;
+    }
+  }, [videoStream]);
+
   // Timer effect
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -225,11 +232,6 @@ const LiveSessionRecorder: React.FC = () => {
       setHasVideo(true);
       setIsRecording(true);
       setSessionDuration(0);
-      
-      // Connect video stream to video element
-      if (videoElementRef.current) {
-        videoElementRef.current.srcObject = stream;
-      }
       
       console.log('Video capture started');
       
