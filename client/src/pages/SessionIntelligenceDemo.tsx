@@ -1,11 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Brain, Video, Mic, Eye, Shield, TrendingUp, Users, AlertTriangle } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Brain, Video, Mic, Eye, Shield, TrendingUp, Users, AlertTriangle, Database } from 'lucide-react';
 import { motion } from 'framer-motion';
 import LiveSessionRecorder from '@/components/session-intelligence/LiveSessionRecorder';
+import { SessionManagement } from '@/components/session-intelligence/SessionManagement';
 
 const SessionIntelligenceDemo = () => {
+  const [currentSessionData, setCurrentSessionData] = useState(null);
+  const [activeTab, setActiveTab] = useState('live-session');
+
+  const handleSessionComplete = (sessionData) => {
+    setCurrentSessionData(sessionData);
+    setActiveTab('session-management');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <div className="container mx-auto px-4 py-8">
@@ -13,7 +23,7 @@ const SessionIntelligenceDemo = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
+          className="text-center mb-8"
         >
           <div className="flex items-center justify-center gap-3 mb-4">
             <Brain className="h-8 w-8 text-blue-600" />
