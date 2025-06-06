@@ -3568,7 +3568,7 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
       const clientData = insertClientSchema.parse(req.body);
       const clientId = `client_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
-      const [client] = await db.insert(clientsTable).values({
+      const [client] = await db.insert(clientTable).values({
         id: clientId,
         therapistId: clientData.therapistId,
         firstName: clientData.firstName,
