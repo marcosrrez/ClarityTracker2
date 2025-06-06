@@ -41,6 +41,7 @@ const getNavigationItems = (accountType: string, permissions: any) => {
   const primaryItems = [
     { href: "/dashboard", label: "Dashboard", icon: ChartLine, group: "primary" },
     { href: "/add-entry", label: "Add Entry", icon: Plus, group: "primary" },
+    { href: "/client-portal", label: "Client Portal", icon: MessageSquare, group: "primary" },
     { href: "/insights", label: "Insights & Resources", icon: Lightbulb, group: "primary" },
   ];
 
