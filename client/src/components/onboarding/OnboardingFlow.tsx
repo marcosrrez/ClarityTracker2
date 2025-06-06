@@ -9,16 +9,18 @@ import {
   User, 
   Users, 
   Building2, 
+  Heart,
   ArrowLeft
 } from "lucide-react";
 
 interface OnboardingData {
   preferredName: string;
-  accountType: 'individual' | 'supervisor' | 'enterprise' | undefined;
+  accountType: 'individual' | 'supervisor' | 'enterprise' | 'client' | undefined;
   stateRegion: string;
   trackingChallenge: string;
   organizationName?: string;
   professionalGoals?: string;
+  therapistInviteCode?: string;
 }
 
 interface OnboardingStep {
@@ -66,6 +68,13 @@ export const OnboardingFlow = () => {
       description: 'Scale training programs across your organization',
       icon: Building2,
       features: ['Multi-program management', 'Advanced analytics', 'Custom workflows', 'Integration support']
+    },
+    {
+      id: 'client' as const,
+      title: 'Client Portal',
+      description: 'Access your therapy journey and connect with your therapist',
+      icon: Heart,
+      features: ['Session insights', 'Progress tracking', 'Therapist connection', 'Growth resources']
     }
   ];
 

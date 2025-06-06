@@ -7,7 +7,7 @@ export const userProfileSchema = z.object({
   preferredName: z.string().min(1, "Preferred name is required"),
   displayName: z.string().optional(),
   focus: z.enum(["licensure", "renewal"]),
-  accountType: z.enum(["individual", "supervisor", "enterprise"]).default("individual"),
+  accountType: z.enum(["individual", "supervisor", "enterprise", "client"]).default("individual"),
   organizationName: z.string().optional(),
   supervisorId: z.string().optional(),
   stateRegion: z.string().min(1, "State/region is required"),
