@@ -5586,6 +5586,53 @@ Respond in JSON format:
     }
   });
 
+  // Admin cost analytics endpoint
+  app.get('/api/admin/cost-analytics', async (req, res) => {
+    try {
+      // Import cost tracking functions
+      const { getUsageMetrics, getServiceBreakdown, getCostProjection } = await import('./cost-tracking');
+      
+      // Get date range (last 30 days)
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - 30);
+      
+      // Fetch all cost data
+      const [usageMetrics, serviceBreakdown, costProjection] = await Promise.all([
+        getUsageMetrics(startDate, endDate),
+        getServiceBreakdown(),
+        getCostProjection()
+      ]);
+      
+      // Get user count for per-user calculations
+      const totalUsers = await db.select({ count: sql<number>`count(*)` }).from(users);
+      const userCount = totalUsers[0]?.count || 1;
+      
+      // Calculate comprehensive analytics
+      const analytics = {
+        totalCost: usageMetrics.totalCost,
+        projectedMonthlyCost: costProjection.projectedMonthlyCost,
+        yearlyProjection: costProjection.projectedMonthlyCost * 12,
+        averageCostPerUser: usageMetrics.totalCost / userCount,
+        serviceBreakdown: serviceBreakdown.map((service: any) => ({
+          service: service.service,
+          cost: service.cost,
+          calls: service.calls,
+          unit: service.unit || 'calls',
+          lastUsed: service.lastUsed
+        })),
+        dailyUsage: usageMetrics.dailyUsage,
+        totalCalls: usageMetrics.totalCalls,
+        averageCostPerCall: usageMetrics.averageCostPerCall
+      };
+      
+      res.json(analytics);
+    } catch (error) {
+      console.error('Error fetching cost analytics:', error);
+      res.status(500).json({ error: 'Failed to fetch cost analytics' });
+    }
+  });
+
   // Add security error handler as the last middleware
   app.use(securityErrorHandler);
 
