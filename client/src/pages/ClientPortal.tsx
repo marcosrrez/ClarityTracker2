@@ -8,11 +8,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Users, Share2, TrendingUp, Calendar, MessageSquare, FileText, BookmarkPlus } from "lucide-react";
+import { Plus, Users, Share2, TrendingUp, Calendar, MessageSquare, FileText, BookmarkPlus, Edit, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { ClientInvitationManager } from "@/components/client-portal/ClientInvitationManager";
 import { AddClientModal } from "@/components/client-portal/AddClientModal";
+import { EditClientModal } from "@/components/client-portal/EditClientModal";
 
 interface Client {
   id: string;
@@ -35,7 +36,9 @@ interface SharedInsight {
 }
 
 export default function ClientPortal({ userId }: { userId: string }) {
-  const [selectedClient, setSelectedClient] = useState<string | null>(null);
+  const [selectedClient, setSelectedClient] = useState<any>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedView, setSelectedView] = useState<'overview' | 'progress'>('overview');
   const [newClientForm, setNewClientForm] = useState({ name: '', email: '' });
   const [newInsightForm, setNewInsightForm] = useState({ title: '', content: '', type: 'progress' });
   const [showAddClient, setShowAddClient] = useState(false);
@@ -305,18 +308,44 @@ export default function ClientPortal({ userId }: { userId: string }) {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div className="text-center">
-                      <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                        {client.progressScore}%
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="font-medium">{client.firstName} {client.lastName}</div>
+                        <div className="text-sm text-gray-600 dark:text-gray-300">{client.email}</div>
                       </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-300">
-                        Overall Progress
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedClient(client);
+                            setIsEditModalOpen(true);
+                          }}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedClient(client);
+                            setSelectedView('progress');
+                          }}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Status:</span>
-                        <span className="font-medium capitalize">{client.status}</span>
+                        <Badge variant={client.status === 'active' ? 'default' : 'secondary'}>
+                          {client.status}
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Portal Access:</span>
+                        <span className="font-medium">{client.portalAccess ? 'Enabled' : 'Disabled'}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span>Last Login:</span>

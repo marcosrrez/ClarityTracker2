@@ -4378,6 +4378,73 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
     }
   });
 
+  // Update client
+  app.patch('/api/clients/:id', express.json(), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updateData = req.body;
+      
+      const [updatedClient] = await db
+        .update(clients)
+        .set({
+          ...updateData,
+          updatedAt: new Date(),
+        })
+        .where(eq(clients.id, id))
+        .returning();
+      
+      if (!updatedClient) {
+        return res.status(404).json({ error: 'Client not found' });
+      }
+      
+      res.json({ client: updatedClient });
+    } catch (error) {
+      console.error('Client update error:', error);
+      res.status(500).json({ error: 'Failed to update client' });
+    }
+  });
+
+  // Get client progress and insights
+  app.get('/api/clients/:id/progress', async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Get client details
+      const [client] = await db
+        .select()
+        .from(clients)
+        .where(eq(clients.id, id))
+        .limit(1);
+      
+      if (!client) {
+        return res.status(404).json({ error: 'Client not found' });
+      }
+      
+      // Get shared insights for this client
+      const clientInsights = await db
+        .select()
+        .from(sharedInsights)
+        .where(eq(sharedInsights.clientId, id))
+        .orderBy(desc(sharedInsights.sharedAt));
+      
+      // Get client progress entries
+      const progressEntries = await db
+        .select()
+        .from(clientProgress)
+        .where(eq(clientProgress.clientId, id))
+        .orderBy(desc(clientProgress.createdAt));
+      
+      res.json({
+        client,
+        insights: clientInsights,
+        progressEntries,
+      });
+    } catch (error) {
+      console.error('Client progress fetch error:', error);
+      res.status(500).json({ error: 'Failed to fetch client progress' });
+    }
+  });
+
   app.post('/api/auth/client-login', express.json(), async (req, res) => {
     try {
       const { email, password } = req.body;
