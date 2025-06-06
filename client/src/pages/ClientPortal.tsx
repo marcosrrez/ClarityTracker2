@@ -41,36 +41,17 @@ export default function ClientPortal({ userId }: { userId: string }) {
 
   const queryClient = useQueryClient();
 
-  // Sample data for demonstration
-  const sampleClients: Client[] = [
-    {
-      id: '1',
-      name: 'Sarah Johnson',
-      email: 'sarah.j@email.com',
-      status: 'active',
-      lastSession: new Date('2024-06-04'),
-      totalSessions: 12,
-      progressScore: 78
-    },
-    {
-      id: '2',
-      name: 'Michael Chen',
-      email: 'michael.c@email.com',
-      status: 'active',
-      lastSession: new Date('2024-06-03'),
-      totalSessions: 8,
-      progressScore: 65
-    },
-    {
-      id: '3',
-      name: 'Emma Rodriguez',
-      email: 'emma.r@email.com',
-      status: 'active',
-      lastSession: new Date('2024-06-02'),
-      totalSessions: 15,
-      progressScore: 85
+  // Fetch real client data
+  const { data: clientsData, isLoading: clientsLoading } = useQuery({
+    queryKey: ['/api/clients', userId],
+    queryFn: async () => {
+      const response = await fetch(`/api/clients/${userId}`);
+      if (!response.ok) throw new Error('Failed to fetch clients');
+      return response.json();
     }
-  ];
+  });
+
+  const clients = clientsData?.clients || [];
 
   const sampleInsights: SharedInsight[] = [
     {
@@ -108,11 +89,34 @@ export default function ClientPortal({ userId }: { userId: string }) {
     setShowAddClient(false);
   };
 
+  const shareInsightMutation = useMutation({
+    mutationFn: async (insightData: any) => {
+      const response = await fetch('/api/insights/share', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(insightData)
+      });
+      if (!response.ok) throw new Error('Failed to share insight');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/insights/therapist', userId] });
+      setNewInsightForm({ title: '', content: '', type: 'progress' });
+      setShowShareInsight(false);
+    }
+  });
+
   const handleShareInsight = () => {
-    if (!selectedClient) return;
-    console.log('Sharing insight:', { ...newInsightForm, clientId: selectedClient });
-    setNewInsightForm({ title: '', content: '', type: 'progress' });
-    setShowShareInsight(false);
+    if (!selectedClient || !newInsightForm.title || !newInsightForm.content) return;
+    
+    shareInsightMutation.mutate({
+      therapistId: userId,
+      clientId: selectedClient,
+      title: newInsightForm.title,
+      content: newInsightForm.content,
+      type: newInsightForm.type,
+      tags: []
+    });
   };
 
   const getProgressColor = (score: number) => {
@@ -206,60 +210,62 @@ export default function ClientPortal({ userId }: { userId: string }) {
         </TabsList>
 
         <TabsContent value="clients" className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {sampleClients.map((client) => (
-              <Card key={client.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-lg">{client.name}</CardTitle>
-                      <CardDescription>{client.email}</CardDescription>
+          {clientsLoading ? (
+            <div className="flex justify-center py-8">
+              <div className="text-gray-500">Loading clients...</div>
+            </div>
+          ) : clients.length > 0 ? (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {clients.map((client) => (
+                <Card key={client.id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <CardTitle className="text-lg">{client.firstName} {client.lastName}</CardTitle>
+                        <CardDescription>{client.email}</CardDescription>
+                      </div>
+                      <Badge variant={client.status === 'active' ? 'default' : 'secondary'}>
+                        {client.status}
+                      </Badge>
                     </div>
-                    <Badge variant={client.status === 'active' ? 'default' : 'secondary'}>
-                      {client.status}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-300">Total Sessions:</span>
-                      <span className="font-medium">{client.totalSessions}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-300">Last Session:</span>
-                      <span className="font-medium">{client.lastSession.toLocaleDateString()}</span>
-                    </div>
-                    <div className="space-y-2">
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600 dark:text-gray-300">Progress Score:</span>
-                        <span className="font-medium">{client.progressScore}%</span>
+                        <span className="text-gray-600 dark:text-gray-300">Portal Access:</span>
+                        <span className="font-medium">{client.portalAccess ? 'Enabled' : 'Disabled'}</span>
                       </div>
-                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                        <div
-                          className={`h-2 rounded-full transition-all ${getProgressColor(client.progressScore)}`}
-                          style={{ width: `${client.progressScore}%` }}
-                        />
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-300">Created:</span>
+                        <span className="font-medium">{new Date(client.createdAt).toLocaleDateString()}</span>
+                      </div>
+                      <div className="pt-2">
+                        <Button
+                          size="sm"
+                          className="w-full"
+                          onClick={() => {
+                            setSelectedClient(client.id);
+                            setShowShareInsight(true);
+                          }}
+                        >
+                          <Share2 className="w-4 h-4 mr-2" />
+                          Share Insight
+                        </Button>
                       </div>
                     </div>
-                    <div className="pt-2">
-                      <Button
-                        size="sm"
-                        className="w-full"
-                        onClick={() => {
-                          setSelectedClient(client.id);
-                          setShowShareInsight(true);
-                        }}
-                      >
-                        <Share2 className="w-4 h-4 mr-2" />
-                        Share Insight
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <div className="text-gray-500 mb-4">No clients yet</div>
+              <Button onClick={() => setShowAddClient(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Your First Client
+              </Button>
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="insights" className="space-y-6">

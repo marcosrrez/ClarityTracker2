@@ -3703,6 +3703,40 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
     }
   });
 
+  // Share insight with client
+  app.post('/api/insights/share', express.json(), async (req, res) => {
+    try {
+      const { therapistId, clientId, title, content, type, tags } = req.body;
+      
+      const insightId = `insight_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      const [insight] = await db.insert(sharedInsightTable).values({
+        id: insightId,
+        therapistId,
+        clientId,
+        title,
+        content,
+        type,
+        tags: JSON.stringify(tags || []),
+        isRead: 'false',
+        isArchived: 'false'
+      }).returning();
+      
+      res.json({ 
+        insight: {
+          ...insight,
+          tags: JSON.parse(insight.tags || '[]'),
+          isRead: false,
+          isArchived: false
+        },
+        message: 'Insight shared successfully'
+      });
+    } catch (error) {
+      console.error('Share insight error:', error);
+      res.status(500).json({ error: 'Failed to share insight' });
+    }
+  });
+
   // Client Portal API Routes
   
   // Get clients for therapist
