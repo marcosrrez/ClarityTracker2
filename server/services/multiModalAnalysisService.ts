@@ -499,4 +499,5 @@ class MultiModalAnalysisService {
   }
 }
 
-export default new MultiModalAnalysisService();
+export const multiModalAnalysis = new MultiModalAnalysisService();
+export default multiModalAnalysis;

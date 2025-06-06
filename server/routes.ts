@@ -20,6 +20,7 @@ import { SupervisionService } from "./services/supervision-service";
 import { progressiveDisclosureService } from "./progressive-disclosure-service";
 import { researchService } from "./research-service";
 import { sessionIntelligence } from "./session-intelligence-service";
+import multiModalAnalysis from "./services/multiModalAnalysisService";
 import { 
   researchCollectionsTable, 
   savedResearchTable, 
