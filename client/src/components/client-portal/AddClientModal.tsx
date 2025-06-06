@@ -32,7 +32,11 @@ const addClientSchema = z.object({
   email: z.string().email("Valid email is required"),
   phone: z.string().optional(),
   dateOfBirth: z.string().optional(),
-  emergencyContact: z.string().optional(),
+  emergencyContact: z.object({
+    name: z.string(),
+    phone: z.string(),
+    relationship: z.string()
+  }).optional(),
   status: z.enum(['active', 'inactive', 'discharged']).default('active'),
   portalAccess: z.boolean().default(true),
   consentToShare: z.boolean().default(false),
@@ -207,23 +211,50 @@ export function AddClientModal({ isOpen, onClose, therapistId }: AddClientModalP
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="emergencyContact"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Emergency Contact (Optional)</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Name, relationship, and phone number"
-                      className="resize-none"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="space-y-4">
+              <h4 className="text-sm font-medium">Emergency Contact (Optional)</h4>
+              <div className="grid grid-cols-1 gap-4">
+                <FormField
+                  control={form.control}
+                  name="emergencyContact.name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Contact Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Full name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="emergencyContact.relationship"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Relationship</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Spouse, parent, sibling, etc." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="emergencyContact.phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone Number</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Contact phone number" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
 
             <div className="space-y-4">
               <FormField
