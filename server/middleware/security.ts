@@ -30,23 +30,23 @@ export const createRateLimit = (windowMs: number, max: number, message?: string)
  * Rate limiters for different API categories
  */
 export const rateLimiters = {
-  // General API rate limiting - 100 requests per 15 minutes
-  general: createRateLimit(15 * 60 * 1000, 100),
+  // General API rate limiting - very generous for development
+  general: createRateLimit(15 * 60 * 1000, 1000),
   
   // AI endpoints - more restrictive due to computational cost
-  ai: createRateLimit(15 * 60 * 1000, 30, 'AI analysis rate limit exceeded. Please wait before making more requests.'),
+  ai: createRateLimit(15 * 60 * 1000, 100, 'AI analysis rate limit exceeded. Please wait before making more requests.'),
   
-  // Authentication endpoints - very restrictive
-  auth: createRateLimit(15 * 60 * 1000, 5, 'Too many authentication attempts. Please wait before trying again.'),
+  // Authentication endpoints - restrictive but not too harsh
+  auth: createRateLimit(15 * 60 * 1000, 20, 'Too many authentication attempts. Please wait before trying again.'),
   
   // File upload endpoints
-  upload: createRateLimit(15 * 60 * 1000, 10, 'Upload rate limit exceeded. Please wait before uploading more files.'),
+  upload: createRateLimit(15 * 60 * 1000, 50, 'Upload rate limit exceeded. Please wait before uploading more files.'),
   
   // Data export endpoints
-  export: createRateLimit(60 * 60 * 1000, 3, 'Export rate limit exceeded. Please wait before generating more exports.'),
+  export: createRateLimit(60 * 60 * 1000, 10, 'Export rate limit exceeded. Please wait before generating more exports.'),
   
-  // Supervision and analytics - moderate limiting
-  supervision: createRateLimit(15 * 60 * 1000, 50),
+  // Supervision and analytics - generous limiting
+  supervision: createRateLimit(15 * 60 * 1000, 200),
 };
 
 /**

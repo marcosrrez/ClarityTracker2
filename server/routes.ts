@@ -103,8 +103,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(cors(corsOptions));
   app.use(securityHeaders);
   app.use(sanitizeRequest);
-  app.use(rateLimiters.general);
-  app.use(speedLimiters.general);
+  // Rate limiting will be applied per route instead of globally
 
   // Health check endpoint (no rate limiting)
   app.get("/api/health", (req, res) => {
@@ -391,7 +390,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Performance metrics collection endpoint
-  app.post("/api/analytics/performance", rateLimiters.general, express.json(), async (req, res) => {
+  app.post("/api/analytics/performance", express.json(), async (req, res) => {
     try {
       const { sessionId, userId, metrics, interactions, userAgent, viewport, timestamp } = req.body;
       
