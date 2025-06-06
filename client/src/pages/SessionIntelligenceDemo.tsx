@@ -27,53 +27,7 @@ const SessionIntelligenceDemo = () => {
           </p>
         </motion.div>
 
-        {/* Feature Overview */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12"
-        >
-          <Card className="text-center">
-            <CardContent className="pt-6">
-              <Mic className="h-12 w-12 mx-auto mb-4 text-blue-600" />
-              <h3 className="font-semibold mb-2">Azure Speech Integration</h3>
-              <p className="text-sm text-muted-foreground">
-                Real-time transcription with clinical context analysis
-              </p>
-            </CardContent>
-          </Card>
 
-          <Card className="text-center">
-            <CardContent className="pt-6">
-              <Video className="h-12 w-12 mx-auto mb-4 text-green-600" />
-              <h3 className="font-semibold mb-2">Video Intelligence</h3>
-              <p className="text-sm text-muted-foreground">
-                Facial expression and body language analysis
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="text-center">
-            <CardContent className="pt-6">
-              <Eye className="h-12 w-12 mx-auto mb-4 text-purple-600" />
-              <h3 className="font-semibold mb-2">Behavioral Patterns</h3>
-              <p className="text-sm text-muted-foreground">
-                Advanced pattern recognition and engagement tracking
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="text-center">
-            <CardContent className="pt-6">
-              <Shield className="h-12 w-12 mx-auto mb-4 text-orange-600" />
-              <h3 className="font-semibold mb-2">Privacy-First</h3>
-              <p className="text-sm text-muted-foreground">
-                Client-side processing with HIPAA compliance
-              </p>
-            </CardContent>
-          </Card>
-        </motion.div>
 
         {/* Key Benefits */}
         <motion.div
@@ -125,93 +79,7 @@ const SessionIntelligenceDemo = () => {
           </Card>
         </motion.div>
 
-        {/* Technology Stack */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="mb-12"
-        >
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Brain className="h-5 w-5" />
-                Advanced Technology Integration
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div>
-                  <h4 className="font-medium mb-4 flex items-center gap-2">
-                    <Mic className="h-4 w-4" />
-                    Audio Analysis Pipeline
-                  </h4>
-                  <div className="space-y-2">
-                    <Badge variant="outline">Azure Speech Services</Badge>
-                    <Badge variant="outline">Real-time Transcription</Badge>
-                    <Badge variant="outline">Clinical NLP</Badge>
-                    <Badge variant="outline">Sentiment Analysis</Badge>
-                    <Badge variant="outline">Risk Detection</Badge>
-                  </div>
-                </div>
 
-                <div>
-                  <h4 className="font-medium mb-4 flex items-center gap-2">
-                    <Video className="h-4 w-4" />
-                    Video Intelligence Pipeline
-                  </h4>
-                  <div className="space-y-2">
-                    <Badge variant="outline">TensorFlow.js</Badge>
-                    <Badge variant="outline">Facial Recognition</Badge>
-                    <Badge variant="outline">Emotion Detection</Badge>
-                    <Badge variant="outline">Pose Estimation</Badge>
-                    <Badge variant="outline">Engagement Tracking</Badge>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Privacy & Security */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          className="mb-12"
-        >
-          <Card className="border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-green-700 dark:text-green-300">
-                <Shield className="h-5 w-5" />
-                Privacy-First Architecture
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-medium mb-3 text-green-700 dark:text-green-300">Client-Side Processing</h4>
-                  <ul className="space-y-2 text-sm text-green-700 dark:text-green-200">
-                    <li>• Video analysis runs locally in browser</li>
-                    <li>• No raw video data transmitted to servers</li>
-                    <li>• Only anonymized behavioral metrics stored</li>
-                    <li>• Full user control over data retention</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h4 className="font-medium mb-3 text-green-700 dark:text-green-300">HIPAA Compliance</h4>
-                  <ul className="space-y-2 text-sm text-green-700 dark:text-green-200">
-                    <li>• End-to-end encryption for all communications</li>
-                    <li>• Secure Azure Speech Service integration</li>
-                    <li>• Audit trail for all data processing</li>
-                    <li>• Configurable data retention policies</li>
-                  </ul>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
 
         {/* Live Demo Section */}
         <motion.div
@@ -248,49 +116,7 @@ const SessionIntelligenceDemo = () => {
           </Card>
         </motion.div>
 
-        {/* Implementation Notes */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.2 }}
-        >
-          <Card>
-            <CardHeader>
-              <CardTitle>Implementation & Deployment</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-medium mb-2">Azure Speech Service Integration</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Seamlessly connects with your existing Azure Speech Service subscription for production-grade transcription with clinical context understanding.
-                  </p>
-                </div>
 
-                <div>
-                  <h4 className="font-medium mb-2">TensorFlow.js Models</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Leverages pre-trained models for facial recognition, emotion detection, and pose estimation that run entirely in the client browser for maximum privacy.
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="font-medium mb-2">Database Schema</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Complete database schema extensions included for storing session intelligence data, behavioral patterns, and compliance metrics with full HIPAA compliance.
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="font-medium mb-2">API Integration</h4>
-                  <p className="text-sm text-muted-foreground">
-                    RESTful API endpoints for session intelligence data processing, real-time analysis, and multi-modal data fusion with comprehensive error handling.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
       </div>
     </div>
   );
