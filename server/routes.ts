@@ -5633,6 +5633,51 @@ Respond in JSON format:
     }
   });
 
+  // Product analytics endpoints
+  app.get('/api/admin/product-analytics', async (req, res) => {
+    try {
+      const { getProductInsights, getUserEngagementMetrics, getFeatureUsageMetrics } = await import('./feature-analytics');
+      
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - 30);
+      
+      const [productInsights, engagementMetrics, featureMetrics] = await Promise.all([
+        getProductInsights(),
+        getUserEngagementMetrics(),
+        getFeatureUsageMetrics(startDate, endDate)
+      ]);
+      
+      res.json({
+        insights: productInsights,
+        engagement: engagementMetrics,
+        features: featureMetrics
+      });
+    } catch (error) {
+      console.error('Error fetching product analytics:', error);
+      res.status(500).json({ error: 'Failed to fetch product analytics' });
+    }
+  });
+
+  // Feature usage tracking endpoint
+  app.post('/api/analytics/track-feature', express.json(), async (req, res) => {
+    try {
+      const { userId, featureName, sessionDuration, metadata } = req.body;
+      
+      if (!userId || !featureName) {
+        return res.status(400).json({ error: 'userId and featureName are required' });
+      }
+      
+      const { trackFeatureUsage } = await import('./feature-analytics');
+      await trackFeatureUsage(userId, featureName, sessionDuration, metadata);
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error tracking feature usage:', error);
+      res.status(500).json({ error: 'Failed to track feature usage' });
+    }
+  });
+
   // Add security error handler as the last middleware
   app.use(securityErrorHandler);
 

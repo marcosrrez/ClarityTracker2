@@ -26,6 +26,7 @@ export default function AdminPage() {
   const [feedback, setFeedback] = useState<FeedbackItem[]>([]);
   const [analytics, setAnalytics] = useState<any>(null);
   const [costAnalytics, setCostAnalytics] = useState<any>(null);
+  const [productAnalytics, setProductAnalytics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -43,10 +44,11 @@ export default function AdminPage() {
 
   const fetchData = async () => {
     try {
-      const [feedbackResponse, analyticsResponse, costResponse] = await Promise.all([
+      const [feedbackResponse, analyticsResponse, costResponse, productResponse] = await Promise.all([
         fetch('/api/admin/feedback'),
         fetch('/api/admin/analytics'),
-        fetch('/api/admin/cost-analytics')
+        fetch('/api/admin/cost-analytics'),
+        fetch('/api/admin/product-analytics')
       ]);
       
       if (feedbackResponse.ok) {
@@ -62,6 +64,11 @@ export default function AdminPage() {
       if (costResponse.ok) {
         const costData = await costResponse.json();
         setCostAnalytics(costData);
+      }
+
+      if (productResponse.ok) {
+        const productData = await productResponse.json();
+        setProductAnalytics(productData);
       }
     } catch (error) {
       console.error('Failed to fetch data:', error);
