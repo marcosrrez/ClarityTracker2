@@ -735,36 +735,119 @@ const LiveSessionRecorder: React.FC = () => {
                 </CardContent>
               </Card>
 
-              {/* Auto-Generated Notes */}
+              {/* AI Documentation Panel */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <FileText className="h-4 w-4" />
-                    Auto-Generated Notes
+                    AI Documentation & Clinical Insights
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="prose prose-sm text-sm space-y-2">
-                    <p><strong>Session Date:</strong> 6/6/2025 <strong>Client ID:</strong> Marcos <strong>Session Type:</strong> Individual Therapy <strong>Duration:</strong> 1 minutes</p>
-                    
-                    <p><strong>SUBJECTIVE:</strong> Client presented with cognitive anxiety symptoms, particularly related to work presentations and fear of judgment. Reports difficulty managing anticipatory anxiety. OBJECTIVE: Client demonstrated good insight and engagement throughout the session. No safety concerns identified.</p>
-                    
-                    <p><strong>ASSESSMENT:</strong> Client shows progress in recognizing automatic thoughts. Anxiety symptoms appear situational and responsive to cognitive interventions. No safety concerns identified.</p>
-                    
-                    <p><strong>PLAN:</strong> Continue cognitive restructuring techniques. Homework assignment to practice evidence-based thinking before next presentation. Schedule follow-up in one week.</p>
-                    
-                    <p><strong>Interventions Used:</strong> Affirmation, Exploration/Clarification</p>
-                    
-                    <p><strong>Risk Level:</strong> medium <strong>Therapeutic Alliance:</strong> 6/10</p>
-                  </div>
-                  
-                  <div className="mt-4 pt-4 border-t">
-                    <h5 className="font-medium mb-2">Billing Codes</h5>
-                    <div className="flex gap-2">
-                      <Badge variant="outline">90834</Badge>
-                      <Badge variant="outline">90837</Badge>
+                <CardContent className="space-y-4">
+                  {clinicalInsights.length > 0 && (
+                    <div>
+                      <h5 className="font-medium mb-2">Clinical Insights</h5>
+                      <div className="space-y-2">
+                        {clinicalInsights.map((insight, i) => (
+                          <div key={i} className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm">
+                            <div className="flex items-start gap-2">
+                              <Brain className="h-4 w-4 text-blue-600 mt-0.5" />
+                              <div>
+                                <span className="font-medium text-blue-800">{insight.type}:</span>
+                                <span className="text-blue-700 ml-1">{insight.content}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
+
+                  {currentAnalysis?.clinicalDocumentation && (
+                    <div>
+                      <h5 className="font-medium mb-2">Auto-Generated SOAP Notes</h5>
+                      <div className="prose prose-sm text-sm space-y-2 bg-gray-50 p-3 rounded">
+                        <p><strong>Session Date:</strong> {new Date().toLocaleDateString()}</p>
+                        <p><strong>Duration:</strong> {Math.floor(sessionDuration / 60)} minutes</p>
+                        
+                        {currentAnalysis.clinicalDocumentation.soapNoteElements && (
+                          <>
+                            <p><strong>SUBJECTIVE:</strong> {currentAnalysis.clinicalDocumentation.soapNoteElements.subjective || 'Client engagement observed'}</p>
+                            <p><strong>OBJECTIVE:</strong> {currentAnalysis.clinicalDocumentation.soapNoteElements.objective}</p>
+                            <p><strong>ASSESSMENT:</strong> {currentAnalysis.clinicalDocumentation.soapNoteElements.assessment || 'Therapeutic progress within expected parameters'}</p>
+                            <p><strong>PLAN:</strong> {currentAnalysis.clinicalDocumentation.soapNoteElements.plan || 'Continue current therapeutic approach'}</p>
+                          </>
+                        )}
+                        
+                        {currentAnalysis.clinicalDocumentation.interventionsDetected?.length > 0 && (
+                          <p><strong>Interventions Used:</strong> {currentAnalysis.clinicalDocumentation.interventionsDetected.join(', ')}</p>
+                        )}
+                        
+                        <p><strong>Therapeutic Alliance:</strong> {currentAnalysis.behavioralMarkers?.therapeuticAlliance || 'N/A'}/10</p>
+                      </div>
+                      
+                      <div className="mt-4 pt-4 border-t">
+                        <h5 className="font-medium mb-2">Billing Codes</h5>
+                        <div className="flex gap-2">
+                          {currentAnalysis.clinicalDocumentation.billingCodes?.map((code, i) => (
+                            <Badge key={i} variant="outline">{code}</Badge>
+                          )) || <Badge variant="outline">90834</Badge>}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {currentAnalysis?.complianceMetrics && (
+                    <div>
+                      <h5 className="font-medium mb-2">Compliance Monitoring</h5>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center p-2 bg-green-50 border border-green-200 rounded">
+                          <span className="text-sm">HIPAA Compliance</span>
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        </div>
+                        <div className="flex justify-between items-center p-2 bg-green-50 border border-green-200 rounded">
+                          <span className="text-sm">Documentation Quality</span>
+                          <Badge variant="outline">{currentAnalysis.complianceMetrics.documentationQuality}</Badge>
+                        </div>
+                        {currentAnalysis.complianceMetrics.supervisionRequired && (
+                          <div className="flex justify-between items-center p-2 bg-yellow-50 border border-yellow-200 rounded">
+                            <span className="text-sm">Supervision Required</span>
+                            <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {currentAnalysis?.realTimeInsights && (
+                    <div>
+                      <h5 className="font-medium mb-2">Real-Time Analysis</h5>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div className="p-2 border rounded">
+                          <span className="text-muted-foreground">Session Quality:</span>
+                          <div className="font-medium">{currentAnalysis.realTimeInsights.sessionQuality}</div>
+                        </div>
+                        <div className="p-2 border rounded">
+                          <span className="text-muted-foreground">Engagement Trend:</span>
+                          <div className="font-medium">{currentAnalysis.realTimeInsights.engagementTrend}</div>
+                        </div>
+                      </div>
+                      
+                      {currentAnalysis.realTimeInsights.timeEfficiency && (
+                        <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded">
+                          <div className="flex items-center gap-2 mb-2">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <span className="font-medium text-green-800">
+                              Time Saved: {currentAnalysis.realTimeInsights.timeEfficiency.timeSaved} minutes
+                            </span>
+                          </div>
+                          <div className="text-sm text-green-700">
+                            Efficiency Gain: {currentAnalysis.realTimeInsights.timeEfficiency.efficiencyGain}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 

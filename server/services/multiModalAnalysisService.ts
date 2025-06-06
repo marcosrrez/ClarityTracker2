@@ -69,37 +69,49 @@ class MultiModalAnalysisService {
     }
   }
 
-  async analyzeTranscript(text: string, timestamp: number): Promise<TranscriptAnalysis> {
+  async analyzeTranscript(text: string, timestamp?: number): Promise<TranscriptAnalysis> {
     try {
-      const response = await this.openai.chat.completions.create({
-        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-        messages: [
-          {
-            role: "system",
-            content: `You are a clinical psychology AI assistant. Analyze this therapy session transcript segment for:
-            1. Emotional sentiment
-            2. Clinical themes and patterns
-            3. Risk indicators (suicidal ideation, self-harm, substance abuse, etc.)
-            4. Treatment modalities being used
-            5. Speaker identification (Therapist/Client)
-            
-            Respond in JSON format with keys: sentiment, clinicalThemes, riskIndicators, treatmentModalities, speaker, emotionalTone`
-          },
-          {
-            role: "user",
-            content: text
-          }
-        ],
-        response_format: { type: "json_object" },
-        temperature: 0.3,
-      });
+      if (!this.genAI) {
+        throw new Error('Google AI not configured. Please provide GOOGLE_AI_API_KEY.');
+      }
 
-      const analysis = JSON.parse(response.choices[0].message.content || '{}');
+      const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
       
+      const prompt = `Analyze this therapy session transcript for comprehensive clinical insights. Provide detailed analysis in JSON format including:
+      - clinicalThemes: array of identified therapeutic themes
+      - interventionsDetected: array of therapeutic interventions used
+      - progressIndicators: array of client progress markers
+      - therapeuticTechniques: array of specific techniques employed
+      - riskLevel: 'low', 'medium', 'high', or 'critical'
+      - riskIndicators: array of risk factors with type and severity
+      - therapeuticAlliance: number 1-10
+      - emotionalTone: overall emotional atmosphere
+      - keyInsights: array of important clinical observations
+      - sentiment: emotional sentiment analysis
+      - treatmentModalities: treatment approaches being used
+      - speaker: 'Therapist' or 'Client' identification
+      
+      Transcript: "${text}"`;
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const analysisText = response.text();
+      
+      // Extract JSON from response
+      const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
+      const analysis = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
+
       return {
-        sentiment: analysis.sentiment || 'neutral',
         clinicalThemes: analysis.clinicalThemes || [],
+        interventionsDetected: analysis.interventionsDetected || [],
+        progressIndicators: analysis.progressIndicators || [],
+        therapeuticTechniques: analysis.therapeuticTechniques || [],
+        riskLevel: analysis.riskLevel || 'low',
         riskIndicators: analysis.riskIndicators || [],
+        therapeuticAlliance: analysis.therapeuticAlliance || 7,
+        emotionalTone: analysis.emotionalTone || 'neutral',
+        keyInsights: analysis.keyInsights || [],
+        sentiment: analysis.sentiment || 'neutral',
         treatmentModalities: analysis.treatmentModalities || [],
         speaker: analysis.speaker || 'Unknown'
       };
@@ -112,41 +124,36 @@ class MultiModalAnalysisService {
 
   async analyzeVideoFrame(imageData: string, timestamp: number) {
     try {
-      const response = await this.openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [
-          {
-            role: "system",
-            content: `Analyze this therapy session video frame for comprehensive behavioral analysis. Provide detailed analysis in JSON format with:
-            - faceDetection: {facesDetected: number, landmarks: array, eyeGaze: {x, y}, headPose: {pitch, yaw, roll}}
-            - emotions: {joy, sadness, anger, fear, surprise, disgust, contempt, neutral, dominantEmotion, intensity}
-            - bodyLanguage: {pose: array, posture: string, gestures: array, fidgeting: number}
-            - engagement: {overallScore, eyeContact, attentiveness, participation}
-            - behavioralMarkers: {riskIndicators: array, therapeuticAlliance: number, stressLevel: number, comfortLevel: number}
-            
-            All values should be numbers between 0-1 except where specified. Base analysis on visible cues in therapeutic context.`
-          },
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: "Provide comprehensive multi-modal analysis of this therapy session frame including face detection, emotion analysis, body language assessment, engagement metrics, and behavioral markers."
-              },
-              {
-                type: "image_url",
-                image_url: {
-                  url: `data:image/jpeg;base64,${imageData}`
-                }
-              }
-            ]
-          }
-        ],
-        response_format: { type: "json_object" },
-        max_tokens: 800,
-      });
+      if (!this.genAI) {
+        throw new Error('Google AI not configured. Please provide GOOGLE_AI_API_KEY.');
+      }
 
-      const analysis = JSON.parse(response.choices[0].message.content || '{}');
+      const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+      
+      const prompt = `Analyze this therapy session video frame for comprehensive behavioral analysis. Provide detailed analysis in JSON format with:
+      - faceDetection: {facesDetected: number, landmarks: array, eyeGaze: {x, y}, headPose: {pitch, yaw, roll}}
+      - emotions: {joy, sadness, anger, fear, surprise, disgust, contempt, neutral, dominantEmotion, intensity}
+      - bodyLanguage: {pose: array, posture: string, gestures: array, fidgeting: number}
+      - engagement: {overallScore, eyeContact, attentiveness, participation}
+      - behavioralMarkers: {riskIndicators: array, therapeuticAlliance: number, stressLevel: number, comfortLevel: number}
+      
+      All values should be numbers between 0-1 except where specified. Base analysis on visible cues in therapeutic context.`;
+
+      // Create image part for Gemini
+      const imagePart = {
+        inlineData: {
+          data: imageData,
+          mimeType: "image/jpeg"
+        }
+      };
+
+      const result = await model.generateContent([prompt, imagePart]);
+      const response = await result.response;
+      const analysisText = response.text();
+      
+      // Extract JSON from response
+      const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
+      const analysis = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
 
       // Return comprehensive analysis structure
       return {
