@@ -14,6 +14,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { ClientInvitationManager } from "@/components/client-portal/ClientInvitationManager";
 import { AddClientModal } from "@/components/client-portal/AddClientModal";
 import { EditClientModal } from "@/components/client-portal/EditClientModal";
+import { ClientProgressView } from "@/components/client-portal/ClientProgressView";
 
 interface Client {
   id: string;
@@ -421,6 +422,17 @@ export default function ClientPortal({ userId }: { userId: string }) {
         onClose={() => setShowAddClient(false)}
         therapistId={userId}
       />
+
+      {selectedClient && (
+        <EditClientModal
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setSelectedClient(null);
+          }}
+          client={selectedClient}
+        />
+      )}
     </div>
   );
 }
