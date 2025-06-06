@@ -43,9 +43,10 @@ export default function AdminPage() {
 
   const fetchData = async () => {
     try {
-      const [feedbackResponse, analyticsResponse] = await Promise.all([
+      const [feedbackResponse, analyticsResponse, costResponse] = await Promise.all([
         fetch('/api/admin/feedback'),
-        fetch('/api/admin/analytics')
+        fetch('/api/admin/analytics'),
+        fetch('/api/admin/cost-analytics')
       ]);
       
       if (feedbackResponse.ok) {
@@ -56,6 +57,11 @@ export default function AdminPage() {
       if (analyticsResponse.ok) {
         const analyticsData = await analyticsResponse.json();
         setAnalytics(analyticsData);
+      }
+
+      if (costResponse.ok) {
+        const costData = await costResponse.json();
+        setCostAnalytics(costData);
       }
     } catch (error) {
       console.error('Failed to fetch data:', error);
@@ -506,6 +512,229 @@ export default function AdminPage() {
                   </div>
                 ) : (
                   <p className="text-muted-foreground text-center py-8">No daily activity data available yet</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="costs" className="space-y-6">
+          {/* Cost Monitoring Dashboard */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Monthly Cost</CardTitle>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  ${costAnalytics?.totalCost?.toFixed(2) || '0.00'}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  ${costAnalytics?.projectedMonthlyCost?.toFixed(2) || '0.00'} projected
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Cost Per User</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  ${costAnalytics?.averageCostPerUser?.toFixed(2) || '0.00'}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Average monthly cost
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Yearly Projection</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  ${costAnalytics?.yearlyProjection?.toFixed(0) || '0'}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Based on current usage
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Top Service Cost</CardTitle>
+                <Zap className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  ${costAnalytics?.serviceBreakdown?.[0]?.cost?.toFixed(2) || '0.00'}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {costAnalytics?.serviceBreakdown?.[0]?.service || 'No data'}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Service Breakdown */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Integration Cost Breakdown</CardTitle>
+              <CardDescription>
+                Detailed cost analysis by service and usage patterns
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {costAnalytics?.serviceBreakdown?.length > 0 ? (
+                <div className="space-y-4">
+                  {costAnalytics.serviceBreakdown.map((service: any, index: number) => (
+                    <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-3 h-3 rounded-full ${
+                          index === 0 ? 'bg-blue-500' :
+                          index === 1 ? 'bg-purple-500' :
+                          index === 2 ? 'bg-green-500' :
+                          index === 3 ? 'bg-orange-500' : 'bg-gray-500'
+                        }`} />
+                        <div>
+                          <p className="font-medium">{service.service}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {service.calls.toLocaleString()} {service.unit}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium">${service.cost.toFixed(2)}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {((service.cost / costAnalytics.totalCost) * 100).toFixed(1)}%
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Server className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                  <p>No cost data available</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Daily Usage Trends */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Daily Cost Trends</CardTitle>
+              <CardDescription>
+                Monitor cost patterns and identify usage spikes
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {costAnalytics?.dailyUsage?.length > 0 ? (
+                <div className="space-y-3">
+                  {costAnalytics.dailyUsage.slice(-7).map((day: any, index: number) => (
+                    <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                      <div>
+                        <p className="font-medium">{new Date(day.date).toLocaleDateString()}</p>
+                        <p className="text-sm text-muted-foreground">{day.calls} API calls</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium">${day.cost.toFixed(2)}</p>
+                        <div className="flex items-center text-sm">
+                          {index > 0 && costAnalytics.dailyUsage[index - 1] && (
+                            day.cost > costAnalytics.dailyUsage[index - 1].cost ? (
+                              <TrendingUp className="h-3 w-3 text-red-500 mr-1" />
+                            ) : (
+                              <TrendingDown className="h-3 w-3 text-green-500 mr-1" />
+                            )
+                          )}
+                          <span className={
+                            index > 0 && costAnalytics.dailyUsage[index - 1] &&
+                            day.cost > costAnalytics.dailyUsage[index - 1].cost ? 
+                            'text-red-500' : 'text-green-500'
+                          }>
+                            {index > 0 && costAnalytics.dailyUsage[index - 1] ? 
+                              `${((day.cost - costAnalytics.dailyUsage[index - 1].cost) / costAnalytics.dailyUsage[index - 1].cost * 100).toFixed(1)}%` : 
+                              '–'
+                            }
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <BarChart3 className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                  <p>No usage trends available</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Cost Optimization Recommendations */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Cost Optimization Insights</CardTitle>
+              <CardDescription>
+                Recommendations to optimize integration costs
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {costAnalytics?.serviceBreakdown && costAnalytics.serviceBreakdown.length > 0 ? (
+                  <>
+                    {costAnalytics.serviceBreakdown[0]?.cost > costAnalytics.totalCost * 0.4 && (
+                      <div className="flex items-start space-x-3 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                        <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
+                        <div>
+                          <p className="font-medium text-yellow-800 dark:text-yellow-200">
+                            High {costAnalytics.serviceBreakdown[0].service} Usage
+                          </p>
+                          <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                            This service accounts for {((costAnalytics.serviceBreakdown[0].cost / costAnalytics.totalCost) * 100).toFixed(1)}% of total costs. 
+                            Consider implementing caching or rate limiting.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="flex items-start space-x-3 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                      <Lightbulb className="h-5 w-5 text-blue-600 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-blue-800 dark:text-blue-200">
+                          Optimization Opportunity
+                        </p>
+                        <p className="text-sm text-blue-700 dark:text-blue-300">
+                          Current monthly projection: ${costAnalytics.projectedMonthlyCost?.toFixed(2)}. 
+                          With optimization, could potentially reduce costs by 15-25%.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start space-x-3 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                      <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-green-800 dark:text-green-200">
+                          Cost Efficiency
+                        </p>
+                        <p className="text-sm text-green-700 dark:text-green-300">
+                          Average cost per user (${costAnalytics.averageCostPerUser?.toFixed(2)}) is within acceptable range for AI-powered therapy platforms.
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Activity className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                    <p>No optimization insights available</p>
+                  </div>
                 )}
               </div>
             </CardContent>

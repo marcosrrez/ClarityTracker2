@@ -285,7 +285,7 @@ const emailCampaigns: CampaignEmail[] = [
     id: 'ai-supervision-prep',
     dayOffset: 1,
     subject: '🧠 Turn your notes into supervision gold',
-    template: (data) => `
+    template: (data: EmailCampaignData) => `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <h2 style="color: #7c3aed; margin-bottom: 24px;">Hi ${data.userName},</h2>
         
@@ -323,7 +323,7 @@ const emailCampaigns: CampaignEmail[] = [
     id: 'progress-tracking',
     dayOffset: 2,
     subject: '📊 Never miss a licensure requirement again',
-    template: (data) => `
+    template: (data: EmailCampaignData) => `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <h2 style="color: #059669; margin-bottom: 24px;">Hi ${data.userName},</h2>
         
@@ -367,7 +367,7 @@ const emailCampaigns: CampaignEmail[] = [
     id: 'speed-logging',
     dayOffset: 3,
     subject: '⚡ Log sessions 10x faster with this trick',
-    template: (data) => `
+    template: (data: EmailCampaignData) => `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <h2 style="color: #dc2626; margin-bottom: 24px;">Hi ${data.userName},</h2>
         
@@ -406,7 +406,7 @@ const emailCampaigns: CampaignEmail[] = [
     id: 'professional-growth',
     dayOffset: 4,
     subject: '🌱 From LAC to LPC: The fast track',
-    template: (data) => `
+    template: (data: EmailCampaignData) => `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <h2 style="color: #7c3aed; margin-bottom: 24px;">Hi ${data.userName},</h2>
         
