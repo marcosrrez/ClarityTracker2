@@ -3,7 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Mic, Video, Square, Brain, Activity, AlertTriangle, Shield, CheckCircle, FileText, TrendingUp, Eye, Smile, Users, Heart, BarChart3 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Mic, Video, Square, Brain, Activity, AlertTriangle, Shield, CheckCircle, FileText, TrendingUp, Eye, Smile, Users, Heart, BarChart3, ChevronDown, ChevronUp, Flag, Lightbulb, Settings, Minimize2, Maximize2, Play, Pause, Camera, CameraOff, MicOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface EmotionState {
@@ -86,6 +89,14 @@ const LiveSessionRecorder: React.FC = () => {
     intensity: 0,
     confidence: 0
   });
+  // Interface states for improved UX
+  const [sessionMode, setSessionMode] = useState<'session' | 'review'>('session');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [criticalAlertsOnly, setCriticalAlertsOnly] = useState(true);
+  const [flaggedMoments, setFlaggedMoments] = useState<Array<{timestamp: number, note: string}>>([]);
+  const [activeTab, setActiveTab] = useState('alerts');
+  
+  // Analysis data
   const [transcriptionSegments, setTranscriptionSegments] = useState<TranscriptionSegment[]>([]);
   const [clinicalInsights, setClinicalInsights] = useState<ClinicalInsight[]>([]);
   const [riskAlerts, setRiskAlerts] = useState<RiskAlert[]>([]);
@@ -291,29 +302,70 @@ const LiveSessionRecorder: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Horizontal Status Icons */}
-      <div className="flex items-center justify-center gap-1 bg-muted p-2 rounded-lg">
-        <div className="flex items-center gap-1 px-2 py-1 rounded bg-background hover:bg-accent transition-colors cursor-pointer" title="AI Documentation - 80% automation rate">
-          <Brain className="h-3 w-3 text-purple-600" />
-          <span className="text-xs">AI Documentation</span>
-          <Badge variant="outline" className="ml-1 text-xs">80% automation rate</Badge>
+    <div className="h-screen flex flex-col bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900">
+      {/* Top Header */}
+      <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-800 border-b shadow-sm">
+        <div className="flex items-center gap-4">
+          <h1 className="text-xl font-semibold">Session Intelligence</h1>
+          
+          {/* Mode Toggle */}
+          <div className="flex bg-muted rounded-lg p-1">
+            <Button
+              variant={sessionMode === 'session' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setSessionMode('session')}
+              className="text-xs"
+            >
+              <Activity className="h-3 w-3 mr-1" />
+              Session Mode
+            </Button>
+            <Button
+              variant={sessionMode === 'review' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setSessionMode('review')}
+              className="text-xs"
+            >
+              <FileText className="h-3 w-3 mr-1" />
+              Review Mode
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-1 px-2 py-1 rounded bg-background hover:bg-accent transition-colors cursor-pointer" title="Compliance AI - 100% note scanning">
-          <CheckCircle className="h-3 w-3 text-emerald-600" />
-          <span className="text-xs">Compliance AI</span>
-          <Badge variant="outline" className="ml-1 text-xs">100% note scanning</Badge>
-        </div>
-        <div className="flex items-center gap-1 px-2 py-1 rounded bg-background hover:bg-accent transition-colors cursor-pointer" title="HIPAA Compliant - SOC 2 certified">
-          <Shield className="h-3 w-3 text-orange-600" />
-          <span className="text-xs">HIPAA Compliant</span>
-          <Badge variant="outline" className="ml-1 text-xs">SOC 2 certified</Badge>
+
+        {/* Status Indicators */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 text-sm">
+            <Brain className="h-4 w-4 text-green-600" />
+            <span className="text-green-600 font-medium">Google AI Active</span>
+          </div>
+          <div className="flex items-center gap-1 text-sm">
+            <Shield className="h-4 w-4 text-blue-600" />
+            <span className="text-blue-600 font-medium">HIPAA Compliant</span>
+          </div>
+          {isRecording && (
+            <div className="flex items-center gap-1 text-sm">
+              <motion.div
+                animate={{ opacity: [1, 0.3, 1] }}
+                transition={{ duration: 1, repeat: Infinity }}
+                className="h-2 w-2 bg-red-500 rounded-full"
+              />
+              <span className="text-red-600 font-medium">{formatDuration(sessionDuration)}</span>
+            </div>
+          )}
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          >
+            {sidebarCollapsed ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
+          </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Main Content */}
+      <div className="flex-1 flex overflow-hidden">
         {/* Video Feed */}
-        <div className="lg:col-span-2">
+        <div className={`flex-1 p-4 ${sidebarCollapsed ? 'mr-0' : 'mr-4'}`}>
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
