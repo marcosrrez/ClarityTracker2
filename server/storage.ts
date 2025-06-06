@@ -139,6 +139,20 @@ export interface IStorage {
   getAiInsightsHistory(userId: string, insightType?: string): Promise<AiInsightsHistory[]>;
   createAiInsight(insight: InsertAiInsightsHistory): Promise<AiInsightsHistory>;
   updateAiInsight(id: string, updates: Partial<AiInsightsHistory>): Promise<void>;
+
+  // Session Intelligence
+  getSessionAnalysesByUserId(userId: string): Promise<SessionAnalysis[]>;
+  getSessionAnalysisById(id: string): Promise<SessionAnalysis | undefined>;
+  createSessionAnalysis(analysis: InsertSessionAnalysis): Promise<SessionAnalysis>;
+  updateSessionAnalysis(id: string, updates: Partial<SessionAnalysis>): Promise<SessionAnalysis>;
+
+  getCrisisAlertsBySupervisor(supervisorId: string): Promise<CrisisAlert[]>;
+  createCrisisAlert(alert: InsertCrisisAlert): Promise<CrisisAlert>;
+  updateCrisisAlert(id: string, updates: Partial<CrisisAlert>): Promise<CrisisAlert>;
+
+  getEbpRecommendationsBySession(sessionId: string): Promise<EbpRecommendation[]>;
+  createEbpRecommendation(recommendation: InsertEbpRecommendation): Promise<EbpRecommendation>;
+  updateEbpRecommendation(id: string, updates: Partial<EbpRecommendation>): Promise<EbpRecommendation>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1482,17 +1496,157 @@ ${content}`;
       .where(eq(aiInsightsHistoryTable.id, id));
   }
 
-  async getAiInsightsHistory(userId: string, type?: string): Promise<AiInsightsHistory[]> {
-    let whereCondition = eq(aiInsightsHistoryTable.userId, userId);
+  // Session Intelligence Methods
+  async getSessionAnalysesByUserId(userId: string): Promise<SessionAnalysis[]> {
+    const { db } = await import("./db");
+    const analyses = await db
+      .select()
+      .from(sessionAnalysesTable)
+      .where(eq(sessionAnalysesTable.userId, userId))
+      .orderBy(desc(sessionAnalysesTable.sessionDate));
     
-    if (type) {
-      whereCondition = and(whereCondition, eq(aiInsightsHistoryTable.insightType, type));
-    }
+    return analyses.map(analysis => ({
+      ...analysis,
+      tags: analysis.tags || [],
+      riskIndicators: analysis.riskIndicators || [],
+      ebpTechniques: analysis.ebpTechniques || [],
+      clinicalInsights: analysis.clinicalInsights || {}
+    })) as SessionAnalysis[];
+  }
+
+  async getSessionAnalysisById(id: string): Promise<SessionAnalysis | undefined> {
+    const { db } = await import("./db");
+    const [analysis] = await db
+      .select()
+      .from(sessionAnalysesTable)
+      .where(eq(sessionAnalysesTable.id, id));
     
-    const results = await db.select().from(aiInsightsHistoryTable)
-      .where(whereCondition)
-      .orderBy(desc(aiInsightsHistoryTable.createdAt));
-    return results;
+    if (!analysis) return undefined;
+    
+    return {
+      ...analysis,
+      tags: analysis.tags || [],
+      riskIndicators: analysis.riskIndicators || [],
+      ebpTechniques: analysis.ebpTechniques || [],
+      clinicalInsights: analysis.clinicalInsights || {}
+    } as SessionAnalysis;
+  }
+
+  async createSessionAnalysis(analysis: InsertSessionAnalysis): Promise<SessionAnalysis> {
+    const { db } = await import("./db");
+    const id = `analysis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const now = new Date();
+    
+    const [created] = await db
+      .insert(sessionAnalysesTable)
+      .values({
+        id,
+        ...analysis,
+        createdAt: now,
+        updatedAt: now
+      })
+      .returning();
+    
+    return {
+      ...created,
+      tags: created.tags || [],
+      riskIndicators: created.riskIndicators || [],
+      ebpTechniques: created.ebpTechniques || [],
+      clinicalInsights: created.clinicalInsights || {}
+    } as SessionAnalysis;
+  }
+
+  async updateSessionAnalysis(id: string, updates: Partial<SessionAnalysis>): Promise<SessionAnalysis> {
+    const { db } = await import("./db");
+    const [updated] = await db
+      .update(sessionAnalysesTable)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(sessionAnalysesTable.id, id))
+      .returning();
+    
+    return {
+      ...updated,
+      tags: updated.tags || [],
+      riskIndicators: updated.riskIndicators || [],
+      ebpTechniques: updated.ebpTechniques || [],
+      clinicalInsights: updated.clinicalInsights || {}
+    } as SessionAnalysis;
+  }
+
+  async getCrisisAlertsBySupervisor(supervisorId: string): Promise<CrisisAlert[]> {
+    const { db } = await import("./db");
+    const alerts = await db
+      .select()
+      .from(crisisAlertsTable)
+      .where(eq(crisisAlertsTable.supervisorId, supervisorId))
+      .orderBy(desc(crisisAlertsTable.createdAt));
+    
+    return alerts as CrisisAlert[];
+  }
+
+  async createCrisisAlert(alert: InsertCrisisAlert): Promise<CrisisAlert> {
+    const { db } = await import("./db");
+    const id = `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    const [created] = await db
+      .insert(crisisAlertsTable)
+      .values({
+        id,
+        ...alert,
+        createdAt: new Date()
+      })
+      .returning();
+    
+    return created as CrisisAlert;
+  }
+
+  async updateCrisisAlert(id: string, updates: Partial<CrisisAlert>): Promise<CrisisAlert> {
+    const { db } = await import("./db");
+    const [updated] = await db
+      .update(crisisAlertsTable)
+      .set(updates)
+      .where(eq(crisisAlertsTable.id, id))
+      .returning();
+    
+    return updated as CrisisAlert;
+  }
+
+  async getEbpRecommendationsBySession(sessionId: string): Promise<EbpRecommendation[]> {
+    const { db } = await import("./db");
+    const recommendations = await db
+      .select()
+      .from(ebpRecommendationsTable)
+      .where(eq(ebpRecommendationsTable.sessionId, sessionId))
+      .orderBy(desc(ebpRecommendationsTable.createdAt));
+    
+    return recommendations as EbpRecommendation[];
+  }
+
+  async createEbpRecommendation(recommendation: InsertEbpRecommendation): Promise<EbpRecommendation> {
+    const { db } = await import("./db");
+    const id = `ebp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    const [created] = await db
+      .insert(ebpRecommendationsTable)
+      .values({
+        id,
+        ...recommendation,
+        createdAt: new Date()
+      })
+      .returning();
+    
+    return created as EbpRecommendation;
+  }
+
+  async updateEbpRecommendation(id: string, updates: Partial<EbpRecommendation>): Promise<EbpRecommendation> {
+    const { db } = await import("./db");
+    const [updated] = await db
+      .update(ebpRecommendationsTable)
+      .set(updates)
+      .where(eq(ebpRecommendationsTable.id, id))
+      .returning();
+    
+    return updated as EbpRecommendation;
   }
 
   async createAiInsight(data: InsertAiInsightsHistory): Promise<AiInsightsHistory> {
