@@ -40,24 +40,24 @@ export const PremiumLandingPage = () => {
   // Premium features showcase - static display
   const features = [
     {
-      icon: Clock,
-      title: "Effortless Hour Tracking",
-      description: "Log your supervision and client contact hours with intuitive, streamlined entry forms"
-    },
-    {
       icon: Brain,
-      title: "AI-Powered Insights",
-      description: "Get personalized recommendations and growth patterns from your session notes"
+      title: "Session Intelligence",
+      description: "Advanced AI analysis that goes beyond transcription to reveal deep therapeutic patterns and insights"
     },
     {
       icon: Users,
-      title: "Supervision Support",
-      description: "Seamless collaboration between supervisors and supervisees with progress monitoring"
+      title: "Dual-Portal Collaboration",
+      description: "Seamless real-time collaboration between supervisors and supervisees with intelligent progress monitoring"
     },
     {
-      icon: BarChart3,
-      title: "Progress Analytics",
-      description: "Clear reporting and insights that help you stay on track toward your LPC goals"
+      icon: Award,
+      title: "Professional Development",
+      description: "Personalized growth recommendations and competency tracking at every level of your career"
+    },
+    {
+      icon: Zap,
+      title: "Transform Your Practice",
+      description: "Revolutionary AI-powered tools that help you enhance your therapeutic effectiveness starting today"
     }
   ];
 
