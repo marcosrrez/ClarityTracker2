@@ -93,9 +93,13 @@ export const corsOptions = {
       'https://claritylog.replit.app',
       /\.replit\.app$/,
       /\.replit\.dev$/,
-      // Add production domains here
+      // Production domains
       'https://claritylog.com',
       'https://www.claritylog.com',
+      'https://claritylog.net',
+      'https://www.claritylog.net',
+      'http://claritylog.net',
+      'http://www.claritylog.net',
     ];
     
     const isAllowed = allowedOrigins.some(allowedOrigin => {
