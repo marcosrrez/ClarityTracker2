@@ -42,9 +42,10 @@ const getNavigationItems = (accountType: string, permissions: any) => {
     { href: "/dashboard", label: "Dashboard", icon: ChartLine, group: "primary" },
     { href: "/add-entry", label: "Add Entry", icon: Plus, group: "primary" },
     { href: "/session-recording", label: "Session Recording", icon: Mic, group: "primary" },
+    { href: "/session-intelligence-demo", label: "Session Intelligence", icon: Brain, group: "primary" },
     { href: "/client-portal", label: "Client Portal (Therapist)", icon: MessageSquare, group: "primary" },
     { href: "/client-dashboard", label: "Client View (Demo)", icon: Activity, group: "primary" },
-    { href: "/insights", label: "Insights & Resources", icon: Brain, group: "primary" },
+    { href: "/insights", label: "Insights & Resources", icon: Lightbulb, group: "primary" },
     { href: "/research-library", label: "Research Library", icon: BookOpen, group: "primary" },
     { href: "/supervisors", label: "Supervisors", icon: Users, group: "primary" },
   ];
