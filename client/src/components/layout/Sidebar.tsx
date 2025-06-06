@@ -305,15 +305,15 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
             </Button>
           </div>
 
-          {/* Logout section - separated for emphasis */}
+          {/* Logout section - minimal icon design */}
           <div className="pt-4 mt-4 border-t border-gray-100 dark:border-gray-800">
             <Button
               variant="ghost"
-              className="w-full justify-start gap-3 px-3 py-2.5 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950 rounded-xl text-sm font-medium"
+              className="w-full justify-center p-2.5 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950 rounded-xl text-sm font-medium group"
               onClick={handleLogout}
+              title="Logout"
             >
-              <LogOut className="h-4 w-4 flex-shrink-0" />
-              <span className="truncate">Logout</span>
+              <LogOut className="h-4 w-4" />
             </Button>
           </div>
         </div>
