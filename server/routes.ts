@@ -3576,7 +3576,7 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
         email: clientData.email,
         phone: clientData.phone || null,
         dateOfBirth: clientData.dateOfBirth || null,
-        emergencyContact: clientData.emergencyContact || null,
+        emergencyContact: clientData.emergencyContact ? JSON.stringify(clientData.emergencyContact) : null,
         status: clientData.status || 'active',
         portalAccess: clientData.portalAccess ? 'true' : 'false',
         consentToShare: clientData.consentToShare ? 'true' : 'false'

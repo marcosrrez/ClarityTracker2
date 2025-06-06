@@ -71,10 +71,7 @@ export function AddClientModal({ isOpen, onClose, therapistId }: AddClientModalP
         therapistId,
         dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : undefined,
       };
-      return apiRequest(`/api/clients`, {
-        method: "POST",
-        body: JSON.stringify(payload),
-      });
+      return apiRequest(`/api/clients`, "POST", payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/clients', therapistId] });
@@ -103,6 +100,9 @@ export function AddClientModal({ isOpen, onClose, therapistId }: AddClientModalP
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Client</DialogTitle>
+          <div className="text-sm text-muted-foreground">
+            Add a new client to your therapy practice. They will receive access to shared insights.
+          </div>
         </DialogHeader>
         
         <Form {...form}>
