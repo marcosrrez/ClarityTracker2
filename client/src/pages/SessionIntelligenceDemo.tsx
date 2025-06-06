@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Brain, Video, Mic, Eye, Shield, TrendingUp, Users, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
-import EnhancedSessionRecorder from '@/components/session-intelligence/EnhancedSessionRecorder';
+import LiveSessionRecorder from '@/components/session-intelligence/LiveSessionRecorder';
 
 const SessionIntelligenceDemo = () => {
   return (
