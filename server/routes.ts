@@ -4103,6 +4103,42 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
     }
   });
 
+  // Get client progress data for progressive disclosure cards
+  app.get('/api/clients/:id/progress', async (req, res) => {
+    try {
+      const clientId = req.params.id;
+      
+      // Get client details
+      const client = await storage.getClient(clientId);
+      if (!client) {
+        return res.status(404).json({ error: 'Client not found' });
+      }
+
+      // Get shared insights for this client from memory storage
+      const allInsights = await storage.getSharedInsights();
+      const clientInsights = allInsights.filter(insight => insight.clientId === clientId);
+
+      // Mock progress entries for now (can be implemented later with actual data)
+      const progressEntries: any[] = [];
+
+      res.json({
+        client,
+        insights: clientInsights.map(insight => ({
+          id: insight.id,
+          title: insight.title,
+          content: insight.content,
+          type: insight.type,
+          sharedAt: insight.sharedAt.toISOString(),
+          clientViewed: insight.clientViewed || false
+        })),
+        progressEntries
+      });
+    } catch (error) {
+      console.error('Error fetching client progress:', error);
+      res.status(500).json({ error: 'Failed to fetch client progress' });
+    }
+  });
+
   // Client Progress API Routes
   
   // Get client progress data
