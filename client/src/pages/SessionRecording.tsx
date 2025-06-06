@@ -1,670 +1,323 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Textarea } from '@/components/ui/textarea';
-import { AzureSpeechService, TranscriptionSegment } from '@/services/azureSpeechService';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
-  Mic, 
-  MicOff, 
-  Square, 
-  Play, 
-  Pause,
-  FileText, 
+  Brain, 
+  Video,
+  Mic,
   Shield,
   TrendingUp,
-  Clock,
   AlertTriangle,
   CheckCircle,
-  Activity,
-  Brain
+  Activity
 } from 'lucide-react';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
+import LiveSessionRecorder from '@/components/session-intelligence/LiveSessionRecorder';
 
-interface SessionMetadata {
-  clientId: string;
-  sessionType: 'individual' | 'group' | 'family';
-  duration: number;
-  goals: string[];
-  notes: string;
-}
-
-interface RecordingState {
-  isRecording: boolean;
-  isPaused: boolean;
-  duration: number;
-  audioBlob: Blob | null;
-  transcript: string;
-  isTranscribing: boolean;
-}
-
-interface AnalysisResults {
-  sessionAnalysis?: any;
-  riskAssessment?: any;
-  progressNotes?: any;
-  ebpAnalysis?: any;
-  treatmentRecommendations?: any;
-}
-
-export default function SessionRecording() {
-  const [sessionMetadata, setSessionMetadata] = useState<SessionMetadata>({
-    clientId: '',
-    sessionType: 'individual',
-    duration: 0,
-    goals: [],
-    notes: ''
-  });
-  
-  const [recordingState, setRecordingState] = useState<RecordingState>({
-    isRecording: false,
-    isPaused: false,
-    duration: 0,
-    audioBlob: null,
-    transcript: '',
-    isTranscribing: false
-  });
-
-  const [analysisResults, setAnalysisResults] = useState<AnalysisResults>({});
-  const [currentTab, setCurrentTab] = useState('setup');
-  const { toast } = useToast();
-
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
-  const streamRef = useRef<MediaStream | null>(null);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const azureSpeechRef = useRef<AzureSpeechService | null>(null);
-  const [transcriptionSegments, setTranscriptionSegments] = useState<TranscriptionSegment[]>([]);
-
-  // Initialize Azure Speech Service
-  const initializeAzureSpeech = async () => {
-    try {
-      // Get credentials from server-side environment
-      const response = await apiRequest('GET', '/api/azure/speech-config');
-      const config = await response.json();
-      
-      azureSpeechRef.current = new AzureSpeechService({
-        subscriptionKey: config.subscriptionKey,
-        serviceRegion: config.serviceRegion,
-        language: 'en-US'
-      });
-      console.log('Azure Speech Service initialized');
-    } catch (error) {
-      console.error('Failed to initialize Azure Speech Service:', error);
-      toast({
-        title: "Speech Service Error",
-        description: "Failed to initialize Azure Speech Service. Check your credentials.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  // Session recording functions
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      streamRef.current = stream;
-      
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
-
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
-      };
-
-      mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        setRecordingState(prev => ({ ...prev, audioBlob }));
-      };
-
-      mediaRecorder.start(1000); // Collect data every second
-      
-      setRecordingState(prev => ({ ...prev, isRecording: true, isPaused: false, isTranscribing: true }));
-      setCurrentTab('recording');
-      
-      // Start duration counter
-      intervalRef.current = setInterval(() => {
-        setRecordingState(prev => ({ ...prev, duration: prev.duration + 1 }));
-      }, 1000);
-
-      // Start real-time transcription with Azure
-      await startAzureTranscription();
-
-    } catch (error) {
-      console.error('Error starting recording:', error);
-      toast({
-        title: "Recording Error",
-        description: "Unable to access microphone. Please check permissions.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  // Start Azure Speech Service transcription
-  const startAzureTranscription = async () => {
-    if (!azureSpeechRef.current) {
-      await initializeAzureSpeech();
-    }
-
-    try {
-      await azureSpeechRef.current?.startContinuousRecognition(
-        (segment: TranscriptionSegment) => {
-          setTranscriptionSegments(prev => [...prev, segment]);
-          
-          // Update the main transcript with the latest segment
-          setRecordingState(prev => ({
-            ...prev,
-            transcript: prev.transcript + ' ' + segment.text
-          }));
-        },
-        (error: string) => {
-          console.error('Azure Speech transcription error:', error);
-          toast({
-            title: "Transcription Error",
-            description: "Real-time transcription encountered an issue.",
-            variant: "destructive"
-          });
-        }
-      );
-    } catch (error) {
-      console.error('Failed to start Azure transcription:', error);
-      toast({
-        title: "Azure Speech Error",
-        description: "Failed to start real-time transcription. Falling back to audio recording only.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const pauseRecording = () => {
-    if (mediaRecorderRef.current && recordingState.isRecording) {
-      if (recordingState.isPaused) {
-        mediaRecorderRef.current.resume();
-        intervalRef.current = setInterval(() => {
-          setRecordingState(prev => ({ ...prev, duration: prev.duration + 1 }));
-        }, 1000);
-      } else {
-        mediaRecorderRef.current.pause();
-        if (intervalRef.current) clearInterval(intervalRef.current);
-      }
-      setRecordingState(prev => ({ ...prev, isPaused: !prev.isPaused }));
-    }
-  };
-
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && recordingState.isRecording) {
-      mediaRecorderRef.current.stop();
-      
-      // Stop Azure Speech Service transcription
-      if (azureSpeechRef.current) {
-        azureSpeechRef.current.stopRecognition();
-      }
-      
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-      }
-      setRecordingState(prev => ({ ...prev, isRecording: false, isPaused: false, isTranscribing: false }));
-      
-      // Automatically start session analysis with Azure transcription
-      if (recordingState.transcript.length > 0) {
-        analyzeSessionMutation.mutate();
-      }
-      
-      setCurrentTab('analysis');
-    }
-  };
-
-  // API mutations
-  const transcribeMutation = useMutation({
-    mutationFn: async (audioBase64: string) => {
-      const response = await apiRequest('POST', '/api/session/transcribe', {
-        audio: audioBase64,
-        sessionMetadata
-      });
-      return await response.json();
-    },
-    onSuccess: (data) => {
-      setRecordingState(prev => ({ 
-        ...prev, 
-        transcript: data.transcript,
-        isTranscribing: false 
-      }));
-      setCurrentTab('analysis');
-      // Automatically start session analysis
-      analyzeSessionMutation.mutate();
-    },
-    onError: (error) => {
-      console.error('Transcription error:', error);
-      setRecordingState(prev => ({ ...prev, isTranscribing: false }));
-    }
-  });
-
-  const analyzeSessionMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/session/full-analysis', {
-        transcript: recordingState.transcript,
-        sessionDuration: recordingState.duration,
-        sessionMetadata,
-        userId: 'current-user'
-      });
-      return await response.json();
-    },
-    onSuccess: (data) => {
-      setAnalysisResults(data);
-      setCurrentTab('results');
-    }
-  });
-
-  const formatDuration = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const getRecordingStatus = () => {
-    if (recordingState.isTranscribing) return 'Transcribing...';
-    if (recordingState.isPaused) return 'Paused';
-    if (recordingState.isRecording) return 'Recording';
-    return 'Ready';
-  };
+const SessionRecording = () => {
+  const [activeTab, setActiveTab] = useState('record');
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Session Recording & Analysis</h1>
-        <p className="text-muted-foreground">
-          Complete session intelligence platform competing with industry leaders like Eleos Health
-        </p>
+    <div className="container mx-auto p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-3">
+            <Brain className="h-8 w-8 text-blue-600" />
+            Session Intelligence Recording
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            Multi-modal AI analysis with Azure Speech Service and real-time video intelligence
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Badge variant="outline" className="flex items-center gap-1">
+            <Shield className="h-3 w-3" />
+            HIPAA Compliant
+          </Badge>
+          <Badge variant="outline" className="flex items-center gap-1">
+            <Activity className="h-3 w-3" />
+            Live Analysis
+          </Badge>
+        </div>
       </div>
 
-      <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="setup">Session Setup</TabsTrigger>
-          <TabsTrigger value="recording">Recording</TabsTrigger>
-          <TabsTrigger value="analysis">Transcription</TabsTrigger>
-          <TabsTrigger value="results">Analysis Results</TabsTrigger>
+      {/* Features Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <Card className="text-center">
+          <CardContent className="pt-4">
+            <Mic className="h-8 w-8 mx-auto mb-2 text-blue-600" />
+            <h3 className="font-medium">Azure Speech</h3>
+            <p className="text-sm text-muted-foreground">Real-time transcription</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="text-center">
+          <CardContent className="pt-4">
+            <Video className="h-8 w-8 mx-auto mb-2 text-green-600" />
+            <h3 className="font-medium">Video Analysis</h3>
+            <p className="text-sm text-muted-foreground">Facial expressions & engagement</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="text-center">
+          <CardContent className="pt-4">
+            <Brain className="h-8 w-8 mx-auto mb-2 text-purple-600" />
+            <h3 className="font-medium">Clinical Insights</h3>
+            <p className="text-sm text-muted-foreground">AI-powered analysis</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="text-center">
+          <CardContent className="pt-4">
+            <Shield className="h-8 w-8 mx-auto mb-2 text-orange-600" />
+            <h3 className="font-medium">Privacy First</h3>
+            <p className="text-sm text-muted-foreground">Local video processing</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Content */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="record" className="flex items-center gap-2">
+            <Video className="h-4 w-4" />
+            Live Recording
+          </TabsTrigger>
+          <TabsTrigger value="features" className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4" />
+            Features
+          </TabsTrigger>
+          <TabsTrigger value="privacy" className="flex items-center gap-2">
+            <Shield className="h-4 w-4" />
+            Privacy & Security
+          </TabsTrigger>
         </TabsList>
 
-        {/* Session Setup */}
-        <TabsContent value="setup">
-          <Card>
-            <CardHeader>
-              <CardTitle>Session Configuration</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="clientId">Client ID</Label>
-                  <Input
-                    id="clientId"
-                    value={sessionMetadata.clientId}
-                    onChange={(e) => setSessionMetadata(prev => ({ 
-                      ...prev, 
-                      clientId: e.target.value 
-                    }))}
-                    placeholder="Enter client identifier"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="sessionType">Session Type</Label>
-                  <select 
-                    className="w-full p-2 border rounded-md"
-                    value={sessionMetadata.sessionType}
-                    onChange={(e) => setSessionMetadata(prev => ({ 
-                      ...prev, 
-                      sessionType: e.target.value as any 
-                    }))}
-                  >
-                    <option value="individual">Individual Therapy</option>
-                    <option value="group">Group Therapy</option>
-                    <option value="family">Family Therapy</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="notes">Session Notes</Label>
-                <Textarea
-                  id="notes"
-                  value={sessionMetadata.notes}
-                  onChange={(e) => setSessionMetadata(prev => ({ 
-                    ...prev, 
-                    notes: e.target.value 
-                  }))}
-                  placeholder="Pre-session notes, goals, or observations"
-                  className="min-h-[100px]"
-                />
-              </div>
-
-              <Button 
-                onClick={startRecording}
-                disabled={!sessionMetadata.clientId.trim()}
-                className="w-full"
-                size="lg"
-              >
-                <Mic className="h-5 w-5 mr-2" />
-                Start Session Recording
-              </Button>
-            </CardContent>
-          </Card>
+        <TabsContent value="record" className="mt-6">
+          <LiveSessionRecorder />
         </TabsContent>
 
-        {/* Recording Interface */}
-        <TabsContent value="recording">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>Session in Progress</span>
-                <Badge variant={recordingState.isRecording ? 'destructive' : 'secondary'}>
-                  {getRecordingStatus()}
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="text-center">
-                <div className="text-6xl font-mono font-bold mb-4">
-                  {formatDuration(recordingState.duration)}
-                </div>
-                
-                <div className="flex justify-center gap-4">
-                  <Button
-                    onClick={pauseRecording}
-                    disabled={!recordingState.isRecording}
-                    variant="outline"
-                    size="lg"
-                  >
-                    {recordingState.isPaused ? 
-                      <Play className="h-5 w-5" /> : 
-                      <Pause className="h-5 w-5" />
-                    }
-                  </Button>
-                  
-                  <Button
-                    onClick={stopRecording}
-                    disabled={!recordingState.isRecording}
-                    variant="destructive"
-                    size="lg"
-                  >
-                    <Square className="h-5 w-5 mr-2" />
-                    End Session
-                  </Button>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-4">
-                <h3 className="font-semibold">Session Information</h3>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">Client:</span>
-                    <div className="font-medium">{sessionMetadata.clientId}</div>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Type:</span>
-                    <div className="font-medium">{sessionMetadata.sessionType}</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Real-time Transcription Display */}
-              {recordingState.isTranscribing && (
-                <div className="space-y-4">
-                  <Alert>
-                    <Activity className="h-4 w-4" />
-                    <AlertDescription>
-                      Azure Speech Service is actively transcribing audio in real-time
-                    </AlertDescription>
-                  </Alert>
-                  
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="font-medium mb-2">Live Transcript</h4>
-                    <div className="max-h-40 overflow-y-auto">
-                      {transcriptionSegments.length > 0 ? (
-                        <div className="space-y-2">
-                          {transcriptionSegments.slice(-10).map((segment, index) => (
-                            <div key={index} className="text-sm">
-                              <span className="text-xs text-muted-foreground mr-2">
-                                {new Date(segment.timestamp).toLocaleTimeString()}
-                              </span>
-                              <span className={segment.confidence > 0.7 ? 'text-gray-900' : 'text-gray-600'}>
-                                {segment.text}
-                              </span>
-                              {segment.confidence <= 0.5 && (
-                                <span className="text-xs text-yellow-600 ml-2">(low confidence)</span>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-sm text-muted-foreground">
-                          Listening for speech...
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Transcription Results */}
-        <TabsContent value="analysis">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Session Transcript
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {transcribeMutation.isPending ? (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                  <p>Processing audio transcription...</p>
-                </div>
-              ) : recordingState.transcript ? (
-                <div className="space-y-4">
-                  <div className="p-4 bg-gray-50 rounded-lg max-h-96 overflow-y-auto">
-                    <pre className="whitespace-pre-wrap text-sm">
-                      {recordingState.transcript}
-                    </pre>
-                  </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <div className="text-sm text-muted-foreground">
-                      Session Duration: {formatDuration(recordingState.duration)}
-                    </div>
-                    <Button
-                      onClick={() => analyzeSessionMutation.mutate()}
-                      disabled={analyzeSessionMutation.isPending}
-                    >
-                      <Brain className="h-4 w-4 mr-2" />
-                      {analyzeSessionMutation.isPending ? 'Analyzing...' : 'Analyze Session'}
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  No transcript available. Please record a session first.
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Analysis Results */}
-        <TabsContent value="results">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Session Intelligence */}
+        <TabsContent value="features" className="mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-5 w-5" />
-                  Session Intelligence
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {analysisResults.sessionAnalysis ? (
-                  <div className="space-y-3">
-                    <div>
-                      <h4 className="font-medium mb-2">Key Themes</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {analysisResults.sessionAnalysis.themes?.map((theme: string, i: number) => (
-                          <Badge key={i} variant="secondary">{theme}</Badge>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    <Separator />
-                    
-                    <div>
-                      <h4 className="font-medium mb-2">Therapeutic Alliance</h4>
-                      <div className="flex items-center gap-2">
-                        <Progress value={analysisResults.sessionAnalysis.therapeuticAlliance * 10} className="flex-1" />
-                        <span className="font-bold">{analysisResults.sessionAnalysis.therapeuticAlliance}/10</span>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center text-muted-foreground">
-                    Analysis pending...
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Risk Assessment */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="h-5 w-5" />
-                  Risk Assessment
+                  <Mic className="h-5 w-5" />
+                  Audio Intelligence
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {analysisResults.riskAssessment ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span>Risk Level:</span>
-                      <Badge variant={
-                        analysisResults.riskAssessment.riskLevel === 'low' ? 'secondary' : 'destructive'
-                      }>
-                        {analysisResults.riskAssessment.riskLevel.toUpperCase()}
-                      </Badge>
-                    </div>
-                    
-                    {analysisResults.riskAssessment.immediateActions?.length > 0 && (
-                      <Alert>
-                        <AlertTriangle className="h-4 w-4" />
-                        <AlertDescription>
-                          <strong>Immediate Actions Required:</strong>
-                          <ul className="list-disc list-inside mt-1">
-                            {analysisResults.riskAssessment.immediateActions.map((action: string, i: number) => (
-                              <li key={i}>{action}</li>
-                            ))}
-                          </ul>
-                        </AlertDescription>
-                      </Alert>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-center text-muted-foreground">
-                    Assessment pending...
-                  </div>
-                )}
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Real-time Azure Speech transcription
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Clinical context analysis
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Sentiment and emotional tone detection
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Risk indicator identification
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Treatment theme extraction
+                  </li>
+                </ul>
               </CardContent>
             </Card>
 
-            {/* Progress Notes */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Auto-Generated Notes
+                  <Video className="h-5 w-5" />
+                  Video Intelligence
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {analysisResults.progressNotes ? (
-                  <div className="space-y-3">
-                    <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm">
-                      {analysisResults.progressNotes.generatedNotes}
-                    </div>
-                    
-                    <div>
-                      <h4 className="font-medium mb-2">Billing Codes</h4>
-                      <div className="flex gap-2">
-                        {analysisResults.progressNotes.billingCodes?.map((code: string, i: number) => (
-                          <Badge key={i} variant="outline">{code}</Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center text-muted-foreground">
-                    Notes generation pending...
-                  </div>
-                )}
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Facial expression recognition
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Engagement level monitoring
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Body language analysis
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Pose estimation and tracking
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Behavioral pattern detection
+                  </li>
+                </ul>
               </CardContent>
             </Card>
 
-            {/* Time Efficiency */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Brain className="h-5 w-5" />
+                  Clinical Decision Support
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Multi-modal data correlation
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Therapeutic alliance assessment
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Progress tracking insights
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Treatment effectiveness metrics
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Compliance monitoring
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="h-5 w-5" />
-                  Efficiency Metrics
+                  Real-time Analytics
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {analysisResults.sessionAnalysis?.timeEfficiency ? (
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <span className="text-sm text-muted-foreground">Manual Time:</span>
-                        <div className="text-lg font-semibold">
-                          {analysisResults.sessionAnalysis.timeEfficiency.estimatedManualTime} min
-                        </div>
-                      </div>
-                      <div>
-                        <span className="text-sm text-muted-foreground">AI Time:</span>
-                        <div className="text-lg font-semibold">
-                          {analysisResults.sessionAnalysis.timeEfficiency.aiAssistedTime} min
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <Alert>
-                      <CheckCircle className="h-4 w-4" />
-                      <AlertDescription>
-                        <strong>Time Saved: {analysisResults.sessionAnalysis.timeEfficiency.timeSaved} minutes</strong>
-                        <br />
-                        Efficiency Gain: {analysisResults.sessionAnalysis.timeEfficiency.efficiencyGain}
-                      </AlertDescription>
-                    </Alert>
-                  </div>
-                ) : (
-                  <div className="text-center text-muted-foreground">
-                    Efficiency calculation pending...
-                  </div>
-                )}
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Live engagement scoring
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Instant risk alerts
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Session quality metrics
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Behavioral trend analysis
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Automated documentation
+                  </li>
+                </ul>
               </CardContent>
             </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="privacy" className="mt-6">
+          <div className="space-y-6">
+            <Alert>
+              <Shield className="h-4 w-4" />
+              <AlertDescription>
+                All video analysis is performed locally in your browser. No raw video data is transmitted to servers.
+              </AlertDescription>
+            </Alert>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="border-green-200 bg-green-50 dark:bg-green-950">
+                <CardHeader>
+                  <CardTitle className="text-green-700 dark:text-green-300">
+                    Client-Side Processing
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2 text-sm text-green-700 dark:text-green-200">
+                    <li>• Video analysis runs entirely in browser</li>
+                    <li>• TensorFlow.js models for local processing</li>
+                    <li>• No video data leaves your device</li>
+                    <li>• Only anonymized metrics are stored</li>
+                    <li>• Complete user control over data</li>
+                  </ul>
+                </CardContent>
+              </Card>
+
+              <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950">
+                <CardHeader>
+                  <CardTitle className="text-blue-700 dark:text-blue-300">
+                    HIPAA Compliance
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2 text-sm text-blue-700 dark:text-blue-200">
+                    <li>• End-to-end encryption for all data</li>
+                    <li>• Secure Azure Speech Service integration</li>
+                    <li>• Audit trails for all processing</li>
+                    <li>• Configurable data retention policies</li>
+                    <li>• Professional-grade security standards</li>
+                  </ul>
+                </CardContent>
+              </Card>
+
+              <Card className="border-purple-200 bg-purple-50 dark:bg-purple-950">
+                <CardHeader>
+                  <CardTitle className="text-purple-700 dark:text-purple-300">
+                    Data Protection
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2 text-sm text-purple-700 dark:text-purple-200">
+                    <li>• Zero-knowledge video processing</li>
+                    <li>• Encrypted transcription transmission</li>
+                    <li>• Automatic session data purging</li>
+                    <li>• User-controlled privacy settings</li>
+                    <li>• Transparent data handling</li>
+                  </ul>
+                </CardContent>
+              </Card>
+
+              <Card className="border-orange-200 bg-orange-50 dark:bg-orange-950">
+                <CardHeader>
+                  <CardTitle className="text-orange-700 dark:text-orange-300">
+                    Professional Standards
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2 text-sm text-orange-700 dark:text-orange-200">
+                    <li>• APA ethical guidelines compliance</li>
+                    <li>• State licensing requirement adherence</li>
+                    <li>• Professional liability protection</li>
+                    <li>• Clinical documentation standards</li>
+                    <li>• Supervision and oversight support</li>
+                  </ul>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </TabsContent>
       </Tabs>
     </div>
   );
-}
+};
+
+export default SessionRecording;
