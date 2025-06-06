@@ -3737,6 +3737,38 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
     }
   });
 
+  // Save shared insight as insight card (returns data for Firebase storage)
+  app.post('/api/insights/:insightId/save-as-card', express.json(), async (req, res) => {
+    try {
+      const { insightId } = req.params;
+      const { userId } = req.body;
+      
+      // Get the original insight
+      const [sharedInsight] = await db.select().from(sharedInsightTable)
+        .where(eq(sharedInsightTable.id, insightId));
+      
+      if (!sharedInsight) {
+        return res.status(404).json({ error: 'Insight not found' });
+      }
+      
+      // Return insight card data for Firebase storage
+      const cardData = {
+        type: 'note',
+        title: `Shared Insight: ${sharedInsight.title}`,
+        content: sharedInsight.content,
+        tags: sharedInsight.tags ? JSON.parse(sharedInsight.tags) : ['shared-insight', sharedInsight.type]
+      };
+      
+      res.json({ 
+        cardData,
+        message: 'Insight ready to be saved as card'
+      });
+    } catch (error) {
+      console.error('Save insight as card error:', error);
+      res.status(500).json({ error: 'Failed to prepare insight as card' });
+    }
+  });
+
   // Client Portal API Routes
   
   // Get clients for therapist
@@ -4234,6 +4266,44 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
     } catch (error) {
       console.error('Error updating supervisor insight:', error);
       res.status(500).json({ error: 'Failed to update supervisor insight' });
+    }
+  });
+
+  // Save supervisor insight as insight card
+  app.post('/api/supervisor-insights/:insightId/save-as-card', express.json(), async (req, res) => {
+    try {
+      const { insightId } = req.params;
+      const { userId } = req.body;
+      
+      // Get the original supervisor insight
+      const [supervisorInsight] = await db.select().from(supervisorInsightsTable)
+        .where(eq(supervisorInsightsTable.id, insightId));
+      
+      if (!supervisorInsight) {
+        return res.status(404).json({ error: 'Supervisor insight not found' });
+      }
+      
+      // Create insight card
+      const cardId = `card_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      const [insightCard] = await db.insert(insightCardTable).values({
+        id: cardId,
+        userId,
+        type: 'note',
+        title: `Supervisor Insight: ${supervisorInsight.title}`,
+        content: supervisorInsight.content,
+        tags: [`supervisor-insight`, supervisorInsight.type, supervisorInsight.priority],
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }).returning();
+      
+      res.json({ 
+        card: insightCard,
+        message: 'Supervisor insight saved as card successfully'
+      });
+    } catch (error) {
+      console.error('Save supervisor insight as card error:', error);
+      res.status(500).json({ error: 'Failed to save supervisor insight as card' });
     }
   });
 
