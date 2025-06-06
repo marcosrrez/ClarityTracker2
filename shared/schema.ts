@@ -1292,6 +1292,35 @@ export const sessionVideoAnalysisTable = pgTable('session_video_analysis', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+// Integration Usage Tracking for Cost Monitoring
+export const integrationUsageTable = pgTable('integration_usage', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  service: varchar('service', { length: 100 }).notNull(), // openai-gpt4o, anthropic-claude-4, etc.
+  operation: varchar('operation', { length: 100 }).notNull(), // chat, transcription, etc.
+  units: real('units').notNull(), // tokens, minutes, images, etc.
+  costPerUnit: real('cost_per_unit').notNull(),
+  totalCost: real('total_cost').notNull(),
+  userId: varchar('user_id', { length: 255 }),
+  metadata: jsonb('metadata'), // additional context like model, quality, etc.
+  timestamp: timestamp('timestamp').defaultNow().notNull(),
+});
+
+export const integrationUsageSchema = z.object({
+  id: z.string(),
+  service: z.string(),
+  operation: z.string(),
+  units: z.number(),
+  costPerUnit: z.number(),
+  totalCost: z.number(),
+  userId: z.string().optional(),
+  metadata: z.record(z.any()).default({}),
+  timestamp: z.date(),
+});
+
+export const insertIntegrationUsageSchema = createInsertSchema(integrationUsageTable);
+export type IntegrationUsage = typeof integrationUsageTable.$inferSelect;
+export type InsertIntegrationUsage = z.infer<typeof insertIntegrationUsageSchema>;
+
 export const sessionClinicalInsightsTable = pgTable('session_clinical_insights', {
   id: varchar('id', { length: 255 }).primaryKey(),
   sessionId: varchar('session_id', { length: 255 }).notNull(),

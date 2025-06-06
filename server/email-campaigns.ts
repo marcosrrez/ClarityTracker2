@@ -279,7 +279,7 @@ const emailCampaigns: CampaignEmail[] = [
         </p>
       </div>
     `
-  }];,
+  },
   
   {
     id: 'ai-supervision-prep',

@@ -4796,6 +4796,110 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
     }
   });
 
+  // Admin API endpoints for cost monitoring and usage analytics
+  app.get('/api/admin/analytics', async (req, res) => {
+    try {
+      // Get basic user count from users table
+      const userCount = await db.select().from(users);
+      
+      // Mock analytics data for now - in production this would pull from real usage data
+      const analytics = {
+        summary: {
+          totalUsers: userCount.length,
+          totalSessions: Math.floor(userCount.length * 2.5), // Average sessions per user
+          totalEvents: Math.floor(userCount.length * 15), // Average events per user
+          activeUsers: Math.floor(userCount.length * 0.7), // 70% active rate
+        },
+        topPages: [
+          { page: 'dashboard', visits: Math.floor(userCount.length * 0.8) },
+          { page: 'session-log', visits: Math.floor(userCount.length * 0.6) },
+          { page: 'insights', visits: Math.floor(userCount.length * 0.4) },
+          { page: 'reports', visits: Math.floor(userCount.length * 0.3) },
+          { page: 'settings', visits: Math.floor(userCount.length * 0.2) },
+        ],
+        userActivity: [
+          { event: 'session_logged', count: Math.floor(userCount.length * 3) },
+          { event: 'insight_viewed', count: Math.floor(userCount.length * 2) },
+          { event: 'report_generated', count: Math.floor(userCount.length * 1.5) },
+          { event: 'profile_updated', count: Math.floor(userCount.length * 0.8) },
+        ],
+        dailyActivity: Array.from({ length: 7 }, (_, i) => ({
+          date: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
+          events: Math.floor(Math.random() * 50) + 20,
+          users: Math.floor(Math.random() * 15) + 5,
+        })).reverse(),
+      };
+
+      res.json(analytics);
+    } catch (error) {
+      console.error('Admin analytics error:', error);
+      res.status(500).json({ error: 'Failed to fetch analytics' });
+    }
+  });
+
+  app.get('/api/admin/cost-analytics', async (req, res) => {
+    try {
+      const { startDate, endDate } = req.query;
+      
+      // For now, return simulated cost data based on user activity
+      const userCount = await db.select().from(users);
+      const dailyCost = userCount.length * 0.15; // $0.15 per user per day average
+      const days = startDate && endDate ? 
+        Math.ceil((new Date(endDate as string).getTime() - new Date(startDate as string).getTime()) / (1000 * 60 * 60 * 24)) : 30;
+      
+      const totalCost = dailyCost * days;
+      const projectedMonthlyCost = dailyCost * 30;
+      
+      const costBreakdown = {
+        totalCost: totalCost,
+        averageCostPerUser: totalCost / userCount.length,
+        projectedMonthlyCost: projectedMonthlyCost,
+        yearlyProjection: projectedMonthlyCost * 12,
+        serviceBreakdown: [
+          { service: 'OpenAI GPT-4o', cost: totalCost * 0.45, calls: Math.floor(userCount.length * days * 2.3), unit: 'tokens' },
+          { service: 'Anthropic Claude-4', cost: totalCost * 0.25, calls: Math.floor(userCount.length * days * 1.1), unit: 'tokens' },
+          { service: 'Azure Speech', cost: totalCost * 0.15, calls: Math.floor(userCount.length * days * 0.8), unit: 'minutes' },
+          { service: 'Resend Email', cost: totalCost * 0.10, calls: Math.floor(userCount.length * days * 0.4), unit: 'emails' },
+          { service: 'Google AI', cost: totalCost * 0.05, calls: Math.floor(userCount.length * days * 0.2), unit: 'requests' },
+        ],
+        dailyUsage: Array.from({ length: Math.min(days, 30) }, (_, i) => ({
+          date: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          cost: dailyCost * (0.8 + Math.random() * 0.4),
+          calls: Math.floor(userCount.length * (2 + Math.random() * 3)),
+        })).reverse(),
+      };
+
+      res.json(costBreakdown);
+    } catch (error) {
+      console.error('Cost analytics error:', error);
+      res.status(500).json({ error: 'Failed to fetch cost analytics' });
+    }
+  });
+
+  app.get('/api/admin/feedback', async (req, res) => {
+    try {
+      // Get feedback from database if available, otherwise return empty array
+      const feedback = []; // In production, this would query the feedback table
+      res.json(feedback);
+    } catch (error) {
+      console.error('Admin feedback error:', error);
+      res.status(500).json({ error: 'Failed to fetch feedback' });
+    }
+  });
+
+  app.patch('/api/admin/feedback/:id/status', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      // In production, this would update the feedback status in the database
+      res.json({ success: true, id, status });
+    } catch (error) {
+      console.error('Update feedback status error:', error);
+      res.status(500).json({ error: 'Failed to update feedback status' });
+    }
+  });
+
   // Generate SOAP notes from session data
   app.post('/api/session-intelligence/generate-soap', async (req, res) => {
     try {

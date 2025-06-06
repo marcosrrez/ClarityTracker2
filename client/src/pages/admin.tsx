@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertCircle, CheckCircle, Clock, MessageSquare, Bug, Lightbulb, Search, Filter, Download, TrendingUp, Users, Calendar, BarChart3, Activity, Eye, MousePointer, Timer } from "lucide-react";
+import { AlertCircle, CheckCircle, Clock, MessageSquare, Bug, Lightbulb, Search, Filter, Download, TrendingUp, Users, Calendar, BarChart3, Activity, Eye, MousePointer, Timer, DollarSign, Zap, Server, TrendingDown } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { format } from "date-fns";
 
@@ -25,6 +25,7 @@ export default function AdminPage() {
   const { user } = useAuth();
   const [feedback, setFeedback] = useState<FeedbackItem[]>([]);
   const [analytics, setAnalytics] = useState<any>(null);
+  const [costAnalytics, setCostAnalytics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -155,10 +156,11 @@ export default function AdminPage() {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="feedback">Feedback Management</TabsTrigger>
           <TabsTrigger value="analytics">User Analytics</TabsTrigger>
+          <TabsTrigger value="costs">Cost Monitoring</TabsTrigger>
           <TabsTrigger value="insights">Feature Insights</TabsTrigger>
         </TabsList>
 
