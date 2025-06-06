@@ -1,7 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Mail, Phone, Users, Calendar, Clock, ChevronDown, ChevronUp, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
+import { Plus, Edit2, Trash2, Mail, Phone, Users, Calendar, Clock, ChevronDown, ChevronUp, AlertTriangle, CheckCircle, XCircle, Share2, MessageSquare, History, Bell } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 
 interface Supervisor {
   id: string;
@@ -51,6 +56,8 @@ export function SupervisorProfileManager() {
   const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [expandedSupervisors, setExpandedSupervisors] = useState<Set<string>>(new Set());
+  const [selectedSupervisor, setSelectedSupervisor] = useState<Supervisor | null>(null);
+  const [activeTab, setActiveTab] = useState<string>('overview');
   
   const [formData, setFormData] = useState({
     name: '',
@@ -357,7 +364,7 @@ export function SupervisorProfileManager() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Supervisors</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Supervisor Management</h2>
         <button
           onClick={() => {
             resetForm();
@@ -370,9 +377,38 @@ export function SupervisorProfileManager() {
         </button>
       </div>
 
-      {/* Supervisors List */}
-      <div className="grid gap-6">
-        {supervisors.map((supervisor) => {
+      {/* Enhanced Tab Structure */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="overview" className="flex items-center gap-2">
+            <Users size={16} />
+            My Supervisors
+          </TabsTrigger>
+          <TabsTrigger value="collaboration" className="flex items-center gap-2">
+            <MessageSquare size={16} />
+            Collaboration
+          </TabsTrigger>
+          <TabsTrigger value="history" className="flex items-center gap-2">
+            <History size={16} />
+            Sharing History
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Overview Tab - Current supervisor management */}
+        <TabsContent value="overview" className="space-y-4">
+          {selectedSupervisor ? (
+            <Button 
+              variant="outline" 
+              onClick={() => setSelectedSupervisor(null)}
+              className="mb-4"
+            >
+              ← Back to All Supervisors
+            </Button>
+          ) : null}
+
+          {/* Supervisors List */}
+          <div className="grid gap-6">
+            {supervisors.map((supervisor) => {
           const isExpanded = expandedSupervisors.has(supervisor.id);
           const complianceIcon = supervisor.complianceStatus === 'on_track' ? CheckCircle : 
                                 supervisor.complianceStatus === 'behind' ? AlertTriangle : XCircle;
@@ -618,7 +654,62 @@ export function SupervisorProfileManager() {
             </div>
           );
         })}
-      </div>
+          </div>
+        </TabsContent>
+
+        {/* Collaboration Tab */}
+        <TabsContent value="collaboration" className="space-y-6">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+              Collaboration Settings
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              Control what information you share with your supervisors. All sharing is opt-in and you maintain full control.
+            </p>
+            
+            <div className="space-y-4">
+              {supervisors.map((supervisor) => (
+                <div key={supervisor.id} className="border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold">
+                        {supervisor.name.split(' ').map(n => n[0]).join('')}
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900 dark:text-gray-100">{supervisor.name}</h4>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{supervisor.title}</p>
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      Configure Sharing
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* Sharing History Tab */}
+        <TabsContent value="history" className="space-y-6">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+              Sharing History
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              View your sharing history and manage permissions.
+            </p>
+            
+            <div className="text-center py-8">
+              <History size={48} className="text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500 dark:text-gray-400">No sharing history yet</p>
+              <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
+                Start sharing insights with your supervisors to see history here
+              </p>
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
 
       {/* Mobile-Optimized Modal */}
       {isDialogOpen && (
