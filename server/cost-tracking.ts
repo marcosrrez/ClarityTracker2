@@ -36,6 +36,9 @@ const SERVICE_COSTS = {
   'resend-email': 0.001, // per email
   'twilio-sms': 0.0075, // per SMS
   'firebase-auth': 0.0055, // per user per month
+  'firebase-firestore': 0.00006, // per document read/write
+  'google-ai-gemini': 0.0005, // per 1K tokens
+  'replit-hosting': 0.014, // per hour (compute unit)
   'postgresql-queries': 0.000001, // per query (minimal cost)
 };
 

@@ -174,7 +174,7 @@ export default function AdminPage() {
           <TabsTrigger value="feedback">Feedback Management</TabsTrigger>
           <TabsTrigger value="analytics">User Analytics</TabsTrigger>
           <TabsTrigger value="costs">Cost Monitoring</TabsTrigger>
-          <TabsTrigger value="insights">Feature Insights</TabsTrigger>
+          <TabsTrigger value="insights">Product Analytics</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
