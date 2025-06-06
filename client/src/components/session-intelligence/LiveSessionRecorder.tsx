@@ -235,6 +235,9 @@ const LiveSessionRecorder: React.FC = () => {
       
       console.log('Video capture started');
       
+      // Start real-time analysis simulation
+      startRealTimeAnalysis();
+      
     } catch (error) {
       console.error('Failed to start recording:', error);
       setRiskAlerts(prev => [...prev, {
@@ -245,6 +248,65 @@ const LiveSessionRecorder: React.FC = () => {
         timestamp: Date.now()
       }]);
     }
+  };
+
+  const startRealTimeAnalysis = () => {
+    // Simulate progressive transcription
+    const transcriptionSimulation = [
+      "Welcome to our session today.",
+      "How are you feeling right now?",
+      "I notice you seem a bit anxious.",
+      "Let's explore what's been on your mind lately.",
+      "Can you tell me more about your experiences this week?",
+      "I see that this is causing you some distress.",
+      "What coping strategies have you tried before?",
+      "That sounds like a significant challenge.",
+      "You're showing great self-awareness.",
+      "Let's work together on some techniques."
+    ];
+
+    let transcriptIndex = 0;
+    const transcriptInterval = setInterval(() => {
+      if (transcriptIndex < transcriptionSimulation.length && isRecording) {
+        const newSegment = {
+          text: transcriptionSimulation[transcriptIndex],
+          timestamp: Date.now(),
+          confidence: 0.85 + Math.random() * 0.15
+        };
+        
+        setTranscriptionSegments(prev => [...prev, newSegment]);
+        setSessionTranscript(prev => prev + ' ' + newSegment.text);
+        
+        // Add clinical insights based on transcription
+        if (transcriptIndex % 3 === 0) {
+          setClinicalInsights(prev => [...prev, {
+            type: 'Engagement Analysis',
+            content: `Client engagement level: ${Math.floor(70 + Math.random() * 30)}%`,
+            confidence: 0.8 + Math.random() * 0.2,
+            timestamp: Date.now()
+          }]);
+        }
+        
+        transcriptIndex++;
+      } else {
+        clearInterval(transcriptInterval);
+      }
+    }, 3000);
+
+    // Simulate emotion detection
+    const emotionInterval = setInterval(() => {
+      if (isRecording) {
+        const emotions = ['calm', 'anxious', 'hopeful', 'frustrated', 'engaged'];
+        const emotion = emotions[Math.floor(Math.random() * emotions.length)];
+        setEmotionalState({
+          emotion,
+          intensity: Math.random() * 0.8 + 0.2,
+          confidence: 0.7 + Math.random() * 0.3
+        });
+      } else {
+        clearInterval(emotionInterval);
+      }
+    }, 5000);
   };
 
   const stopRecording = () => {
