@@ -8,6 +8,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -100,9 +101,9 @@ export function AddClientModal({ isOpen, onClose, therapistId }: AddClientModalP
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Client</DialogTitle>
-          <div className="text-sm text-muted-foreground">
+          <DialogDescription>
             Add a new client to your therapy practice. They will receive access to shared insights.
-          </div>
+          </DialogDescription>
         </DialogHeader>
         
         <Form {...form}>
