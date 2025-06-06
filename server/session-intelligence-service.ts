@@ -643,17 +643,7 @@ Counselor: Exactly. That's a great insight. How might we use that evidence next 
     };
   }
 
-  /**
-   * Fallback EBP analysis
-   */
-  private createFallbackEBPAnalysis() {
-    return {
-      interventionsUsed: ['Active listening', 'Empathic responding'],
-      missedOpportunities: ['Consider structured intervention techniques'],
-      adherenceScore: 0.7,
-      recommendations: ['Review EBP training materials', 'Discuss intervention options in supervision']
-    };
-  }
+
 }
 
 export const sessionIntelligence = new SessionIntelligenceService();

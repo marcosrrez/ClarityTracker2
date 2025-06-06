@@ -2,6 +2,14 @@ import { z } from "zod";
 import { pgTable, text, timestamp, varchar, integer, real, jsonb, serial, boolean } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 
+// Users table for authentication and basic user data
+export const usersTable = pgTable('users', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  email: varchar('email', { length: 255 }).notNull().unique(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 // User Profile Schema
 export const userProfileSchema = z.object({
   preferredName: z.string().min(1, "Preferred name is required"),
@@ -2040,3 +2048,56 @@ export const insertDashboardInteractionSchema = dashboardInteractionSchema.omit(
 
 export type DashboardInteraction = z.infer<typeof dashboardInteractionSchema>;
 export type InsertDashboardInteraction = z.infer<typeof insertDashboardInteractionSchema>;
+
+// Log Entry Table - core table for tracking user entries
+export const logEntryTable = pgTable('log_entries', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  dateOfContact: timestamp('date_of_contact').notNull(),
+  clientContactHours: real('client_contact_hours').notNull().default(0),
+  indirectHours: boolean('indirect_hours').notNull().default(false),
+  supervisionHours: real('supervision_hours').notNull().default(0),
+  supervisionType: varchar('supervision_type', { length: 50 }).notNull().default('none'),
+  supervisionDate: timestamp('supervision_date'),
+  techAssistedSupervision: boolean('tech_assisted_supervision').notNull().default(false),
+  professionalDevelopmentHours: real('professional_development_hours').notNull().default(0),
+  professionalDevelopmentType: varchar('professional_development_type', { length: 50 }).notNull().default('none'),
+  notes: text('notes').notNull().default(''),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Insight Card Table - missing from above
+export const insightCardTable = pgTable('insight_cards', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  type: varchar('type', { length: 50 }).notNull(),
+  title: varchar('title', { length: 255 }).notNull(),
+  content: text('content').notNull(),
+  tags: text('tags'),
+  originalUrl: text('original_url'),
+  imageData: text('image_data'),
+  visualAnalysis: text('visual_analysis'),
+  searchTags: text('search_tags'),
+  analysis: text('analysis'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Create insert schemas for missing tables
+export const insertUsersSchema = createInsertSchema(usersTable);
+export const insertLogEntryTableSchema = createInsertSchema(logEntryTable);
+export const insertInsightCardTableSchema = createInsertSchema(insightCardTable);
+
+// Types for missing tables
+export type User = typeof usersTable.$inferSelect;
+export type InsertUser = z.infer<typeof insertUsersSchema>;
+export type LogEntryTable = typeof logEntryTable.$inferSelect;
+export type InsertLogEntryTable = z.infer<typeof insertLogEntryTableSchema>;
+export type InsightCardTable = typeof insightCardTable.$inferSelect;
+export type InsertInsightCardTable = z.infer<typeof insertInsightCardTableSchema>;
+
+// Table aliases for backward compatibility
+export const users = usersTable;
+export const logEntries = logEntryTable;
+export const insightCards = insightCardTable;
