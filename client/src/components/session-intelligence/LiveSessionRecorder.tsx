@@ -183,9 +183,11 @@ const LiveSessionRecorder: React.FC = () => {
   const [riskAlerts, setRiskAlerts] = useState<RiskAlert[]>([]);
   
   // Service instances
-  const speechServiceRef = useRef<AzureSpeechService | null>(null);
   const videoServiceRef = useRef<VideoService | null>(null);
-  const videoContainerRef = useRef<HTMLDivElement>(null);
+  const videoElementRef = useRef<HTMLVideoElement | null>(null);
+  
+  // Video state
+  const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
   
   // Transcription state
   const [currentTranscript, setCurrentTranscript] = useState('');
@@ -213,76 +215,30 @@ const LiveSessionRecorder: React.FC = () => {
 
   const startRecording = async () => {
     try {
-      // Start video capture
-      if (videoServiceRef.current && videoContainerRef.current) {
-        const videoElement = await videoServiceRef.current.startVideo({
-          onVideoFrame: (frame) => {
-            // Process video frame for emotion analysis
-            // This would integrate with Google AI for facial analysis
-          },
-          onError: (error) => {
-            console.error('Video error:', error);
-          },
-          onStart: () => {
-            console.log('Video capture started');
-            setHasVideo(true);
-          },
-          onStop: () => {
-            console.log('Video capture stopped');
-            setHasVideo(false);
-          }
-        });
-
-        // Append video element to container
-        if (videoElement && videoContainerRef.current) {
-          // Clear existing content safely
-          while (videoContainerRef.current.firstChild) {
-            videoContainerRef.current.removeChild(videoContainerRef.current.firstChild);
-          }
-          videoElement.style.width = '100%';
-          videoElement.style.height = '100%';
-          videoElement.style.objectFit = 'cover';
-          videoElement.style.borderRadius = '8px';
-          videoContainerRef.current.appendChild(videoElement);
-        }
-      }
+      // Start video capture using navigator.mediaDevices directly
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: true, 
+        audio: true 
+      });
       
+      setVideoStream(stream);
+      setHasVideo(true);
       setIsRecording(true);
       setSessionDuration(0);
       
-      // Start mock transcription for demonstration
-      setSessionTranscript('This is a sample session transcript for testing the AI analysis capabilities.');
+      // Connect video stream to video element
+      if (videoElementRef.current) {
+        videoElementRef.current.srcObject = stream;
+      }
       
-      // Simulate real-time clinical insights
-      setTimeout(() => {
-        setClinicalInsights([
-          {
-            type: 'Engagement',
-            content: 'Client showing positive engagement with therapeutic process',
-            confidence: 0.85,
-            timestamp: Date.now()
-          }
-        ]);
-      }, 3000);
-
-      setTimeout(() => {
-        setRiskAlerts([
-          {
-            id: Date.now().toString(),
-            severity: 'low',
-            message: 'Session proceeding normally',
-            icon: 'check-circle',
-            timestamp: Date.now()
-          }
-        ]);
-      }, 5000);
+      console.log('Video capture started');
       
     } catch (error) {
       console.error('Failed to start recording:', error);
       setRiskAlerts(prev => [...prev, {
         id: Date.now().toString(),
         severity: 'high',
-        message: 'Failed to initialize recording services',
+        message: 'Failed to access camera/microphone',
         icon: 'alert-triangle',
         timestamp: Date.now()
       }]);
@@ -292,6 +248,14 @@ const LiveSessionRecorder: React.FC = () => {
   const stopRecording = () => {
     setIsRecording(false);
     setSessionMode('review');
+    
+    // Stop video stream
+    if (videoStream) {
+      videoStream.getTracks().forEach(track => track.stop());
+      setVideoStream(null);
+    }
+    
+    setHasVideo(false);
   };
 
   const formatDuration = (seconds: number): string => {
@@ -347,16 +311,18 @@ const LiveSessionRecorder: React.FC = () => {
         <div className="flex-1 p-6">
           <Card className="h-full">
             <CardContent className="p-6 h-full flex flex-col justify-center">
-              <div 
-                ref={videoContainerRef}
-                className="relative bg-slate-100 dark:bg-slate-800 rounded-lg h-full min-h-[300px] flex items-center justify-center"
-              >
-                {!hasVideo && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center">
-                      <Camera className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                      <p className="text-muted-foreground">Click Start to begin recording</p>
-                    </div>
+              <div className="relative bg-slate-100 dark:bg-slate-800 rounded-lg h-full min-h-[300px] flex items-center justify-center">
+                {hasVideo ? (
+                  <video
+                    ref={videoElementRef}
+                    autoPlay
+                    muted
+                    className="w-full h-full object-cover rounded-lg"
+                  />
+                ) : (
+                  <div className="text-center">
+                    <Camera className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">Click Start to begin recording</p>
                   </div>
                 )}
 
