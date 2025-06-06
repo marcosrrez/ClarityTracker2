@@ -47,6 +47,7 @@ const getNavigationItems = (accountType: string, permissions: any) => {
 
   // Professional development items
   const professionalItems = [
+    { href: "/supervisors", label: "Supervisors", icon: Users, group: "secondary" },
     { href: "/session-recording", label: "Session Recording", icon: Mic, group: "secondary" },
     { href: "/session-intelligence", label: "Session Intelligence", icon: Brain, group: "secondary" },
     { href: "/research-library", label: "Research Library", icon: BookOpen, group: "secondary" },
