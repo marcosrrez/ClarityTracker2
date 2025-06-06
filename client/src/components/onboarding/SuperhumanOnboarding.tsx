@@ -166,30 +166,37 @@ export function SuperhumanOnboarding({ onComplete, userType }: SuperhumanOnboard
   const isLastStep = currentStep === steps.length - 1;
 
   return (
-    <div className="fixed inset-0 bg-white dark:bg-gray-900 z-50 flex items-center justify-center">
-      <div className="max-w-4xl w-full mx-auto px-8">
+    <div className="fixed inset-0 bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 z-50 flex items-center justify-center relative overflow-hidden">
+      {/* Background effects matching landing page */}
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.03%22%3E%3Ccircle%20cx%3D%2230%22%20cy%3D%2230%22%20r%3D%221%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
+      <div className="absolute top-0 left-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
+      
+      <div className="max-w-4xl w-full mx-auto px-8 relative z-10">
         
         {/* Progress Bar */}
         <div className="mb-12">
           <div className="flex items-center justify-center gap-4 mb-4">
             {steps.map((step, index) => (
               <div key={step.id} className="flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 backdrop-blur-sm border ${
                   completedSteps.includes(index) 
-                    ? 'bg-green-500 text-white' 
+                    ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white border-green-300/50 shadow-lg shadow-green-500/25' 
                     : index === currentStep 
-                      ? 'bg-blue-500 text-white' 
-                      : 'bg-gray-200 dark:bg-gray-700 text-gray-400'
+                      ? 'bg-gradient-to-r from-purple-400 to-blue-500 text-white border-purple-300/50 shadow-lg shadow-purple-500/25' 
+                      : 'bg-white/10 text-purple-200 border-white/20'
                 }`}>
                   {completedSteps.includes(index) ? (
-                    <CheckCircle2 className="h-4 w-4" />
+                    <CheckCircle2 className="h-5 w-5" />
                   ) : (
-                    <span className="text-sm font-medium">{index + 1}</span>
+                    <span className="text-sm font-semibold">{index + 1}</span>
                   )}
                 </div>
                 {index < steps.length - 1 && (
-                  <div className={`w-16 h-0.5 transition-colors duration-300 ${
-                    completedSteps.includes(index) ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-700'
+                  <div className={`w-16 h-1 rounded-full transition-all duration-500 ${
+                    completedSteps.includes(index) 
+                      ? 'bg-gradient-to-r from-green-400 to-emerald-500 shadow-sm shadow-green-500/25' 
+                      : 'bg-white/20'
                   }`} />
                 )}
               </div>
@@ -221,15 +228,15 @@ export function SuperhumanOnboarding({ onComplete, userType }: SuperhumanOnboard
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3, duration: 0.4 }}
-                className="space-y-4 mb-8"
+                className="space-y-6 mb-12"
               >
-                <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
+                <h1 className="text-5xl sm:text-6xl font-bold text-white leading-tight">
                   {currentStepData.title}
                 </h1>
-                <p className="text-xl text-blue-600 dark:text-blue-400 font-medium">
+                <p className="text-xl sm:text-2xl text-purple-200 font-medium">
                   {currentStepData.subtitle}
                 </p>
-                <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
+                <p className="text-lg text-purple-100/80 max-w-2xl mx-auto leading-relaxed">
                   {currentStepData.description}
                 </p>
               </motion.div>
@@ -242,22 +249,22 @@ export function SuperhumanOnboarding({ onComplete, userType }: SuperhumanOnboard
                 className="max-w-md mx-auto mb-8"
               >
                 {currentStepData.isInteractive ? (
-                  <Card className="p-6 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 border-orange-200 dark:border-orange-800">
-                    <CardContent className="space-y-4 p-0">
-                      <div className="grid grid-cols-2 gap-4">
+                  <Card className="p-8 bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl">
+                    <CardContent className="space-y-6 p-0">
+                      <div className="grid grid-cols-2 gap-6">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          <label className="block text-sm font-semibold text-purple-100 mb-2">
                             Session Date
                           </label>
                           <input
                             type="date"
                             value={firstSessionData.date}
                             onChange={(e) => setFirstSessionData(prev => ({ ...prev, date: e.target.value }))}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                            className="w-full px-4 py-3 border border-white/30 rounded-xl bg-white/10 backdrop-blur-sm text-white placeholder-purple-200 focus:border-purple-300 focus:ring-2 focus:ring-purple-500/25 transition-all"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          <label className="block text-sm font-semibold text-purple-100 mb-2">
                             Hours
                           </label>
                           <input
@@ -335,13 +342,13 @@ export function SuperhumanOnboarding({ onComplete, userType }: SuperhumanOnboard
               <Button
                 onClick={handleNext}
                 size="lg"
-                className="px-8 py-3 text-lg font-medium"
+                className="px-12 py-4 text-lg font-semibold bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white border-0 shadow-2xl shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:transform-none"
                 disabled={isAnimating || isCreatingEntry}
               >
                 {isCreatingEntry ? 'Creating Your First Entry...' : 
                  currentStepData.isInteractive ? 'Create Entry & Continue' :
                  isLastStep ? 'Start Using ClarityLog' : 'Next'}
-                {!isCreatingEntry && <ArrowRight className="ml-2 h-5 w-5" />}
+                {!isCreatingEntry && <ArrowRight className="ml-3 h-6 w-6" />}
               </Button>
             </motion.div>
 
@@ -351,12 +358,12 @@ export function SuperhumanOnboarding({ onComplete, userType }: SuperhumanOnboard
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.9, duration: 0.4 }}
-                className="mt-12 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-100 dark:border-blue-800 max-w-2xl mx-auto"
+                className="mt-16 p-8 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-2xl max-w-2xl mx-auto"
               >
-                <blockquote className="text-sm italic text-gray-700 dark:text-gray-300 mb-2">
+                <blockquote className="text-lg italic text-purple-100 mb-4 leading-relaxed">
                   "{quote.quote}"
                 </blockquote>
-                <cite className="text-xs text-gray-600 dark:text-gray-400">
+                <cite className="text-sm text-purple-200/80 font-medium">
                   — {quote.author}, {quote.theory}
                 </cite>
               </motion.div>
