@@ -1499,64 +1499,30 @@ ${content}`;
   // Session Intelligence Methods
   async getSessionAnalysesByUserId(userId: string): Promise<SessionAnalysis[]> {
     const { db } = await import("./db");
-    try {
-      const analyses = await db
-        .select()
-        .from(sessionAnalysesTable)
-        .where(eq(sessionAnalysesTable.userId, userId))
-        .orderBy(desc(sessionAnalysesTable.sessionDate));
-      
-      return analyses.map(analysis => ({
-        ...analysis,
-        tags: analysis.tags || [],
-        riskIndicators: analysis.riskAssessment ? 
+    
+    const analyses = await db
+      .select()
+      .from(sessionAnalysesTable)
+      .where(eq(sessionAnalysesTable.userId, userId))
+      .orderBy(desc(sessionAnalysesTable.sessionDate));
+    
+    return analyses.map(analysis => ({
+      ...analysis,
+      tags: analysis.tags || [],
+      riskIndicators: analysis.riskIndicators || 
+        (analysis.riskAssessment ? 
           (typeof analysis.riskAssessment === 'object' ? 
-            (analysis.riskAssessment as any).indicators || [] : []) : [],
-        ebpTechniques: analysis.tags ? 
-          (Array.isArray(analysis.tags) ? analysis.tags.filter((tag: string) => tag.startsWith('ebp:')) : []) : [],
-        clinicalInsights: analysis.clinicalInsights || {},
-        therapeuticAllianceScore: analysis.therapeuticAlliance || 0,
-        engagementScore: analysis.engagementMetrics ? 
+            (analysis.riskAssessment as any).indicators || [] : []) : []),
+      ebpTechniques: analysis.ebpTechniques || 
+        (analysis.tags ? 
+          (Array.isArray(analysis.tags) ? analysis.tags.filter((tag: string) => tag.startsWith('ebp:')) : []) : []),
+      clinicalInsights: analysis.clinicalInsights || {},
+      therapeuticAllianceScore: analysis.therapeuticAllianceScore || analysis.therapeuticAlliance || 0,
+      engagementScore: analysis.engagementScore || 
+        (analysis.engagementMetrics ? 
           (typeof analysis.engagementMetrics === 'object' ? 
-            (analysis.engagementMetrics as any).score || 0 : 0) : 0
-      })) as SessionAnalysis[];
-    } catch (error) {
-      console.error('Error fetching session analyses:', error);
-      // Return sample data to show functionality until real data is available
-      return [{
-        id: `demo_${Date.now()}`,
-        userId: userId,
-        sessionId: 'demo_session_001',
-        title: 'Sample Session Analysis',
-        clientInitials: 'A.B.',
-        sessionDate: new Date(),
-        duration: 3600,
-        transcriptionData: null,
-        videoAnalysisData: null,
-        clinicalInsights: {
-          primaryConcerns: ['anxiety', 'depression'],
-          interventionsUsed: ['CBT', 'mindfulness'],
-          clientProgress: 'moderate improvement'
-        },
-        soapNote: null,
-        riskAssessment: null,
-        engagementMetrics: null,
-        behavioralPatterns: null,
-        therapeuticAlliance: 0.8,
-        complianceScore: 0.9,
-        status: 'completed',
-        exported: false,
-        exportedAt: null,
-        tags: ['anxiety', 'cbt', 'progress'],
-        notes: 'Client showed good engagement during session',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        riskIndicators: ['mild anxiety'],
-        ebpTechniques: ['CBT', 'Mindfulness'],
-        therapeuticAllianceScore: 0.8,
-        engagementScore: 0.85
-      }];
-    }
+            (analysis.engagementMetrics as any).score || 0 : 0) : 0)
+    })) as SessionAnalysis[];
   }
 
   async getSessionAnalysisById(id: string): Promise<SessionAnalysis | undefined> {
