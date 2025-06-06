@@ -44,6 +44,9 @@ import SupervisorAnalytics from "@/pages/SupervisorAnalytics";
 import ClientPortal from "@/pages/ClientPortal";
 import ClientDashboard from "@/pages/ClientDashboard";
 import ClientOnboarding from "@/pages/ClientOnboarding";
+import ClientSignup from "@/pages/ClientSignup";
+import ClientLogin from "@/pages/ClientLogin";
+import ClientOnboardingFlow from "@/pages/ClientOnboardingFlow";
 
 import NotFound from "@/pages/not-found";
 
@@ -86,6 +89,9 @@ function Router() {
       <Route path="/test-session-intelligence" component={TestSessionIntelligence} />
       <Route path="/session-recording" component={SessionRecording} />
       <Route path="/supervisor-analytics" component={SupervisorAnalytics} />
+      <Route path="/client-signup" component={ClientSignup} />
+      <Route path="/client-login" component={ClientLogin} />
+      <Route path="/client-onboarding-flow" component={ClientOnboardingFlow} />
       <Route path="/client-portal" component={() => <ClientPortal userId="demo-user" />} />
       <Route path="/client-onboarding/:inviteToken" component={ClientOnboarding} />
       <Route path="/client-dashboard" component={ClientDashboard} />
