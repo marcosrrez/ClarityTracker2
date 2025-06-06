@@ -235,7 +235,10 @@ const LiveSessionRecorder: React.FC = () => {
 
         // Append video element to container
         if (videoElement && videoContainerRef.current) {
-          videoContainerRef.current.innerHTML = '';
+          // Clear existing content safely
+          while (videoContainerRef.current.firstChild) {
+            videoContainerRef.current.removeChild(videoContainerRef.current.firstChild);
+          }
           videoElement.style.width = '100%';
           videoElement.style.height = '100%';
           videoElement.style.objectFit = 'cover';
