@@ -8,7 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Users, Share2, TrendingUp, Calendar, MessageSquare, FileText } from "lucide-react";
+import { Plus, Users, Share2, TrendingUp, Calendar, MessageSquare, FileText, BookmarkPlus } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { ClientInvitationManager } from "@/components/client-portal/ClientInvitationManager";
 
@@ -40,6 +41,7 @@ export default function ClientPortal({ userId }: { userId: string }) {
   const [showShareInsight, setShowShareInsight] = useState(false);
 
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   // Fetch real client data
   const { data: clientsData, isLoading: clientsLoading } = useQuery({
@@ -65,35 +67,7 @@ export default function ClientPortal({ userId }: { userId: string }) {
 
   const sharedInsights = insightsData?.insights || [];
 
-  const sampleInsights: SharedInsight[] = [
-    {
-      id: '1',
-      clientId: '1',
-      title: 'Weekly Progress Update',
-      content: 'Great progress with anxiety management techniques. Continue practicing daily breathing exercises.',
-      type: 'progress',
-      sharedAt: new Date('2024-06-04'),
-      clientViewed: true
-    },
-    {
-      id: '2',
-      clientId: '1',
-      title: 'Homework Assignment',
-      content: 'Practice mindfulness meditation for 10 minutes daily and track mood in journal.',
-      type: 'homework',
-      sharedAt: new Date('2024-06-03'),
-      clientViewed: false
-    },
-    {
-      id: '3',
-      clientId: '2',
-      title: 'Breakthrough Moment',
-      content: 'Excellent insight about relationship patterns during our session today.',
-      type: 'breakthrough',
-      sharedAt: new Date('2024-06-03'),
-      clientViewed: true
-    }
-  ];
+
 
   const handleAddClient = () => {
     console.log('Adding client:', newClientForm);
@@ -115,6 +89,34 @@ export default function ClientPortal({ userId }: { userId: string }) {
       queryClient.invalidateQueries({ queryKey: ['/api/insights/therapist', userId] });
       setNewInsightForm({ title: '', content: '', type: 'progress' });
       setShowShareInsight(false);
+      toast({
+        title: "Insight shared successfully",
+        description: "Your insight has been shared with the client.",
+      });
+    }
+  });
+
+  const saveAsCardMutation = useMutation({
+    mutationFn: async (insightData: any) => {
+      const response = await fetch('/api/insights/save-as-card', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          sharedInsightId: insightData.id,
+          title: insightData.title,
+          content: insightData.content,
+          type: insightData.type
+        })
+      });
+      if (!response.ok) throw new Error('Failed to save insight as card');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Insight saved as card",
+        description: "The insight has been saved to your insight cards collection.",
+      });
     }
   });
 
