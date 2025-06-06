@@ -213,43 +213,6 @@ const LiveSessionRecorder: React.FC = () => {
 
   const startRecording = async () => {
     try {
-      // Start Azure Speech recognition
-      if (speechServiceRef.current) {
-        await speechServiceRef.current.startRecognition({
-          onTranscription: (segment) => {
-            setTranscriptionSegments(prev => [...prev, segment]);
-            setCurrentTranscript(prev => prev + ' ' + segment.text);
-            setSessionTranscript(prev => prev + ' ' + segment.text);
-            
-            // Generate clinical insights from transcription
-            if (segment.text.length > 10) {
-              setClinicalInsights(prev => [...prev, {
-                type: 'Speech Analysis',
-                content: `Detected speech pattern: ${segment.text.substring(0, 50)}...`,
-                confidence: segment.confidence,
-                timestamp: Date.now()
-              }]);
-            }
-          },
-          onError: (error) => {
-            console.error('Speech recognition error:', error);
-            setRiskAlerts(prev => [...prev, {
-              id: Date.now().toString(),
-              severity: 'medium',
-              message: 'Speech recognition interrupted',
-              icon: 'mic-off',
-              timestamp: Date.now()
-            }]);
-          },
-          onStart: () => {
-            console.log('Azure Speech recognition started');
-          },
-          onStop: () => {
-            console.log('Azure Speech recognition stopped');
-          }
-        });
-      }
-
       // Start video capture
       if (videoServiceRef.current && videoContainerRef.current) {
         const videoElement = await videoServiceRef.current.startVideo({
@@ -283,6 +246,33 @@ const LiveSessionRecorder: React.FC = () => {
       
       setIsRecording(true);
       setSessionDuration(0);
+      
+      // Start mock transcription for demonstration
+      setSessionTranscript('This is a sample session transcript for testing the AI analysis capabilities.');
+      
+      // Simulate real-time clinical insights
+      setTimeout(() => {
+        setClinicalInsights([
+          {
+            type: 'Engagement',
+            content: 'Client showing positive engagement with therapeutic process',
+            confidence: 0.85,
+            timestamp: Date.now()
+          }
+        ]);
+      }, 3000);
+
+      setTimeout(() => {
+        setRiskAlerts([
+          {
+            id: Date.now().toString(),
+            severity: 'low',
+            message: 'Session proceeding normally',
+            icon: 'check-circle',
+            timestamp: Date.now()
+          }
+        ]);
+      }, 5000);
       
     } catch (error) {
       console.error('Failed to start recording:', error);
@@ -354,16 +344,16 @@ const LiveSessionRecorder: React.FC = () => {
         <div className="flex-1 p-6">
           <Card className="h-full">
             <CardContent className="p-6 h-full flex flex-col justify-center">
-              <div className="relative bg-slate-100 dark:bg-slate-800 rounded-lg h-full min-h-[300px] flex items-center justify-center">
-                {hasVideo ? (
-                  <div className="text-center">
-                    <Video className="h-16 w-16 text-blue-600 mx-auto mb-4" />
-                    <p className="text-muted-foreground">Video feed would appear here</p>
-                  </div>
-                ) : (
-                  <div className="text-center">
-                    <Camera className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">Click Start to begin recording</p>
+              <div 
+                ref={videoContainerRef}
+                className="relative bg-slate-100 dark:bg-slate-800 rounded-lg h-full min-h-[300px] flex items-center justify-center"
+              >
+                {!hasVideo && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center">
+                      <Camera className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-muted-foreground">Click Start to begin recording</p>
+                    </div>
                   </div>
                 )}
 
