@@ -438,13 +438,13 @@ const LiveSessionRecorder: React.FC = () => {
             {/* Controls */}
             <div className="flex gap-4 mt-4">
               {!isRecording ? (
-                <Button onClick={startRecording} className="flex-1">
-                  <Mic className="h-4 w-4 mr-2" />
+                <Button onClick={startRecording} className="flex-1" size="sm">
+                  <Mic className="h-3 w-3 mr-2" />
                   Start Live Analysis
                 </Button>
               ) : (
-                <Button onClick={stopRecording} variant="destructive" className="flex-1">
-                  <Square className="h-4 w-4 mr-2" />
+                <Button onClick={stopRecording} variant="destructive" className="flex-1" size="sm">
+                  <Square className="h-3 w-3 mr-2" />
                   Stop Recording
                 </Button>
               )}
@@ -459,7 +459,7 @@ const LiveSessionRecorder: React.FC = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Brain className="h-5 w-5" />
+              <Brain className="h-4 w-4" />
               Live Analysis
             </CardTitle>
           </CardHeader>
