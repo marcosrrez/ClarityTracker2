@@ -53,6 +53,18 @@ export default function ClientPortal({ userId }: { userId: string }) {
 
   const clients = clientsData?.clients || [];
 
+  // Fetch real shared insights data
+  const { data: insightsData, isLoading: insightsLoading } = useQuery({
+    queryKey: ['/api/insights/therapist', userId],
+    queryFn: async () => {
+      const response = await fetch(`/api/insights/therapist/${userId}`);
+      if (!response.ok) throw new Error('Failed to fetch insights');
+      return response.json();
+    }
+  });
+
+  const sharedInsights = insightsData?.insights || [];
+
   const sampleInsights: SharedInsight[] = [
     {
       id: '1',
@@ -270,8 +282,8 @@ export default function ClientPortal({ userId }: { userId: string }) {
 
         <TabsContent value="insights" className="space-y-6">
           <div className="space-y-4">
-            {sampleInsights.map((insight) => {
-              const client = sampleClients.find(c => c.id === insight.clientId);
+            {sharedInsights.map((insight) => {
+              const client = clients.find(c => c.id === insight.recipientId);
               return (
                 <Card key={insight.id}>
                   <CardHeader>
