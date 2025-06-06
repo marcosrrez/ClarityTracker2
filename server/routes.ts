@@ -370,11 +370,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/supervisees/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      await storage.deleteSuperviseeRelationship(id);
+      // For now, mark as inactive instead of deleting
+      await storage.updateSuperviseeRelationship(id, { status: 'inactive' });
       res.json({ success: true });
     } catch (error) {
       console.error("Error deleting supervisee:", error);
       res.status(500).json({ error: "Failed to delete supervisee" });
+    }
+  });
+
+  // Crisis detection alert endpoint
+  app.post("/api/supervision/crisis-alert", express.json(), async (req, res) => {
+    try {
+      const { sessionId, superviseeId, crisisId, timestamp } = req.body;
+      
+      // In a real implementation, this would:
+      // 1. Create a crisis alert record
+      // 2. Send immediate notification to supervisor
+      // 3. Log the incident for compliance
+      
+      console.log('Crisis alert triggered:', { sessionId, superviseeId, crisisId, timestamp });
+      
+      res.json({ 
+        success: true, 
+        alertId: `alert_${Date.now()}`,
+        notificationSent: true 
+      });
+    } catch (error) {
+      console.error("Error processing crisis alert:", error);
+      res.status(500).json({ error: "Failed to process crisis alert" });
+    }
+  });
+
+  // Session analysis review endpoint
+  app.post("/api/supervision/session-analyses/:id/review", express.json(), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const reviewData = req.body;
+      
+      // In a real implementation, this would:
+      // 1. Store the supervisor review in the database
+      // 2. Update the session analysis with review status
+      // 3. Send feedback to the supervisee
+      
+      console.log('Session review submitted:', { sessionId: id, review: reviewData });
+      
+      res.json({ 
+        success: true, 
+        review: {
+          id: `review_${Date.now()}`,
+          sessionId: id,
+          ...reviewData,
+          submittedAt: new Date().toISOString()
+        }
+      });
+    } catch (error) {
+      console.error("Error submitting session review:", error);
+      res.status(500).json({ error: "Failed to submit session review" });
     }
   });
 

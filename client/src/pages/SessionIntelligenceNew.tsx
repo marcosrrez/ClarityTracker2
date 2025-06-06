@@ -220,14 +220,14 @@ const SessionIntelligenceNew = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5" />
-                    Comprehensive Session Intelligence
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  Comprehensive Session Intelligence
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div className="space-y-3">
                       <h4 className="font-medium text-blue-600">Real-time Insights</h4>
@@ -337,6 +337,23 @@ const SessionIntelligenceNew = () => {
               </Card>
             </motion.div>
           </Tabs>
+        </motion.div>
+
+        {/* Floating Action Buttons for Quick Access */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.6 }}
+          className="fixed bottom-6 right-6 flex flex-col gap-3"
+        >
+          <Button 
+            size="lg"
+            className="rounded-full shadow-lg bg-blue-600 hover:bg-blue-700"
+            onClick={() => setActiveTab('live-session')}
+          >
+            <Video className="h-5 w-5 mr-2" />
+            Start Analysis
+          </Button>
         </motion.div>
       </div>
     </div>
