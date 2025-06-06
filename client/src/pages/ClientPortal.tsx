@@ -120,6 +120,10 @@ export default function ClientPortal({ userId }: { userId: string }) {
     }
   });
 
+  const handleSaveAsCard = (insight: any) => {
+    saveAsCardMutation.mutate(insight);
+  };
+
   const handleShareInsight = () => {
     if (!selectedClient || !newInsightForm.title || !newInsightForm.content) return;
     
@@ -302,8 +306,17 @@ export default function ClientPortal({ userId }: { userId: string }) {
                         </CardDescription>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge variant={insight.clientViewed ? 'default' : 'secondary'}>
-                          {insight.clientViewed ? 'Viewed' : 'Unread'}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleSaveAsCard(insight)}
+                          disabled={saveAsCardMutation.isPending}
+                        >
+                          <BookmarkPlus className="h-4 w-4 mr-1" />
+                          Save as Card
+                        </Button>
+                        <Badge variant={insight.isRead ? 'default' : 'secondary'}>
+                          {insight.isRead ? 'Viewed' : 'Unread'}
                         </Badge>
                       </div>
                     </div>
@@ -319,7 +332,7 @@ export default function ClientPortal({ userId }: { userId: string }) {
 
         <TabsContent value="progress" className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {sampleClients.map((client) => (
+            {clients.map((client) => (
               <Card key={client.id}>
                 <CardHeader>
                   <CardTitle className="text-lg">{client.name}</CardTitle>
