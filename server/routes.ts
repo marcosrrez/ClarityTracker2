@@ -336,6 +336,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add supervisee endpoint (matches what the dialog expects)
+  app.post("/api/supervisees", express.json(), async (req, res) => {
+    try {
+      const superviseeData = req.body;
+      
+      // Convert the dialog format to the database format
+      const relationshipData = {
+        supervisorId: superviseeData.supervisorId,
+        superviseeId: superviseeData.superviseeId,
+        startDate: new Date(superviseeData.startDate),
+        endDate: superviseeData.endDate ? new Date(superviseeData.endDate) : undefined,
+        status: superviseeData.status || 'active',
+        supervisionType: superviseeData.supervisionType || 'direct',
+        requiredHours: superviseeData.requiredHours || 4000,
+        completedHours: superviseeData.completedHours || 0,
+        frequency: superviseeData.supervisionFrequency || 'weekly',
+        contractSigned: superviseeData.contractSigned || false,
+        backgroundCheckCompleted: superviseeData.backgroundCheckCompleted || false,
+        licenseVerified: superviseeData.licenseVerified || false,
+        notes: superviseeData.notes || null,
+      };
+
+      const relationship = await storage.createSuperviseeRelationship(relationshipData);
+      res.json(relationship);
+    } catch (error) {
+      console.error("Error creating supervisee:", error);
+      res.status(500).json({ error: "Failed to create supervisee" });
+    }
+  });
+
+  // Delete supervisee endpoint
+  app.delete("/api/supervisees/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteSuperviseeRelationship(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting supervisee:", error);
+      res.status(500).json({ error: "Failed to delete supervisee" });
+    }
+  });
+
   app.get("/api/supervision/relationships/:supervisorId", async (req, res) => {
     try {
       const relationships = await storage.getSuperviseeRelationships(req.params.supervisorId);
