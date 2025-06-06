@@ -4271,5 +4271,207 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
     }
   });
 
+  // Session Intelligence Enhancement Routes
+
+  // Azure Speech Service configuration endpoint
+  app.get('/api/azure-speech/config', (req, res) => {
+    try {
+      if (!process.env.AZURE_SPEECH_KEY || !process.env.AZURE_SPEECH_REGION) {
+        return res.status(500).json({ error: 'Azure Speech Service not configured' });
+      }
+      
+      const config = {
+        key: process.env.AZURE_SPEECH_KEY,
+        region: process.env.AZURE_SPEECH_REGION
+      };
+      res.json(config);
+    } catch (error) {
+      res.status(500).json({ error: 'Azure Speech Service not configured' });
+    }
+  });
+
+  // Analyze transcript segment
+  app.post('/api/session-intelligence/analyze-transcript', async (req, res) => {
+    try {
+      const { text, timestamp } = req.body;
+      
+      if (!text) {
+        return res.status(400).json({ error: 'Text is required' });
+      }
+
+      // Simulate clinical analysis for demo
+      const clinicalKeywords = ['anxiety', 'depression', 'cope', 'stress', 'therapy', 'feeling', 'progress', 'challenge'];
+      const riskKeywords = ['harm', 'hurt', 'end', 'hopeless', 'worthless'];
+      
+      const clinicalTags = clinicalKeywords.filter(keyword => 
+        text.toLowerCase().includes(keyword)
+      );
+      
+      const riskIndicators = riskKeywords.some(keyword => 
+        text.toLowerCase().includes(keyword)
+      ) ? [{ type: 'emotional-distress', severity: 'medium', message: 'Emotional distress indicators detected' }] : [];
+
+      const speaker = text.length > 50 ? 'Client' : 'Therapist'; // Simple heuristic
+      const emotionalTone = riskIndicators.length > 0 ? 'distressed' : 
+                           clinicalTags.includes('progress') ? 'positive' : 'neutral';
+
+      const analysis = {
+        speaker,
+        clinicalTags,
+        riskIndicators,
+        emotionalTone,
+        themes: clinicalTags.length > 0 ? clinicalTags.slice(0, 3) : ['general-discussion']
+      };
+
+      res.json(analysis);
+    } catch (error) {
+      console.error('Transcript analysis error:', error);
+      res.status(500).json({ error: 'Failed to analyze transcript' });
+    }
+  });
+
+  // Analyze video frame
+  app.post('/api/session-intelligence/analyze-video-frame', async (req, res) => {
+    try {
+      const { imageData, timestamp } = req.body;
+      
+      if (!imageData) {
+        return res.status(400).json({ error: 'Image data is required' });
+      }
+
+      // Simulate video analysis for demo
+      const emotions = ['calm', 'engaged', 'thoughtful', 'positive', 'neutral', 'focused'];
+      const behavioralMarkers = ['active-listening', 'engaged-posture', 'appropriate-affect', 'therapeutic-presence'];
+      
+      const analysis = {
+        timestamp,
+        detectedFaces: 1 + Math.floor(Math.random() * 2),
+        dominantEmotion: emotions[Math.floor(Math.random() * emotions.length)],
+        emotionConfidence: 0.7 + Math.random() * 0.3,
+        engagementScore: 0.6 + Math.random() * 0.4,
+        behavioralMarkers: behavioralMarkers.filter(() => Math.random() > 0.6)
+      };
+
+      res.json({ success: true, data: analysis });
+    } catch (error) {
+      console.error('Video analysis error:', error);
+      res.status(500).json({ error: 'Failed to analyze video frame' });
+    }
+  });
+
+  // Generate clinical insights
+  app.post('/api/session-intelligence/generate-insights', async (req, res) => {
+    try {
+      const { transcriptionSegments, videoAnalysis, sessionDuration } = req.body;
+      
+      // Generate simulated clinical insights
+      const insights = [];
+      
+      if (transcriptionSegments && transcriptionSegments.length > 0) {
+        insights.push({
+          type: 'engagement',
+          content: 'Strong therapeutic rapport observed in conversation patterns',
+          confidence: 0.85,
+          timestamp: Date.now()
+        });
+        
+        if (sessionDuration > 300) { // > 5 minutes
+          insights.push({
+            type: 'progress',
+            content: 'Client showing sustained engagement throughout session',
+            confidence: 0.78,
+            timestamp: Date.now()
+          });
+        }
+      }
+      
+      if (videoAnalysis && videoAnalysis.engagementScore > 0.7) {
+        insights.push({
+          type: 'visual-engagement',
+          content: 'High visual engagement metrics indicate active participation',
+          confidence: 0.82,
+          timestamp: Date.now()
+        });
+      }
+
+      const complianceScore = 85 + Math.floor(Math.random() * 15);
+      
+      res.json({
+        clinicalInsights: insights,
+        complianceScore
+      });
+    } catch (error) {
+      console.error('Insights generation error:', error);
+      res.status(500).json({ error: 'Failed to generate insights' });
+    }
+  });
+
+  // Finalize session analysis
+  app.post('/api/session-intelligence/finalize', async (req, res) => {
+    try {
+      const sessionData = req.body;
+      
+      // Generate session ID
+      const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+      // Calculate final scores
+      const finalComplianceScore = 85 + Math.floor(Math.random() * 15);
+      const finalEngagementScore = sessionData.engagementScore || (60 + Math.floor(Math.random() * 40));
+
+      // Generate session summary insights
+      const sessionSummary = {
+        totalTranscriptionSegments: sessionData.transcriptionSegments?.length || 0,
+        averageEngagement: finalEngagementScore,
+        clinicalThemesIdentified: sessionData.detectedThemes?.length || 0,
+        riskIndicatorsFound: sessionData.riskAlerts?.length || 0,
+        sessionDuration: sessionData.duration || 0,
+        modalities: {
+          audio: sessionData.hasAudio,
+          video: sessionData.hasVideo
+        }
+      };
+
+      res.json({
+        success: true,
+        sessionId,
+        finalComplianceScore,
+        finalEngagementScore,
+        sessionSummary,
+        message: 'Session analysis completed successfully'
+      });
+
+    } catch (error) {
+      console.error('Session finalization error:', error);
+      res.status(500).json({ error: 'Failed to finalize session analysis' });
+    }
+  });
+
+  // Get session intelligence data
+  app.get('/api/session-intelligence/:sessionId', async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      
+      // Return demo session data
+      res.json({
+        success: true,
+        sessionId,
+        data: {
+          duration: 2400, // 40 minutes
+          engagementScore: 87,
+          complianceScore: 92,
+          transcriptionSegments: 45,
+          videoAnalysisFrames: 120,
+          clinicalInsights: 8,
+          riskAlerts: 0,
+          themes: ['therapeutic-alliance', 'coping-strategies', 'progress-tracking']
+        }
+      });
+
+    } catch (error) {
+      console.error('Session retrieval error:', error);
+      res.status(500).json({ error: 'Failed to retrieve session data' });
+    }
+  });
+
   return httpServer;
 }
