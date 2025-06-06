@@ -210,8 +210,8 @@ const emailCampaigns: CampaignEmail[] = [
         </div>
         
         <p style="color: #64748b; font-size: 14px; border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 32px;">
-          Alex Chen<br>
-          Founder, ClarityLog
+          Marcos Gutierrez<br>
+          CEO, ClarityLog
         </p>
       </div>
     `

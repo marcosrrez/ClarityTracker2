@@ -14,7 +14,7 @@ export async function sendWelcomeEmail(data: WelcomeEmailData): Promise<boolean>
     const htmlContent = generateWelcomeEmailHTML(data);
 
     await resend.emails.send({
-      from: 'Alex Chen <alex@claritylog.com>',
+      from: 'Marcos Gutierrez <marcos@claritylog.com>',
       to: data.userEmail,
       subject: subject,
       html: htmlContent,
@@ -118,8 +118,8 @@ function generateWelcomeEmailHTML(data: WelcomeEmailData): string {
           <p>I'll be sending you helpful tips over the next few days to help you master ClarityLog. If you can't wait, check out our <a href="https://claritylog.com/guide">Getting Started Guide</a> or reach out anytime.</p>
 
           <p>Here to support your professional journey,<br>
-          <strong>Alex Chen</strong><br>
-          Founder & CEO, ClarityLog</p>
+          <strong>Marcos Gutierrez</strong><br>
+          CEO, ClarityLog</p>
         </div>
 
         <div class="footer">
