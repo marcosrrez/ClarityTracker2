@@ -118,10 +118,10 @@ export const corsOptions = {
 };
 
 /**
- * Helmet security configuration
+ * Helmet security configuration - development-friendly
  */
 export const helmetConfig = helmet({
-  contentSecurityPolicy: {
+  contentSecurityPolicy: process.env.NODE_ENV === 'production' ? {
     directives: {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
@@ -131,14 +131,13 @@ export const helmetConfig = helmet({
       connectSrc: ["'self'", "https://api.openai.com", "https://generativelanguage.googleapis.com"],
       frameSrc: ["'none'"],
       objectSrc: ["'none'"],
-      upgradeInsecureRequests: [],
     },
-  },
-  hsts: {
+  } : false, // Disable CSP in development
+  hsts: process.env.NODE_ENV === 'production' ? {
     maxAge: 31536000,
     includeSubDomains: true,
     preload: true,
-  },
+  } : false,
   noSniff: true,
   xssFilter: true,
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' },

@@ -884,6 +884,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Generate prompts using OpenAI
+      const { default: OpenAI } = await import('openai');
       const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
       
       const prompt = `Convert the following notes into 3-5 question-answer pairs for spaced repetition learning. Each pair should test key concepts and be suitable for active recall. Format as JSON array with objects containing "question" and "answer" fields:
@@ -1541,6 +1542,7 @@ Keep the analysis practical and relevant to counseling practice.`;
 
       // Try OpenAI first
       try {
+        const { default: OpenAI } = await import('openai');
         const openai = new OpenAI({
           apiKey: process.env.OPENAI_API_KEY,
         });
@@ -5406,6 +5408,9 @@ Respond in JSON format:
       res.status(500).json({ error: 'Failed to fetch shared progress' });
     }
   });
+
+  // Add security error handler as the last middleware
+  app.use(securityErrorHandler);
 
   return httpServer;
 }
