@@ -95,19 +95,31 @@ export default function SessionIntelligence() {
   // Fetch session analyses
   const { data: sessionAnalyses = [], isLoading: isLoadingAnalyses } = useQuery({
     queryKey: ['/api/session-analyses'],
-    queryFn: () => apiRequest<SessionAnalysis[]>('/api/session-analyses')
+    queryFn: async () => {
+      const response = await fetch('/api/session-analyses');
+      if (!response.ok) throw new Error('Failed to fetch session analyses');
+      return response.json() as Promise<SessionAnalysis[]>;
+    }
   });
 
   // Fetch crisis alerts
   const { data: crisisAlerts = [] } = useQuery({
     queryKey: ['/api/crisis-alerts'],
-    queryFn: () => apiRequest<CrisisAlert[]>('/api/crisis-alerts')
+    queryFn: async () => {
+      const response = await fetch('/api/crisis-alerts');
+      if (!response.ok) throw new Error('Failed to fetch crisis alerts');
+      return response.json() as Promise<CrisisAlert[]>;
+    }
   });
 
   // Fetch EBP recommendations
   const { data: ebpRecommendations = [] } = useQuery({
     queryKey: ['/api/ebp-recommendations'],
-    queryFn: () => apiRequest<EbpRecommendation[]>('/api/ebp-recommendations')
+    queryFn: async () => {
+      const response = await fetch('/api/ebp-recommendations');
+      if (!response.ok) throw new Error('Failed to fetch EBP recommendations');
+      return response.json() as Promise<EbpRecommendation[]>;
+    }
   });
 
   // Create new session analysis
@@ -165,11 +177,6 @@ export default function SessionIntelligence() {
 
   const activeCrisisAlerts = crisisAlerts.filter(alert => alert.status === 'active');
   const recentSessions = sessionAnalyses || [];
-  
-  // Debug logging
-  console.log('Session analyses data:', sessionAnalyses);
-  console.log('Recent sessions:', recentSessions);
-  console.log('Is loading:', isLoadingAnalyses);
 
   return (
     <div className="container mx-auto p-6 space-y-8">
