@@ -1,150 +1,73 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { Brain, Shield } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Brain, 
-  Video,
-  Mic,
-  Shield,
-  TrendingUp,
-  AlertTriangle,
-  CheckCircle,
-  Activity
-} from 'lucide-react';
 import LiveSessionRecorder from '@/components/session-intelligence/LiveSessionRecorder';
 
 const SessionRecording = () => {
-  const [activeTab, setActiveTab] = useState('record');
-
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-3">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+      <div className="container mx-auto px-4 py-8">
+        {/* Simple Header */}
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center gap-3 mb-4">
             <Brain className="h-8 w-8 text-blue-600" />
-            Session Intelligence Recording
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Multi-modal AI analysis with Azure Speech Service and real-time video intelligence
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              Session Recording
+            </h1>
+          </div>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Start recording your therapy session with AI-powered insights
           </p>
         </div>
-        <div className="flex gap-2">
-          <Badge variant="outline" className="flex items-center gap-1">
-            <Shield className="h-3 w-3" />
-            HIPAA Compliant
-          </Badge>
-          <Badge variant="outline" className="flex items-center gap-1">
-            <Activity className="h-3 w-3" />
-            Live Analysis
-          </Badge>
-        </div>
-      </div>
 
-
-
-      {/* Main Content */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="record" className="flex items-center gap-2">
-            <Video className="h-4 w-4" />
-            Live Recording
-          </TabsTrigger>
-          <TabsTrigger value="privacy" className="flex items-center gap-2">
-            <Shield className="h-4 w-4" />
-            Privacy & Security
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="record" className="mt-6">
+        {/* Main Recording Interface */}
+        <div className="max-w-6xl mx-auto mb-12">
           <LiveSessionRecorder />
-        </TabsContent>
+        </div>
 
+        {/* Privacy Information */}
+        <div className="max-w-4xl mx-auto">
+          <Card className="border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-green-700 dark:text-green-300">
+                <Shield className="h-5 w-5" />
+                Privacy & Security
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Alert className="mb-6 border-green-200 bg-green-50 dark:bg-green-950">
+                <Shield className="h-4 w-4" />
+                <AlertDescription className="text-green-700 dark:text-green-200">
+                  All video analysis is performed locally in your browser. No raw video data is transmitted to servers.
+                </AlertDescription>
+              </Alert>
 
-
-        <TabsContent value="privacy" className="mt-6">
-          <div className="space-y-6">
-            <Alert>
-              <Shield className="h-4 w-4" />
-              <AlertDescription>
-                All video analysis is performed locally in your browser. No raw video data is transmitted to servers.
-              </AlertDescription>
-            </Alert>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="border-green-200 bg-green-50 dark:bg-green-950">
-                <CardHeader>
-                  <CardTitle className="text-green-700 dark:text-green-300">
-                    Client-Side Processing
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-medium mb-3 text-green-700 dark:text-green-300">Client-Side Processing</h4>
                   <ul className="space-y-2 text-sm text-green-700 dark:text-green-200">
                     <li>• Video analysis runs entirely in browser</li>
-                    <li>• TensorFlow.js models for local processing</li>
                     <li>• No video data leaves your device</li>
                     <li>• Only anonymized metrics are stored</li>
                     <li>• Complete user control over data</li>
                   </ul>
-                </CardContent>
-              </Card>
+                </div>
 
-              <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950">
-                <CardHeader>
-                  <CardTitle className="text-blue-700 dark:text-blue-300">
-                    HIPAA Compliance
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2 text-sm text-blue-700 dark:text-blue-200">
+                <div>
+                  <h4 className="font-medium mb-3 text-green-700 dark:text-green-300">HIPAA Compliance</h4>
+                  <ul className="space-y-2 text-sm text-green-700 dark:text-green-200">
                     <li>• End-to-end encryption for all data</li>
-                    <li>• Secure Azure Speech Service integration</li>
+                    <li>• Secure speech service integration</li>
                     <li>• Audit trails for all processing</li>
-                    <li>• Configurable data retention policies</li>
                     <li>• Professional-grade security standards</li>
                   </ul>
-                </CardContent>
-              </Card>
-
-              <Card className="border-purple-200 bg-purple-50 dark:bg-purple-950">
-                <CardHeader>
-                  <CardTitle className="text-purple-700 dark:text-purple-300">
-                    Data Protection
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2 text-sm text-purple-700 dark:text-purple-200">
-                    <li>• Zero-knowledge video processing</li>
-                    <li>• Encrypted transcription transmission</li>
-                    <li>• Automatic session data purging</li>
-                    <li>• User-controlled privacy settings</li>
-                    <li>• Transparent data handling</li>
-                  </ul>
-                </CardContent>
-              </Card>
-
-              <Card className="border-orange-200 bg-orange-50 dark:bg-orange-950">
-                <CardHeader>
-                  <CardTitle className="text-orange-700 dark:text-orange-300">
-                    Professional Standards
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2 text-sm text-orange-700 dark:text-orange-200">
-                    <li>• APA ethical guidelines compliance</li>
-                    <li>• State licensing requirement adherence</li>
-                    <li>• Professional liability protection</li>
-                    <li>• Clinical documentation standards</li>
-                    <li>• Supervision and oversight support</li>
-                  </ul>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 };
