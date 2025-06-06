@@ -15,9 +15,6 @@ import {
   competencyAnalysisTable,
   patternAnalysisTable,
   aiInsightsHistoryTable,
-  sessionAnalysesTable,
-  crisisAlertsTable,
-  ebpRecommendationsTable,
   type Feedback, 
   type InsertFeedback, 
   type UserAnalytics, 
@@ -49,13 +46,7 @@ import {
   type PatternAnalysis,
   type InsertPatternAnalysis,
   type AiInsightsHistory,
-  type InsertAiInsightsHistory,
-  type SessionAnalysis,
-  type InsertSessionAnalysis,
-  type CrisisAlert,
-  type InsertCrisisAlert,
-  type EbpRecommendation,
-  type InsertEbpRecommendation
+  type InsertAiInsightsHistory
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, asc, and, gte, lte, isNull, sql } from "drizzle-orm";
@@ -139,20 +130,6 @@ export interface IStorage {
   getAiInsightsHistory(userId: string, insightType?: string): Promise<AiInsightsHistory[]>;
   createAiInsight(insight: InsertAiInsightsHistory): Promise<AiInsightsHistory>;
   updateAiInsight(id: string, updates: Partial<AiInsightsHistory>): Promise<void>;
-
-  // Session Intelligence
-  getSessionAnalysesByUserId(userId: string): Promise<SessionAnalysis[]>;
-  getSessionAnalysisById(id: string): Promise<SessionAnalysis | undefined>;
-  createSessionAnalysis(analysis: InsertSessionAnalysis): Promise<SessionAnalysis>;
-  updateSessionAnalysis(id: string, updates: Partial<SessionAnalysis>): Promise<SessionAnalysis>;
-
-  getCrisisAlertsBySupervisor(supervisorId: string): Promise<CrisisAlert[]>;
-  createCrisisAlert(alert: InsertCrisisAlert): Promise<CrisisAlert>;
-  updateCrisisAlert(id: string, updates: Partial<CrisisAlert>): Promise<CrisisAlert>;
-
-  getEbpRecommendationsBySession(sessionId: string): Promise<EbpRecommendation[]>;
-  createEbpRecommendation(recommendation: InsertEbpRecommendation): Promise<EbpRecommendation>;
-  updateEbpRecommendation(id: string, updates: Partial<EbpRecommendation>): Promise<EbpRecommendation>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -461,153 +438,6 @@ export class DatabaseStorage implements IStorage {
       superviseeGoals: JSON.parse(result.superviseeGoals || '[]'),
       isCompleted: result.isCompleted === 'true',
     }));
-  }
-
-  // Session Intelligence Storage Methods
-  async createSessionAnalysis(analysis: InsertSessionAnalysis): Promise<SessionAnalysis> {
-    const id = crypto.randomUUID();
-    const [result] = await db.insert(sessionAnalysesTable)
-      .values({
-        ...analysis,
-        id,
-        transcriptionData: analysis.transcriptionData ? JSON.stringify(analysis.transcriptionData) : null,
-        videoAnalysisData: analysis.videoAnalysisData ? JSON.stringify(analysis.videoAnalysisData) : null,
-        audioAnalysisData: analysis.audioAnalysisData ? JSON.stringify(analysis.audioAnalysisData) : null,
-        emotionalMetrics: analysis.emotionalMetrics ? JSON.stringify(analysis.emotionalMetrics) : null,
-        riskIndicators: JSON.stringify(analysis.riskIndicators || []),
-        ebpTechniques: JSON.stringify(analysis.ebpTechniques || []),
-        clinicalInsights: analysis.clinicalInsights ? JSON.stringify(analysis.clinicalInsights) : null,
-        supervisorReview: analysis.supervisorReview ? JSON.stringify(analysis.supervisorReview) : null,
-        tags: JSON.stringify(analysis.tags || []),
-      })
-      .returning();
-
-    return {
-      ...result,
-      transcriptionData: result.transcriptionData ? JSON.parse(result.transcriptionData) : null,
-      videoAnalysisData: result.videoAnalysisData ? JSON.parse(result.videoAnalysisData) : null,
-      audioAnalysisData: result.audioAnalysisData ? JSON.parse(result.audioAnalysisData) : null,
-      emotionalMetrics: result.emotionalMetrics ? JSON.parse(result.emotionalMetrics) : null,
-      riskIndicators: JSON.parse(result.riskIndicators || '[]'),
-      ebpTechniques: JSON.parse(result.ebpTechniques || '[]'),
-      clinicalInsights: result.clinicalInsights ? JSON.parse(result.clinicalInsights) : null,
-      supervisorReview: result.supervisorReview ? JSON.parse(result.supervisorReview) : null,
-      tags: JSON.parse(result.tags || '[]'),
-    };
-  }
-
-  async getSessionAnalysesByUserId(userId: string): Promise<SessionAnalysis[]> {
-    const results = await db.select()
-      .from(sessionAnalysesTable)
-      .where(eq(sessionAnalysesTable.userId, userId))
-      .orderBy(desc(sessionAnalysesTable.sessionDate));
-
-    return results.map(result => ({
-      ...result,
-      transcriptionData: result.transcriptionData ? JSON.parse(result.transcriptionData) : null,
-      videoAnalysisData: result.videoAnalysisData ? JSON.parse(result.videoAnalysisData) : null,
-      audioAnalysisData: result.audioAnalysisData ? JSON.parse(result.audioAnalysisData) : null,
-      emotionalMetrics: result.emotionalMetrics ? JSON.parse(result.emotionalMetrics) : null,
-      riskIndicators: JSON.parse(result.riskIndicators || '[]'),
-      ebpTechniques: JSON.parse(result.ebpTechniques || '[]'),
-      clinicalInsights: result.clinicalInsights ? JSON.parse(result.clinicalInsights) : null,
-      supervisorReview: result.supervisorReview ? JSON.parse(result.supervisorReview) : null,
-      tags: JSON.parse(result.tags || '[]'),
-    }));
-  }
-
-  async getSessionAnalysisById(id: string): Promise<SessionAnalysis | undefined> {
-    const [result] = await db.select()
-      .from(sessionAnalysesTable)
-      .where(eq(sessionAnalysesTable.id, id));
-
-    if (!result) return undefined;
-
-    return {
-      ...result,
-      transcriptionData: result.transcriptionData ? JSON.parse(result.transcriptionData) : null,
-      videoAnalysisData: result.videoAnalysisData ? JSON.parse(result.videoAnalysisData) : null,
-      audioAnalysisData: result.audioAnalysisData ? JSON.parse(result.audioAnalysisData) : null,
-      emotionalMetrics: result.emotionalMetrics ? JSON.parse(result.emotionalMetrics) : null,
-      riskIndicators: JSON.parse(result.riskIndicators || '[]'),
-      ebpTechniques: JSON.parse(result.ebpTechniques || '[]'),
-      clinicalInsights: result.clinicalInsights ? JSON.parse(result.clinicalInsights) : null,
-      supervisorReview: result.supervisorReview ? JSON.parse(result.supervisorReview) : null,
-      tags: JSON.parse(result.tags || '[]'),
-    };
-  }
-
-  async createCrisisAlert(alert: InsertCrisisAlert): Promise<CrisisAlert> {
-    const id = crypto.randomUUID();
-    const [result] = await db.insert(crisisAlertsTable)
-      .values({
-        ...alert,
-        id,
-        evidence: JSON.stringify(alert.evidence),
-      })
-      .returning();
-
-    return {
-      ...result,
-      evidence: JSON.parse(result.evidence),
-    };
-  }
-
-  async getCrisisAlertsBySupervisor(supervisorId: string): Promise<CrisisAlert[]> {
-    const results = await db.select()
-      .from(crisisAlertsTable)
-      .where(eq(crisisAlertsTable.supervisorId, supervisorId))
-      .orderBy(desc(crisisAlertsTable.createdAt));
-
-    return results.map(result => ({
-      ...result,
-      evidence: JSON.parse(result.evidence),
-    }));
-  }
-
-  async updateCrisisAlert(id: string, updates: Partial<CrisisAlert>): Promise<CrisisAlert> {
-    const [result] = await db.update(crisisAlertsTable)
-      .set({
-        ...updates,
-        evidence: updates.evidence ? JSON.stringify(updates.evidence) : undefined,
-      })
-      .where(eq(crisisAlertsTable.id, id))
-      .returning();
-
-    return {
-      ...result,
-      evidence: JSON.parse(result.evidence),
-    };
-  }
-
-  async createEbpRecommendation(recommendation: InsertEbpRecommendation): Promise<EbpRecommendation> {
-    const id = crypto.randomUUID();
-    const [result] = await db.insert(ebpRecommendationsTable)
-      .values({
-        ...recommendation,
-        id,
-      })
-      .returning();
-
-    return result;
-  }
-
-  async getEbpRecommendationsBySession(sessionId: string): Promise<EbpRecommendation[]> {
-    const results = await db.select()
-      .from(ebpRecommendationsTable)
-      .where(eq(ebpRecommendationsTable.sessionId, sessionId))
-      .orderBy(desc(ebpRecommendationsTable.createdAt));
-
-    return results;
-  }
-
-  async updateEbpRecommendation(id: string, updates: Partial<EbpRecommendation>): Promise<EbpRecommendation> {
-    const [result] = await db.update(ebpRecommendationsTable)
-      .set(updates)
-      .where(eq(ebpRecommendationsTable.id, id))
-      .returning();
-
-    return result;
   }
 
   async updateSupervisionSession(id: string, updates: Partial<SupervisionSession>): Promise<void> {
@@ -1496,191 +1326,17 @@ ${content}`;
       .where(eq(aiInsightsHistoryTable.id, id));
   }
 
-  // Session Intelligence Methods
-  async getSessionAnalysesByUserId(userId: string): Promise<SessionAnalysis[]> {
-    const { db } = await import("./db");
+  async getAiInsightsHistory(userId: string, type?: string): Promise<AiInsightsHistory[]> {
+    let whereCondition = eq(aiInsightsHistoryTable.userId, userId);
     
-    const analyses = await db
-      .select()
-      .from(sessionAnalysesTable)
-      .where(eq(sessionAnalysesTable.userId, userId))
-      .orderBy(desc(sessionAnalysesTable.sessionDate));
+    if (type) {
+      whereCondition = and(whereCondition, eq(aiInsightsHistoryTable.insightType, type));
+    }
     
-    return analyses.map(analysis => ({
-      ...analysis,
-      tags: analysis.tags || [],
-      riskIndicators: analysis.riskIndicators || 
-        (analysis.riskAssessment ? 
-          (typeof analysis.riskAssessment === 'object' ? 
-            (analysis.riskAssessment as any).indicators || [] : []) : []),
-      ebpTechniques: analysis.ebpTechniques || 
-        (analysis.tags ? 
-          (Array.isArray(analysis.tags) ? analysis.tags.filter((tag: string) => tag.startsWith('ebp:')) : []) : []),
-      clinicalInsights: analysis.clinicalInsights || {},
-      therapeuticAllianceScore: analysis.therapeuticAllianceScore || analysis.therapeuticAlliance || 0,
-      engagementScore: analysis.engagementScore || 
-        (analysis.engagementMetrics ? 
-          (typeof analysis.engagementMetrics === 'object' ? 
-            (analysis.engagementMetrics as any).score || 0 : 0) : 0)
-    })) as SessionAnalysis[];
-  }
-
-  async getSessionAnalysisById(id: string): Promise<SessionAnalysis | undefined> {
-    const { db } = await import("./db");
-    const [analysis] = await db
-      .select()
-      .from(sessionAnalysesTable)
-      .where(eq(sessionAnalysesTable.id, id));
-    
-    if (!analysis) return undefined;
-    
-    return {
-      ...analysis,
-      tags: analysis.tags || [],
-      riskIndicators: analysis.riskIndicators || [],
-      ebpTechniques: analysis.ebpTechniques || [],
-      clinicalInsights: analysis.clinicalInsights || {}
-    } as SessionAnalysis;
-  }
-
-  async createSessionAnalysis(analysis: InsertSessionAnalysis): Promise<SessionAnalysis> {
-    const { db } = await import("./db");
-    const id = `analysis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const now = new Date();
-    
-    const [created] = await db
-      .insert(sessionAnalysesTable)
-      .values({
-        id,
-        userId: analysis.userId,
-        sessionId: analysis.sessionId,
-        title: analysis.title,
-        clientInitials: analysis.clientInitials,
-        sessionDate: analysis.sessionDate,
-        duration: analysis.duration,
-        status: analysis.status || 'pending',
-        tags: analysis.tags || [],
-        notes: analysis.notes || '',
-        clinicalInsights: analysis.clinicalInsights || {},
-        complianceScore: analysis.complianceScore || null,
-        therapeuticAlliance: analysis.therapeuticAllianceScore || null,
-        engagementMetrics: analysis.engagementScore ? JSON.stringify({ score: analysis.engagementScore }) : null,
-        riskAssessment: analysis.riskIndicators ? JSON.stringify({ indicators: analysis.riskIndicators }) : null,
-        behavioralPatterns: null,
-        transcriptionData: null,
-        videoAnalysisData: null,
-        soapNote: null,
-        exported: false,
-        exportedAt: null,
-        createdAt: now,
-        updatedAt: now
-      })
-      .returning();
-    
-    return {
-      ...created,
-      tags: created.tags || [],
-      riskIndicators: analysis.riskIndicators || [],
-      ebpTechniques: analysis.ebpTechniques || [],
-      clinicalInsights: created.clinicalInsights || {},
-      therapeuticAllianceScore: created.therapeuticAlliance || 0,
-      engagementScore: created.engagementMetrics ? 
-        (typeof created.engagementMetrics === 'string' ? 
-          JSON.parse(created.engagementMetrics).score || 0 : 0) : 0
-    } as SessionAnalysis;
-  }
-
-  async updateSessionAnalysis(id: string, updates: Partial<SessionAnalysis>): Promise<SessionAnalysis> {
-    const { db } = await import("./db");
-    const [updated] = await db
-      .update(sessionAnalysesTable)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(eq(sessionAnalysesTable.id, id))
-      .returning();
-    
-    return {
-      ...updated,
-      tags: updated.tags || [],
-      riskIndicators: updated.riskIndicators || [],
-      ebpTechniques: updated.ebpTechniques || [],
-      clinicalInsights: updated.clinicalInsights || {}
-    } as SessionAnalysis;
-  }
-
-  async getCrisisAlertsBySupervisor(supervisorId: string): Promise<CrisisAlert[]> {
-    const { db } = await import("./db");
-    const alerts = await db
-      .select()
-      .from(crisisAlertsTable)
-      .where(eq(crisisAlertsTable.supervisorId, supervisorId))
-      .orderBy(desc(crisisAlertsTable.createdAt));
-    
-    return alerts as CrisisAlert[];
-  }
-
-  async createCrisisAlert(alert: InsertCrisisAlert): Promise<CrisisAlert> {
-    const { db } = await import("./db");
-    const id = `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
-    const [created] = await db
-      .insert(crisisAlertsTable)
-      .values({
-        id,
-        ...alert,
-        createdAt: new Date()
-      })
-      .returning();
-    
-    return created as CrisisAlert;
-  }
-
-  async updateCrisisAlert(id: string, updates: Partial<CrisisAlert>): Promise<CrisisAlert> {
-    const { db } = await import("./db");
-    const [updated] = await db
-      .update(crisisAlertsTable)
-      .set(updates)
-      .where(eq(crisisAlertsTable.id, id))
-      .returning();
-    
-    return updated as CrisisAlert;
-  }
-
-  async getEbpRecommendationsBySession(sessionId: string): Promise<EbpRecommendation[]> {
-    const { db } = await import("./db");
-    const recommendations = await db
-      .select()
-      .from(ebpRecommendationsTable)
-      .where(eq(ebpRecommendationsTable.sessionId, sessionId))
-      .orderBy(desc(ebpRecommendationsTable.createdAt));
-    
-    return recommendations as EbpRecommendation[];
-  }
-
-  async createEbpRecommendation(recommendation: InsertEbpRecommendation): Promise<EbpRecommendation> {
-    const { db } = await import("./db");
-    const id = `ebp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
-    const [created] = await db
-      .insert(ebpRecommendationsTable)
-      .values({
-        id,
-        ...recommendation,
-        createdAt: new Date()
-      })
-      .returning();
-    
-    return created as EbpRecommendation;
-  }
-
-  async updateEbpRecommendation(id: string, updates: Partial<EbpRecommendation>): Promise<EbpRecommendation> {
-    const { db } = await import("./db");
-    const [updated] = await db
-      .update(ebpRecommendationsTable)
-      .set(updates)
-      .where(eq(ebpRecommendationsTable.id, id))
-      .returning();
-    
-    return updated as EbpRecommendation;
+    const results = await db.select().from(aiInsightsHistoryTable)
+      .where(whereCondition)
+      .orderBy(desc(aiInsightsHistoryTable.createdAt));
+    return results;
   }
 
   async createAiInsight(data: InsertAiInsightsHistory): Promise<AiInsightsHistory> {

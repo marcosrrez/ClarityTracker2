@@ -228,146 +228,6 @@ export const insertUserAnalyticsSchema = userAnalyticsSchema.omit({
 export type UserAnalytics = z.infer<typeof userAnalyticsSchema>;
 export type InsertUserAnalytics = z.infer<typeof insertUserAnalyticsSchema>;
 
-// Session Intelligence Schema
-export const sessionAnalysesTable = pgTable('session_analyses', {
-  id: varchar('id', { length: 255 }).primaryKey(),
-  userId: varchar('user_id', { length: 255 }).notNull(),
-  sessionId: varchar('session_id', { length: 255 }).notNull(),
-  title: varchar('title', { length: 255 }).notNull(),
-  clientInitials: varchar('client_initials', { length: 10 }),
-  sessionDate: timestamp('session_date').notNull(),
-  duration: integer('duration').notNull(), // in minutes
-  transcriptionData: jsonb('transcription_data'),
-  videoAnalysisData: jsonb('video_analysis_data'),
-  audioAnalysisData: jsonb('audio_analysis_data'),
-  emotionalMetrics: jsonb('emotional_metrics'),
-  therapeuticAllianceScore: real('therapeutic_alliance_score'),
-  engagementScore: real('engagement_score'),
-  complianceScore: real('compliance_score'),
-  riskIndicators: jsonb('risk_indicators'),
-  ebpTechniques: jsonb('ebp_techniques'),
-  clinicalInsights: jsonb('clinical_insights'),
-  supervisorReview: jsonb('supervisor_review'),
-  status: varchar('status', { length: 50 }).default('pending'), // 'pending', 'reviewed', 'approved'
-  tags: jsonb('tags'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
-
-export const sessionAnalysisSchema = z.object({
-  id: z.string(),
-  userId: z.string(),
-  sessionId: z.string(),
-  title: z.string(),
-  clientInitials: z.string().optional(),
-  sessionDate: z.date(),
-  duration: z.number(),
-  transcriptionData: z.any().optional(),
-  videoAnalysisData: z.any().optional(),
-  audioAnalysisData: z.any().optional(),
-  emotionalMetrics: z.any().optional(),
-  therapeuticAllianceScore: z.number().optional(),
-  engagementScore: z.number().optional(),
-  complianceScore: z.number().optional(),
-  riskIndicators: z.array(z.string()).default([]),
-  ebpTechniques: z.array(z.string()).default([]),
-  clinicalInsights: z.any().optional(),
-  supervisorReview: z.any().optional(),
-  status: z.enum(['pending', 'reviewed', 'approved']).default('pending'),
-  tags: z.array(z.string()).default([]),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-});
-
-export const insertSessionAnalysisSchema = sessionAnalysisSchema.omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export type SessionAnalysis = z.infer<typeof sessionAnalysisSchema>;
-export type InsertSessionAnalysis = z.infer<typeof insertSessionAnalysisSchema>;
-
-// Crisis Alerts Schema
-export const crisisAlertsTable = pgTable('crisis_alerts', {
-  id: varchar('id', { length: 255 }).primaryKey(),
-  sessionId: varchar('session_id', { length: 255 }).notNull(),
-  superviseeId: varchar('supervisee_id', { length: 255 }).notNull(),
-  supervisorId: varchar('supervisor_id', { length: 255 }).notNull(),
-  alertType: varchar('alert_type', { length: 100 }).notNull(), // 'suicide_risk', 'self_harm', 'violence_risk', etc.
-  severity: varchar('severity', { length: 20 }).notNull(), // 'low', 'moderate', 'high', 'critical'
-  evidence: jsonb('evidence').notNull(),
-  recommendedAction: text('recommended_action').notNull(),
-  status: varchar('status', { length: 50 }).default('active'), // 'active', 'acknowledged', 'resolved'
-  acknowledgedAt: timestamp('acknowledged_at'),
-  resolvedAt: timestamp('resolved_at'),
-  supervisorNotes: text('supervisor_notes'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-
-export const crisisAlertSchema = z.object({
-  id: z.string(),
-  sessionId: z.string(),
-  superviseeId: z.string(),
-  supervisorId: z.string(),
-  alertType: z.string(),
-  severity: z.enum(['low', 'moderate', 'high', 'critical']),
-  evidence: z.array(z.string()),
-  recommendedAction: z.string(),
-  status: z.enum(['active', 'acknowledged', 'resolved']).default('active'),
-  acknowledgedAt: z.date().optional(),
-  resolvedAt: z.date().optional(),
-  supervisorNotes: z.string().optional(),
-  createdAt: z.date(),
-});
-
-export const insertCrisisAlertSchema = crisisAlertSchema.omit({
-  id: true,
-  createdAt: true,
-});
-
-export type CrisisAlert = z.infer<typeof crisisAlertSchema>;
-export type InsertCrisisAlert = z.infer<typeof insertCrisisAlertSchema>;
-
-// EBP Recommendations Schema
-export const ebpRecommendationsTable = pgTable('ebp_recommendations', {
-  id: varchar('id', { length: 255 }).primaryKey(),
-  sessionId: varchar('session_id', { length: 255 }).notNull(),
-  superviseeId: varchar('supervisee_id', { length: 255 }).notNull(),
-  technique: varchar('technique', { length: 255 }).notNull(),
-  rationale: text('rationale').notNull(),
-  priority: varchar('priority', { length: 20 }).notNull(), // 'high', 'medium', 'low'
-  category: varchar('category', { length: 100 }).notNull(), // 'cognitive', 'behavioral', 'humanistic', 'systemic'
-  timing: varchar('timing', { length: 50 }).notNull(), // 'immediate', 'next_segment', 'next_session'
-  implemented: boolean('implemented').default(false),
-  effectivenessRating: integer('effectiveness_rating'), // 1-5 scale
-  supervisorNotes: text('supervisor_notes'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-
-export const ebpRecommendationSchema = z.object({
-  id: z.string(),
-  sessionId: z.string(),
-  superviseeId: z.string(),
-  technique: z.string(),
-  rationale: z.string(),
-  priority: z.enum(['high', 'medium', 'low']),
-  category: z.enum(['cognitive', 'behavioral', 'humanistic', 'systemic']),
-  timing: z.enum(['immediate', 'next_segment', 'next_session']),
-  implemented: z.boolean().default(false),
-  effectivenessRating: z.number().min(1).max(5).optional(),
-  supervisorNotes: z.string().optional(),
-  createdAt: z.date(),
-});
-
-export const insertEbpRecommendationSchema = ebpRecommendationSchema.omit({
-  id: true,
-  createdAt: true,
-});
-
-export type EbpRecommendation = z.infer<typeof ebpRecommendationSchema>;
-export type InsertEbpRecommendation = z.infer<typeof insertEbpRecommendationSchema>;
-
 // Supervisor Insights Schema - for supervisor sharing insights with supervisees
 export const supervisorInsightsTable = pgTable('supervisor_insights', {
   id: varchar('id', { length: 255 }).primaryKey(),
@@ -948,7 +808,7 @@ export const sessionAnalysisTable = pgTable('session_analyses', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-export const sessionAnalysisNewSchema = z.object({
+export const sessionAnalysisSchema = z.object({
   id: z.string(),
   userId: z.string(),
   sessionId: z.string(),
@@ -974,9 +834,9 @@ export const sessionAnalysisNewSchema = z.object({
   updatedAt: z.date(),
 });
 
-export const insertSessionAnalysisNewSchema = createInsertSchema(sessionAnalysisTable);
-export type SessionAnalysisNew = typeof sessionAnalysisTable.$inferSelect;
-export type InsertSessionAnalysisNew = z.infer<typeof insertSessionAnalysisNewSchema>;
+export const insertSessionAnalysisSchema = createInsertSchema(sessionAnalysisTable);
+export type SessionAnalysis = typeof sessionAnalysisTable.$inferSelect;
+export type InsertSessionAnalysis = z.infer<typeof insertSessionAnalysisSchema>;
 
 // Session Intelligence Schemas
 export const sessionRecordingSchema = z.object({

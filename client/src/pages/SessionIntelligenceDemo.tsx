@@ -2,32 +2,18 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Brain, Video, Mic, Eye, Shield, TrendingUp, Users, AlertTriangle, MessageSquare, Star, Clock, CheckCircle } from 'lucide-react';
+import { Brain, Video, Mic, Eye, Shield, TrendingUp, Users, AlertTriangle, Database } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { RealTimeEBPFeedback } from '@/components/session-intelligence/RealTimeEBPFeedback';
-import { SupervisorReviewPanel } from '@/components/session-intelligence/SupervisorReviewPanel';
-import { useAuth } from '@/hooks/use-auth';
+import LiveSessionRecorder from '@/components/session-intelligence/LiveSessionRecorder';
+import { SessionManagement } from '@/components/session-intelligence/SessionManagement';
 
 const SessionIntelligenceDemo = () => {
-  const [activeTab, setActiveTab] = useState('overview');
-  const [selectedSessionForReview, setSelectedSessionForReview] = useState(null);
-  const { user } = useAuth();
+  const [currentSessionData, setCurrentSessionData] = useState(null);
+  const [activeTab, setActiveTab] = useState('live-session');
 
-  const mockSessionData = {
-    id: "session-001",
-    superviseeId: "supervisee-001", 
-    superviseeName: "Sarah Johnson",
-    sessionDate: new Date(),
-    duration: 50,
-    clientInitials: "A.B.",
-    complianceScore: 85,
-    engagementScore: 78,
-    riskIndicators: ["Mild anxiety indicators"],
-    strengths: ["Active listening", "Empathy building", "Goal setting"],
-    areasForImprovement: ["Cognitive restructuring", "Homework assignment"],
-    ebpTechniques: ["CBT", "Motivational Interviewing"],
-    clinicalInsights: {}
+  const handleSessionComplete = (sessionData) => {
+    setCurrentSessionData(sessionData);
+    setActiveTab('session-management');
   };
 
   return (
@@ -39,260 +25,281 @@ const SessionIntelligenceDemo = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-8"
         >
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            Session Intelligence Hub
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300 mb-6">
-            AI-Powered Multi-Modal Session Analysis with Supervisor Integration
-          </p>
-          <div className="flex justify-center gap-4">
-            <Badge variant="outline" className="px-4 py-2">
-              <Brain className="h-4 w-4 mr-2" />
-              Real-time Analysis
-            </Badge>
-            <Badge variant="outline" className="px-4 py-2">
-              <Shield className="h-4 w-4 mr-2" />
-              HIPAA Compliant
-            </Badge>
-            <Badge variant="outline" className="px-4 py-2">
-              <Users className="h-4 w-4 mr-2" />
-              Supervisor Integration
-            </Badge>
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <Brain className="h-8 w-8 text-blue-600" />
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Session Intelligence Enhancement
+            </h1>
           </div>
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            Revolutionary multi-modal AI system combining Azure Speech transcription with real-time video analysis 
+            for unprecedented clinical decision support and privacy-first behavioral pattern detection.
+          </p>
         </motion.div>
 
-        {/* Main Content Tabs */}
+        {/* Feature Overview */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12"
         >
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="ebp-feedback">EBP Feedback</TabsTrigger>
-              <TabsTrigger value="supervisor-review">Supervisor Review</TabsTrigger>
-              <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            </TabsList>
+          <Card className="text-center">
+            <CardContent className="pt-6">
+              <Mic className="h-12 w-12 mx-auto mb-4 text-blue-600" />
+              <h3 className="font-semibold mb-2">Azure Speech Integration</h3>
+              <p className="text-sm text-muted-foreground">
+                Real-time transcription with clinical context analysis
+              </p>
+            </CardContent>
+          </Card>
 
-            <TabsContent value="overview" className="space-y-6">
+          <Card className="text-center">
+            <CardContent className="pt-6">
+              <Video className="h-12 w-12 mx-auto mb-4 text-green-600" />
+              <h3 className="font-semibold mb-2">Video Intelligence</h3>
+              <p className="text-sm text-muted-foreground">
+                Facial expression and body language analysis
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="text-center">
+            <CardContent className="pt-6">
+              <Eye className="h-12 w-12 mx-auto mb-4 text-purple-600" />
+              <h3 className="font-semibold mb-2">Behavioral Patterns</h3>
+              <p className="text-sm text-muted-foreground">
+                Advanced pattern recognition and engagement tracking
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="text-center">
+            <CardContent className="pt-6">
+              <Shield className="h-12 w-12 mx-auto mb-4 text-orange-600" />
+              <h3 className="font-semibold mb-2">Privacy-First</h3>
+              <p className="text-sm text-muted-foreground">
+                Client-side processing with HIPAA compliance
+              </p>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Key Benefits */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="mb-12"
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Clinical Decision Support Benefits
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Video className="h-5 w-5 text-blue-600" />
-                      Live Session Analysis
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Real-time multi-modal analysis with Azure Speech, facial landmark tracking, and emotion detection.
-                    </p>
-                    <ul className="space-y-2 text-sm">
-                      <li>• 68+ facial landmark tracking</li>
-                      <li>• Multi-emotion detection</li>
-                      <li>• Therapeutic alliance monitoring</li>
-                      <li>• Crisis indicator detection</li>
-                    </ul>
-                  </CardContent>
-                </Card>
+                <div className="space-y-3">
+                  <h4 className="font-medium text-blue-600">Real-time Insights</h4>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li>• Therapeutic alliance quality assessment</li>
+                    <li>• Client engagement level monitoring</li>
+                    <li>• Treatment effectiveness indicators</li>
+                    <li>• Risk indicator early detection</li>
+                  </ul>
+                </div>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <MessageSquare className="h-5 w-5 text-green-600" />
-                      EBP Recommendations
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Evidence-based practice suggestions delivered in real-time during sessions.
-                    </p>
-                    <ul className="space-y-2 text-sm">
-                      <li>• CBT technique suggestions</li>
-                      <li>• Intervention timing guidance</li>
-                      <li>• Therapeutic rapport insights</li>
-                      <li>• Session flow optimization</li>
-                    </ul>
-                  </CardContent>
-                </Card>
+                <div className="space-y-3">
+                  <h4 className="font-medium text-green-600">Multi-modal Correlation</h4>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li>• Audio-visual emotional alignment</li>
+                    <li>• Incongruence pattern detection</li>
+                    <li>• Behavioral marker fusion</li>
+                    <li>• Clinical significance scoring</li>
+                  </ul>
+                </div>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Shield className="h-5 w-5 text-purple-600" />
-                      Supervisor Integration
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Comprehensive supervision tools for LAC development and mentorship.
+                <div className="space-y-3">
+                  <h4 className="font-medium text-purple-600">Professional Standards</h4>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li>• Automated compliance monitoring</li>
+                    <li>• Documentation completeness tracking</li>
+                    <li>• Ethical guideline adherence</li>
+                    <li>• Supervision support analytics</li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Technology Stack */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="mb-12"
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Brain className="h-5 w-5" />
+                Advanced Technology Integration
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                  <h4 className="font-medium mb-4 flex items-center gap-2">
+                    <Mic className="h-4 w-4" />
+                    Audio Analysis Pipeline
+                  </h4>
+                  <div className="space-y-2">
+                    <Badge variant="outline">Azure Speech Services</Badge>
+                    <Badge variant="outline">Real-time Transcription</Badge>
+                    <Badge variant="outline">Clinical NLP</Badge>
+                    <Badge variant="outline">Sentiment Analysis</Badge>
+                    <Badge variant="outline">Risk Detection</Badge>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-medium mb-4 flex items-center gap-2">
+                    <Video className="h-4 w-4" />
+                    Video Intelligence Pipeline
+                  </h4>
+                  <div className="space-y-2">
+                    <Badge variant="outline">TensorFlow.js</Badge>
+                    <Badge variant="outline">Facial Recognition</Badge>
+                    <Badge variant="outline">Emotion Detection</Badge>
+                    <Badge variant="outline">Pose Estimation</Badge>
+                    <Badge variant="outline">Engagement Tracking</Badge>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Privacy & Security */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+          className="mb-12"
+        >
+          <Card className="border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-green-700 dark:text-green-300">
+                <Shield className="h-5 w-5" />
+                Privacy-First Architecture
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-medium mb-3 text-green-700 dark:text-green-300">Client-Side Processing</h4>
+                  <ul className="space-y-2 text-sm text-green-700 dark:text-green-200">
+                    <li>• Video analysis runs locally in browser</li>
+                    <li>• No raw video data transmitted to servers</li>
+                    <li>• Only anonymized behavioral metrics stored</li>
+                    <li>• Full user control over data retention</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 className="font-medium mb-3 text-green-700 dark:text-green-300">HIPAA Compliance</h4>
+                  <ul className="space-y-2 text-sm text-green-700 dark:text-green-200">
+                    <li>• End-to-end encryption for all communications</li>
+                    <li>• Secure Azure Speech Service integration</li>
+                    <li>• Audit trail for all data processing</li>
+                    <li>• Configurable data retention policies</li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Live Demo Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.0 }}
+          className="mb-12"
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Interactive Demo
+              </CardTitle>
+              <p className="text-muted-foreground">
+                Experience the Enhanced Session Recorder with real-time multi-modal analysis
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-6">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
+                  <div>
+                    <h4 className="font-medium text-yellow-800 dark:text-yellow-200 mb-1">Demo Mode Active</h4>
+                    <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                      This demonstration uses simulated analysis for privacy. In production, the system integrates with your existing Azure Speech Service for real transcription and clinical analysis.
                     </p>
-                    <ul className="space-y-2 text-sm">
-                      <li>• Session review panels</li>
-                      <li>• Crisis alert notifications</li>
-                      <li>• Competency tracking</li>
-                      <li>• Development planning</li>
-                    </ul>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5" />
-                    Recent Session Activity
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <div className="font-medium">Sarah Johnson - Client A.B.</div>
-                        <div className="text-sm text-muted-foreground">Today, 50 minutes • CBT Session</div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline">Compliance: 85%</Badge>
-                        <Badge variant="outline">Engagement: 78%</Badge>
-                        <Button size="sm" onClick={() => setSelectedSessionForReview(mockSessionData)}>
-                          Review
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <div className="font-medium">Michael Chen - Client C.D.</div>
-                        <div className="text-sm text-muted-foreground">Yesterday, 45 minutes • DBT Session</div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline">Compliance: 92%</Badge>
-                        <Badge variant="outline">Engagement: 88%</Badge>
-                        <CheckCircle className="h-4 w-4 text-green-600" />
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+              <LiveSessionRecorder />
+            </CardContent>
+          </Card>
+        </motion.div>
 
-            <TabsContent value="ebp-feedback" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <MessageSquare className="h-5 w-5" />
-                    Real-Time Evidence-Based Practice Feedback
-                  </CardTitle>
-                  <p className="text-muted-foreground">
-                    Live EBP recommendations, crisis detection alerts, and therapeutic alliance monitoring
+        {/* Implementation Notes */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.2 }}
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle>Implementation & Deployment</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium mb-2">Azure Speech Service Integration</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Seamlessly connects with your existing Azure Speech Service subscription for production-grade transcription with clinical context understanding.
                   </p>
-                </CardHeader>
-                <CardContent>
-                  <RealTimeEBPFeedback
-                    sessionId="demo-session"
-                    superviseeId={user?.uid || "demo-user"}
-                    isLive={true}
-                    onCrisisDetected={(crisis) => {
-                      console.log('Crisis detected:', crisis);
-                    }}
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
+                </div>
 
-            <TabsContent value="supervisor-review" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Shield className="h-5 w-5" />
-                    Supervisor Review & Feedback System
-                  </CardTitle>
-                  <p className="text-muted-foreground">
-                    Review completed sessions, provide feedback, and track supervisee development
+                <div>
+                  <h4 className="font-medium mb-2">TensorFlow.js Models</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Leverages pre-trained models for facial recognition, emotion detection, and pose estimation that run entirely in the client browser for maximum privacy.
                   </p>
-                </CardHeader>
-                <CardContent>
-                  {selectedSessionForReview ? (
-                    <SupervisorReviewPanel
-                      sessionAnalysis={selectedSessionForReview}
-                      onReviewSubmitted={(review) => {
-                        console.log('Review submitted:', review);
-                        setSelectedSessionForReview(null);
-                      }}
-                    />
-                  ) : (
-                    <div className="text-center py-12">
-                      <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                      <h3 className="text-lg font-medium mb-2">Select a Session to Review</h3>
-                      <p className="text-muted-foreground mb-6">
-                        Choose a completed session from your supervisees to provide feedback and review
-                      </p>
-                      <Button onClick={() => setSelectedSessionForReview(mockSessionData)}>
-                        Review Sample Session
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
+                </div>
 
-            <TabsContent value="analytics" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-2xl">24</CardTitle>
-                    <p className="text-sm text-muted-foreground">Sessions This Month</p>
-                  </CardHeader>
-                </Card>
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-2xl">87%</CardTitle>
-                    <p className="text-sm text-muted-foreground">Avg Compliance Score</p>
-                  </CardHeader>
-                </Card>
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-2xl">3</CardTitle>
-                    <p className="text-sm text-muted-foreground">Active Supervisees</p>
-                  </CardHeader>
-                </Card>
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-2xl">0</CardTitle>
-                    <p className="text-sm text-muted-foreground">Crisis Alerts</p>
-                  </CardHeader>
-                </Card>
+                <div>
+                  <h4 className="font-medium mb-2">Database Schema</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Complete database schema extensions included for storing session intelligence data, behavioral patterns, and compliance metrics with full HIPAA compliance.
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-medium mb-2">API Integration</h4>
+                  <p className="text-sm text-muted-foreground">
+                    RESTful API endpoints for session intelligence data processing, real-time analysis, and multi-modal data fusion with comprehensive error handling.
+                  </p>
+                </div>
               </div>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Supervisee Development Progress</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    <div>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="font-medium">Sarah Johnson</span>
-                        <span className="text-sm text-muted-foreground">85% Overall</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div className="bg-blue-600 h-2 rounded-full" style={{ width: '85%' }}></div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="font-medium">Michael Chen</span>
-                        <span className="text-sm text-muted-foreground">92% Overall</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div className="bg-green-600 h-2 rounded-full" style={{ width: '92%' }}></div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+            </CardContent>
+          </Card>
         </motion.div>
       </div>
     </div>
