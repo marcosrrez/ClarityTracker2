@@ -136,8 +136,8 @@ export function ClientInvitationManager({ therapistId }: ClientInvitationManager
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex-1 min-w-0">
             <CardTitle className="flex items-center gap-2">
               <UserPlus className="w-5 h-5" />
               Client Invitations
@@ -148,7 +148,7 @@ export function ClientInvitationManager({ therapistId }: ClientInvitationManager
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-blue-600 hover:bg-blue-700">
+              <Button className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" />
                 Invite Client
               </Button>
