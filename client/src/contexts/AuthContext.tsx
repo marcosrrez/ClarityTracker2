@@ -124,14 +124,60 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const signUp = async (email: string, password: string, displayName?: string) => {
     try {
+      console.log("Attempting Firebase sign up...", { 
+        email, 
+        hasPassword: !!password,
+        hasDisplayName: !!displayName,
+        firebaseConfigured: !!auth.app.options.apiKey 
+      });
+      
       const result = await createUserWithEmailAndPassword(auth, email, password);
+      console.log("Sign up successful:", result.user.email);
       
       if (displayName) {
         await updateProfile(result.user, { displayName });
+        console.log("Display name updated:", displayName);
       }
-    } catch (error) {
-      console.error("Error signing up:", error);
-      throw error;
+      
+      return result;
+    } catch (error: any) {
+      console.error("Detailed sign up error:", {
+        code: error.code,
+        message: error.message,
+        email,
+        firebaseProject: auth.app.options.projectId
+      });
+      
+      // Provide user-friendly error messages
+      let userMessage = "Failed to create account. Please try again.";
+      
+      switch (error.code) {
+        case 'auth/email-already-in-use':
+          userMessage = "An account with this email already exists. Try signing in instead.";
+          break;
+        case 'auth/invalid-email':
+          userMessage = "Invalid email address format.";
+          break;
+        case 'auth/weak-password':
+          userMessage = "Password is too weak. Please use at least 6 characters.";
+          break;
+        case 'auth/operation-not-allowed':
+          userMessage = "Email/password accounts are not enabled. Please contact support.";
+          break;
+        case 'auth/network-request-failed':
+          userMessage = "Network error. Please check your connection and try again.";
+          break;
+        case 'auth/too-many-requests':
+          userMessage = "Too many requests. Please wait before trying again.";
+          break;
+        case 'auth/configuration-not-found':
+          userMessage = "Authentication service is not properly configured.";
+          break;
+      }
+      
+      const enhancedError = new Error(userMessage);
+      enhancedError.name = error.code;
+      throw enhancedError;
     }
   };
 

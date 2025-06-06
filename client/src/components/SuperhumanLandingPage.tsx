@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Sprout, Clock, Brain, Users, BarChart3, ArrowRight, Menu, MessageCircle, Calendar, Target, Award, Shield, TrendingUp, UserPlus, Zap } from "lucide-react";
+import { AuthDiagnostic } from "@/components/auth/AuthDiagnostic";
 
 export const SuperhumanLandingPage = () => {
   const { signUp, signIn, resetPassword } = useAuth();
@@ -648,6 +649,13 @@ export const SuperhumanLandingPage = () => {
             Get Started Free
             <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
+        </div>
+      </ScrollSection>
+
+      {/* Authentication Diagnostic - Temporary for debugging */}
+      <ScrollSection className="py-24 px-6 sm:px-8">
+        <div className="max-w-4xl mx-auto">
+          <AuthDiagnostic />
         </div>
       </ScrollSection>
 
