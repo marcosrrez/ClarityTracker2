@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Trophy, AlertTriangle, Target, Sparkles, Calendar, Clock } from "lucide-react";
+import { Trophy, AlertTriangle, Target, Sparkles, Calendar, Clock, Share2 } from "lucide-react";
 import { useLogEntries, useAppSettings } from "@/hooks/use-firestore";
 import { updateAppSettings } from "@/lib/firestore";
 import { useAuth } from "@/hooks/use-auth";
@@ -12,6 +12,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { EnhancedProgressRing } from "./EnhancedProgressRing";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { ProgressSharingDialog } from "@/components/ProgressSharingDialog";
 
 export const EnhancedProgressSection = () => {
   const { user } = useAuth();
@@ -184,20 +185,41 @@ export const EnhancedProgressSection = () => {
             </p>
           </div>
 
-          {/* Overall Progress Ring */}
-          <div className="hidden md:block">
-            <EnhancedProgressRing
-              progress={overallProgress}
-              size={100}
-              color="#3b82f6"
+          <div className="flex items-center gap-4">
+            {/* Progress Sharing Button */}
+            <ProgressSharingDialog
+              currentProgress={{
+                directHours: finalDirectCCH,
+                groupHours: Math.max(0, finalTotalCCH - finalDirectCCH),
+                supervisionHours: finalSupervisionHours,
+                totalClientHours: finalTotalCCH,
+                progressToLicense: Math.round(overallProgress),
+                nextMilestone: overallProgress >= 100 ? 'Ready for licensure!' : `Need ${Math.ceil((4000 - (finalTotalCCH + finalSupervisionHours * 2)) / 10) * 10} more hours`,
+                complianceStatus: overallProgress >= 90 ? 'on_track' : overallProgress >= 70 ? 'behind' : 'overdue',
+                lastUpdated: new Date()
+              }}
             >
-              <div className="text-center">
-                <div className="text-lg font-bold text-gray-900 dark:text-white">
-                  {Math.round(overallProgress)}%
+              <Button variant="outline" size="sm" className="flex items-center gap-2">
+                <Share2 size={16} />
+                Share Progress
+              </Button>
+            </ProgressSharingDialog>
+
+            {/* Overall Progress Ring */}
+            <div className="hidden md:block">
+              <EnhancedProgressRing
+                progress={overallProgress}
+                size={100}
+                color="#3b82f6"
+              >
+                <div className="text-center">
+                  <div className="text-lg font-bold text-gray-900 dark:text-white">
+                    {Math.round(overallProgress)}%
+                  </div>
+                  <div className="text-xs text-gray-500">Overall</div>
                 </div>
-                <div className="text-xs text-gray-500">Overall</div>
-              </div>
-            </EnhancedProgressRing>
+              </EnhancedProgressRing>
+            </div>
           </div>
         </div>
 

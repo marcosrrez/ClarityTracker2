@@ -5307,5 +5307,85 @@ Respond in JSON format:
     }
   });
 
+  // Progress Sharing API
+  app.post('/api/progress/share', async (req, res) => {
+    try {
+      const { supervisorIds, progressData, shareTypes, sharedAt, lacUserId } = req.body;
+      
+      // Create progress sharing records
+      const shareId = `share_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Store the shared progress data and update supervisor dashboards
+      const sharedProgress = {
+        id: shareId,
+        lacUserId,
+        supervisorIds,
+        progressData,
+        shareTypes,
+        sharedAt,
+        status: 'shared'
+      };
+      
+      // Log progress sharing for supervisor dashboard updates
+      console.log('Progress shared with supervisors:', {
+        shareId,
+        lacUserId,
+        supervisorCount: supervisorIds.length,
+        progressData: {
+          directHours: progressData.directHours,
+          groupHours: progressData.groupHours,
+          totalClientHours: progressData.totalClientHours,
+          progressToLicense: progressData.progressToLicense
+        }
+      });
+      
+      res.json({
+        success: true,
+        shareId,
+        message: `Progress successfully shared with ${supervisorIds.length} supervisor${supervisorIds.length > 1 ? 's' : ''}`
+      });
+    } catch (error) {
+      console.error('Error sharing progress:', error);
+      res.status(500).json({ error: 'Failed to share progress' });
+    }
+  });
+
+  // Get shared progress updates for a supervisor
+  app.get('/api/supervisor/:supervisorId/shared-progress', async (req, res) => {
+    try {
+      const { supervisorId } = req.params;
+      
+      // Return recent progress updates from LACs
+      const sharedUpdates = [
+        {
+          id: 'update1',
+          lacName: 'Sarah Chen',
+          lacUserId: 'lac1',
+          sharedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+          progressData: {
+            directHours: 245,
+            groupHours: 85,
+            supervisionHours: 28,
+            totalClientHours: 330,
+            progressToLicense: 72,
+            nextMilestone: 'Need 11 more hours for next milestone',
+            complianceStatus: 'on_track'
+          },
+          shareTypes: {
+            hours: true,
+            progress: true,
+            compliance: true,
+            milestones: true
+          }
+        }
+      ];
+      
+      res.json({ sharedUpdates });
+    } catch (error) {
+      console.error('Error fetching shared progress:', error);
+      res.status(500).json({ error: 'Failed to fetch shared progress' });
+    }
+  });
+
   return httpServer;
 }
