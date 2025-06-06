@@ -365,6 +365,8 @@ export const insertSupervisorSchema = supervisorSchema.omit({
 export type Supervisor = z.infer<typeof supervisorSchema>;
 export type InsertSupervisor = z.infer<typeof insertSupervisorSchema>;
 
+
+
 // Supervisee Relationship Schema - for tracking supervisor-supervisee relationships
 export const superviseeRelationshipTable = pgTable('supervisee_relationships', {
   id: varchar('id', { length: 255 }).primaryKey(),
