@@ -62,7 +62,11 @@ export function AddClientModal({ isOpen, onClose, therapistId }: AddClientModalP
       email: "",
       phone: "",
       dateOfBirth: "",
-      emergencyContact: "",
+      emergencyContact: {
+        name: "",
+        phone: "",
+        relationship: ""
+      },
       status: "active",
       portalAccess: true,
       consentToShare: false,

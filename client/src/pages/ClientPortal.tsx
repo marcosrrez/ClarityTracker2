@@ -315,12 +315,12 @@ export default function ClientPortal({ userId }: { userId: string }) {
                     </div>
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span>Sessions Completed:</span>
-                        <span className="font-medium">{client.totalSessions}</span>
+                        <span>Status:</span>
+                        <span className="font-medium capitalize">{client.status}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span>Last Activity:</span>
-                        <span className="font-medium">{client.lastSession.toLocaleDateString()}</span>
+                        <span>Last Login:</span>
+                        <span className="font-medium">{client.lastLogin ? new Date(client.lastLogin).toLocaleDateString() : "Never"}</span>
                       </div>
                     </div>
                   </div>
