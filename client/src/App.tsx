@@ -97,6 +97,7 @@ function Router() {
       <Route path="/client-onboarding/:inviteToken" component={ClientOnboarding} />
       <Route path="/client-dashboard" component={ClientDashboard} />
       <Route path="/session-intelligence-demo" component={SessionIntelligenceDemo} />
+      <Route path="/session-intelligence" component={SessionIntelligenceDemo} />
       <Route path="/account-setup">
         <AuthGuard requireAccountSetup={false}>
           <AccountSetupPage />
