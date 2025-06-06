@@ -12,7 +12,11 @@ import {
   insertKnowledgeEntrySchema, 
   sessionAnalysisTable, 
   insertSessionAnalysisSchema,
-  type SessionAnalysis 
+  type SessionAnalysis,
+  crisisAlertsTable,
+  insertCrisisAlertSchema,
+  ebpRecommendationsTable,
+  insertEbpRecommendationSchema
 } from "@shared/schema";
 import { visualIntelligence } from "./visual-intelligence";
 import { IntelligenceHub } from "./services/intelligence-hub";

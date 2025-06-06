@@ -15,6 +15,9 @@ import {
   competencyAnalysisTable,
   patternAnalysisTable,
   aiInsightsHistoryTable,
+  sessionAnalysesTable,
+  crisisAlertsTable,
+  ebpRecommendationsTable,
   type Feedback, 
   type InsertFeedback, 
   type UserAnalytics, 
@@ -46,7 +49,13 @@ import {
   type PatternAnalysis,
   type InsertPatternAnalysis,
   type AiInsightsHistory,
-  type InsertAiInsightsHistory
+  type InsertAiInsightsHistory,
+  type SessionAnalysis,
+  type InsertSessionAnalysis,
+  type CrisisAlert,
+  type InsertCrisisAlert,
+  type EbpRecommendation,
+  type InsertEbpRecommendation
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, asc, and, gte, lte, isNull, sql } from "drizzle-orm";
@@ -438,6 +447,153 @@ export class DatabaseStorage implements IStorage {
       superviseeGoals: JSON.parse(result.superviseeGoals || '[]'),
       isCompleted: result.isCompleted === 'true',
     }));
+  }
+
+  // Session Intelligence Storage Methods
+  async createSessionAnalysis(analysis: InsertSessionAnalysis): Promise<SessionAnalysis> {
+    const id = crypto.randomUUID();
+    const [result] = await db.insert(sessionAnalysesTable)
+      .values({
+        ...analysis,
+        id,
+        transcriptionData: analysis.transcriptionData ? JSON.stringify(analysis.transcriptionData) : null,
+        videoAnalysisData: analysis.videoAnalysisData ? JSON.stringify(analysis.videoAnalysisData) : null,
+        audioAnalysisData: analysis.audioAnalysisData ? JSON.stringify(analysis.audioAnalysisData) : null,
+        emotionalMetrics: analysis.emotionalMetrics ? JSON.stringify(analysis.emotionalMetrics) : null,
+        riskIndicators: JSON.stringify(analysis.riskIndicators || []),
+        ebpTechniques: JSON.stringify(analysis.ebpTechniques || []),
+        clinicalInsights: analysis.clinicalInsights ? JSON.stringify(analysis.clinicalInsights) : null,
+        supervisorReview: analysis.supervisorReview ? JSON.stringify(analysis.supervisorReview) : null,
+        tags: JSON.stringify(analysis.tags || []),
+      })
+      .returning();
+
+    return {
+      ...result,
+      transcriptionData: result.transcriptionData ? JSON.parse(result.transcriptionData) : null,
+      videoAnalysisData: result.videoAnalysisData ? JSON.parse(result.videoAnalysisData) : null,
+      audioAnalysisData: result.audioAnalysisData ? JSON.parse(result.audioAnalysisData) : null,
+      emotionalMetrics: result.emotionalMetrics ? JSON.parse(result.emotionalMetrics) : null,
+      riskIndicators: JSON.parse(result.riskIndicators || '[]'),
+      ebpTechniques: JSON.parse(result.ebpTechniques || '[]'),
+      clinicalInsights: result.clinicalInsights ? JSON.parse(result.clinicalInsights) : null,
+      supervisorReview: result.supervisorReview ? JSON.parse(result.supervisorReview) : null,
+      tags: JSON.parse(result.tags || '[]'),
+    };
+  }
+
+  async getSessionAnalysesByUserId(userId: string): Promise<SessionAnalysis[]> {
+    const results = await db.select()
+      .from(sessionAnalysesTable)
+      .where(eq(sessionAnalysesTable.userId, userId))
+      .orderBy(desc(sessionAnalysesTable.sessionDate));
+
+    return results.map(result => ({
+      ...result,
+      transcriptionData: result.transcriptionData ? JSON.parse(result.transcriptionData) : null,
+      videoAnalysisData: result.videoAnalysisData ? JSON.parse(result.videoAnalysisData) : null,
+      audioAnalysisData: result.audioAnalysisData ? JSON.parse(result.audioAnalysisData) : null,
+      emotionalMetrics: result.emotionalMetrics ? JSON.parse(result.emotionalMetrics) : null,
+      riskIndicators: JSON.parse(result.riskIndicators || '[]'),
+      ebpTechniques: JSON.parse(result.ebpTechniques || '[]'),
+      clinicalInsights: result.clinicalInsights ? JSON.parse(result.clinicalInsights) : null,
+      supervisorReview: result.supervisorReview ? JSON.parse(result.supervisorReview) : null,
+      tags: JSON.parse(result.tags || '[]'),
+    }));
+  }
+
+  async getSessionAnalysisById(id: string): Promise<SessionAnalysis | undefined> {
+    const [result] = await db.select()
+      .from(sessionAnalysesTable)
+      .where(eq(sessionAnalysesTable.id, id));
+
+    if (!result) return undefined;
+
+    return {
+      ...result,
+      transcriptionData: result.transcriptionData ? JSON.parse(result.transcriptionData) : null,
+      videoAnalysisData: result.videoAnalysisData ? JSON.parse(result.videoAnalysisData) : null,
+      audioAnalysisData: result.audioAnalysisData ? JSON.parse(result.audioAnalysisData) : null,
+      emotionalMetrics: result.emotionalMetrics ? JSON.parse(result.emotionalMetrics) : null,
+      riskIndicators: JSON.parse(result.riskIndicators || '[]'),
+      ebpTechniques: JSON.parse(result.ebpTechniques || '[]'),
+      clinicalInsights: result.clinicalInsights ? JSON.parse(result.clinicalInsights) : null,
+      supervisorReview: result.supervisorReview ? JSON.parse(result.supervisorReview) : null,
+      tags: JSON.parse(result.tags || '[]'),
+    };
+  }
+
+  async createCrisisAlert(alert: InsertCrisisAlert): Promise<CrisisAlert> {
+    const id = crypto.randomUUID();
+    const [result] = await db.insert(crisisAlertsTable)
+      .values({
+        ...alert,
+        id,
+        evidence: JSON.stringify(alert.evidence),
+      })
+      .returning();
+
+    return {
+      ...result,
+      evidence: JSON.parse(result.evidence),
+    };
+  }
+
+  async getCrisisAlertsBySupervisor(supervisorId: string): Promise<CrisisAlert[]> {
+    const results = await db.select()
+      .from(crisisAlertsTable)
+      .where(eq(crisisAlertsTable.supervisorId, supervisorId))
+      .orderBy(desc(crisisAlertsTable.createdAt));
+
+    return results.map(result => ({
+      ...result,
+      evidence: JSON.parse(result.evidence),
+    }));
+  }
+
+  async updateCrisisAlert(id: string, updates: Partial<CrisisAlert>): Promise<CrisisAlert> {
+    const [result] = await db.update(crisisAlertsTable)
+      .set({
+        ...updates,
+        evidence: updates.evidence ? JSON.stringify(updates.evidence) : undefined,
+      })
+      .where(eq(crisisAlertsTable.id, id))
+      .returning();
+
+    return {
+      ...result,
+      evidence: JSON.parse(result.evidence),
+    };
+  }
+
+  async createEbpRecommendation(recommendation: InsertEbpRecommendation): Promise<EbpRecommendation> {
+    const id = crypto.randomUUID();
+    const [result] = await db.insert(ebpRecommendationsTable)
+      .values({
+        ...recommendation,
+        id,
+      })
+      .returning();
+
+    return result;
+  }
+
+  async getEbpRecommendationsBySession(sessionId: string): Promise<EbpRecommendation[]> {
+    const results = await db.select()
+      .from(ebpRecommendationsTable)
+      .where(eq(ebpRecommendationsTable.sessionId, sessionId))
+      .orderBy(desc(ebpRecommendationsTable.createdAt));
+
+    return results;
+  }
+
+  async updateEbpRecommendation(id: string, updates: Partial<EbpRecommendation>): Promise<EbpRecommendation> {
+    const [result] = await db.update(ebpRecommendationsTable)
+      .set(updates)
+      .where(eq(ebpRecommendationsTable.id, id))
+      .returning();
+
+    return result;
   }
 
   async updateSupervisionSession(id: string, updates: Partial<SupervisionSession>): Promise<void> {

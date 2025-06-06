@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Brain, Video, Mic, Eye, Shield, TrendingUp, Users, AlertTriangle, Database, MessageSquare } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import LiveSessionRecorder from '@/components/session-intelligence/LiveSessionRecorder';
 import { SessionManagement } from '@/components/session-intelligence/SessionManagement';
