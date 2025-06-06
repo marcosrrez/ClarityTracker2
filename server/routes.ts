@@ -1,12 +1,24 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import express from "express";
+import cors from "cors";
 import { sendFeedbackNotification } from "./email";
 import { sendFeedbackToReplit, createReplitIssue } from "./replit-feedback";
 import { storage } from "./storage";
 import { handleTwilioWebhook } from "./sms-service";
 import { sendWelcomeEmail } from "./welcome-email";
 import { sendWelcomeEmail as sendCampaignWelcome } from "./email-campaigns";
+import { 
+  rateLimiters, 
+  speedLimiters, 
+  corsOptions, 
+  helmetConfig, 
+  validationSchemas, 
+  handleValidationErrors, 
+  sanitizeRequest, 
+  securityHeaders, 
+  securityErrorHandler 
+} from "./middleware/security";
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { 
   insertKnowledgeEntrySchema, 
@@ -86,7 +98,15 @@ Reminder: This session is scheduled for ${reminderDays} day(s) from now.
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Health check endpoint
+  // Apply global security middleware
+  app.use(helmetConfig);
+  app.use(cors(corsOptions));
+  app.use(securityHeaders);
+  app.use(sanitizeRequest);
+  app.use(rateLimiters.general);
+  app.use(speedLimiters.general);
+
+  // Health check endpoint (no rate limiting)
   app.get("/api/health", (req, res) => {
     res.json({ 
       status: "ok", 
