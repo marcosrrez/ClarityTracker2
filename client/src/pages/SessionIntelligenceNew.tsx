@@ -2,14 +2,19 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Brain, Video, Mic, Eye, Shield, TrendingUp, Users, AlertTriangle, Database } from 'lucide-react';
+import { Brain, Video, Mic, Eye, Shield, TrendingUp, Users, AlertTriangle, Database, MessageSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
 import LiveSessionRecorder from '@/components/session-intelligence/LiveSessionRecorder';
 import { SessionManagement } from '@/components/session-intelligence/SessionManagement';
+import { RealTimeEBPFeedback } from '@/components/session-intelligence/RealTimeEBPFeedback';
+import { SupervisorReviewPanel } from '@/components/session-intelligence/SupervisorReviewPanel';
+import { useAuth } from '@/hooks/use-auth';
 
 const SessionIntelligenceNew = () => {
   const [currentSessionData, setCurrentSessionData] = useState(null);
   const [activeTab, setActiveTab] = useState('live-session');
+  const [selectedSessionForReview, setSelectedSessionForReview] = useState(null);
+  const { user } = useAuth();
 
   const handleSessionComplete = (sessionData: any) => {
     setCurrentSessionData(sessionData);
@@ -44,10 +49,18 @@ const SessionIntelligenceNew = () => {
           transition={{ delay: 0.2 }}
         >
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="live-session" className="flex items-center gap-2">
                 <Video className="w-4 h-4" />
                 Live Session Analysis
+              </TabsTrigger>
+              <TabsTrigger value="ebp-feedback" className="flex items-center gap-2">
+                <MessageSquare className="w-4 h-4" />
+                EBP Feedback
+              </TabsTrigger>
+              <TabsTrigger value="supervisor-review" className="flex items-center gap-2">
+                <Shield className="w-4 h-4" />
+                Supervisor Review
               </TabsTrigger>
               <TabsTrigger value="session-management" className="flex items-center gap-2">
                 <Database className="w-4 h-4" />
@@ -57,10 +70,6 @@ const SessionIntelligenceNew = () => {
                     New
                   </Badge>
                 )}
-              </TabsTrigger>
-              <TabsTrigger value="system-overview" className="flex items-center gap-2">
-                <Brain className="w-4 h-4" />
-                System Overview
               </TabsTrigger>
             </TabsList>
 
@@ -93,16 +102,125 @@ const SessionIntelligenceNew = () => {
               </Card>
             </TabsContent>
 
+            <TabsContent value="ebp-feedback" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5" />
+                    Real-Time Evidence-Based Practice Feedback
+                  </CardTitle>
+                  <p className="text-muted-foreground">
+                    Live EBP recommendations, crisis detection alerts, and therapeutic alliance monitoring
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <RealTimeEBPFeedback
+                    sessionId="demo-session"
+                    superviseeId={user?.uid || "demo-user"}
+                    isLive={true}
+                    onCrisisDetected={(crisis) => {
+                      console.log('Crisis detected:', crisis);
+                    }}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="supervisor-review" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="h-5 w-5" />
+                    Supervisor Review & Feedback System
+                  </CardTitle>
+                  <p className="text-muted-foreground">
+                    Review completed sessions, provide feedback, and track supervisee development
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  {selectedSessionForReview ? (
+                    <SupervisorReviewPanel
+                      sessionAnalysis={selectedSessionForReview}
+                      onReviewSubmitted={(review) => {
+                        console.log('Review submitted:', review);
+                        setSelectedSessionForReview(null);
+                      }}
+                    />
+                  ) : (
+                    <div className="text-center py-12">
+                      <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-medium mb-2">Select a Session to Review</h3>
+                      <p className="text-muted-foreground mb-6">
+                        Choose a completed session from your supervisees to provide feedback and review
+                      </p>
+                      <div className="space-y-2">
+                        <div className="p-4 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
+                             onClick={() => setSelectedSessionForReview({
+                               id: "session-001",
+                               superviseeId: "supervisee-001",
+                               superviseeName: "Sarah Johnson",
+                               sessionDate: new Date(),
+                               duration: 50,
+                               clientInitials: "A.B.",
+                               complianceScore: 85,
+                               engagementScore: 78,
+                               riskIndicators: ["Mild anxiety indicators"],
+                               strengths: ["Active listening", "Empathy building", "Goal setting"],
+                               areasForImprovement: ["Cognitive restructuring", "Homework assignment"],
+                               ebpTechniques: ["CBT", "Motivational Interviewing"],
+                               clinicalInsights: {}
+                             })}>
+                          <div className="text-left">
+                            <div className="font-medium">Sarah Johnson - Client A.B.</div>
+                            <div className="text-sm text-muted-foreground">Today, 50 minutes • CBT Session</div>
+                            <div className="text-sm text-muted-foreground">Compliance: 85% • Engagement: 78%</div>
+                          </div>
+                        </div>
+                        <div className="p-4 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
+                             onClick={() => setSelectedSessionForReview({
+                               id: "session-002",
+                               superviseeId: "supervisee-002",
+                               superviseeName: "Michael Chen",
+                               sessionDate: new Date(Date.now() - 86400000),
+                               duration: 45,
+                               clientInitials: "C.D.",
+                               complianceScore: 92,
+                               engagementScore: 88,
+                               riskIndicators: [],
+                               strengths: ["Rapport building", "Treatment planning", "Crisis assessment"],
+                               areasForImprovement: ["Documentation", "Boundary setting"],
+                               ebpTechniques: ["DBT", "Mindfulness"],
+                               clinicalInsights: {}
+                             })}>
+                          <div className="text-left">
+                            <div className="font-medium">Michael Chen - Client C.D.</div>
+                            <div className="text-sm text-muted-foreground">Yesterday, 45 minutes • DBT Session</div>
+                            <div className="text-sm text-muted-foreground">Compliance: 92% • Engagement: 88%</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             <TabsContent value="session-management" className="space-y-6">
               <SessionManagement 
                 currentSessionData={currentSessionData || undefined}
                 onSessionSaved={() => setCurrentSessionData(null)}
               />
             </TabsContent>
+          </Tabs>
+        </motion.div>
 
-            <TabsContent value="system-overview" className="space-y-6">
-              {/* Feature Overview */}
-              <Card>
+        {/* Feature Overview */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <TrendingUp className="h-5 w-5" />
@@ -217,7 +335,7 @@ const SessionIntelligenceNew = () => {
                   </div>
                 </CardContent>
               </Card>
-            </TabsContent>
+            </motion.div>
           </Tabs>
         </motion.div>
       </div>
