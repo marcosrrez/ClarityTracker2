@@ -12,6 +12,7 @@ import { Plus, Users, Share2, TrendingUp, Calendar, MessageSquare, FileText, Boo
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { ClientInvitationManager } from "@/components/client-portal/ClientInvitationManager";
+import { AddClientModal } from "@/components/client-portal/AddClientModal";
 
 interface Client {
   id: string;
@@ -162,49 +163,13 @@ export default function ClientPortal({ userId }: { userId: string }) {
             Manage your clients and share therapeutic insights securely
           </p>
         </div>
-        <Dialog open={showAddClient} onOpenChange={setShowAddClient}>
-          <DialogTrigger asChild>
-            <Button className="flex items-center gap-2">
-              <Plus className="w-4 h-4" />
-              Add Client
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add New Client</DialogTitle>
-              <DialogDescription>
-                Add a new client to your therapy practice. They will receive access to shared insights.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  value={newClientForm.name}
-                  onChange={(e) => setNewClientForm(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Enter client's full name"
-                />
-              </div>
-              <div>
-                <Label htmlFor="email">Email Address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={newClientForm.email}
-                  onChange={(e) => setNewClientForm(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder="Enter client's email"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowAddClient(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleAddClient}>Add Client</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <Button 
+          onClick={() => setShowAddClient(true)}
+          className="flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          Add Client
+        </Button>
       </div>
 
       <Tabs defaultValue="clients" className="space-y-6">
@@ -421,6 +386,12 @@ export default function ClientPortal({ userId }: { userId: string }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AddClientModal
+        isOpen={showAddClient}
+        onClose={() => setShowAddClient(false)}
+        therapistId={userId}
+      />
     </div>
   );
 }
