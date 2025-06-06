@@ -165,6 +165,11 @@ export default function SessionIntelligence() {
 
   const activeCrisisAlerts = crisisAlerts.filter(alert => alert.status === 'active');
   const recentSessions = sessionAnalyses || [];
+  
+  // Debug logging
+  console.log('Session analyses data:', sessionAnalyses);
+  console.log('Recent sessions:', recentSessions);
+  console.log('Is loading:', isLoadingAnalyses);
 
   return (
     <div className="container mx-auto p-6 space-y-8">
@@ -300,6 +305,19 @@ export default function SessionIntelligence() {
                 </Card>
               ))}
             </div>
+          ) : recentSessions.length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <Brain className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No Session Analyses Found</h3>
+                <p className="text-gray-600 dark:text-gray-300 mb-4">
+                  Create your first session analysis to begin tracking therapeutic progress
+                </p>
+                <Button onClick={handleCreateSession} disabled={!newSessionTitle.trim()}>
+                  Create Session Analysis
+                </Button>
+              </CardContent>
+            </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {recentSessions.map((session) => (
