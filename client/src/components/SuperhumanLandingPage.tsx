@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
+import { motion, useInView } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Sprout, Clock, Brain, Users, BarChart3, ArrowRight } from "lucide-react";
+import { Loader2, Sprout, Clock, Brain, Users, BarChart3, ArrowRight, Menu, MessageCircle, Calendar, Target, Award, Shield, TrendingUp, UserPlus, Zap } from "lucide-react";
 
 export const SuperhumanLandingPage = () => {
   const { signUp, signIn, resetPassword } = useAuth();
@@ -249,117 +249,429 @@ export const SuperhumanLandingPage = () => {
     );
   }
 
+  // Create scroll-triggered section component
+  const ScrollSection = ({ children, className = "" }) => {
+    const ref = useRef(null);
+    const isInView = useInView(ref, { once: true, margin: "-100px" });
+    
+    return (
+      <motion.div
+        ref={ref}
+        initial={{ opacity: 0, y: 60 }}
+        animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 60 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className={className}
+      >
+        {children}
+      </motion.div>
+    );
+  };
+
   return (
-    <div className="min-h-screen bg-white">
-      {/* Navigation */}
-      <nav className="relative z-20 flex items-center justify-between p-8 border-b border-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white overflow-hidden">
+      {/* Navigation - Superhuman Style */}
+      <nav className="relative z-50 flex items-center justify-between p-6 sm:p-8">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <Sprout className="w-5 h-5 text-white" />
+          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+            <Sprout className="w-5 h-5 text-purple-600" />
           </div>
-          <span className="text-gray-900 text-lg font-semibold tracking-tight">ClarityLog</span>
+          <span className="text-white text-lg font-semibold tracking-tight">ClarityLog</span>
         </div>
         
-        <Button 
-          onClick={() => setShowSignupForm(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium"
-        >
-          Start Now
-        </Button>
+        <div className="flex items-center gap-4">
+          <Button 
+            variant="ghost"
+            className="text-white hover:bg-white/10 hidden sm:inline-flex"
+          >
+            Features
+          </Button>
+          <Button 
+            variant="ghost"
+            className="text-white hover:bg-white/10 hidden sm:inline-flex"
+          >
+            Pricing
+          </Button>
+          <Button 
+            onClick={() => setShowSignupForm(true)}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-xl font-medium"
+          >
+            Get Started
+          </Button>
+          <Button 
+            variant="ghost"
+            size="sm"
+            className="text-white hover:bg-white/10 sm:hidden"
+          >
+            <Menu className="w-5 h-5" />
+          </Button>
+        </div>
       </nav>
 
-      {/* Hero section */}
-      <div className="relative z-10 container mx-auto px-4 sm:px-8 pt-16 sm:pt-20 pb-24 sm:pb-32">
+      {/* Hero Section */}
+      <div className="relative z-10 px-6 sm:px-8 pt-16 sm:pt-24 pb-32 sm:pb-48">
         <div className="max-w-4xl mx-auto text-center">
-          <motion.h1 
-            className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight"
-            initial={{ opacity: 0, y: 20 }}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.8 }}
+            className="mb-6"
           >
-            The simplest way to track your LPC journey
+            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 text-sm text-purple-200 mb-8">
+              <Zap className="w-4 h-4" />
+              The simplest counseling journey tracker ever made
+            </div>
+          </motion.div>
+          
+          <motion.h1 
+            className="text-4xl sm:text-6xl lg:text-7xl font-bold mb-8 leading-tight"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            The simplest way to track your counseling journey
           </motion.h1>
           
           <motion.p 
-            className="text-lg sm:text-xl text-gray-600 mb-10 sm:mb-12 leading-relaxed max-w-2xl mx-auto"
-            initial={{ opacity: 0, y: 20 }}
+            className="text-xl sm:text-2xl text-purple-100 mb-12 leading-relaxed max-w-3xl mx-auto font-light"
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
           >
-            Effortlessly log your supervision hours and gain insights that help you become a Licensed Professional Counselor.
+            Transform therapy with AI-powered insights, seamless session collaboration, and effortless progress tracking.
           </motion.p>
 
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
           >
             <Button 
               onClick={() => setShowSignupForm(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5"
+              className="bg-white text-purple-900 hover:bg-purple-50 px-8 py-4 rounded-2xl font-semibold text-lg shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1"
             >
-              Start Now
-              <ArrowRight className="w-4 sm:w-5 h-4 sm:h-5 ml-2" />
+              Get Started
+              <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
           </motion.div>
         </div>
+
+        {/* Floating Demo Interface */}
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 0.8 }}
+          className="max-w-5xl mx-auto mt-16 sm:mt-24"
+        >
+          <div className="relative">
+            <div className="bg-white/5 backdrop-blur-sm rounded-3xl p-6 border border-white/10 shadow-2xl">
+              <div className="bg-gradient-to-br from-white to-gray-100 rounded-2xl p-8 text-gray-900">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                  <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                  <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                  <span className="ml-4 text-sm text-gray-500">ClarityLog Dashboard</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <Clock className="w-5 h-5 text-purple-600" />
+                      <span className="font-medium">Session logged: 50 minutes</span>
+                    </div>
+                    <div className="bg-purple-50 rounded-xl p-4">
+                      <p className="text-sm text-gray-600">AI Insight: Client showed significant progress in CBT techniques...</p>
+                    </div>
+                  </div>
+                  <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <TrendingUp className="w-4 h-4 text-purple-600" />
+                      <span className="text-sm font-medium">Progress Analytics</span>
+                    </div>
+                    <div className="text-2xl font-bold text-purple-700">1,240 hours</div>
+                    <div className="text-sm text-gray-600">Toward LPC licensure</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
       </div>
 
+      {/* Session Intelligence Section */}
+      <ScrollSection className="py-24 sm:py-32 px-6 sm:px-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <h2 className="text-4xl sm:text-5xl font-bold mb-6 leading-tight">
+                Session intelligence
+                <br />
+                <span className="text-purple-300">beyond transcription</span>
+              </h2>
+              <p className="text-xl text-purple-100 mb-8 leading-relaxed">
+                Real-time AI analysis transforms your sessions into actionable insights. Track progress, identify patterns, and enhance therapeutic outcomes with doctoral-level supervision.
+              </p>
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Brain className="w-5 h-5 text-purple-300" />
+                  <span>AI-powered session analysis and insights</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <MessageCircle className="w-5 h-5 text-purple-300" />
+                  <span>Real-time transcription and note-taking</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Target className="w-5 h-5 text-purple-300" />
+                  <span>Progress tracking and outcome measurement</span>
+                </div>
+              </div>
+            </div>
+            <div className="relative">
+              <div className="bg-white/5 backdrop-blur-sm rounded-3xl p-6 border border-white/10">
+                <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 text-gray-900">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <Brain className="w-4 h-4 text-purple-600" />
+                      </div>
+                      <span className="font-semibold">AI Session Analysis</span>
+                    </div>
+                    <div className="bg-purple-50 rounded-xl p-4">
+                      <p className="text-sm font-medium text-gray-700 mb-2">Key Insights</p>
+                      <ul className="text-sm text-gray-600 space-y-1">
+                        <li>• Client demonstrated improved emotional regulation</li>
+                        <li>• Effective use of cognitive restructuring techniques</li>
+                        <li>• Recommend exploring family dynamics next session</li>
+                      </ul>
+                    </div>
+                    <div className="flex gap-3">
+                      <div className="bg-blue-50 rounded-lg p-3 flex-1">
+                        <div className="text-sm text-gray-600">Progress Score</div>
+                        <div className="text-lg font-bold text-blue-700">8.5/10</div>
+                      </div>
+                      <div className="bg-green-50 rounded-lg p-3 flex-1">
+                        <div className="text-sm text-gray-600">Engagement</div>
+                        <div className="text-lg font-bold text-green-700">High</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ScrollSection>
 
+      {/* Dual Portal Collaboration Section */}
+      <ScrollSection className="py-24 sm:py-32 px-6 sm:px-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div className="lg:order-2">
+              <h2 className="text-4xl sm:text-5xl font-bold mb-6 leading-tight">
+                Dual-portal
+                <br />
+                <span className="text-purple-300">collaboration</span>
+              </h2>
+              <p className="text-xl text-purple-100 mb-8 leading-relaxed">
+                Seamless collaboration between therapists and clients. Share session insights, track progress together, and maintain therapeutic alliance with transparent communication.
+              </p>
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Users className="w-5 h-5 text-purple-300" />
+                  <span>Shared session insights and progress tracking</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Shield className="w-5 h-5 text-purple-300" />
+                  <span>HIPAA-compliant secure communication</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <UserPlus className="w-5 h-5 text-purple-300" />
+                  <span>Bidirectional invitation system</span>
+                </div>
+              </div>
+            </div>
+            <div className="lg:order-1 relative">
+              <div className="bg-white/5 backdrop-blur-sm rounded-3xl p-6 border border-white/10">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-gradient-to-br from-white to-gray-50 rounded-xl p-4">
+                    <div className="text-sm font-medium text-gray-900 mb-3">Therapist View</div>
+                    <div className="space-y-2">
+                      <div className="bg-purple-100 rounded-lg p-2">
+                        <div className="text-xs text-gray-600">Session Notes</div>
+                        <div className="text-sm font-medium">CBT techniques effective</div>
+                      </div>
+                      <div className="bg-blue-100 rounded-lg p-2">
+                        <div className="text-xs text-gray-600">Next Steps</div>
+                        <div className="text-sm font-medium">Homework assignment</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-gradient-to-br from-white to-gray-50 rounded-xl p-4">
+                    <div className="text-sm font-medium text-gray-900 mb-3">Client View</div>
+                    <div className="space-y-2">
+                      <div className="bg-green-100 rounded-lg p-2">
+                        <div className="text-xs text-gray-600">My Progress</div>
+                        <div className="text-sm font-medium">Feeling more confident</div>
+                      </div>
+                      <div className="bg-yellow-100 rounded-lg p-2">
+                        <div className="text-xs text-gray-600">Goals</div>
+                        <div className="text-sm font-medium">Practice daily mindfulness</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ScrollSection>
 
-      {/* Features section */}
-      <div className="relative z-10 py-24 bg-gray-50">
-        <div className="container mx-auto px-4 sm:px-8">
-          <motion.div 
-            className="text-center mb-16"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.8 }}
-          >
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Everything you need to succeed</h2>
-            <p className="text-lg sm:text-xl text-gray-600">Professional tools designed for your licensure journey</p>
-          </motion.div>
+      {/* Bidirectional Invitations Section */}
+      <ScrollSection className="py-24 sm:py-32 px-6 sm:px-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <h2 className="text-4xl sm:text-5xl font-bold mb-6 leading-tight">
+                Bidirectional
+                <br />
+                <span className="text-purple-300">invitations</span>
+              </h2>
+              <p className="text-xl text-purple-100 mb-8 leading-relaxed">
+                Revolutionary referral system where clients can create standalone accounts for self-reflection, then invite therapists to join. Creates organic referral opportunities both ways.
+              </p>
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <UserPlus className="w-5 h-5 text-purple-300" />
+                  <span>Clients invite therapists to join their journey</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Target className="w-5 h-5 text-purple-300" />
+                  <span>Therapists invite clients for collaboration</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <TrendingUp className="w-5 h-5 text-purple-300" />
+                  <span>Organic growth through authentic connections</span>
+                </div>
+              </div>
+            </div>
+            <div className="relative">
+              <div className="bg-white/5 backdrop-blur-sm rounded-3xl p-6 border border-white/10">
+                <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 text-gray-900">
+                  <div className="text-center space-y-4">
+                    <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto">
+                      <UserPlus className="w-6 h-6 text-purple-600" />
+                    </div>
+                    <h3 className="font-semibold">Invitation Flow</h3>
+                    <div className="space-y-3 text-sm">
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-xs font-medium">1</div>
+                        <span>Client creates standalone account</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-xs font-medium">2</div>
+                        <span>Tracks personal growth journey</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center text-xs font-medium">3</div>
+                        <span>Invites therapist to collaborate</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center text-xs font-medium">4</div>
+                        <span>Shared therapeutic journey begins</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ScrollSection>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto">
+      {/* Professional Development Section */}
+      <ScrollSection className="py-24 sm:py-32 px-6 sm:px-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl sm:text-5xl font-bold mb-6">
+              Professional development
+              <br />
+              <span className="text-purple-300">at every level</span>
+            </h2>
+            <p className="text-xl text-purple-100 max-w-3xl mx-auto">
+              From supervision hours to peer consultation, ClarityLog supports your entire professional journey with comprehensive tools and insights.
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8">
             {[
               {
                 icon: Clock,
-                title: "Effortless Hour Tracking",
-                description: "Log your supervision and client contact hours with intuitive, streamlined entry forms"
+                title: "Supervision Tracking",
+                description: "Effortless hour logging with intelligent categorization and progress monitoring toward licensure requirements."
               },
               {
-                icon: Brain,
-                title: "AI-Powered Insights",
-                description: "Get personalized recommendations and growth patterns from your session notes"
+                icon: Award,
+                title: "Competency Development",
+                description: "AI-driven insights identify growth areas and recommend targeted development opportunities."
               },
               {
                 icon: Users,
-                title: "Supervision Support",
-                description: "Seamless collaboration between supervisors and supervisees with progress monitoring"
-              },
-              {
-                icon: BarChart3,
-                title: "Progress Analytics",
-                description: "Clear reporting and insights that help you stay on track toward your LPC goals"
+                title: "Peer Consultation",
+                description: "Connect with colleagues for case consultation and collaborative learning experiences."
               }
             ].map((feature, index) => (
-              <motion.div
-                key={feature.title}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 1 + 0.1 * index }}
-                className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-              >
-                <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
-                  <feature.icon className="w-7 h-7 text-white" />
+              <div key={feature.title} className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+                <div className="w-12 h-12 bg-purple-600 rounded-xl flex items-center justify-center mb-6">
+                  <feature.icon className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 leading-tight">{feature.title}</h3>
-                <p className="text-gray-600 leading-relaxed text-base">{feature.description}</p>
-              </motion.div>
+                <h3 className="text-xl font-bold mb-4">{feature.title}</h3>
+                <p className="text-purple-100 leading-relaxed">{feature.description}</p>
+              </div>
             ))}
           </div>
         </div>
-      </div>
+      </ScrollSection>
+
+      {/* Final CTA Section */}
+      <ScrollSection className="py-24 sm:py-32 px-6 sm:px-8">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-4xl sm:text-5xl font-bold mb-6">
+            Transform your practice
+            <br />
+            <span className="text-purple-300">starting today</span>
+          </h2>
+          <p className="text-xl text-purple-100 mb-12 max-w-2xl mx-auto">
+            Join thousands of mental health professionals who trust ClarityLog to enhance their practice and support their professional growth.
+          </p>
+          <Button 
+            onClick={() => setShowSignupForm(true)}
+            className="bg-white text-purple-900 hover:bg-purple-50 px-8 py-4 rounded-2xl font-semibold text-lg shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1"
+          >
+            Get Started Free
+            <ArrowRight className="w-5 h-5 ml-2" />
+          </Button>
+        </div>
+      </ScrollSection>
+
+      {/* Footer */}
+      <footer className="border-t border-white/10 py-12 px-6 sm:px-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="flex items-center gap-3 mb-8 md:mb-0">
+              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+                <Sprout className="w-5 h-5 text-purple-600" />
+              </div>
+              <span className="text-white text-lg font-semibold">ClarityLog</span>
+            </div>
+            <div className="flex gap-8 text-purple-200">
+              <a href="#" className="hover:text-white transition-colors">Privacy</a>
+              <a href="#" className="hover:text-white transition-colors">Terms</a>
+              <a href="#" className="hover:text-white transition-colors">Support</a>
+            </div>
+          </div>
+          <div className="mt-8 pt-8 border-t border-white/10 text-center text-purple-300">
+            <p>&copy; 2025 ClarityLog. Transforming mental health practice with AI-powered insights.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
