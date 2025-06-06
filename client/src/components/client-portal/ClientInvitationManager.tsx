@@ -135,26 +135,25 @@ export function ClientInvitationManager({ therapistId }: ClientInvitationManager
 
   return (
     <Card>
-      <CardHeader>
-        <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-            <div className="flex-1">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <UserPlus className="w-5 h-5" />
-                Client Invitations
-              </CardTitle>
-              <CardDescription className="mt-1">
-                Invite clients to access their therapy portal and view shared insights
-              </CardDescription>
-            </div>
-            <div className="flex-shrink-0">
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Invite Client
-                  </Button>
-                </DialogTrigger>
+      <CardHeader className="pb-4">
+        <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-1">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <UserPlus className="w-5 h-5" />
+              Client Invitations
+            </CardTitle>
+            <CardDescription>
+              Invite clients to access their therapy portal and view shared insights
+            </CardDescription>
+          </div>
+          <div className="flex-shrink-0 sm:ml-4">
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto shrink-0">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Invite Client
+                </Button>
+              </DialogTrigger>
                 <DialogContent>
               <DialogHeader>
                 <DialogTitle>Invite New Client</DialogTitle>
@@ -211,7 +210,6 @@ export function ClientInvitationManager({ therapistId }: ClientInvitationManager
               </Form>
             </DialogContent>
           </Dialog>
-            </div>
           </div>
         </div>
       </CardHeader>
