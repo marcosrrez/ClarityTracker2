@@ -30,11 +30,20 @@ export class ServerAzureSpeechService {
 
   async startTranscription(sessionId: string, userId: string): Promise<{ sessionId: string }> {
     try {
-      // Initialize session with simulation data for demonstration
+      // Initialize Azure Speech recognizer
+      const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(
+        process.env.AZURE_SPEECH_KEY!,
+        process.env.AZURE_SPEECH_REGION!
+      );
+      speechConfig.speechRecognitionLanguage = 'en-US';
+      
+      const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+      const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+
       const session: TranscriptionSession = {
         id: sessionId,
-        recognizer: null,
-        audioConfig: null,
+        recognizer,
+        audioConfig,
         websocket: null,
         isActive: true,
         userId,
@@ -42,10 +51,35 @@ export class ServerAzureSpeechService {
         startTime: Date.now()
       };
 
+      // Set up real-time recognition events
+      recognizer.recognizing = (s, e) => {
+        if (e.result.reason === SpeechSDK.ResultReason.RecognizingSpeech) {
+          const segment: TranscriptSegment = {
+            text: e.result.text,
+            timestamp: Date.now(),
+            confidence: 0.8,
+            isFinal: false
+          };
+          session.segments.push(segment);
+        }
+      };
+
+      recognizer.recognized = (s, e) => {
+        if (e.result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
+          const segment: TranscriptSegment = {
+            text: e.result.text,
+            timestamp: Date.now(),
+            confidence: 0.95,
+            isFinal: true
+          };
+          session.segments.push(segment);
+        }
+      };
+
       this.sessions.set(sessionId, session);
       
-      // Start simulated transcription for demonstration
-      this.startSimulatedTranscription(sessionId);
+      // Start continuous recognition
+      recognizer.startContinuousRecognitionAsync();
       
       return { sessionId };
     } catch (error) {

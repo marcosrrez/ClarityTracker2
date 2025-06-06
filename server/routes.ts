@@ -4296,7 +4296,8 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
     try {
       const { sessionId, userId } = req.body;
       
-      const { azureSpeechService } = await import('./services/azureSpeechService');
+      const { ServerAzureSpeechService } = await import('./services/azureSpeechService');
+      const azureSpeechService = new ServerAzureSpeechService();
       const result = await azureSpeechService.startTranscription(sessionId, userId);
       
       res.json({ sessionId: result.sessionId, success: true });
@@ -4310,7 +4311,8 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
     try {
       const { sessionId } = req.params;
       
-      const { azureSpeechService } = await import('./services/azureSpeechService');
+      const { ServerAzureSpeechService } = await import('./services/azureSpeechService');
+      const azureSpeechService = new ServerAzureSpeechService();
       const segments = await azureSpeechService.getTranscriptSegments(sessionId);
       
       res.json({ segments });
@@ -4324,7 +4326,8 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
     try {
       const { sessionId } = req.body;
       
-      const { azureSpeechService } = await import('./services/azureSpeechService');
+      const { ServerAzureSpeechService } = await import('./services/azureSpeechService');
+      const azureSpeechService = new ServerAzureSpeechService();
       await azureSpeechService.stopTranscription(sessionId);
       
       res.json({ success: true });
@@ -4339,8 +4342,8 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
     try {
       const { text, timestamp } = req.body;
       
-      const { multiModalAnalysisService } = await import('./services/multiModalAnalysisService');
-      const analysis = await multiModalAnalysisService.analyzeTranscriptSegment(text);
+      const { multiModalAnalysis } = await import('./services/multiModalAnalysisService');
+      const analysis = await multiModalAnalysis.analyzeTranscriptSegment(text);
       
       res.json(analysis);
     } catch (error) {
@@ -4354,8 +4357,8 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
     try {
       const { imageData, sessionId } = req.body;
       
-      const { multiModalAnalysisService } = await import('./services/multiModalAnalysisService');
-      const emotionData = await multiModalAnalysisService.analyzeEmotion(imageData);
+      const { multiModalAnalysis } = await import('./services/multiModalAnalysisService');
+      const emotionData = await multiModalAnalysis.analyzeEmotion(imageData);
       
       res.json(emotionData);
     } catch (error) {
