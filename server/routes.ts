@@ -8,7 +8,12 @@ import { handleTwilioWebhook } from "./sms-service";
 import { sendWelcomeEmail } from "./welcome-email";
 import { sendWelcomeEmail as sendCampaignWelcome } from "./email-campaigns";
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { insertKnowledgeEntrySchema } from "@shared/schema";
+import { 
+  insertKnowledgeEntrySchema, 
+  sessionAnalysisTable, 
+  insertSessionAnalysisSchema,
+  type SessionAnalysis 
+} from "@shared/schema";
 import { visualIntelligence } from "./visual-intelligence";
 import { IntelligenceHub } from "./services/intelligence-hub";
 import { SmartProgressTracker } from "./services/smart-progress-tracker";
@@ -4473,6 +4478,252 @@ Respond in JSON format:
     } catch (error) {
       console.error('Error generating SOAP note:', error);
       res.status(500).json({ error: 'Failed to generate SOAP note' });
+    }
+  });
+
+  // Session Data Management Routes
+  
+  // Save complete session analysis to database
+  app.post('/api/session-intelligence/save-session', async (req, res) => {
+    try {
+      const userId = req.headers['x-user-id'] as string || 'default-user';
+      const { 
+        sessionId, 
+        title, 
+        clientInitials, 
+        transcriptionData, 
+        videoAnalysisData, 
+        clinicalInsights, 
+        soapNote, 
+        riskAssessment, 
+        engagementMetrics, 
+        behavioralPatterns, 
+        therapeuticAlliance, 
+        complianceScore, 
+        duration, 
+        tags, 
+        notes 
+      } = req.body;
+
+      const sessionAnalysis = await db.insert(sessionAnalysisTable).values({
+        id: `analysis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        userId,
+        sessionId,
+        title: title || `Session Analysis - ${new Date().toLocaleDateString()}`,
+        clientInitials,
+        sessionDate: new Date(),
+        duration: duration || 0,
+        transcriptionData,
+        videoAnalysisData,
+        clinicalInsights,
+        soapNote,
+        riskAssessment,
+        engagementMetrics,
+        behavioralPatterns,
+        therapeuticAlliance,
+        complianceScore,
+        status: 'completed',
+        exported: false,
+        tags: tags || [],
+        notes
+      }).returning();
+
+      res.json({ 
+        success: true, 
+        analysisId: sessionAnalysis[0].id,
+        message: 'Session analysis saved successfully',
+        analysis: sessionAnalysis[0]
+      });
+    } catch (error) {
+      console.error('Error saving session analysis:', error);
+      res.status(500).json({ error: 'Failed to save session analysis' });
+    }
+  });
+
+  // Get all session analyses for a user
+  app.get('/api/session-intelligence/sessions', async (req, res) => {
+    try {
+      const userId = req.headers['x-user-id'] as string || 'default-user';
+      const limit = parseInt(req.query.limit as string) || 50;
+      const offset = parseInt(req.query.offset as string) || 0;
+
+      const sessions = await db.select()
+        .from(sessionAnalysisTable)
+        .where(eq(sessionAnalysisTable.userId, userId))
+        .orderBy(desc(sessionAnalysisTable.createdAt))
+        .limit(limit)
+        .offset(offset);
+
+      res.json({ 
+        success: true, 
+        sessions,
+        total: sessions.length
+      });
+    } catch (error) {
+      console.error('Error fetching sessions:', error);
+      res.status(500).json({ error: 'Failed to fetch sessions' });
+    }
+  });
+
+  // Get specific session analysis
+  app.get('/api/session-intelligence/sessions/:id', async (req, res) => {
+    try {
+      const userId = req.headers['x-user-id'] as string || 'default-user';
+      const { id } = req.params;
+
+      const [session] = await db.select()
+        .from(sessionAnalysisTable)
+        .where(and(
+          eq(sessionAnalysisTable.id, id),
+          eq(sessionAnalysisTable.userId, userId)
+        ));
+
+      if (!session) {
+        return res.status(404).json({ error: 'Session not found' });
+      }
+
+      res.json({ success: true, session });
+    } catch (error) {
+      console.error('Error fetching session:', error);
+      res.status(500).json({ error: 'Failed to fetch session' });
+    }
+  });
+
+  // Export session data in multiple formats
+  app.post('/api/session-intelligence/export/:id', async (req, res) => {
+    try {
+      const userId = req.headers['x-user-id'] as string || 'default-user';
+      const { id } = req.params;
+      const { format } = req.body; // 'pdf', 'docx', 'json', 'csv'
+
+      const [session] = await db.select()
+        .from(sessionAnalysisTable)
+        .where(and(
+          eq(sessionAnalysisTable.id, id),
+          eq(sessionAnalysisTable.userId, userId)
+        ));
+
+      if (!session) {
+        return res.status(404).json({ error: 'Session not found' });
+      }
+
+      // Mark as exported
+      await db.update(sessionAnalysisTable)
+        .set({ 
+          exported: true, 
+          exportedAt: new Date(),
+          updatedAt: new Date()
+        })
+        .where(eq(sessionAnalysisTable.id, id));
+
+      let exportData;
+      let contentType;
+      let filename;
+
+      switch (format) {
+        case 'json':
+          exportData = JSON.stringify(session, null, 2);
+          contentType = 'application/json';
+          filename = `session_${session.title.replace(/[^a-zA-Z0-9]/g, '_')}.json`;
+          break;
+        
+        case 'csv':
+          // Create CSV format for key metrics
+          const csvData = [
+            ['Field', 'Value'],
+            ['Session Title', session.title],
+            ['Client Initials', session.clientInitials || 'N/A'],
+            ['Session Date', session.sessionDate.toISOString()],
+            ['Duration (seconds)', session.duration.toString()],
+            ['Therapeutic Alliance Score', session.therapeuticAlliance?.toString() || 'N/A'],
+            ['Compliance Score', session.complianceScore?.toString() || 'N/A'],
+            ['Status', session.status],
+            ['Notes', session.notes || 'N/A']
+          ].map(row => row.join(',')).join('\n');
+          
+          exportData = csvData;
+          contentType = 'text/csv';
+          filename = `session_${session.title.replace(/[^a-zA-Z0-9]/g, '_')}.csv`;
+          break;
+
+        default:
+          return res.status(400).json({ error: 'Unsupported export format' });
+      }
+
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.send(exportData);
+
+    } catch (error) {
+      console.error('Error exporting session:', error);
+      res.status(500).json({ error: 'Failed to export session' });
+    }
+  });
+
+  // Delete session analysis
+  app.delete('/api/session-intelligence/sessions/:id', async (req, res) => {
+    try {
+      const userId = req.headers['x-user-id'] as string || 'default-user';
+      const { id } = req.params;
+
+      const [session] = await db.select()
+        .from(sessionAnalysisTable)
+        .where(and(
+          eq(sessionAnalysisTable.id, id),
+          eq(sessionAnalysisTable.userId, userId)
+        ));
+
+      if (!session) {
+        return res.status(404).json({ error: 'Session not found' });
+      }
+
+      await db.delete(sessionAnalysisTable)
+        .where(eq(sessionAnalysisTable.id, id));
+
+      res.json({ success: true, message: 'Session deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting session:', error);
+      res.status(500).json({ error: 'Failed to delete session' });
+    }
+  });
+
+  // Update session metadata
+  app.patch('/api/session-intelligence/sessions/:id', async (req, res) => {
+    try {
+      const userId = req.headers['x-user-id'] as string || 'default-user';
+      const { id } = req.params;
+      const { title, clientInitials, tags, notes } = req.body;
+
+      const [session] = await db.select()
+        .from(sessionAnalysisTable)
+        .where(and(
+          eq(sessionAnalysisTable.id, id),
+          eq(sessionAnalysisTable.userId, userId)
+        ));
+
+      if (!session) {
+        return res.status(404).json({ error: 'Session not found' });
+      }
+
+      const updatedSession = await db.update(sessionAnalysisTable)
+        .set({
+          title: title || session.title,
+          clientInitials: clientInitials !== undefined ? clientInitials : session.clientInitials,
+          tags: tags || session.tags,
+          notes: notes !== undefined ? notes : session.notes,
+          updatedAt: new Date()
+        })
+        .where(eq(sessionAnalysisTable.id, id))
+        .returning();
+
+      res.json({ 
+        success: true, 
+        message: 'Session updated successfully',
+        session: updatedSession[0]
+      });
+    } catch (error) {
+      console.error('Error updating session:', error);
+      res.status(500).json({ error: 'Failed to update session' });
     }
   });
 

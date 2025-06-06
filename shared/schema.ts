@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { pgTable, text, timestamp, varchar, integer, real, jsonb, serial } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, varchar, integer, real, jsonb, serial, boolean } from 'drizzle-orm/pg-core';
+import { createInsertSchema } from 'drizzle-zod';
 
 // User Profile Schema
 export const userProfileSchema = z.object({
@@ -779,6 +780,63 @@ export const riskAssessmentTable = pgTable('risk_assessments', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
+// Enhanced Session Intelligence Schemas with Export and Management
+export const sessionAnalysisTable = pgTable('session_analyses', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  sessionId: varchar('session_id', { length: 255 }).notNull(),
+  title: varchar('title', { length: 255 }).notNull(),
+  clientInitials: varchar('client_initials', { length: 10 }),
+  sessionDate: timestamp('session_date').notNull(),
+  duration: integer('duration').notNull(), // in seconds
+  transcriptionData: jsonb('transcription_data'), // full transcription segments
+  videoAnalysisData: jsonb('video_analysis_data'), // facial landmarks, emotions, etc.
+  clinicalInsights: jsonb('clinical_insights'), // AI-generated insights
+  soapNote: jsonb('soap_note'), // complete SOAP note
+  riskAssessment: jsonb('risk_assessment'), // risk indicators and scores
+  engagementMetrics: jsonb('engagement_metrics'), // comprehensive engagement data
+  behavioralPatterns: jsonb('behavioral_patterns'), // detected patterns
+  therapeuticAlliance: real('therapeutic_alliance'), // alliance score
+  complianceScore: real('compliance_score'),
+  status: varchar('status', { length: 20 }).notNull().default('completed'),
+  exported: boolean('exported').default(false),
+  exportedAt: timestamp('exported_at'),
+  tags: jsonb('tags'), // user-defined tags
+  notes: text('notes'), // therapist notes
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const sessionAnalysisSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  sessionId: z.string(),
+  title: z.string(),
+  clientInitials: z.string().optional(),
+  sessionDate: z.date(),
+  duration: z.number(),
+  transcriptionData: z.any().optional(),
+  videoAnalysisData: z.any().optional(),
+  clinicalInsights: z.any().optional(),
+  soapNote: z.any().optional(),
+  riskAssessment: z.any().optional(),
+  engagementMetrics: z.any().optional(),
+  behavioralPatterns: z.any().optional(),
+  therapeuticAlliance: z.number().optional(),
+  complianceScore: z.number().optional(),
+  status: z.enum(["recording", "processing", "completed", "error"]).default("completed"),
+  exported: z.boolean().default(false),
+  exportedAt: z.date().optional(),
+  tags: z.array(z.string()).default([]),
+  notes: z.string().optional(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export const insertSessionAnalysisSchema = createInsertSchema(sessionAnalysisTable);
+export type SessionAnalysis = typeof sessionAnalysisTable.$inferSelect;
+export type InsertSessionAnalysis = z.infer<typeof insertSessionAnalysisSchema>;
 
 // Session Intelligence Schemas
 export const sessionRecordingSchema = z.object({
