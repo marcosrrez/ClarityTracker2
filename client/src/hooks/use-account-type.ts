@@ -13,10 +13,16 @@ export const useAccountType = () => {
     canImportData: subscriptionTier !== 'free',
     
     // Supervisor features
+    supervisor: accountType === 'supervisor' || accountType === 'enterprise',
     canManageSupervisees: accountType === 'supervisor' || accountType === 'enterprise',
     canViewMultipleDashboards: accountType === 'supervisor' || accountType === 'enterprise',
     canTrackCompliance: accountType === 'supervisor' || accountType === 'enterprise',
     canGenerateReports: accountType === 'supervisor' || accountType === 'enterprise',
+    
+    // Client features 
+    client: accountType === 'client',
+    canViewTherapistContent: accountType === 'client',
+    canAccessClientPortal: accountType === 'client',
     
     // Enterprise features
     canManageOrganization: accountType === 'enterprise',

@@ -37,7 +37,44 @@ import {
 } from "lucide-react";
 
 const getNavigationItems = (accountType: string, permissions: any) => {
-  // Primary navigation - core daily workflow items
+  // Client account navigation - therapy-focused experience
+  if (permissions?.client) {
+    return [
+      { href: "/client-dashboard", label: "My Dashboard", icon: ChartLine, group: "primary" },
+      { href: "/sessions", label: "Sessions", icon: Activity, group: "primary" },
+      { href: "/progress", label: "My Progress", icon: Sprout, group: "primary" },
+      { href: "/resources", label: "Resources", icon: BookOpen, group: "primary" },
+      { href: "/messaging", label: "Messages", icon: MessageSquare, group: "professional" },
+      { href: "/appointments", label: "Appointments", icon: ClipboardList, group: "professional" },
+      { href: "/journal", label: "Reflection Journal", icon: FileText, group: "professional" },
+      { href: "/settings", label: "Settings", icon: Settings, group: "utility" },
+      { href: "/help", label: "Help", icon: HelpCircle, group: "utility" },
+    ];
+  }
+
+  // Supervisor account navigation - supervision-focused experience
+  if (permissions?.supervisor) {
+    return [
+      { href: "/supervisor-dashboard", label: "Supervisor Dashboard", icon: ChartLine, group: "primary" },
+      { href: "/supervisees", label: "Supervisees", icon: Users, group: "primary" },
+      { href: "/compliance", label: "Compliance", icon: Shield, group: "primary" },
+      { href: "/supervisor-analytics", label: "Analytics", icon: BarChart3, group: "primary" },
+      { href: "/session-reviews", label: "Session Reviews", icon: Brain, group: "professional" },
+      { href: "/supervision-scheduling", label: "Scheduling", icon: ClipboardList, group: "professional" },
+      { href: "/reports", label: "Reports", icon: FileText, group: "professional" },
+      { href: "/research-library", label: "Research Library", icon: BookOpen, group: "professional" },
+      { href: "/supervisor-training", label: "Training Resources", icon: Lightbulb, group: "professional" },
+      ...(accountType === 'enterprise' ? [
+        { href: "/organization", label: "Organization", icon: Building2, group: "enterprise" },
+        { href: "/user-management", label: "User Management", icon: Users, group: "enterprise" },
+      ] : []),
+      { href: "/settings", label: "Settings", icon: Settings, group: "utility" },
+      { href: "/feedback", label: "Feedback", icon: MessageSquare, group: "utility" },
+      { href: "/help", label: "Help", icon: HelpCircle, group: "utility" },
+    ];
+  }
+
+  // LAC account navigation - professional development focused (current implementation)
   const primaryItems = [
     { href: "/dashboard", label: "Dashboard", icon: ChartLine, group: "primary" },
     { href: "/add-entry", label: "Add Entry", icon: Plus, group: "primary" },
@@ -45,7 +82,6 @@ const getNavigationItems = (accountType: string, permissions: any) => {
     { href: "/insights", label: "Insights & Resources", icon: Lightbulb, group: "primary" },
   ];
 
-  // Professional development section - grouped together
   const professionalItems = [
     { href: "/supervisors", label: "Supervisors", icon: Users, group: "professional" },
     { href: "/session-recording", label: "Session Recording", icon: Mic, group: "professional" },
@@ -54,37 +90,17 @@ const getNavigationItems = (accountType: string, permissions: any) => {
     { href: "/requirements", label: "Requirements", icon: ClipboardList, group: "professional" },
   ];
 
-  // Supervisor-specific functionality
-  const supervisorItems = [
-    { href: "/supervisees", label: "Supervisees", icon: Users, group: "supervisor" },
-    { href: "/supervisor-analytics", label: "Analytics Dashboard", icon: BarChart3, group: "supervisor" },
-    { href: "/compliance", label: "Compliance", icon: Shield, group: "supervisor" },
-    { href: "/reports", label: "Reports", icon: FileText, group: "supervisor" },
-  ];
-
-  // Enterprise administration
-  const enterpriseItems = [
-    { href: "/organization", label: "Organization", icon: Building2, group: "enterprise" },
-    { href: "/user-management", label: "User Management", icon: Users, group: "enterprise" },
-  ];
-
-  // User utilities - grouped with download data for better flow
   const utilityItems = [
     { href: "/settings", label: "Settings", icon: Settings, group: "utility" },
     { href: "/feedback", label: "Feedback", icon: MessageSquare, group: "utility" },
     { href: "/help", label: "Help", icon: HelpCircle, group: "utility" },
   ];
 
-  // Combine sections based on account type
-  const allItems = [
+  return [
     ...primaryItems,
     ...professionalItems,
-    ...(permissions?.supervisor ? supervisorItems : []),
-    ...(accountType === 'enterprise' ? enterpriseItems : []),
     ...utilityItems,
   ];
-
-  return allItems;
 };
 
 interface SidebarProps {
@@ -155,11 +171,12 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
           </div>
 
           {/* Professional Development section */}
-          <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
-            <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 px-3">
-              Professional Development
-            </h4>
-            <div className="space-y-1">
+          {navigationItems.some(item => item.group === 'professional') && (
+            <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
+              <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 px-3">
+                {permissions?.client ? 'Therapy Tools' : permissions?.supervisor ? 'Supervision Tools' : 'Professional Development'}
+              </h4>
+              <div className="space-y-1">
               {navigationItems.filter(item => item.group === 'professional').map((item) => {
                 const Icon = item.icon;
                 const isActive = location === item.href;
@@ -184,8 +201,9 @@ export const Sidebar = ({ open, onOpenChange }: SidebarProps) => {
                   </Link>
                 );
               })}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Supervisor section (if applicable) */}
           {navigationItems.some(item => item.group === 'supervisor') && (
