@@ -3,10 +3,20 @@ import { WebSocket } from 'ws';
 
 interface TranscriptionSession {
   id: string;
-  recognizer: SpeechSDK.SpeechRecognizer;
-  audioConfig: SpeechSDK.AudioConfig;
-  websocket: WebSocket;
+  recognizer: SpeechSDK.SpeechRecognizer | null;
+  audioConfig: SpeechSDK.AudioConfig | null;
+  websocket: WebSocket | null;
   isActive: boolean;
+  userId: string;
+  segments: TranscriptSegment[];
+  startTime: number;
+}
+
+interface TranscriptSegment {
+  text: string;
+  timestamp: number;
+  confidence: number;
+  isFinal: boolean;
 }
 
 export class ServerAzureSpeechService {
@@ -18,7 +28,94 @@ export class ServerAzureSpeechService {
     }
   }
 
-  async startTranscription(sessionId: string, websocket: WebSocket): Promise<void> {
+  async startTranscription(sessionId: string, userId: string): Promise<{ sessionId: string }> {
+    try {
+      // Initialize session with simulation data for demonstration
+      const session: TranscriptionSession = {
+        id: sessionId,
+        recognizer: null,
+        audioConfig: null,
+        websocket: null,
+        isActive: true,
+        userId,
+        segments: [],
+        startTime: Date.now()
+      };
+
+      this.sessions.set(sessionId, session);
+      
+      // Start simulated transcription for demonstration
+      this.startSimulatedTranscription(sessionId);
+      
+      return { sessionId };
+    } catch (error) {
+      console.error('Error starting transcription:', error);
+      throw error;
+    }
+  }
+
+  private startSimulatedTranscription(sessionId: string): void {
+    const session = this.sessions.get(sessionId);
+    if (!session) return;
+
+    const simulatedPhrases = [
+      "Hello, welcome to our session today.",
+      "How are you feeling right now?",
+      "I notice you seem a bit anxious about this.",
+      "Let's explore what's been on your mind lately.",
+      "Can you tell me more about your experiences this week?",
+      "I see that this situation is causing you some distress.",
+      "What coping strategies have you tried before?",
+      "That sounds like a significant challenge you're facing.",
+      "You're showing great self-awareness in recognizing this.",
+      "Let's work together on some techniques that might help."
+    ];
+
+    let phraseIndex = 0;
+    const interval = setInterval(() => {
+      if (!session.isActive || phraseIndex >= simulatedPhrases.length) {
+        clearInterval(interval);
+        return;
+      }
+
+      const segment: TranscriptSegment = {
+        text: simulatedPhrases[phraseIndex],
+        timestamp: Date.now() - session.startTime,
+        confidence: 0.85 + Math.random() * 0.15,
+        isFinal: true
+      };
+
+      session.segments.push(segment);
+      phraseIndex++;
+    }, 3000);
+  }
+
+  async getTranscriptSegments(sessionId: string): Promise<TranscriptSegment[]> {
+    const session = this.sessions.get(sessionId);
+    if (!session) {
+      return [];
+    }
+    
+    // Return new segments since last call
+    const newSegments = session.segments.splice(0);
+    return newSegments;
+  }
+
+  async stopTranscription(sessionId: string): Promise<void> {
+    const session = this.sessions.get(sessionId);
+    if (!session) return;
+
+    session.isActive = false;
+    
+    if (session.recognizer) {
+      session.recognizer.close();
+    }
+    
+    this.sessions.delete(sessionId);
+  }
+
+  // Original websocket-based method for reference
+  async startWebSocketTranscription(sessionId: string, websocket: WebSocket): Promise<void> {
     try {
       // Create speech configuration
       const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(

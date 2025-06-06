@@ -250,86 +250,167 @@ const LiveSessionRecorder: React.FC = () => {
     }
   };
 
-  const startRealTimeAnalysis = () => {
-    console.log('Starting real-time analysis...');
+  const startRealTimeAnalysis = async () => {
+    console.log('Starting real-time Azure Speech transcription...');
     
     // Clear any existing analysis data
     setTranscriptionSegments([]);
     setSessionTranscript('');
     setClinicalInsights([]);
+    setRiskAlerts([]);
     
-    // Simulate progressive transcription
-    const transcriptionSimulation = [
-      "Welcome to our session today.",
-      "How are you feeling right now?",
-      "I notice you seem a bit anxious.",
-      "Let's explore what's been on your mind lately.",
-      "Can you tell me more about your experiences this week?",
-      "I see that this is causing you some distress.",
-      "What coping strategies have you tried before?",
-      "That sounds like a significant challenge.",
-      "You're showing great self-awareness.",
-      "Let's work together on some techniques."
-    ];
+    try {
+      // Start Azure Speech transcription session
+      const response = await fetch('/api/azure-speech/start-transcription', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId: `session_${Date.now()}`,
+          userId: 'current-user', // Replace with actual user ID
+        })
+      });
 
-    let transcriptIndex = 0;
-    let analysisRunning = true;
-    
-    const transcriptInterval = setInterval(() => {
-      if (transcriptIndex < transcriptionSimulation.length && analysisRunning) {
-        console.log(`Adding transcript segment ${transcriptIndex}: ${transcriptionSimulation[transcriptIndex]}`);
-        
-        const newSegment = {
-          text: transcriptionSimulation[transcriptIndex],
-          timestamp: Date.now(),
-          confidence: 0.85 + Math.random() * 0.15
-        };
-        
-        setTranscriptionSegments(prev => [...prev, newSegment]);
-        setSessionTranscript(prev => prev + ' ' + newSegment.text);
-        
-        // Add clinical insights based on transcription
-        if (transcriptIndex % 2 === 0) {
-          const insights = [
-            'Engagement Analysis - Client showing active participation',
-            'Emotional State - Detecting signs of anxiety and openness',
-            'Communication Pattern - Verbal pacing indicates thoughtful processing',
-            'Therapeutic Alliance - Strong rapport building observed',
-            'Progress Indicator - Client demonstrating self-awareness'
-          ];
-          
-          setClinicalInsights(prev => [...prev, {
-            type: 'Clinical Insight',
-            content: insights[Math.floor(Math.random() * insights.length)],
-            confidence: 0.8 + Math.random() * 0.2,
-            timestamp: Date.now()
-          }]);
+      if (!response.ok) {
+        throw new Error('Failed to start transcription service');
+      }
+
+      const { sessionId } = await response.json();
+      console.log('Azure Speech session started:', sessionId);
+
+      // Start real-time transcription polling
+      const transcriptionInterval = setInterval(async () => {
+        try {
+          const transcriptResponse = await fetch(`/api/azure-speech/get-transcript/${sessionId}`);
+          if (transcriptResponse.ok) {
+            const { segments } = await transcriptResponse.json();
+            
+            segments.forEach((segment: any) => {
+              setTranscriptionSegments(prev => [...prev, {
+                text: segment.text,
+                timestamp: segment.timestamp,
+                confidence: segment.confidence
+              }]);
+              
+              setSessionTranscript(prev => prev + ' ' + segment.text);
+              
+              // Real-time AI analysis for each segment
+              analyzeTranscriptSegment(segment.text);
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching transcript:', error);
         }
-        
-        transcriptIndex++;
-      } else {
-        clearInterval(transcriptInterval);
-        analysisRunning = false;
-      }
-    }, 2000); // Faster interval for better demo
+      }, 1000); // Check for new transcription every second
 
-    // Simulate emotion detection
-    const emotionInterval = setInterval(() => {
-      if (analysisRunning) {
-        const emotions = ['calm', 'anxious', 'hopeful', 'frustrated', 'engaged'];
-        const emotion = emotions[Math.floor(Math.random() * emotions.length)];
-        setEmotionalState({
-          emotion,
-          intensity: Math.random() * 0.8 + 0.2,
-          confidence: 0.7 + Math.random() * 0.3
-        });
-      } else {
-        clearInterval(emotionInterval);
+      // Start emotion detection from video stream
+      const emotionInterval = setInterval(async () => {
+        if (videoStream) {
+          try {
+            // Capture frame from video stream for emotion analysis
+            const canvas = document.createElement('canvas');
+            const video = videoElementRef.current;
+            if (video) {
+              canvas.width = video.videoWidth;
+              canvas.height = video.videoHeight;
+              const ctx = canvas.getContext('2d');
+              ctx?.drawImage(video, 0, 0);
+              
+              const imageData = canvas.toDataURL('image/jpeg', 0.8);
+              
+              // Send to multimodal analysis service
+              const emotionResponse = await fetch('/api/multimodal/analyze-emotion', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  imageData: imageData.split(',')[1], // Remove data:image/jpeg;base64, prefix
+                  sessionId
+                })
+              });
+
+              if (emotionResponse.ok) {
+                const emotionData = await emotionResponse.json();
+                setEmotionalState({
+                  emotion: emotionData.emotion,
+                  intensity: emotionData.intensity,
+                  confidence: emotionData.confidence
+                });
+              }
+            }
+          } catch (error) {
+            console.error('Error analyzing emotion:', error);
+          }
+        }
+      }, 5000); // Analyze emotions every 5 seconds
+
+      // Store intervals and session ID for cleanup
+      (window as any).analysisIntervals = { transcriptionInterval, emotionInterval, sessionId };
+
+    } catch (error) {
+      console.error('Failed to start real-time analysis:', error);
+      setRiskAlerts(prev => [...prev, {
+        type: 'high',
+        message: 'Failed to connect to transcription service. Please check Azure Speech credentials.',
+        timestamp: Date.now(),
+        severity: 'high'
+      }]);
+    }
+  };
+
+  const analyzeTranscriptSegment = async (text: string) => {
+    try {
+      // Send to AI analysis service for real-time insights
+      const analysisResponse = await fetch('/api/ai/real-time-analysis', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text,
+          timestamp: Date.now()
+        })
+      });
+
+      if (analysisResponse.ok) {
+        const analysis = await analysisResponse.json();
+        
+        // Add clinical insights
+        if (analysis.insights) {
+          analysis.insights.forEach((insight: any) => {
+            setClinicalInsights(prev => [...prev, {
+              type: insight.type,
+              content: insight.content,
+              confidence: insight.confidence,
+              timestamp: Date.now()
+            }]);
+          });
+        }
+
+        // Add risk indicators
+        if (analysis.riskIndicators) {
+          analysis.riskIndicators.forEach((risk: any) => {
+            setRiskAlerts(prev => [...prev, {
+              type: risk.severity,
+              message: risk.message,
+              timestamp: Date.now(),
+              severity: risk.severity
+            }]);
+          });
+        }
+
+        // Log EBP recommendations
+        if (analysis.ebpRecommendations) {
+          analysis.ebpRecommendations.forEach((recommendation: string) => {
+            console.log('EBP Recommendation:', recommendation);
+          });
+        }
       }
-    }, 4000);
-    
-    // Store intervals for cleanup
-    (window as any).analysisIntervals = { transcriptInterval, emotionInterval };
+    } catch (error) {
+      console.error('Error analyzing transcript segment:', error);
+    }
   };
 
   const stopRecording = () => {

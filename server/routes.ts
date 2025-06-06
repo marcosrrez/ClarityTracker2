@@ -4291,6 +4291,79 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
     }
   });
 
+  // Azure Speech Transcription Routes
+  app.post('/api/azure-speech/start-transcription', async (req, res) => {
+    try {
+      const { sessionId, userId } = req.body;
+      
+      const { azureSpeechService } = await import('./services/azureSpeechService');
+      const result = await azureSpeechService.startTranscription(sessionId, userId);
+      
+      res.json({ sessionId: result.sessionId, success: true });
+    } catch (error) {
+      console.error('Error starting transcription:', error);
+      res.status(500).json({ error: 'Failed to start transcription service' });
+    }
+  });
+
+  app.get('/api/azure-speech/get-transcript/:sessionId', async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      
+      const { azureSpeechService } = await import('./services/azureSpeechService');
+      const segments = await azureSpeechService.getTranscriptSegments(sessionId);
+      
+      res.json({ segments });
+    } catch (error) {
+      console.error('Error getting transcript:', error);
+      res.status(500).json({ error: 'Failed to get transcript' });
+    }
+  });
+
+  app.post('/api/azure-speech/stop-transcription', async (req, res) => {
+    try {
+      const { sessionId } = req.body;
+      
+      const { azureSpeechService } = await import('./services/azureSpeechService');
+      await azureSpeechService.stopTranscription(sessionId);
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error stopping transcription:', error);
+      res.status(500).json({ error: 'Failed to stop transcription' });
+    }
+  });
+
+  // Real-time AI Analysis Routes
+  app.post('/api/ai/real-time-analysis', async (req, res) => {
+    try {
+      const { text, timestamp } = req.body;
+      
+      const { multiModalAnalysisService } = await import('./services/multiModalAnalysisService');
+      const analysis = await multiModalAnalysisService.analyzeTranscriptSegment(text);
+      
+      res.json(analysis);
+    } catch (error) {
+      console.error('Error in real-time analysis:', error);
+      res.status(500).json({ error: 'Failed to analyze transcript segment' });
+    }
+  });
+
+  // Multimodal Emotion Analysis Routes
+  app.post('/api/multimodal/analyze-emotion', async (req, res) => {
+    try {
+      const { imageData, sessionId } = req.body;
+      
+      const { multiModalAnalysisService } = await import('./services/multiModalAnalysisService');
+      const emotionData = await multiModalAnalysisService.analyzeEmotion(imageData);
+      
+      res.json(emotionData);
+    } catch (error) {
+      console.error('Error analyzing emotion:', error);
+      res.status(500).json({ error: 'Failed to analyze emotion' });
+    }
+  });
+
   // Analyze transcript segment
   app.post('/api/session-intelligence/analyze-transcript', async (req, res) => {
     try {
