@@ -37,17 +37,23 @@ import {
 } from "lucide-react";
 
 const getNavigationItems = (accountType: string, permissions: any) => {
-  // Primary navigation - top 6 most used items
+  // Primary navigation - core LAC functionality
   const primaryItems = [
     { href: "/dashboard", label: "Dashboard", icon: ChartLine, group: "primary" },
     { href: "/add-entry", label: "Add Entry", icon: Plus, group: "primary" },
-    { href: "/session-recording", label: "Session Recording", icon: Mic, group: "primary" },
-    { href: "/session-intelligence", label: "Session Intelligence", icon: Brain, group: "primary" },
-    { href: "/client-portal", label: "Client Portal (Therapist)", icon: MessageSquare, group: "primary" },
-    { href: "/client-dashboard", label: "Client View (Demo)", icon: Activity, group: "primary" },
     { href: "/insights", label: "Insights & Resources", icon: Lightbulb, group: "primary" },
-    { href: "/research-library", label: "Research Library", icon: BookOpen, group: "primary" },
-    { href: "/supervisors", label: "Supervisors", icon: Users, group: "primary" },
+  ];
+
+  // Professional development items
+  const professionalItems = [
+    { href: "/session-recording", label: "Session Recording", icon: Mic, group: "secondary" },
+    { href: "/session-intelligence", label: "Session Intelligence", icon: Brain, group: "secondary" },
+    { href: "/research-library", label: "Research Library", icon: BookOpen, group: "secondary" },
+  ];
+
+  // Therapist-specific items (only show for appropriate account types)
+  const therapistItems = [
+    { href: "/client-portal", label: "Client Management", icon: MessageSquare, group: "secondary" },
   ];
 
   // Secondary items - less frequently used
@@ -73,11 +79,13 @@ const getNavigationItems = (accountType: string, permissions: any) => {
     { href: "/help", label: "Help", icon: HelpCircle, group: "settings" },
   ];
 
-  // Combine all secondary items
+  // Combine all secondary items based on account type
   const allSecondaryItems = [
+    ...professionalItems,
     ...secondaryItems,
     ...(permissions?.supervisor ? supervisorItems : []),
     ...(accountType === 'enterprise' ? enterpriseItems : []),
+    ...(accountType === 'supervisor' || permissions?.therapist ? therapistItems : []),
     ...settingsItems,
   ];
 
