@@ -146,8 +146,13 @@ export const OnboardingFlow = () => {
       title: "Welcome to ClarityLog!",
       description: "Your account has been set up successfully. Check your email for next steps.",
     });
-    // Redirect to dashboard
-    window.location.href = '/dashboard';
+    
+    // Redirect based on account type
+    if (data.accountType === 'client') {
+      window.location.href = '/client-dashboard';
+    } else {
+      window.location.href = '/dashboard';
+    }
   };
 
   const getPainPoint = () => {
@@ -165,6 +170,11 @@ export const OnboardingFlow = () => {
       return {
         title: "Scaling training programs shouldn't sacrifice quality",
         subtitle: "But how do you maintain oversight across your organization?"
+      };
+    } else if (data.accountType === 'client') {
+      return {
+        title: "Your therapy journey should feel supported",
+        subtitle: "But how do you track progress and stay connected with your therapist?"
       };
     }
     return {

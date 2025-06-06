@@ -3583,6 +3583,43 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
     }
   });
 
+  // Client invitation endpoint for therapists
+  app.post('/api/clients/invite', express.json(), async (req, res) => {
+    try {
+      const { therapistId, clientEmail, clientName } = req.body;
+      
+      // Generate invite token
+      const inviteToken = `invite_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Create client record with invite token
+      const clientId = `client_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      const [client] = await db.insert(clientTable).values({
+        id: clientId,
+        therapistId,
+        firstName: clientName.split(' ')[0],
+        lastName: clientName.split(' ').slice(1).join(' ') || '',
+        email: clientEmail,
+        status: 'invited',
+        portalAccess: 'false',
+        consentToShare: 'false'
+      }).returning();
+      
+      // Send invitation email (in production, this would send real email)
+      const inviteLink = `${process.env.BASE_URL || 'http://localhost:5000'}/client-onboarding/${inviteToken}`;
+      
+      res.json({ 
+        client, 
+        inviteToken, 
+        inviteLink,
+        message: 'Client invitation created successfully'
+      });
+    } catch (error) {
+      console.error('Client invitation error:', error);
+      res.status(500).json({ error: 'Failed to create client invitation' });
+    }
+  });
+
   // Update client
   app.put('/api/clients/:clientId', async (req, res) => {
     try {
