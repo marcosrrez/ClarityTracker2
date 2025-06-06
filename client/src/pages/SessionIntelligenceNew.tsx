@@ -95,7 +95,7 @@ const SessionIntelligenceNew = () => {
 
             <TabsContent value="session-management" className="space-y-6">
               <SessionManagement 
-                currentSessionData={currentSessionData}
+                currentSessionData={currentSessionData || undefined}
                 onSessionSaved={() => setCurrentSessionData(null)}
               />
             </TabsContent>
