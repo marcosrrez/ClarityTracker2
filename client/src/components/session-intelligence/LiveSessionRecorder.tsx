@@ -160,7 +160,7 @@ const LiveSessionRecorder: React.FC = () => {
       if (analysis.clinicalThemes) {
         setDetectedThemes(prev => {
           const combined = [...prev, ...analysis.clinicalThemes];
-          return [...new Set(combined)];
+          return Array.from(new Set(combined));
         });
       }
 
@@ -467,6 +467,12 @@ const LiveSessionRecorder: React.FC = () => {
           complianceScore={complianceScore}
           sessionDuration={sessionDuration}
           isRecording={isRecording}
+        />
+
+        {/* Advanced Video Analysis with 68+ Facial Landmarks */}
+        <AdvancedVideoAnalysis
+          isRecording={isRecording}
+          videoElement={videoRef.current}
         />
 
         {/* Live Transcription */}
