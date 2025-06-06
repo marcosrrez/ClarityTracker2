@@ -7,7 +7,7 @@ import { storage } from "./storage";
 import { handleTwilioWebhook } from "./sms-service";
 import { sendWelcomeEmail } from "./welcome-email";
 import { sendWelcomeEmail as sendCampaignWelcome } from "./email-campaigns";
-import OpenAI from "openai";
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { insertKnowledgeEntrySchema } from "@shared/schema";
 import { visualIntelligence } from "./visual-intelligence";
 import { IntelligenceHub } from "./services/intelligence-hub";
@@ -4415,8 +4415,8 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
         return res.status(400).json({ error: 'Transcription data required' });
       }
 
-      // Use OpenAI to generate comprehensive SOAP notes
-      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      // Use Google AI to generate comprehensive SOAP notes
+      const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
 
       const transcriptText = transcription.map((segment: any) => segment.text).join(' ');
       const insightsText = clinicalInsights.map((insight: any) => `${insight.type}: ${insight.content}`).join('\n');
@@ -4454,22 +4454,19 @@ Respond in JSON format:
   ]
 }`;
 
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-        messages: [
-          {
-            role: "system",
-            content: "You are a clinical documentation specialist. Generate accurate, professional SOAP notes and billing recommendations based on therapy session data."
-          },
-          {
-            role: "user",
-            content: prompt
-          }
-        ],
-        response_format: { type: "json_object" }
+      const model = genAI.getGenerativeModel({ 
+        model: "gemini-1.5-pro",
+        generationConfig: {
+          responseMimeType: "application/json"
+        }
       });
 
-      const result = JSON.parse(response.choices[0].message.content || '{}');
+      const response = await model.generateContent([
+        "You are a clinical documentation specialist. Generate accurate, professional SOAP notes and billing recommendations based on therapy session data.",
+        prompt
+      ]);
+
+      const result = JSON.parse(response.response.text());
       result.soapNote.generatedAt = Date.now();
 
       res.json(result);

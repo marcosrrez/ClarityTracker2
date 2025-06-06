@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { Mic, Video, Square, Brain, Activity, AlertTriangle, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ClinicalInsightsPanel from './ClinicalInsightsPanel';
+import AdvancedVideoAnalysis from './AdvancedVideoAnalysis';
 
 interface EmotionState {
   emotion: string;
@@ -18,6 +19,7 @@ interface ClinicalInsight {
   content: string;
   confidence: number;
   timestamp: number;
+  category: 'therapeutic-alliance' | 'risk-assessment' | 'progress' | 'intervention';
 }
 
 interface RiskAlert {
