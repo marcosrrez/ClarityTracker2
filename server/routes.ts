@@ -4406,6 +4406,79 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
     }
   });
 
+  // Generate SOAP notes from session data
+  app.post('/api/session-intelligence/generate-soap', async (req, res) => {
+    try {
+      const { transcription, videoAnalysis, clinicalInsights, sessionDuration } = req.body;
+
+      if (!transcription || transcription.length === 0) {
+        return res.status(400).json({ error: 'Transcription data required' });
+      }
+
+      // Use OpenAI to generate comprehensive SOAP notes
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+      const transcriptText = transcription.map((segment: any) => segment.text).join(' ');
+      const insightsText = clinicalInsights.map((insight: any) => `${insight.type}: ${insight.content}`).join('\n');
+      
+      const prompt = `Generate a comprehensive SOAP note based on the following therapy session data:
+
+Session Duration: ${sessionDuration} minutes
+Transcription: ${transcriptText}
+Clinical Insights: ${insightsText}
+
+Generate a professional SOAP note with:
+1. Subjective: Client's reported experience and concerns
+2. Objective: Observable behaviors and therapeutic interventions
+3. Assessment: Clinical assessment and progress evaluation
+4. Plan: Treatment plan and next steps
+
+Also recommend appropriate billing codes (CPT codes) with justification.
+
+Respond in JSON format:
+{
+  "soapNote": {
+    "subjective": "...",
+    "objective": "...",
+    "assessment": "...",
+    "plan": "...",
+    "confidence": 0.95
+  },
+  "billingCodes": [
+    {
+      "code": "90834",
+      "description": "Individual psychotherapy, 45 minutes",
+      "confidence": 0.9,
+      "justification": "Standard individual therapy session"
+    }
+  ]
+}`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: "You are a clinical documentation specialist. Generate accurate, professional SOAP notes and billing recommendations based on therapy session data."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        response_format: { type: "json_object" }
+      });
+
+      const result = JSON.parse(response.choices[0].message.content || '{}');
+      result.soapNote.generatedAt = Date.now();
+
+      res.json(result);
+    } catch (error) {
+      console.error('Error generating SOAP note:', error);
+      res.status(500).json({ error: 'Failed to generate SOAP note' });
+    }
+  });
+
   // Finalize session analysis
   app.post('/api/session-intelligence/finalize', async (req, res) => {
     try {

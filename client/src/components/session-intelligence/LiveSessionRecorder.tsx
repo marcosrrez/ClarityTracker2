@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Mic, Video, Square, Brain, Activity, AlertTriangle, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ClinicalInsightsPanel from './ClinicalInsightsPanel';
 
 interface EmotionState {
   emotion: string;
@@ -455,45 +456,16 @@ const LiveSessionRecorder: React.FC = () => {
 
       {/* Analysis Panel */}
       <div className="space-y-6">
-        {/* Real-time Metrics */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Brain className="h-5 w-5" />
-              Live Analysis
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <div className="flex justify-between mb-2">
-                <span className="text-sm">Engagement</span>
-                <span className="text-sm font-medium">{engagementScore}%</span>
-              </div>
-              <Progress value={engagementScore} className="h-2" />
-            </div>
-
-            <div>
-              <div className="flex justify-between mb-2">
-                <span className="text-sm">Compliance</span>
-                <span className="text-sm font-medium">{complianceScore}%</span>
-              </div>
-              <Progress value={complianceScore} className="h-2" />
-            </div>
-
-            <div className="pt-2 border-t">
-              <div className="text-sm text-muted-foreground mb-2">Current State</div>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline">{emotionalState.emotion}</Badge>
-                <Badge variant={hasAudio ? "default" : "secondary"}>
-                  Audio: {hasAudio ? "Live" : "Off"}
-                </Badge>
-                <Badge variant={hasVideo ? "default" : "secondary"}>
-                  Video: {hasVideo ? "Live" : "Off"}
-                </Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Comprehensive AI Documentation & Clinical Insights Panel */}
+        <ClinicalInsightsPanel
+          transcriptionSegments={transcriptionSegments}
+          videoAnalysisFrames={videoAnalysisFrames}
+          clinicalInsights={clinicalInsights}
+          engagementScore={engagementScore}
+          complianceScore={complianceScore}
+          sessionDuration={sessionDuration}
+          isRecording={isRecording}
+        />
 
         {/* Live Transcription */}
         <Card>
