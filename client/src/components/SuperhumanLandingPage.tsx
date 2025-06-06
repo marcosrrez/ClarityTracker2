@@ -404,7 +404,7 @@ export const SuperhumanLandingPage = () => {
               <h2 className="text-4xl sm:text-5xl font-bold mb-6 leading-tight">
                 Session intelligence
                 <br />
-                <span className="text-purple-300">beyond transcription</span>
+                <span className="text-white font-semibold">beyond transcription</span>
               </h2>
               <p className="text-xl text-purple-100 mb-8 leading-relaxed">
                 Real-time AI analysis transforms your sessions into actionable insights. Track progress, identify patterns, and enhance therapeutic outcomes with doctoral-level supervision.
@@ -468,7 +468,7 @@ export const SuperhumanLandingPage = () => {
               <h2 className="text-4xl sm:text-5xl font-bold mb-6 leading-tight">
                 Dual-portal
                 <br />
-                <span className="text-purple-300">collaboration</span>
+                <span className="text-white font-semibold">collaboration</span>
               </h2>
               <p className="text-xl text-purple-100 mb-8 leading-relaxed">
                 Seamless collaboration between therapists and clients. Share session insights, track progress together, and maintain therapeutic alliance with transparent communication.
@@ -593,7 +593,7 @@ export const SuperhumanLandingPage = () => {
             <h2 className="text-4xl sm:text-5xl font-bold mb-6">
               Professional development
               <br />
-              <span className="text-purple-300">at every level</span>
+              <span className="text-white font-semibold">at every level</span>
             </h2>
             <p className="text-xl text-purple-100 max-w-3xl mx-auto">
               From supervision hours to peer consultation, ClarityLog supports your entire professional journey with comprehensive tools and insights.
@@ -636,7 +636,7 @@ export const SuperhumanLandingPage = () => {
           <h2 className="text-4xl sm:text-5xl font-bold mb-6">
             Transform your practice
             <br />
-            <span className="text-purple-300">starting today</span>
+            <span className="text-white font-semibold">starting today</span>
           </h2>
           <p className="text-xl text-purple-100 mb-12 max-w-2xl mx-auto">
             Join thousands of mental health professionals who trust ClarityLog to enhance their practice and support their professional growth.
