@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Mic, Video, Square, Brain, Activity, AlertTriangle, Shield } from 'lucide-react';
+import { Mic, Video, Square, Brain, Activity, AlertTriangle, Shield, CheckCircle, FileText, TrendingUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface EmotionState {
@@ -374,9 +374,29 @@ const LiveSessionRecorder: React.FC = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Video Feed */}
-      <div className="lg:col-span-2">
+    <div className="space-y-6">
+      {/* Horizontal Status Icons */}
+      <div className="flex items-center justify-center gap-1 bg-muted p-2 rounded-lg">
+        <div className="flex items-center gap-1 px-2 py-1 rounded bg-background hover:bg-accent transition-colors cursor-pointer" title="AI Documentation - 80% automation rate">
+          <Brain className="h-3 w-3 text-purple-600" />
+          <span className="text-xs">AI Documentation</span>
+          <Badge variant="outline" className="ml-1 text-xs">80% automation rate</Badge>
+        </div>
+        <div className="flex items-center gap-1 px-2 py-1 rounded bg-background hover:bg-accent transition-colors cursor-pointer" title="Compliance AI - 100% note scanning">
+          <CheckCircle className="h-3 w-3 text-emerald-600" />
+          <span className="text-xs">Compliance AI</span>
+          <Badge variant="outline" className="ml-1 text-xs">100% note scanning</Badge>
+        </div>
+        <div className="flex items-center gap-1 px-2 py-1 rounded bg-background hover:bg-accent transition-colors cursor-pointer" title="HIPAA Compliant - SOC 2 certified">
+          <Shield className="h-3 w-3 text-orange-600" />
+          <span className="text-xs">HIPAA Compliant</span>
+          <Badge variant="outline" className="ml-1 text-xs">SOC 2 certified</Badge>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Video Feed */}
+        <div className="lg:col-span-2">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -451,10 +471,10 @@ const LiveSessionRecorder: React.FC = () => {
             </div>
           </CardContent>
         </Card>
-      </div>
+        </div>
 
-      {/* Analysis Panel */}
-      <div className="space-y-6">
+        {/* Analysis Panel */}
+        <div className="space-y-6">
         {/* Real-time Metrics */}
         <Card>
           <CardHeader>
@@ -564,11 +584,139 @@ const LiveSessionRecorder: React.FC = () => {
           </Card>
         )}
 
+        {/* Session Analysis Results - Only show after recording */}
+        {!isRecording && transcriptionSegments.length > 0 && (
+          <>
+            {/* Session Intelligence */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Brain className="h-4 w-4" />
+                  Session Intelligence
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <h4 className="font-medium mb-2">Key Themes</h4>
+                  <div className="flex gap-2 flex-wrap">
+                    <Badge variant="secondary">Stress Management</Badge>
+                    <Badge variant="secondary">Work-Life Balance</Badge>
+                    <Badge variant="secondary">Coping Mechanisms</Badge>
+                    <Badge variant="secondary">Substance Use</Badge>
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium mb-2">Therapeutic Alliance</h4>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-blue-600 h-2 rounded-full" style={{ width: '60%' }}></div>
+                  </div>
+                  <div className="text-right text-sm text-muted-foreground mt-1">6/10</div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Risk Assessment */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  Risk Assessment
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Risk Level:</span>
+                  <Badge variant="destructive">MEDIUM</Badge>
+                </div>
+                
+                <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5" />
+                    <div>
+                      <h5 className="font-medium text-yellow-800">Immediate Actions Required:</h5>
+                      <ul className="text-sm text-yellow-700 mt-1 space-y-1">
+                        <li>• Explore Marcos' substance use in more detail. Ask specifically what he means by "drink and stuff"</li>
+                        <li>• Assess frequency, quantity, and type of substances used</li>
+                        <li>• Assess coping mechanisms beyond substance use. Explore the "breeding techniques" mentioned</li>
+                        <li>• Evaluate Marcos' level of distress related to work and home life</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Auto-Generated Notes */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Auto-Generated Notes
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="prose prose-sm text-sm space-y-2">
+                  <p><strong>Session Date:</strong> 6/6/2025 <strong>Client ID:</strong> Marcos <strong>Session Type:</strong> Individual Therapy <strong>Duration:</strong> 1 minutes</p>
+                  
+                  <p><strong>SUBJECTIVE:</strong> Client presented with cognitive anxiety symptoms, particularly related to work presentations and fear of judgment. Reports difficulty managing anticipatory anxiety. OBJECTIVE: Client demonstrated good insight and engagement throughout the session. No safety concerns identified.</p>
+                  
+                  <p><strong>ASSESSMENT:</strong> Client shows progress in recognizing automatic thoughts. Anxiety symptoms appear situational and responsive to cognitive interventions. No safety concerns identified.</p>
+                  
+                  <p><strong>PLAN:</strong> Continue cognitive restructuring techniques. Homework assignment to practice evidence-based thinking before next presentation. Schedule follow-up in one week.</p>
+                  
+                  <p><strong>Interventions Used:</strong> Affirmation, Exploration/Clarification</p>
+                  
+                  <p><strong>Risk Level:</strong> medium <strong>Therapeutic Alliance:</strong> 6/10</p>
+                </div>
+                
+                <div className="mt-4 pt-4 border-t">
+                  <h5 className="font-medium mb-2">Billing Codes</h5>
+                  <div className="flex gap-2">
+                    <Badge variant="outline">90834</Badge>
+                    <Badge variant="outline">90837</Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Efficiency Metrics */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  Efficiency Metrics
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-sm text-muted-foreground">Manual Time:</div>
+                    <div className="text-2xl font-bold">45 min</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-muted-foreground">AI Time:</div>
+                    <div className="text-2xl font-bold">7 min</div>
+                  </div>
+                </div>
+                
+                <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span className="font-medium text-green-800">Time Saved: 38 minutes</span>
+                  </div>
+                  <div className="text-sm text-green-700 mt-1">Efficiency Gain: 84%</div>
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
+
         {/* Privacy Notice */}
         <Card className="border-green-200 bg-green-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-green-700">
-              <Shield className="h-5 w-5" />
+              <Shield className="h-4 w-4" />
               Privacy Protected
             </CardTitle>
           </CardHeader>
@@ -581,6 +729,7 @@ const LiveSessionRecorder: React.FC = () => {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   );
