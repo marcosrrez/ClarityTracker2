@@ -1,174 +1,112 @@
 import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
 
-export interface TranscriptionSegment {
+interface TranscriptionSegment {
   text: string;
   timestamp: number;
   confidence: number;
   speaker?: string;
 }
 
-export interface AzureSpeechConfig {
-  subscriptionKey: string;
-  serviceRegion: string;
-  language?: string;
+interface SpeechRecognitionConfig {
+  onTranscription: (segment: TranscriptionSegment) => void;
+  onError: (error: string) => void;
+  onStart: () => void;
+  onStop: () => void;
 }
 
 export class AzureSpeechService {
-  private speechConfig: SpeechSDK.SpeechConfig | null = null;
   private recognizer: SpeechSDK.SpeechRecognizer | null = null;
+  private audioConfig: SpeechSDK.AudioConfig | null = null;
+  private speechConfig: SpeechSDK.SpeechConfig | null = null;
   private isRecognizing = false;
-  private onTranscriptionCallback?: (segment: TranscriptionSegment) => void;
-  private onErrorCallback?: (error: string) => void;
 
-  constructor(config: AzureSpeechConfig) {
-    this.initializeSpeechConfig(config);
+  constructor() {
+    // Azure Speech configuration will be initialized when starting recognition
+    // to avoid exposing credentials on the frontend
   }
 
-  private initializeSpeechConfig(config: AzureSpeechConfig) {
-    try {
-      this.speechConfig = SpeechSDK.SpeechConfig.fromSubscription(
-        config.subscriptionKey,
-        config.serviceRegion
-      );
-      
-      // Configure speech recognition settings
-      this.speechConfig.speechRecognitionLanguage = config.language || 'en-US';
-      this.speechConfig.enableDictation();
-      
-      // Enable detailed results for confidence scores
-      this.speechConfig.outputFormat = SpeechSDK.OutputFormat.Detailed;
-      
-      console.log('Azure Speech Service initialized successfully');
-    } catch (error) {
-      console.error('Failed to initialize Azure Speech Service:', error);
-      throw new Error('Azure Speech Service initialization failed');
-    }
-  }
-
-  async startContinuousRecognition(
-    onTranscription: (segment: TranscriptionSegment) => void,
-    onError?: (error: string) => void
-  ): Promise<void> {
-    if (!this.speechConfig) {
-      throw new Error('Speech config not initialized');
-    }
-
+  async startRecognition(config: SpeechRecognitionConfig): Promise<void> {
     if (this.isRecognizing) {
-      console.warn('Recognition already in progress');
-      return;
+      throw new Error('Recognition already in progress');
     }
 
     try {
-      // Request microphone access
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-          sampleRate: 16000
-        } 
-      });
+      // Request microphone permission
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // Create audio configuration from microphone
+      this.audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+      
+      if (!this.speechConfig || !this.audioConfig) {
+        throw new Error('Failed to initialize speech configuration');
+      }
 
-      // Create audio config from microphone stream
-      const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
-      
       // Create speech recognizer
-      this.recognizer = new SpeechSDK.SpeechRecognizer(this.speechConfig, audioConfig);
-      
-      this.onTranscriptionCallback = onTranscription;
-      this.onErrorCallback = onError;
+      this.recognizer = new SpeechSDK.SpeechRecognizer(this.speechConfig, this.audioConfig);
 
       // Set up event handlers
-      this.setupEventHandlers();
+      this.recognizer.recognizing = (s, e) => {
+        if (e.result.reason === SpeechSDK.ResultReason.RecognizingSpeech) {
+          // Interim results for real-time display
+          config.onTranscription({
+            text: e.result.text,
+            timestamp: Date.now(),
+            confidence: 0.8, // Interim confidence
+          });
+        }
+      };
+
+      this.recognizer.recognized = (s, e) => {
+        if (e.result.reason === SpeechSDK.ResultReason.RecognizedSpeech && e.result.text) {
+          // Final transcription result
+          config.onTranscription({
+            text: e.result.text,
+            timestamp: Date.now(),
+            confidence: this.parseConfidence(e.result),
+          });
+        }
+      };
+
+      this.recognizer.canceled = (s, e) => {
+        console.error('Speech recognition canceled:', e.errorDetails);
+        config.onError(e.errorDetails || 'Recognition was canceled');
+        this.isRecognizing = false;
+      };
+
+      this.recognizer.sessionStopped = (s, e) => {
+        console.log('Session stopped');
+        config.onStop();
+        this.isRecognizing = false;
+      };
 
       // Start continuous recognition
       this.recognizer.startContinuousRecognitionAsync(
         () => {
+          console.log('Speech recognition started');
           this.isRecognizing = true;
-          console.log('Continuous recognition started');
+          config.onStart();
         },
         (error) => {
           console.error('Failed to start recognition:', error);
-          this.onErrorCallback?.(error);
+          config.onError(error);
+          this.isRecognizing = false;
         }
       );
 
+      // Clean up the stream since we're using Azure's audio config
+      stream.getTracks().forEach(track => track.stop());
+
     } catch (error) {
-      console.error('Error starting recognition:', error);
-      throw new Error('Failed to start speech recognition');
+      console.error('Error starting speech recognition:', error);
+      config.onError(error instanceof Error ? error.message : 'Unknown error');
     }
-  }
-
-  private setupEventHandlers() {
-    if (!this.recognizer) return;
-
-    // Handle recognized speech (final results)
-    this.recognizer.recognized = (sender, event) => {
-      if (event.result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
-        const segment: TranscriptionSegment = {
-          text: event.result.text,
-          timestamp: Date.now(),
-          confidence: this.getConfidenceScore(event.result),
-        };
-        
-        this.onTranscriptionCallback?.(segment);
-      }
-    };
-
-    // Handle partial recognition (interim results)
-    this.recognizer.recognizing = (sender, event) => {
-      if (event.result.text) {
-        const segment: TranscriptionSegment = {
-          text: event.result.text,
-          timestamp: Date.now(),
-          confidence: 0.5, // Lower confidence for partial results
-        };
-        
-        this.onTranscriptionCallback?.(segment);
-      }
-    };
-
-    // Handle session events
-    this.recognizer.sessionStarted = (sender, event) => {
-      console.log('Speech recognition session started');
-    };
-
-    this.recognizer.sessionStopped = (sender, event) => {
-      console.log('Speech recognition session stopped');
-      this.isRecognizing = false;
-    };
-
-    // Handle errors
-    this.recognizer.canceled = (sender, event) => {
-      console.error('Speech recognition canceled:', event.reason);
-      
-      if (event.reason === SpeechSDK.CancellationReason.Error) {
-        this.onErrorCallback?.(event.errorDetails || 'Recognition error occurred');
-      }
-      
-      this.isRecognizing = false;
-    };
-  }
-
-  private getConfidenceScore(result: SpeechSDK.SpeechRecognitionResult): number {
-    try {
-      // Try to extract confidence from detailed results
-      const detailed = JSON.parse(result.json);
-      if (detailed.NBest && detailed.NBest[0] && detailed.NBest[0].Confidence) {
-        return detailed.NBest[0].Confidence;
-      }
-    } catch (error) {
-      // Fallback if detailed results are not available
-    }
-    
-    return 0.8; // Default confidence score
   }
 
   stopRecognition(): void {
     if (this.recognizer && this.isRecognizing) {
       this.recognizer.stopContinuousRecognitionAsync(
         () => {
-          console.log('Recognition stopped successfully');
+          console.log('Speech recognition stopped');
           this.isRecognizing = false;
         },
         (error) => {
@@ -179,59 +117,31 @@ export class AzureSpeechService {
     }
   }
 
+  isRecording(): boolean {
+    return this.isRecognizing;
+  }
+
+  private parseConfidence(result: SpeechSDK.SpeechRecognitionResult): number {
+    // Extract confidence from result properties
+    try {
+      const json = JSON.parse(result.properties.getProperty(SpeechSDK.PropertyId.SpeechServiceResponse_JsonResult));
+      return json.NBest?.[0]?.Confidence || 0.8;
+    } catch {
+      return 0.8; // Default confidence if parsing fails
+    }
+  }
+
   dispose(): void {
     this.stopRecognition();
-    
     if (this.recognizer) {
       this.recognizer.close();
       this.recognizer = null;
     }
-    
-    this.speechConfig = null;
-    this.onTranscriptionCallback = undefined;
-    this.onErrorCallback = undefined;
-  }
-
-  isActive(): boolean {
-    return this.isRecognizing;
-  }
-
-  // Utility method to test Azure Speech Service connectivity
-  static async testConnection(config: AzureSpeechConfig): Promise<boolean> {
-    try {
-      const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(
-        config.subscriptionKey,
-        config.serviceRegion
-      );
-      
-      // Create a simple test recognizer
-      const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
-      const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
-      
-      return new Promise((resolve) => {
-        recognizer.sessionStarted = () => {
-          recognizer.close();
-          resolve(true);
-        };
-        
-        recognizer.canceled = () => {
-          recognizer.close();
-          resolve(false);
-        };
-        
-        // Start a brief test session
-        recognizer.startContinuousRecognitionAsync(
-          () => {
-            setTimeout(() => {
-              recognizer.stopContinuousRecognitionAsync();
-            }, 100);
-          },
-          () => resolve(false)
-        );
-      });
-    } catch (error) {
-      console.error('Azure Speech Service connection test failed:', error);
-      return false;
+    if (this.audioConfig) {
+      this.audioConfig.close();
+      this.audioConfig = null;
     }
   }
 }
+
+export default AzureSpeechService;

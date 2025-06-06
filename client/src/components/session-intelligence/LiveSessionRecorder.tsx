@@ -11,6 +11,8 @@ import { Mic, Video, Square, Brain, Activity, AlertTriangle, Shield, CheckCircle
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import AzureSpeechService from '@/services/azureSpeechService';
+import VideoService from '@/services/videoService';
 
 interface EmotionState {
   emotion: string;
@@ -179,6 +181,24 @@ const LiveSessionRecorder: React.FC = () => {
 
   const [clinicalInsights, setClinicalInsights] = useState<ClinicalInsight[]>([]);
   const [riskAlerts, setRiskAlerts] = useState<RiskAlert[]>([]);
+  
+  // Service instances
+  const speechServiceRef = useRef<AzureSpeechService | null>(null);
+  const videoServiceRef = useRef<VideoService | null>(null);
+  const videoContainerRef = useRef<HTMLDivElement>(null);
+  
+  // Transcription state
+  const [currentTranscript, setCurrentTranscript] = useState('');
+  const [transcriptionSegments, setTranscriptionSegments] = useState<Array<{text: string, timestamp: number, confidence: number}>>([]);
+
+  // Initialize services
+  useEffect(() => {
+    videoServiceRef.current = new VideoService();
+    
+    return () => {
+      videoServiceRef.current?.dispose();
+    };
+  }, []);
 
   // Timer effect
   useEffect(() => {
@@ -193,33 +213,86 @@ const LiveSessionRecorder: React.FC = () => {
 
   const startRecording = async () => {
     try {
-      // Request media permissions
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true
-      });
-      
-      setHasVideo(true);
-      setIsRecording(true);
-      setSessionDuration(0);
-      
-      // Start mock analysis
-      setTimeout(() => {
-        setClinicalInsights([
-          {
-            type: 'Engagement',
-            content: 'Client showing positive engagement with therapeutic process',
-            confidence: 0.85,
-            timestamp: Date.now()
+      // Start Azure Speech recognition
+      if (speechServiceRef.current) {
+        await speechServiceRef.current.startRecognition({
+          onTranscription: (segment) => {
+            setTranscriptionSegments(prev => [...prev, segment]);
+            setCurrentTranscript(prev => prev + ' ' + segment.text);
+            setSessionTranscript(prev => prev + ' ' + segment.text);
+            
+            // Generate clinical insights from transcription
+            if (segment.text.length > 10) {
+              setClinicalInsights(prev => [...prev, {
+                type: 'Speech Analysis',
+                content: `Detected speech pattern: ${segment.text.substring(0, 50)}...`,
+                confidence: segment.confidence,
+                timestamp: Date.now()
+              }]);
+            }
+          },
+          onError: (error) => {
+            console.error('Speech recognition error:', error);
+            setRiskAlerts(prev => [...prev, {
+              id: Date.now().toString(),
+              severity: 'medium',
+              message: 'Speech recognition interrupted',
+              icon: 'mic-off',
+              timestamp: Date.now()
+            }]);
+          },
+          onStart: () => {
+            console.log('Azure Speech recognition started');
+          },
+          onStop: () => {
+            console.log('Azure Speech recognition stopped');
           }
-        ]);
-      }, 5000);
+        });
+      }
 
-      stream.getTracks().forEach(track => track.stop());
-    } catch (error) {
-      console.error('Media access denied:', error);
+      // Start video capture
+      if (videoServiceRef.current && videoContainerRef.current) {
+        const videoElement = await videoServiceRef.current.startVideo({
+          onVideoFrame: (frame) => {
+            // Process video frame for emotion analysis
+            // This would integrate with Google AI for facial analysis
+          },
+          onError: (error) => {
+            console.error('Video error:', error);
+          },
+          onStart: () => {
+            console.log('Video capture started');
+            setHasVideo(true);
+          },
+          onStop: () => {
+            console.log('Video capture stopped');
+            setHasVideo(false);
+          }
+        });
+
+        // Append video element to container
+        if (videoElement && videoContainerRef.current) {
+          videoContainerRef.current.innerHTML = '';
+          videoElement.style.width = '100%';
+          videoElement.style.height = '100%';
+          videoElement.style.objectFit = 'cover';
+          videoElement.style.borderRadius = '8px';
+          videoContainerRef.current.appendChild(videoElement);
+        }
+      }
+      
       setIsRecording(true);
       setSessionDuration(0);
+      
+    } catch (error) {
+      console.error('Failed to start recording:', error);
+      setRiskAlerts(prev => [...prev, {
+        id: Date.now().toString(),
+        severity: 'high',
+        message: 'Failed to initialize recording services',
+        icon: 'alert-triangle',
+        timestamp: Date.now()
+      }]);
     }
   };
 
