@@ -56,16 +56,18 @@ export const speedLimiters = {
   ai: slowDown({
     windowMs: 15 * 60 * 1000,
     delayAfter: 10,
-    delayMs: 500,
+    delayMs: () => 500,
     maxDelayMs: 20000,
+    validate: { delayMs: false },
   }),
   
   // Slow down general API after 50 requests
   general: slowDown({
     windowMs: 15 * 60 * 1000,
     delayAfter: 50,
-    delayMs: 100,
+    delayMs: () => 100,
     maxDelayMs: 5000,
+    validate: { delayMs: false },
   }),
 };
 

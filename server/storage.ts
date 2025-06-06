@@ -1326,23 +1326,7 @@ ${content}`;
       .where(eq(aiInsightsHistoryTable.id, id));
   }
 
-  async getAiInsightsHistory(userId: string, type?: string): Promise<AiInsightsHistory[]> {
-    let whereCondition = eq(aiInsightsHistoryTable.userId, userId);
-    
-    if (type) {
-      whereCondition = and(whereCondition, eq(aiInsightsHistoryTable.insightType, type));
-    }
-    
-    const results = await db.select().from(aiInsightsHistoryTable)
-      .where(whereCondition)
-      .orderBy(desc(aiInsightsHistoryTable.createdAt));
-    return results;
-  }
 
-  async createAiInsight(data: InsertAiInsightsHistory): Promise<AiInsightsHistory> {
-    const [insight] = await db.insert(aiInsightsHistoryTable).values(data).returning();
-    return insight;
-  }
 
   async updateAiInsight(id: string, updates: Partial<InsertAiInsightsHistory>): Promise<void> {
     await db.update(aiInsightsHistoryTable)

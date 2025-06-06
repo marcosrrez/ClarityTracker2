@@ -1,5 +1,5 @@
 import { db } from './db';
-import { users, logEntries, insightCards, userAnalyticsTable, supervisorInsightsTable, supervisionSessionTable, dashboardInteractionTable } from '@shared/schema';
+import { usersTable, logEntryTable, insightCardTable, userAnalyticsTable, supervisorInsightsTable, supervisionSessionTable, dashboardInteractionTable } from '@shared/schema';
 import { eq, gte, lte, desc, sum, count, sql, and } from 'drizzle-orm';
 
 interface FeatureUsageMetrics {
@@ -185,24 +185,24 @@ export async function getUserEngagementMetrics(): Promise<UserEngagementMetrics>
     // Get total users
     const totalUsersResult = await db
       .select({ count: count() })
-      .from(users);
+      .from(usersTable);
     const totalUsers = totalUsersResult[0]?.count || 0;
 
     // Get new users by period
     const newUsersToday = await db
       .select({ count: count() })
-      .from(users)
-      .where(gte(users.createdAt, oneDayAgo));
+      .from(usersTable)
+      .where(gte(usersTable.createdAt, oneDayAgo));
 
     const newUsersWeek = await db
       .select({ count: count() })
-      .from(users)
-      .where(gte(users.createdAt, oneWeekAgo));
+      .from(usersTable)
+      .where(gte(usersTable.createdAt, oneWeekAgo));
 
     const newUsersMonth = await db
       .select({ count: count() })
-      .from(users)
-      .where(gte(users.createdAt, oneMonthAgo));
+      .from(usersTable)
+      .where(gte(usersTable.createdAt, oneMonthAgo));
 
     // Get active users (based on log entries)
     const activeUsersDaily = await db
@@ -324,19 +324,19 @@ async function calculateRetentionForPeriod(days: number): Promise<number> {
     
     const cohortUsers = await db
       .select({ count: count() })
-      .from(users)
+      .from(usersTable)
       .where(and(
-        gte(users.createdAt, targetDate),
-        lte(users.createdAt, new Date(targetDate.getTime() + 24 * 60 * 60 * 1000))
+        gte(usersTable.createdAt, targetDate),
+        lte(usersTable.createdAt, new Date(targetDate.getTime() + 24 * 60 * 60 * 1000))
       ));
 
     const activeInCohort = await db
       .select({ count: sql<number>`COUNT(DISTINCT ${logEntryTable.userId})` })
       .from(logEntryTable)
-      .innerJoin(users, eq(logEntryTable.userId, users.id))
+      .innerJoin(usersTable, eq(logEntryTable.userId, usersTable.id))
       .where(and(
-        gte(users.createdAt, targetDate),
-        lte(users.createdAt, new Date(targetDate.getTime() + 24 * 60 * 60 * 1000)),
+        gte(usersTable.createdAt, targetDate),
+        lte(usersTable.createdAt, new Date(targetDate.getTime() + 24 * 60 * 60 * 1000)),
         gte(logEntryTable.createdAt, new Date())
       ));
 
@@ -384,10 +384,10 @@ async function getUserGrowthData(): Promise<Array<{
 
       const newUsers = await db
         .select({ count: count() })
-        .from(users)
+        .from(usersTable)
         .where(and(
-          gte(users.createdAt, date),
-          lte(users.createdAt, nextDate)
+          gte(usersTable.createdAt, date),
+          lte(usersTable.createdAt, nextDate)
         ));
 
       const activeUsers = await db
