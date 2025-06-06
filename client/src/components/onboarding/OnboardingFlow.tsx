@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { SuperhumanOnboarding } from "./SuperhumanOnboarding";
+import { InteractiveProductTour } from "./InteractiveProductTour";
 import { 
   User, 
   Users, 

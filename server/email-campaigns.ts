@@ -26,7 +26,7 @@ const emailCampaigns: CampaignEmail[] = [
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <h2 style="color: #1e40af; margin-bottom: 24px;">Welcome to ClarityLog, ${data.userName}!</h2>
         
-        <p>You just took a major step toward your LPC licensure by creating your first session entry.</p>
+        <p>You just took a major step toward your LPC licensure by joining thousands of counselors who track their clinical hours with confidence.</p>
         
         <div style="background: #f8fafc; border-left: 4px solid #3b82f6; padding: 16px; margin: 24px 0;">
           <h3 style="margin: 0 0 8px 0; color: #1e40af;">💡 Pro Tip: The 30-Second Log</h3>
@@ -36,7 +36,7 @@ const emailCampaigns: CampaignEmail[] = [
         <p><strong>Your next session is coming up.</strong> When it's done, try logging it immediately while the details are fresh. You'll be amazed at how quick it becomes.</p>
         
         <div style="text-align: center; margin: 32px 0;">
-          <a href="${process.env.REPLIT_DOMAINS || 'https://your-app.replit.app'}" style="background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500;">Log Your Next Session</a>
+          <a href="${process.env.REPLIT_DOMAINS || 'https://your-app.replit.app'}" style="background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500;">Log Your First Session</a>
         </div>
         
         <p style="color: #64748b; font-size: 14px; border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 32px;">
@@ -45,6 +45,241 @@ const emailCampaigns: CampaignEmail[] = [
       </div>
     `
   },
+
+  {
+    id: 'ai-supervision-prep',
+    dayOffset: 1,
+    subject: '🧠 How AI insights transform supervision meetings',
+    condition: (data) => data.userType === 'individual',
+    template: (data) => `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #1e40af; margin-bottom: 24px;">Hey ${data.userName},</h2>
+        
+        <p>Yesterday you joined ClarityLog. Today, let me show you something that will change how you approach supervision.</p>
+        
+        <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; margin: 24px 0;">
+          <h3 style="margin: 0 0 8px 0; color: #92400e;">⚡ Supervision Game-Changer</h3>
+          <p style="margin: 0; color: #92400e;">Instead of scrambling to remember case details, ClarityLog's AI analyzes your patterns and generates supervision talking points automatically.</p>
+        </div>
+        
+        <p><strong>Here's what Sarah, an LAC in Austin, told me:</strong></p>
+        <blockquote style="border-left: 3px solid #e5e7eb; padding-left: 16px; margin: 16px 0; font-style: italic; color: #6b7280;">
+          "My supervisor was impressed when I came prepared with specific growth areas and intervention success rates. The AI insights made me look like I had my act together."
+        </blockquote>
+        
+        <div style="text-align: center; margin: 32px 0;">
+          <a href="${process.env.REPLIT_DOMAINS || 'https://your-app.replit.app'}/ai-insights" style="background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500;">See Your AI Insights</a>
+        </div>
+        
+        <p style="color: #64748b; font-size: 14px; border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 32px;">
+          Coming up: How to track progress that actually impresses state boards.
+        </p>
+      </div>
+    `
+  },
+
+  {
+    id: 'progress-tracking-mastery',
+    dayOffset: 3,
+    subject: '📊 The progress tracking method state boards love',
+    template: (data) => `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #1e40af; margin-bottom: 24px;">${data.userName}, this changes everything</h2>
+        
+        <p>I just got off a call with a licensing board member in Texas. She told me the #1 reason LPC applications get delayed:</p>
+        
+        <div style="background: #fef2f2; border-left: 4px solid #ef4444; padding: 16px; margin: 24px 0;">
+          <h3 style="margin: 0 0 8px 0; color: #dc2626;">🚨 Application Killer</h3>
+          <p style="margin: 0; color: #dc2626;">"Inconsistent documentation that doesn't show clear professional development progression."</p>
+        </div>
+        
+        <p>ClarityLog solves this with automatic competency tracking that maps directly to state requirements.</p>
+        
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 24px 0;">
+          <h3 style="margin: 0 0 12px 0; color: #15803d;">✅ What sets you apart:</h3>
+          <ul style="margin: 0; color: #15803d; padding-left: 20px;">
+            <li>Competency progression charts</li>
+            <li>Intervention success tracking</li>
+            <li>Supervisor feedback integration</li>
+            <li>Automated compliance reports</li>
+          </ul>
+        </div>
+        
+        <div style="text-align: center; margin: 32px 0;">
+          <a href="${process.env.REPLIT_DOMAINS || 'https://your-app.replit.app'}/reports" style="background: #16a34a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500;">View Your Progress Report</a>
+        </div>
+        
+        <p style="color: #64748b; font-size: 14px; border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 32px;">
+          Next: Supervisor collaboration features that strengthen your professional relationships.
+        </p>
+      </div>
+    `
+  },
+
+  {
+    id: 'supervisor-collaboration',
+    dayOffset: 5,
+    subject: '🤝 Turn your supervisor into your biggest advocate',
+    condition: (data) => data.userType === 'individual',
+    template: (data) => `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #1e40af; margin-bottom: 24px;">The collaboration secret, ${data.userName}</h2>
+        
+        <p>Here's what most LACs get wrong: They treat supervision like a check-the-box requirement instead of a career accelerator.</p>
+        
+        <p><strong>Smart LACs use ClarityLog's collaboration features to:</strong></p>
+        
+        <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 20px; margin: 24px 0;">
+          <div style="display: flex; align-items: flex-start; margin-bottom: 16px;">
+            <div style="background: #3b82f6; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 12px; font-weight: bold;">1</div>
+            <div>
+              <h4 style="margin: 0 0 4px 0; color: #1e293b;">Share progress automatically</h4>
+              <p style="margin: 0; color: #64748b; font-size: 14px;">Your supervisor sees your growth in real-time, not just during meetings</p>
+            </div>
+          </div>
+          
+          <div style="display: flex; align-items: flex-start; margin-bottom: 16px;">
+            <div style="background: #3b82f6; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 12px; font-weight: bold;">2</div>
+            <div>
+              <h4 style="margin: 0 0 4px 0; color: #1e293b;">Get targeted feedback</h4>
+              <p style="margin: 0; color: #64748b; font-size: 14px;">AI identifies your growth areas so supervision focuses on what matters</p>
+            </div>
+          </div>
+          
+          <div style="display: flex; align-items: flex-start;">
+            <div style="background: #3b82f6; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 12px; font-weight: bold;">3</div>
+            <div>
+              <h4 style="margin: 0 0 4px 0; color: #1e293b;">Build stronger references</h4>
+              <p style="margin: 0; color: #64748b; font-size: 14px;">Supervisors remember LACs who make their job easier</p>
+            </div>
+          </div>
+        </div>
+        
+        <div style="text-align: center; margin: 32px 0;">
+          <a href="${process.env.REPLIT_DOMAINS || 'https://your-app.replit.app'}/supervisors" style="background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500;">Set Up Collaboration</a>
+        </div>
+        
+        <p style="color: #64748b; font-size: 14px; border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 32px;">
+          Final email: Advanced techniques that separate good LACs from great ones.
+        </p>
+      </div>
+    `
+  },
+
+  {
+    id: 'advanced-techniques',
+    dayOffset: 7,
+    subject: '🚀 The advanced techniques that set you apart',
+    template: (data) => `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #1e40af; margin-bottom: 24px;">You're ready for this, ${data.userName}</h2>
+        
+        <p>It's been a week since you joined ClarityLog. By now, you've seen how it simplifies hour tracking and supervision prep.</p>
+        
+        <p><strong>But here's what separates good LACs from exceptional ones:</strong></p>
+        
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px; padding: 24px; margin: 24px 0;">
+          <h3 style="margin: 0 0 16px 0;">🎯 Advanced ClarityLog Techniques</h3>
+          
+          <div style="margin-bottom: 12px;">
+            <strong>1. Pattern Recognition:</strong> Use AI insights to identify your most effective interventions
+          </div>
+          
+          <div style="margin-bottom: 12px;">
+            <strong>2. Competency Mapping:</strong> Track growth against specific licensing requirements
+          </div>
+          
+          <div style="margin-bottom: 12px;">
+            <strong>3. Outcome Correlation:</strong> Connect your approaches to client progress
+          </div>
+          
+          <div>
+            <strong>4. Professional Portfolio:</strong> Build a comprehensive record for job interviews
+          </div>
+        </div>
+        
+        <p>These aren't just features—they're your competitive advantage in a crowded field.</p>
+        
+        <div style="text-align: center; margin: 32px 0;">
+          <a href="${process.env.REPLIT_DOMAINS || 'https://your-app.replit.app'}/intelligence-hub" style="background: #7c3aed; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500;">Explore Advanced Features</a>
+        </div>
+        
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 24px 0;">
+          <h3 style="margin: 0 0 12px 0; color: #1e293b;">Questions? I'm here to help.</h3>
+          <p style="margin: 0; color: #64748b;">Reply to this email or reach out anytime. I personally read every message and respond within 24 hours.</p>
+        </div>
+        
+        <p style="color: #64748b; font-size: 14px; border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 32px;">
+          Alex Chen<br>
+          Founder, ClarityLog
+        </p>
+      </div>
+    `
+  },
+
+  // Supervisor-specific campaign
+  {
+    id: 'supervisor-welcome',
+    dayOffset: 0,
+    subject: '🎯 Welcome to supervisor excellence, ${data.userName}',
+    condition: (data) => data.userType === 'supervisor',
+    template: (data) => `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #1e40af; margin-bottom: 24px;">Welcome to ClarityLog, ${data.userName}!</h2>
+        
+        <p>As a clinical supervisor, you're shaping the next generation of mental health professionals. ClarityLog amplifies your impact.</p>
+        
+        <div style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 16px; margin: 24px 0;">
+          <h3 style="margin: 0 0 8px 0; color: #15803d;">🚀 Supervisor Superpowers</h3>
+          <p style="margin: 0; color: #15803d;">Track multiple supervisees, identify growth patterns, and ensure compliance—all from one dashboard.</p>
+        </div>
+        
+        <div style="text-align: center; margin: 32px 0;">
+          <a href="${process.env.REPLIT_DOMAINS || 'https://your-app.replit.app'}/supervisees" style="background: #22c55e; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500;">Set Up Your Dashboard</a>
+        </div>
+        
+        <p style="color: #64748b; font-size: 14px; border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 32px;">
+          Tomorrow: How to invite supervisees and streamline compliance tracking.
+        </p>
+      </div>
+    `
+  },
+
+  {
+    id: 'supervisor-compliance',
+    dayOffset: 2,
+    subject: '📋 Compliance tracking that actually works',
+    condition: (data) => data.userType === 'supervisor',
+    template: (data) => `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #1e40af; margin-bottom: 24px;">The compliance breakthrough, ${data.userName}</h2>
+        
+        <p>I spoke with Dr. Martinez, a supervisor in California managing 8 LACs. Her biggest pain point? Compliance audits.</p>
+        
+        <blockquote style="border-left: 3px solid #e5e7eb; padding-left: 16px; margin: 16px 0; font-style: italic; color: #6b7280;">
+          "Before ClarityLog, preparing for audits meant weeks of scrambling through scattered documentation. Now it takes 30 minutes."
+        </blockquote>
+        
+        <div style="background: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px; padding: 16px; margin: 24px 0;">
+          <h3 style="margin: 0 0 12px 0; color: #92400e;">⚡ Automatic Compliance Features:</h3>
+          <ul style="margin: 0; color: #92400e; padding-left: 20px;">
+            <li>Real-time hour verification</li>
+            <li>Competency progression tracking</li>
+            <li>Automated supervision documentation</li>
+            <li>State-specific requirement monitoring</li>
+          </ul>
+        </div>
+        
+        <div style="text-align: center; margin: 32px 0;">
+          <a href="${process.env.REPLIT_DOMAINS || 'https://your-app.replit.app'}/compliance" style="background: #f59e0b; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500;">View Compliance Dashboard</a>
+        </div>
+        
+        <p style="color: #64748b; font-size: 14px; border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 32px;">
+          Next: Advanced analytics that improve your supervision effectiveness.
+        </p>
+      </div>
+    `
+  }];,
   
   {
     id: 'ai-supervision-prep',
