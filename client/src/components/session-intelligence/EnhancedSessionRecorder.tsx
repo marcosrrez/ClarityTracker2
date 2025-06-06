@@ -141,6 +141,9 @@ export function EnhancedSessionRecorder() {
         
         // Start polling for transcript updates
         startTranscriptPolling(sessionId);
+        
+        // Start video emotion analysis
+        startVideoAnalysis(sessionId);
       } else {
         console.error('Failed to start transcription service');
       }
@@ -235,6 +238,53 @@ export function EnhancedSessionRecorder() {
         (window as any).transcriptPoll = null;
       }
     }, 1000);
+  };
+
+  const startVideoAnalysis = (sessionId: string) => {
+    const captureVideoFrame = async () => {
+      if (!videoStream) return;
+
+      try {
+        const video = document.querySelector('video') as HTMLVideoElement;
+        if (!video) return;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        
+        if (ctx) {
+          ctx.drawImage(video, 0, 0);
+          const imageData = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+          
+          // Send for AI emotion analysis
+          const response = await fetch('/api/multimodal/analyze-emotion', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              imageData,
+              sessionId
+            })
+          });
+
+          if (response.ok) {
+            const emotionData = await response.json();
+            setClinicalInsights(prev => [...prev, {
+              type: 'observation',
+              content: `Video Analysis: ${emotionData.dominantEmotion || 'neutral'} emotion detected, ${emotionData.engagementLevel || 'moderate'} engagement`,
+              confidence: emotionData.emotionConfidence || 0.7,
+              timestamp: Date.now()
+            }]);
+          }
+        }
+      } catch (error) {
+        console.error('Video analysis error:', error);
+      }
+    };
+
+    // Capture frame every 10 seconds for analysis
+    const videoAnalysisInterval = setInterval(captureVideoFrame, 10000);
+    (window as any).videoAnalysisInterval = videoAnalysisInterval;
   };
 
   const triggerRealTimeAnalysis = async (transcript: string) => {

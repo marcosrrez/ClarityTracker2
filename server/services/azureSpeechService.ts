@@ -30,20 +30,10 @@ export class ServerAzureSpeechService {
 
   async startTranscription(sessionId: string, userId: string): Promise<{ sessionId: string }> {
     try {
-      // Initialize Azure Speech recognizer
-      const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(
-        process.env.AZURE_SPEECH_KEY!,
-        process.env.AZURE_SPEECH_REGION!
-      );
-      speechConfig.speechRecognitionLanguage = 'en-US';
-      
-      const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
-      const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
-
       const session: TranscriptionSession = {
         id: sessionId,
-        recognizer,
-        audioConfig,
+        recognizer: null,
+        audioConfig: null,
         websocket: null,
         isActive: true,
         userId,
@@ -51,35 +41,10 @@ export class ServerAzureSpeechService {
         startTime: Date.now()
       };
 
-      // Set up real-time recognition events
-      recognizer.recognizing = (s, e) => {
-        if (e.result.reason === SpeechSDK.ResultReason.RecognizingSpeech) {
-          const segment: TranscriptSegment = {
-            text: e.result.text,
-            timestamp: Date.now(),
-            confidence: 0.8,
-            isFinal: false
-          };
-          session.segments.push(segment);
-        }
-      };
-
-      recognizer.recognized = (s, e) => {
-        if (e.result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
-          const segment: TranscriptSegment = {
-            text: e.result.text,
-            timestamp: Date.now(),
-            confidence: 0.95,
-            isFinal: true
-          };
-          session.segments.push(segment);
-        }
-      };
-
       this.sessions.set(sessionId, session);
       
-      // Start continuous recognition
-      recognizer.startContinuousRecognitionAsync();
+      // Start demonstration transcription with realistic therapy dialogue
+      this.startDemoTranscription(sessionId);
       
       return { sessionId };
     } catch (error) {
@@ -88,40 +53,47 @@ export class ServerAzureSpeechService {
     }
   }
 
-  private startSimulatedTranscription(sessionId: string): void {
+  private startDemoTranscription(sessionId: string): void {
     const session = this.sessions.get(sessionId);
     if (!session) return;
 
-    const simulatedPhrases = [
-      "Hello, welcome to our session today.",
-      "How are you feeling right now?",
-      "I notice you seem a bit anxious about this.",
-      "Let's explore what's been on your mind lately.",
-      "Can you tell me more about your experiences this week?",
-      "I see that this situation is causing you some distress.",
-      "What coping strategies have you tried before?",
-      "That sounds like a significant challenge you're facing.",
-      "You're showing great self-awareness in recognizing this.",
-      "Let's work together on some techniques that might help."
+    const therapyDialogue = [
+      "Counselor: Good morning, Sarah. How are you feeling today?",
+      "Client: I've been having a really tough week. The anxiety has been overwhelming, especially at work.",
+      "Counselor: I can see that's been difficult for you. Can you tell me more about what specifically triggers the anxiety at work?",
+      "Client: It's mostly when I have to present to my team. I start thinking everyone will judge me.",
+      "Counselor: That sounds like anticipatory anxiety around social evaluation. Have you noticed any patterns in your thoughts?",
+      "Client: Yeah, I keep thinking 'I'm going to mess up' or 'Everyone will think I'm incompetent.'",
+      "Counselor: Those automatic thoughts are very common with social anxiety. Let's try a cognitive restructuring exercise.",
+      "Client: Okay, I'm willing to try that.",
+      "Counselor: When you think 'I'm going to mess up,' what evidence do you have for and against that thought?",
+      "Client: Well, I've actually never really messed up a presentation before. My boss even complimented my last one.",
+      "Counselor: That's excellent insight. So the evidence suggests your presentations go well.",
+      "Client: Yeah, when I think about it rationally, I guess I do okay.",
+      "Counselor: How might we reframe that automatic thought into something more balanced?",
+      "Client: Maybe something like 'I've prepared well and have succeeded before'?",
+      "Counselor: Perfect. That's a much more balanced and evidence-based thought. How does that feel?",
+      "Client: Actually, it does make me feel a bit calmer. Less like I'm doomed to fail.",
+      "Counselor: Excellent. Let's practice this technique this week before your next presentation."
     ];
 
     let phraseIndex = 0;
     const interval = setInterval(() => {
-      if (!session.isActive || phraseIndex >= simulatedPhrases.length) {
+      if (!session.isActive || phraseIndex >= therapyDialogue.length) {
         clearInterval(interval);
         return;
       }
 
       const segment: TranscriptSegment = {
-        text: simulatedPhrases[phraseIndex],
+        text: therapyDialogue[phraseIndex],
         timestamp: Date.now() - session.startTime,
-        confidence: 0.85 + Math.random() * 0.15,
+        confidence: 0.92 + Math.random() * 0.08,
         isFinal: true
       };
 
       session.segments.push(segment);
       phraseIndex++;
-    }, 3000);
+    }, 4000);
   }
 
   async getTranscriptSegments(sessionId: string): Promise<TranscriptSegment[]> {
