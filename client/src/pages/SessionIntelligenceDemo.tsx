@@ -243,7 +243,7 @@ const SessionIntelligenceDemo = () => {
                 </div>
               </div>
 
-              <EnhancedSessionRecorder />
+              <LiveSessionRecorder />
             </CardContent>
           </Card>
         </motion.div>
