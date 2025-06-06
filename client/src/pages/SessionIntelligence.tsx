@@ -164,7 +164,7 @@ export default function SessionIntelligence() {
   };
 
   const activeCrisisAlerts = crisisAlerts.filter(alert => alert.status === 'active');
-  const recentSessions = sessionAnalyses.slice(0, 5);
+  const recentSessions = sessionAnalyses || [];
 
   return (
     <div className="container mx-auto p-6 space-y-8">
