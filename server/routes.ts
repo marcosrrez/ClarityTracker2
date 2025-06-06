@@ -4773,7 +4773,7 @@ Respond in JSON format:
         complianceScore: finalComplianceScore,
         status: 'completed',
         exported: false,
-        tags: JSON.stringify([]),
+        tags: [],
         notes: ''
       }).returning();
 
