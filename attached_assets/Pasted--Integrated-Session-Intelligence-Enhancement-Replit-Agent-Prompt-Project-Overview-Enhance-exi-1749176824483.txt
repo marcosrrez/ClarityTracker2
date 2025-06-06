@@ -1,0 +1,871 @@
+# Integrated Session Intelligence Enhancement - Replit Agent Prompt
+
+## Project Overview
+Enhance existing Azure Speech-enabled behavioral health application by integrating Eleos-style features with advanced video analysis capabilities. Build comprehensive session intelligence that combines audio transcription, video analysis, and clinical AI into existing backend infrastructure.
+
+## Integration Strategy
+
+### 1. Existing Infrastructure Assessment
+```javascript
+// Identify and integrate with current services:
+- Backend API endpoints and data models
+- Azure Speech Service configuration
+- Existing database schema and storage
+- Current authentication/authorization system
+- AI services already implemented
+```
+
+### 2. Enhanced Component Architecture
+```javascript
+// Integrate new components into existing app structure:
+├── components/
+│   ├── enhanced-session-recorder/     // Upgrade existing recorder
+│   ├── video-intelligence-panel/      // New video analysis
+│   ├── clinical-notes-generator/      // Enhanced AI documentation
+│   ├── compliance-dashboard/          // New compliance features
+│   └── session-intelligence-hub/      // Unified insights
+```
+
+## Phase 1: Enhanced Audio & Transcription Components
+
+### 1. Enhanced Session Recorder Component
+```javascript
+// Upgrade existing audio recorder with multi-modal capabilities
+const EnhancedSessionRecorder = () => {
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioStream, setAudioStream] = useState(null);
+  const [videoStream, setVideoStream] = useState(null);
+  const [transcription, setTranscription] = useState('');
+  const [videoAnalysis, setVideoAnalysis] = useState(null);
+  const [clinicalInsights, setClinicalInsights] = useState(null);
+
+  // Integrate with existing Azure Speech Service
+  const enhanceAzureSpeechIntegration = async () => {
+    // Extend current Azure Speech configuration
+    const speechConfig = {
+      ...existingAzureConfig,
+      enableSpeakerDiarization: true,
+      enableSentimentAnalysis: true,
+      enableLanguageDetection: true,
+      supportedLanguages: ['en-US', 'es-US', 'es-MX'], // Add multilingual support
+      realTimeProcessing: true
+    };
+
+    // Enhanced transcription with clinical context
+    const clinicalSpeechProcessor = new AzureSpeechProcessor({
+      ...speechConfig,
+      clinicalVocabulary: await loadClinicalTerminology(),
+      behavioralHealthContext: true,
+      confidenceThreshold: 0.85
+    });
+
+    return clinicalSpeechProcessor;
+  };
+
+  // Real-time audio analysis enhancement
+  const analyzeAudioInRealTime = async (audioChunk) => {
+    // Integrate with existing audio processing
+    const baseTranscription = await processWithAzureSpeech(audioChunk);
+    
+    // Add clinical enhancement layer
+    const clinicalAnalysis = await analyzeClinicalContent(baseTranscription);
+    
+    // Emotional tone analysis
+    const emotionalTone = await analyzeEmotionalTone(audioChunk);
+    
+    // Speaking pattern analysis
+    const speakingPatterns = analyzeSpeakingPatterns(audioChunk);
+    
+    return {
+      transcription: baseTranscription,
+      clinicalThemes: clinicalAnalysis.themes,
+      riskIndicators: clinicalAnalysis.risks,
+      emotionalState: emotionalTone,
+      engagementMetrics: speakingPatterns,
+      timestamp: Date.now()
+    };
+  };
+
+  return (
+    <div className="enhanced-session-recorder">
+      {/* Audio Recording Interface */}
+      <div className="audio-controls">
+        <button onClick={handleStartRecording} className="record-btn">
+          {isRecording ? 'Stop Recording' : 'Start Session'}
+        </button>
+        <div className="audio-visualizer">
+          <WaveformVisualizer audioStream={audioStream} />
+          <SpeakerDiarizationDisplay speakers={detectedSpeakers} />
+        </div>
+      </div>
+
+      {/* Real-time Transcription with Clinical Insights */}
+      <div className="transcription-panel">
+        <div className="live-transcription">
+          <h3>Live Transcription</h3>
+          <div className="transcript-text">
+            {transcription.split(' ').map((word, idx) => (
+              <span 
+                key={idx} 
+                className={`word ${getClinicalHighlight(word)}`}
+                data-confidence={word.confidence}
+              >
+                {word.text}
+              </span>
+            ))}
+          </div>
+          <div className="confidence-indicator">
+            Confidence: {averageConfidence}%
+          </div>
+        </div>
+
+        {/* Clinical Insights Panel */}
+        <div className="clinical-insights">
+          <h3>Real-time Clinical Insights</h3>
+          <div className="insight-cards">
+            <div className="emotional-state">
+              <h4>Emotional State</h4>
+              <div className="emotion-indicators">
+                {Object.entries(currentEmotions).map(([emotion, intensity]) => (
+                  <div key={emotion} className="emotion-bar">
+                    <span>{emotion}</span>
+                    <div className="intensity-bar">
+                      <div 
+                        className="intensity-fill" 
+                        style={{width: `${intensity * 100}%`}}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="clinical-themes">
+              <h4>Detected Themes</h4>
+              <div className="theme-tags">
+                {detectedThemes.map(theme => (
+                  <span key={theme} className="theme-tag">
+                    {theme}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="risk-alerts">
+              <h4>Risk Indicators</h4>
+              {riskAlerts.map(alert => (
+                <div key={alert.id} className={`alert ${alert.severity}`}>
+                  <Icon name={alert.icon} />
+                  <span>{alert.message}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+```
+
+### 2. Enhanced Transcription Viewer Component
+```javascript
+const EnhancedTranscriptionViewer = ({ sessionId, existingTranscription }) => {
+  const [processedTranscript, setProcessedTranscript] = useState(null);
+  const [clinicalAnalysis, setClinicalAnalysis] = useState(null);
+  const [editMode, setEditMode] = useState(false);
+
+  // Enhance existing transcription with clinical AI
+  const enhanceTranscription = async (rawTranscript) => {
+    // Clinical entity recognition
+    const clinicalEntities = await extractClinicalEntities(rawTranscript);
+    
+    // Treatment modality detection
+    const treatmentModalities = await detectTreatmentModalities(rawTranscript);
+    
+    // Goal and progress tracking
+    const goalProgress = await analyzeGoalProgress(rawTranscript);
+    
+    // Risk assessment
+    const riskAssessment = await assessRisks(rawTranscript);
+    
+    // Compliance checking
+    const complianceCheck = await checkCompliance(rawTranscript);
+
+    return {
+      enhancedText: addClinicalAnnotations(rawTranscript, clinicalEntities),
+      clinicalEntities,
+      treatmentModalities,
+      goalProgress,
+      riskAssessment,
+      complianceCheck,
+      confidence: calculateOverallConfidence(rawTranscript)
+    };
+  };
+
+  // Interactive transcription editor
+  const TranscriptEditor = () => (
+    <div className="transcript-editor">
+      <div className="editor-toolbar">
+        <button onClick={() => setEditMode(!editMode)}>
+          {editMode ? 'Save Changes' : 'Edit Transcript'}
+        </button>
+        <button onClick={exportTranscript}>Export</button>
+        <button onClick={generateNotes}>Generate Notes</button>
+      </div>
+
+      <div className="transcript-content">
+        {processedTranscript?.sentences.map((sentence, idx) => (
+          <div key={idx} className="sentence-block">
+            <div className="sentence-metadata">
+              <span className="timestamp">{sentence.timestamp}</span>
+              <span className="speaker">{sentence.speaker}</span>
+              <span className="confidence">{sentence.confidence}%</span>
+            </div>
+            <div 
+              className="sentence-text" 
+              contentEditable={editMode}
+              onBlur={(e) => updateSentence(idx, e.target.textContent)}
+            >
+              {sentence.text.split(' ').map((word, wordIdx) => (
+                <span 
+                  key={wordIdx}
+                  className={`word ${getWordClassification(word)}`}
+                  title={getWordTooltip(word)}
+                >
+                  {word.text}
+                </span>
+              ))}
+            </div>
+            <div className="sentence-insights">
+              {sentence.clinicalTags.map(tag => (
+                <span key={tag} className={`clinical-tag ${tag.type}`}>
+                  {tag.label}
+                </span>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Clinical Analysis Sidebar */}
+      <div className="analysis-sidebar">
+        <div className="analysis-section">
+          <h3>Clinical Entities</h3>
+          <div className="entity-list">
+            {clinicalAnalysis?.entities.map(entity => (
+              <div key={entity.id} className="entity-item">
+                <span className="entity-type">{entity.type}</span>
+                <span className="entity-text">{entity.text}</span>
+                <span className="entity-confidence">{entity.confidence}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="analysis-section">
+          <h3>Treatment Modalities</h3>
+          <div className="modality-list">
+            {clinicalAnalysis?.modalities.map(modality => (
+              <div key={modality} className="modality-tag">
+                {modality}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="analysis-section">
+          <h3>Risk Assessment</h3>
+          <div className="risk-indicators">
+            {clinicalAnalysis?.risks.map(risk => (
+              <div key={risk.id} className={`risk-item ${risk.level}`}>
+                <Icon name={risk.icon} />
+                <span>{risk.description}</span>
+                <span className="risk-score">{risk.score}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  return <TranscriptEditor />;
+};
+```
+
+## Phase 2: Video Intelligence Components
+
+### 1. Video Analysis Component
+```javascript
+const VideoIntelligencePanel = ({ videoStream, sessionId }) => {
+  const [videoAnalysis, setVideoAnalysis] = useState(null);
+  const [emotionalTimeline, setEmotionalTimeline] = useState([]);
+  const [nonverbalInsights, setNonverbalInsights] = useState(null);
+  const [privacyMode, setPrivacyMode] = useState(true);
+
+  // Initialize video analysis models (client-side for privacy)
+  const initializeVideoAnalysis = async () => {
+    // Load TensorFlow.js models
+    await tf.ready();
+    
+    const models = {
+      faceDetection: await tf.loadLayersModel('/models/face-detection.json'),
+      emotionRecognition: await tf.loadLayersModel('/models/emotion-recognition.json'),
+      poseEstimation: await tf.loadLayersModel('/models/pose-estimation.json'),
+      gaze: await tf.loadLayersModel('/models/gaze-tracking.json')
+    };
+
+    return models;
+  };
+
+  // Real-time video analysis
+  const analyzeVideoFrame = async (videoFrame, models) => {
+    // Face detection and analysis
+    const faces = await detectFaces(videoFrame, models.faceDetection);
+    
+    // Emotion recognition
+    const emotions = await analyzeEmotions(faces, models.emotionRecognition);
+    
+    // Pose estimation
+    const pose = await estimatePose(videoFrame, models.poseEstimation);
+    
+    // Gaze tracking
+    const gazeData = await trackGaze(faces, models.gaze);
+    
+    // Nonverbal behavior analysis
+    const nonverbalBehaviors = analyzeBehaviors(pose, gazeData);
+    
+    // Engagement scoring
+    const engagementScore = calculateEngagement(emotions, pose, gazeData);
+
+    return {
+      timestamp: Date.now(),
+      faces: faces.length,
+      emotions,
+      pose,
+      gazeData,
+      nonverbalBehaviors,
+      engagementScore,
+      confidenceLevel: calculateConfidence(faces, emotions, pose)
+    };
+  };
+
+  // Behavioral pattern detection
+  const detectBehavioralPatterns = (analysisHistory) => {
+    const patterns = {
+      // Anxiety indicators
+      anxietyMarkers: detectAnxietyMarkers(analysisHistory),
+      
+      // Depression indicators
+      depressionMarkers: detectDepressionMarkers(analysisHistory),
+      
+      // Engagement patterns
+      engagementPatterns: analyzeEngagementPatterns(analysisHistory),
+      
+      // Emotional regulation
+      emotionalRegulation: analyzeEmotionalRegulation(analysisHistory),
+      
+      // Therapeutic alliance indicators
+      allianceIndicators: detectAllianceIndicators(analysisHistory)
+    };
+
+    return patterns;
+  };
+
+  return (
+    <div className="video-intelligence-panel">
+      {/* Privacy Controls */}
+      <div className="privacy-controls">
+        <div className="privacy-toggle">
+          <input 
+            type="checkbox" 
+            checked={privacyMode} 
+            onChange={(e) => setPrivacyMode(e.target.checked)}
+          />
+          <label>Privacy Mode (Local Processing Only)</label>
+        </div>
+        <div className="data-retention">
+          <select onChange={handleRetentionChange}>
+            <option value="session">Delete after session</option>
+            <option value="24h">Delete after 24 hours</option>
+            <option value="7d">Delete after 7 days</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Real-time Video Analysis */}
+      <div className="video-analysis-display">
+        <div className="video-feed">
+          <video ref={videoRef} autoPlay muted className="analysis-video" />
+          <div className="analysis-overlay">
+            {/* Face detection overlays */}
+            {videoAnalysis?.faces.map((face, idx) => (
+              <div 
+                key={idx} 
+                className="face-overlay"
+                style={{
+                  left: face.x,
+                  top: face.y,
+                  width: face.width,
+                  height: face.height
+                }}
+              >
+                <div className="emotion-label">
+                  {face.dominantEmotion} ({face.confidence}%)
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Real-time Insights */}
+        <div className="realtime-insights">
+          <div className="insight-card">
+            <h4>Current Emotional State</h4>
+            <div className="emotion-chart">
+              {Object.entries(videoAnalysis?.emotions || {}).map(([emotion, value]) => (
+                <div key={emotion} className="emotion-bar">
+                  <span className="emotion-name">{emotion}</span>
+                  <div className="emotion-value">
+                    <div 
+                      className="emotion-fill" 
+                      style={{width: `${value * 100}%`}}
+                    />
+                  </div>
+                  <span className="emotion-percentage">{Math.round(value * 100)}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="insight-card">
+            <h4>Engagement Score</h4>
+            <div className="engagement-meter">
+              <div 
+                className="engagement-fill" 
+                style={{width: `${videoAnalysis?.engagementScore * 100}%`}}
+              />
+              <span className="engagement-text">
+                {Math.round(videoAnalysis?.engagementScore * 100)}% Engaged
+              </span>
+            </div>
+          </div>
+
+          <div className="insight-card">
+            <h4>Nonverbal Behaviors</h4>
+            <div className="behavior-indicators">
+              {nonverbalInsights?.behaviors.map(behavior => (
+                <div key={behavior.type} className="behavior-item">
+                  <Icon name={behavior.icon} />
+                  <span>{behavior.description}</span>
+                  <span className="behavior-frequency">{behavior.frequency}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="insight-card">
+            <h4>Clinical Observations</h4>
+            <div className="clinical-observations">
+              {nonverbalInsights?.clinicalObservations.map(observation => (
+                <div key={observation.id} className="observation-item">
+                  <span className="observation-type">{observation.type}</span>
+                  <span className="observation-text">{observation.text}</span>
+                  <span className="observation-confidence">{observation.confidence}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Emotional Timeline */}
+      <div className="emotional-timeline">
+        <h3>Session Emotional Timeline</h3>
+        <div className="timeline-chart">
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart data={emotionalTimeline}>
+              <XAxis dataKey="timestamp" />
+              <YAxis />
+              <Tooltip />
+              <Line type="monotone" dataKey="positive" stroke="#4CAF50" />
+              <Line type="monotone" dataKey="negative" stroke="#F44336" />
+              <Line type="monotone" dataKey="neutral" stroke="#9E9E9E" />
+              <Line type="monotone" dataKey="engagement" stroke="#2196F3" />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Behavioral Patterns Analysis */}
+      <div className="behavioral-patterns">
+        <h3>Behavioral Pattern Analysis</h3>
+        <div className="pattern-cards">
+          {Object.entries(behavioralPatterns || {}).map(([pattern, data]) => (
+            <div key={pattern} className="pattern-card">
+              <h4>{pattern.replace(/([A-Z])/g, ' $1').trim()}</h4>
+              <div className="pattern-details">
+                <div className="pattern-score">
+                  Score: {data.score}/10
+                </div>
+                <div className="pattern-indicators">
+                  {data.indicators.map((indicator, idx) => (
+                    <span key={idx} className="indicator-tag">
+                      {indicator}
+                    </span>
+                  ))}
+                </div>
+                <div className="pattern-recommendations">
+                  <h5>Recommendations:</h5>
+                  <ul>
+                    {data.recommendations.map((rec, idx) => (
+                      <li key={idx}>{rec}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+```
+
+## Phase 3: Unified Session Intelligence Hub
+
+### 1. Complete Session Intelligence Component
+```javascript
+const SessionIntelligenceHub = ({ sessionId, audioData, videoData, transcriptionData }) => {
+  const [multiModalInsights, setMultiModalInsights] = useState(null);
+  const [clinicalRecommendations, setClinicalRecommendations] = useState([]);
+  const [complianceStatus, setComplianceStatus] = useState(null);
+
+  // Fusion of all modalities
+  const fuseMultiModalData = async (audio, video, transcript) => {
+    // Correlate audio sentiment with visual emotions
+    const emotionalCorrelation = correlateEmotionalData(audio.emotions, video.emotions);
+    
+    // Detect incongruence between verbal and nonverbal
+    const incongruenceAnalysis = detectIncongruence(
+      transcript.sentiment,
+      video.emotions,
+      audio.tone
+    );
+    
+    // Comprehensive engagement analysis
+    const engagementAnalysis = fuseEngagementData(
+      audio.speakingPatterns,
+      video.engagementScore,
+      transcript.participationMetrics
+    );
+    
+    // Clinical theme correlation
+    const clinicalCorrelation = correlateClinicalThemes(
+      transcript.clinicalThemes,
+      video.behavioralPatterns,
+      audio.riskIndicators
+    );
+    
+    // Treatment effectiveness prediction
+    const treatmentPrediction = predictTreatmentEffectiveness({
+      verbalContent: transcript,
+      nonverbalBehavior: video,
+      audioMetrics: audio,
+      historicalData: await getHistoricalData(sessionId)
+    });
+
+    return {
+      emotionalCorrelation,
+      incongruenceAnalysis,
+      engagementAnalysis,
+      clinicalCorrelation,
+      treatmentPrediction,
+      overallInsights: generateOverallInsights({
+        audio, video, transcript
+      })
+    };
+  };
+
+  // Generate clinical recommendations
+  const generateClinicalRecommendations = (fusedInsights) => {
+    const recommendations = [];
+
+    // Based on incongruence analysis
+    if (fusedInsights.incongruenceAnalysis.hasIncongruence) {
+      recommendations.push({
+        type: 'intervention',
+        priority: 'high',
+        title: 'Emotional Incongruence Detected',
+        description: 'Patient verbal expression differs from nonverbal cues',
+        suggestion: 'Consider exploring underlying emotions or barriers to expression',
+        evidence: fusedInsights.incongruenceAnalysis.details
+      });
+    }
+
+    // Based on engagement patterns
+    if (fusedInsights.engagementAnalysis.averageEngagement < 0.6) {
+      recommendations.push({
+        type: 'engagement',
+        priority: 'medium',
+        title: 'Low Engagement Detected',
+        description: 'Patient engagement below therapeutic threshold',
+        suggestion: 'Consider adjusting therapeutic approach or addressing barriers',
+        evidence: fusedInsights.engagementAnalysis.patterns
+      });
+    }
+
+    // Based on risk indicators
+    if (fusedInsights.clinicalCorrelation.riskLevel > 3) {
+      recommendations.push({
+        type: 'risk',
+        priority: 'high',
+        title: 'Elevated Risk Indicators',
+        description: 'Multiple risk factors detected across modalities',
+        suggestion: 'Conduct comprehensive risk assessment and safety planning',
+        evidence: fusedInsights.clinicalCorrelation.riskFactors
+      });
+    }
+
+    return recommendations;
+  };
+
+  return (
+    <div className="session-intelligence-hub">
+      {/* Overview Dashboard */}
+      <div className="intelligence-overview">
+        <div className="overview-cards">
+          <div className="overview-card emotional-state">
+            <h3>Emotional State Analysis</h3>
+            <div className="state-visualization">
+              <div className="emotional-coherence">
+                <span>Verbal-Nonverbal Coherence</span>
+                <div className="coherence-meter">
+                  <div 
+                    className="coherence-fill" 
+                    style={{width: `${multiModalInsights?.emotionalCorrelation.coherence * 100}%`}}
+                  />
+                </div>
+              </div>
+              <div className="dominant-emotions">
+                {multiModalInsights?.emotionalCorrelation.dominantEmotions.map(emotion => (
+                  <span key={emotion.name} className="emotion-chip">
+                    {emotion.name} ({emotion.confidence}%)
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="overview-card engagement-analysis">
+            <h3>Engagement Analysis</h3>
+            <div className="engagement-breakdown">
+              <div className="engagement-metric">
+                <span>Verbal Engagement</span>
+                <span>{multiModalInsights?.engagementAnalysis.verbal}%</span>
+              </div>
+              <div className="engagement-metric">
+                <span>Visual Engagement</span>
+                <span>{multiModalInsights?.engagementAnalysis.visual}%</span>
+              </div>
+              <div className="engagement-metric">
+                <span>Overall Engagement</span>
+                <span>{multiModalInsights?.engagementAnalysis.overall}%</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="overview-card treatment-progress">
+            <h3>Treatment Progress</h3>
+            <div className="progress-indicators">
+              <div className="progress-item">
+                <span>Goal Achievement</span>
+                <div className="progress-bar">
+                  <div 
+                    className="progress-fill" 
+                    style={{width: `${multiModalInsights?.treatmentPrediction.goalProgress * 100}%`}}
+                  />
+                </div>
+              </div>
+              <div className="progress-item">
+                <span>Therapeutic Alliance</span>
+                <div className="progress-bar">
+                  <div 
+                    className="progress-fill" 
+                    style={{width: `${multiModalInsights?.treatmentPrediction.alliance * 100}%`}}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="overview-card risk-assessment">
+            <h3>Risk Assessment</h3>
+            <div className="risk-level">
+              <div className={`risk-indicator ${getRiskLevel(multiModalInsights?.clinicalCorrelation.riskLevel)}`}>
+                <span className="risk-score">{multiModalInsights?.clinicalCorrelation.riskLevel}/10</span>
+                <span className="risk-label">{getRiskLabel(multiModalInsights?.clinicalCorrelation.riskLevel)}</span>
+              </div>
+              <div className="risk-factors">
+                {multiModalInsights?.clinicalCorrelation.riskFactors.map(factor => (
+                  <span key={factor} className="risk-factor-tag">
+                    {factor}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Clinical Recommendations */}
+      <div className="clinical-recommendations">
+        <h3>Clinical Recommendations</h3>
+        <div className="recommendations-list">
+          {clinicalRecommendations.map((rec, idx) => (
+            <div key={idx} className={`recommendation-card ${rec.priority}`}>
+              <div className="recommendation-header">
+                <Icon name={getRecommendationIcon(rec.type)} />
+                <h4>{rec.title}</h4>
+                <span className={`priority-badge ${rec.priority}`}>
+                  {rec.priority.toUpperCase()}
+                </span>
+              </div>
+              <div className="recommendation-content">
+                <p className="description">{rec.description}</p>
+                <p className="suggestion"><strong>Suggestion:</strong> {rec.suggestion}</p>
+                <div className="evidence">
+                  <strong>Evidence:</strong>
+                  <ul>
+                    {rec.evidence.map((item, itemIdx) => (
+                      <li key={itemIdx}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+              <div className="recommendation-actions">
+                <button onClick={() => acceptRecommendation(rec)}>
+                  Accept & Add to Notes
+                </button>
+                <button onClick={() => dismissRecommendation(rec)}>
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Compliance Status */}
+      <div className="compliance-dashboard">
+        <h3>Compliance Status</h3>
+        <div className="compliance-checks">
+          {complianceStatus?.checks.map(check => (
+            <div key={check.id} className={`compliance-item ${check.status}`}>
+              <Icon name={getComplianceIcon(check.status)} />
+              <span className="check-name">{check.name}</span>
+              <span className={`check-status ${check.status}`}>
+                {check.status.toUpperCase()}
+              </span>
+              {check.status === 'fail' && (
+                <div className="compliance-details">
+                  <p>{check.issue}</p>
+                  <button onClick={() => resolveCompliance(check)}>
+                    Resolve
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        <div className="compliance-score">
+          <h4>Overall Compliance Score</h4>
+          <div className="score-display">
+            <div className="score-circle">
+              <span className="score-number">{complianceStatus?.overallScore}%</span>
+            </div>
+            <div className="score-breakdown">
+              <div>Documentation: {complianceStatus?.documentation}%</div>
+              <div>Risk Assessment: {complianceStatus?.riskAssessment}%</div>
+              <div>Treatment Planning: {complianceStatus?.treatmentPlanning}%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Export and Integration */}
+      <div className="export-integration">
+        <h3>Export & Integration</h3>
+        <div className="export-options">
+          <button onClick={() => exportToEHR(sessionData)}>
+            Export to EHR
+          </button>
+          <button onClick={() => generateReport(sessionData)}>
+            Generate Report
+          </button>
+          <button onClick={() => scheduleFollowUp(sessionData)}>
+            Schedule Follow-up
+          </button>
+          <button onClick={() => shareWithSupervisor(sessionData)}>
+            Share with Supervisor
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+```
+
+## Integration with Existing Backend
+
+### 1. API Enhancement Requirements
+```javascript
+// Extend existing API endpoints
+const apiEnhancements = {
+  // Enhanced session endpoints
+  'POST /api/sessions/start': {
+    // Add video stream support
+    // Initialize multi-modal analysis
+    // Setup real-time processing pipeline
+  },
+  
+  'POST /api/sessions/:id/analyze': {
+    // Process multi-modal data
+    // Generate clinical insights
+    // Update compliance status
+  },
+  
+  'GET /api/sessions/:id/intelligence': {
+    // Return fused insights
+    // Clinical recommendations
+    // Compliance status
+  },
+  
+  // New compliance endpoints
+  'GET /api/compliance/check/:sessionId': {
+    // Run compliance analysis
+    // Return issues and recommendations
+  },
+  
+  // Enhanced notes endpoints
+  'POST /api/notes/generate': {
+    // Multi-modal note generation
+    // Clinical AI enhancement
+    // Compliance validation
+  }
+};
+```
+
+### 2. Database Schema Extensions
+```sql
+-- Add new tables to existing schema
+ALTER TABLE sessions ADD COLUMN has_video BOOLEAN DEFAULT FALSE;
+ALTER TABLE sessions ADD COLUMN intelligence_processed BOOLEAN DEFAULT FALSE;
+ALTER TABLE sessions ADD COLUMN compliance_score INTEGER;
+
+-- New video analysis table
+CREATE TABLE session_video_analysis (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id UUID REFERENCES

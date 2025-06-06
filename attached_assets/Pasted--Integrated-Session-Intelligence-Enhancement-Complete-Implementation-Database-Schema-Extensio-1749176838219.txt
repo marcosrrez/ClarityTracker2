@@ -1,0 +1,851 @@
+# Integrated Session Intelligence Enhancement - Complete Implementation
+
+## Database Schema Extensions (Continued)
+
+```sql
+-- Add new tables to existing schema
+ALTER TABLE sessions ADD COLUMN has_video BOOLEAN DEFAULT FALSE;
+ALTER TABLE sessions ADD COLUMN intelligence_processed BOOLEAN DEFAULT FALSE;
+ALTER TABLE sessions ADD COLUMN compliance_score INTEGER;
+ALTER TABLE sessions ADD COLUMN risk_level INTEGER DEFAULT 0;
+ALTER TABLE sessions ADD COLUMN engagement_score DECIMAL(3,2);
+
+-- New video analysis table
+CREATE TABLE session_video_analysis (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id UUID REFERENCES sessions(id) ON DELETE CASCADE,
+  timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  frame_number INTEGER,
+  detected_faces INTEGER,
+  dominant_emotion VARCHAR(50),
+  emotion_confidence DECIMAL(3,2),
+  engagement_score DECIMAL(3,2),
+  pose_data JSONB,
+  gaze_data JSONB,
+  behavioral_markers JSONB,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enhanced clinical insights table
+CREATE TABLE session_clinical_insights (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id UUID REFERENCES sessions(id) ON DELETE CASCADE,
+  insight_type VARCHAR(100) NOT NULL,
+  insight_category VARCHAR(50),
+  confidence_score DECIMAL(3,2),
+  clinical_significance VARCHAR(20),
+  description TEXT,
+  recommendations TEXT[],
+  supporting_evidence JSONB,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Multi-modal correlation table
+CREATE TABLE session_multimodal_correlations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id UUID REFERENCES sessions(id) ON DELETE CASCADE,
+  audio_emotion_data JSONB,
+  video_emotion_data JSONB,
+  transcript_sentiment JSONB,
+  coherence_score DECIMAL(3,2),
+  incongruence_indicators JSONB,
+  correlation_timestamp TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Compliance tracking table
+CREATE TABLE session_compliance (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id UUID REFERENCES sessions(id) ON DELETE CASCADE,
+  compliance_type VARCHAR(100) NOT NULL,
+  status VARCHAR(20) CHECK (status IN ('pass', 'fail', 'warning', 'pending')),
+  score INTEGER CHECK (score >= 0 AND score <= 100),
+  issues TEXT[],
+  recommendations TEXT[],
+  resolved_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Clinical recommendations table
+CREATE TABLE clinical_recommendations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id UUID REFERENCES sessions(id) ON DELETE CASCADE,
+  recommendation_type VARCHAR(50) NOT NULL,
+  priority VARCHAR(20) CHECK (priority IN ('low', 'medium', 'high', 'urgent')),
+  title VARCHAR(200) NOT NULL,
+  description TEXT,
+  clinical_rationale TEXT,
+  suggested_actions TEXT[],
+  supporting_evidence JSONB,
+  status VARCHAR(20) DEFAULT 'pending',
+  accepted_at TIMESTAMP WITH TIME ZONE,
+  dismissed_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Behavioral patterns tracking
+CREATE TABLE behavioral_patterns (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id UUID REFERENCES sessions(id) ON DELETE CASCADE,
+  pattern_type VARCHAR(100) NOT NULL,
+  pattern_name VARCHAR(200),
+  detection_confidence DECIMAL(3,2),
+  frequency_score INTEGER,
+  severity_score INTEGER,
+  clinical_significance VARCHAR(50),
+  indicators JSONB,
+  recommendations TEXT[],
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create indexes for performance
+CREATE INDEX idx_video_analysis_session ON session_video_analysis(session_id);
+CREATE INDEX idx_video_analysis_timestamp ON session_video_analysis(timestamp);
+CREATE INDEX idx_clinical_insights_session ON session_clinical_insights(session_id);
+CREATE INDEX idx_clinical_insights_type ON session_clinical_insights(insight_type);
+CREATE INDEX idx_compliance_session ON session_compliance(session_id);
+CREATE INDEX idx_compliance_status ON session_compliance(status);
+CREATE INDEX idx_recommendations_session ON clinical_recommendations(session_id);
+CREATE INDEX idx_recommendations_priority ON clinical_recommendations(priority);
+CREATE INDEX idx_behavioral_patterns_session ON behavioral_patterns(session_id);
+```
+
+## Enhanced Backend Services
+
+### 1. Multi-Modal Analysis Service
+```javascript
+// services/multiModalAnalysisService.js
+class MultiModalAnalysisService {
+  constructor() {
+    this.azureSpeechClient = this.initializeAzureSpeech();
+    this.videoAnalysisModels = null;
+    this.clinicalNLPService = new ClinicalNLPService();
+  }
+
+  async initializeAzureSpeech() {
+    const speechConfig = sdk.SpeechConfig.fromSubscription(
+      process.env.AZURE_SPEECH_KEY,
+      process.env.AZURE_SPEECH_REGION
+    );
+    
+    // Enhanced configuration for clinical context
+    speechConfig.speechRecognitionLanguage = "en-US";
+    speechConfig.enableDictation();
+    speechConfig.requestWordLevelTimestamps();
+    speechConfig.enableAudioLogging = false; // Privacy compliance
+    
+    return speechConfig;
+  }
+
+  async processSessionData(sessionId, audioData, videoData, transcriptData) {
+    try {
+      // Process each modality
+      const audioAnalysis = await this.analyzeAudioData(audioData);
+      const videoAnalysis = await this.analyzeVideoData(videoData);
+      const transcriptAnalysis = await this.analyzeTranscriptData(transcriptData);
+      
+      // Fuse multi-modal insights
+      const fusedInsights = await this.fuseMultiModalData(
+        audioAnalysis, 
+        videoAnalysis, 
+        transcriptAnalysis
+      );
+      
+      // Generate clinical recommendations
+      const clinicalRecommendations = await this.generateClinicalRecommendations(
+        fusedInsights
+      );
+      
+      // Check compliance
+      const complianceStatus = await this.checkCompliance(
+        sessionId, 
+        fusedInsights
+      );
+      
+      // Store results
+      await this.storeAnalysisResults(sessionId, {
+        audioAnalysis,
+        videoAnalysis,
+        transcriptAnalysis,
+        fusedInsights,
+        clinicalRecommendations,
+        complianceStatus
+      });
+      
+      return {
+        success: true,
+        insights: fusedInsights,
+        recommendations: clinicalRecommendations,
+        compliance: complianceStatus
+      };
+      
+    } catch (error) {
+      console.error('Multi-modal analysis error:', error);
+      throw new Error('Failed to process session data');
+    }
+  }
+
+  async analyzeAudioData(audioData) {
+    // Enhanced audio analysis with clinical context
+    const analysis = {
+      transcription: await this.enhancedTranscription(audioData),
+      emotionalTone: await this.analyzeEmotionalTone(audioData),
+      speakingPatterns: await this.analyzeSpeakingPatterns(audioData),
+      clinicalMarkers: await this.detectClinicalMarkers(audioData)
+    };
+    
+    return analysis;
+  }
+
+  async analyzeVideoData(videoData) {
+    // Client-side video analysis for privacy
+    const analysis = {
+      facialExpressions: await this.analyzeFacialExpressions(videoData),
+      bodyLanguage: await this.analyzeBodyLanguage(videoData),
+      engagementMetrics: await this.calculateEngagementMetrics(videoData),
+      behavioralPatterns: await this.detectBehavioralPatterns(videoData)
+    };
+    
+    return analysis;
+  }
+
+  async fuseMultiModalData(audio, video, transcript) {
+    // Correlation analysis
+    const emotionalCorrelation = this.correlateEmotionalData(
+      audio.emotionalTone,
+      video.facialExpressions,
+      transcript.sentiment
+    );
+    
+    // Incongruence detection
+    const incongruenceAnalysis = this.detectIncongruence(
+      audio.emotionalTone,
+      video.facialExpressions,
+      transcript.sentiment
+    );
+    
+    // Engagement fusion
+    const engagementAnalysis = this.fuseEngagementData(
+      audio.speakingPatterns,
+      video.engagementMetrics,
+      transcript.participationMetrics
+    );
+    
+    return {
+      emotionalCorrelation,
+      incongruenceAnalysis,
+      engagementAnalysis,
+      overallInsights: this.generateOverallInsights(audio, video, transcript)
+    };
+  }
+}
+```
+
+### 2. Compliance Monitoring Service
+```javascript
+// services/complianceService.js
+class ComplianceService {
+  constructor() {
+    this.complianceRules = this.loadComplianceRules();
+  }
+
+  async checkSessionCompliance(sessionId, sessionData) {
+    const complianceChecks = [];
+    
+    // Documentation completeness
+    const documentationCheck = await this.checkDocumentationCompliance(sessionData);
+    complianceChecks.push(documentationCheck);
+    
+    // Risk assessment compliance
+    const riskAssessmentCheck = await this.checkRiskAssessmentCompliance(sessionData);
+    complianceChecks.push(riskAssessmentCheck);
+    
+    // Treatment planning compliance
+    const treatmentPlanningCheck = await this.checkTreatmentPlanningCompliance(sessionData);
+    complianceChecks.push(treatmentPlanningCheck);
+    
+    // Privacy and consent compliance
+    const privacyCheck = await this.checkPrivacyCompliance(sessionData);
+    complianceChecks.push(privacyCheck);
+    
+    // Calculate overall compliance score
+    const overallScore = this.calculateOverallScore(complianceChecks);
+    
+    // Store compliance results
+    await this.storeComplianceResults(sessionId, complianceChecks, overallScore);
+    
+    return {
+      checks: complianceChecks,
+      overallScore,
+      issues: complianceChecks.filter(check => check.status === 'fail'),
+      warnings: complianceChecks.filter(check => check.status === 'warning')
+    };
+  }
+
+  async checkDocumentationCompliance(sessionData) {
+    const requirements = [
+      'Session objectives documented',
+      'Clinical observations recorded',
+      'Treatment interventions noted',
+      'Patient response documented',
+      'Follow-up plans specified'
+    ];
+    
+    const passedRequirements = [];
+    const failedRequirements = [];
+    
+    // Check each requirement
+    for (const requirement of requirements) {
+      const passed = await this.checkDocumentationRequirement(sessionData, requirement);
+      if (passed) {
+        passedRequirements.push(requirement);
+      } else {
+        failedRequirements.push(requirement);
+      }
+    }
+    
+    const score = Math.round((passedRequirements.length / requirements.length) * 100);
+    
+    return {
+      id: 'documentation',
+      name: 'Documentation Completeness',
+      status: score >= 80 ? 'pass' : score >= 60 ? 'warning' : 'fail',
+      score,
+      passed: passedRequirements,
+      failed: failedRequirements,
+      recommendations: this.getDocumentationRecommendations(failedRequirements)
+    };
+  }
+
+  async checkRiskAssessmentCompliance(sessionData) {
+    const riskIndicators = sessionData.riskIndicators || [];
+    const riskLevel = sessionData.riskLevel || 0;
+    
+    const checks = {
+      'Risk screening completed': riskIndicators.length > 0,
+      'Risk level assessed': riskLevel >= 0,
+      'High risk documented': riskLevel < 7 || this.hasRiskDocumentation(sessionData),
+      'Safety plan created': riskLevel < 5 || this.hasSafetyPlan(sessionData)
+    };
+    
+    const passedChecks = Object.entries(checks).filter(([_, passed]) => passed);
+    const score = Math.round((passedChecks.length / Object.keys(checks).length) * 100);
+    
+    return {
+      id: 'risk_assessment',
+      name: 'Risk Assessment',
+      status: score >= 90 ? 'pass' : score >= 70 ? 'warning' : 'fail',
+      score,
+      details: checks,
+      recommendations: this.getRiskAssessmentRecommendations(checks)
+    };
+  }
+}
+```
+
+### 3. Clinical AI Service
+```javascript
+// services/clinicalAIService.js
+class ClinicalAIService {
+  constructor() {
+    this.openaiClient = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY
+    });
+    this.clinicalPrompts = this.loadClinicalPrompts();
+  }
+
+  async generateClinicalNotes(sessionData) {
+    const prompt = this.buildClinicalNotesPrompt(sessionData);
+    
+    try {
+      const response = await this.openaiClient.chat.completions.create({
+        model: "gpt-4",
+        messages: [
+          {
+            role: "system",
+            content: "You are a licensed clinical psychologist assistant. Generate professional, accurate clinical notes based on session data."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        temperature: 0.3,
+        max_tokens: 2000
+      });
+      
+      const generatedNotes = response.choices[0].message.content;
+      
+      // Validate and enhance notes
+      const enhancedNotes = await this.enhanceClinicalNotes(generatedNotes, sessionData);
+      
+      return enhancedNotes;
+      
+    } catch (error) {
+      console.error('Clinical notes generation error:', error);
+      throw new Error('Failed to generate clinical notes');
+    }
+  }
+
+  buildClinicalNotesPrompt(sessionData) {
+    return `
+Generate professional clinical notes for a behavioral health session based on the following data:
+
+Session Information:
+- Duration: ${sessionData.duration}
+- Modality: ${sessionData.modality}
+- Session Type: ${sessionData.sessionType}
+
+Clinical Observations:
+- Emotional State: ${JSON.stringify(sessionData.emotionalState)}
+- Behavioral Patterns: ${JSON.stringify(sessionData.behavioralPatterns)}
+- Engagement Level: ${sessionData.engagementLevel}%
+- Risk Indicators: ${JSON.stringify(sessionData.riskIndicators)}
+
+Transcript Highlights:
+${sessionData.transcriptHighlights}
+
+Multi-Modal Insights:
+- Verbal-Nonverbal Coherence: ${sessionData.coherenceScore}%
+- Treatment Progress: ${sessionData.treatmentProgress}
+- Therapeutic Alliance: ${sessionData.therapeuticAlliance}
+
+Please generate clinical notes that include:
+1. Presenting concerns addressed
+2. Clinical observations (MSE components)
+3. Interventions used
+4. Patient response to treatment
+5. Risk assessment
+6. Treatment plan updates
+7. Recommendations for next session
+
+Format the notes professionally and ensure all observations are clinically relevant and evidence-based.
+    `;
+  }
+
+  async generateTreatmentRecommendations(sessionData) {
+    const insights = sessionData.multiModalInsights;
+    const recommendations = [];
+    
+    // Analyze engagement patterns
+    if (insights.engagementAnalysis.overall < 0.6) {
+      recommendations.push({
+        type: 'engagement',
+        priority: 'medium',
+        title: 'Enhance Patient Engagement',
+        description: 'Low engagement detected across multiple modalities',
+        suggestions: [
+          'Consider modifying therapeutic approach',
+          'Explore barriers to engagement',
+          'Assess therapeutic alliance',
+          'Consider motivational interviewing techniques'
+        ],
+        evidence: insights.engagementAnalysis
+      });
+    }
+    
+    // Analyze emotional incongruence
+    if (insights.emotionalCorrelation.coherence < 0.7) {
+      recommendations.push({
+        type: 'emotional',
+        priority: 'high',
+        title: 'Address Emotional Incongruence',
+        description: 'Mismatch between verbal and nonverbal emotional expression',
+        suggestions: [
+          'Explore underlying emotions',
+          'Address potential barriers to authentic expression',
+          'Consider trauma-informed approaches',
+          'Validate emotional experience'
+        ],
+        evidence: insights.emotionalCorrelation
+      });
+    }
+    
+    // Analyze risk factors
+    if (sessionData.riskLevel > 5) {
+      recommendations.push({
+        type: 'risk',
+        priority: 'urgent',
+        title: 'Risk Management Required',
+        description: 'Elevated risk indicators detected',
+        suggestions: [
+          'Conduct comprehensive risk assessment',
+          'Develop/update safety plan',
+          'Consider increased session frequency',
+          'Coordinate with treatment team'
+        ],
+        evidence: sessionData.riskIndicators
+      });
+    }
+    
+    return recommendations;
+  }
+}
+```
+
+## Enhanced API Endpoints
+
+### 1. Session Intelligence Endpoints
+```javascript
+// routes/sessionIntelligence.js
+const express = require('express');
+const router = express.Router();
+const MultiModalAnalysisService = require('../services/multiModalAnalysisService');
+const ComplianceService = require('../services/complianceService');
+const ClinicalAIService = require('../services/clinicalAIService');
+
+// Initialize services
+const multiModalService = new MultiModalAnalysisService();
+const complianceService = new ComplianceService();
+const clinicalAIService = new ClinicalAIService();
+
+// Process session with multi-modal analysis
+router.post('/sessions/:sessionId/analyze', async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const { audioData, videoData, transcriptData } = req.body;
+    
+    // Validate input
+    if (!audioData && !videoData && !transcriptData) {
+      return res.status(400).json({
+        error: 'At least one data type (audio, video, or transcript) is required'
+      });
+    }
+    
+    // Process multi-modal data
+    const analysis = await multiModalService.processSessionData(
+      sessionId,
+      audioData,
+      videoData,
+      transcriptData
+    );
+    
+    // Check compliance
+    const compliance = await complianceService.checkSessionCompliance(
+      sessionId,
+      analysis.insights
+    );
+    
+    // Generate clinical recommendations
+    const recommendations = await clinicalAIService.generateTreatmentRecommendations(
+      analysis.insights
+    );
+    
+    res.json({
+      success: true,
+      sessionId,
+      analysis: analysis.insights,
+      recommendations,
+      compliance,
+      processedAt: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('Session analysis error:', error);
+    res.status(500).json({
+      error: 'Failed to analyze session data',
+      details: error.message
+    });
+  }
+});
+
+// Get session intelligence summary
+router.get('/sessions/:sessionId/intelligence', async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    
+    // Retrieve stored analysis
+    const intelligence = await getSessionIntelligence(sessionId);
+    
+    if (!intelligence) {
+      return res.status(404).json({
+        error: 'Session intelligence not found'
+      });
+    }
+    
+    res.json(intelligence);
+    
+  } catch (error) {
+    console.error('Intelligence retrieval error:', error);
+    res.status(500).json({
+      error: 'Failed to retrieve session intelligence'
+    });
+  }
+});
+
+// Generate clinical notes with AI
+router.post('/sessions/:sessionId/notes/generate', async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const { includeRecommendations = true } = req.body;
+    
+    // Get session data and intelligence
+    const sessionData = await getSessionData(sessionId);
+    const intelligence = await getSessionIntelligence(sessionId);
+    
+    // Generate clinical notes
+    const clinicalNotes = await clinicalAIService.generateClinicalNotes({
+      ...sessionData,
+      ...intelligence
+    });
+    
+    // Include recommendations if requested
+    let recommendations = [];
+    if (includeRecommendations) {
+      recommendations = await clinicalAIService.generateTreatmentRecommendations({
+        ...sessionData,
+        multiModalInsights: intelligence.insights
+      });
+    }
+    
+    res.json({
+      success: true,
+      clinicalNotes,
+      recommendations,
+      generatedAt: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('Clinical notes generation error:', error);
+    res.status(500).json({
+      error: 'Failed to generate clinical notes'
+    });
+  }
+});
+
+// Export session data
+router.get('/sessions/:sessionId/export', async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const { format = 'json' } = req.query;
+    
+    // Get complete session data
+    const sessionData = await getCompleteSessionData(sessionId);
+    
+    // Format data based on request
+    let exportData;
+    switch (format.toLowerCase()) {
+      case 'pdf':
+        exportData = await generatePDFReport(sessionData);
+        res.setHeader('Content-Type', 'application/pdf');
+        break;
+      case 'ehr':
+        exportData = await formatForEHR(sessionData);
+        res.setHeader('Content-Type', 'application/json');
+        break;
+      default:
+        exportData = sessionData;
+        res.setHeader('Content-Type', 'application/json');
+    }
+    
+    res.send(exportData);
+    
+  } catch (error) {
+    console.error('Export error:', error);
+    res.status(500).json({
+      error: 'Failed to export session data'
+    });
+  }
+});
+
+module.exports = router;
+```
+
+## Frontend Integration Components
+
+### 1. Main Session Intelligence Component Integration
+```javascript
+// Complete integration with existing app
+const SessionIntelligenceDashboard = ({ sessionId }) => {
+  const [sessionData, setSessionData] = useState(null);
+  const [intelligence, setIntelligence] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('overview');
+
+  useEffect(() => {
+    loadSessionIntelligence();
+  }, [sessionId]);
+
+  const loadSessionIntelligence = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/sessions/${sessionId}/intelligence`);
+      const data = await response.json();
+      
+      setSessionData(data.sessionData);
+      setIntelligence(data.intelligence);
+    } catch (error) {
+      console.error('Failed to load session intelligence:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="loading-spinner">Loading session intelligence...</div>;
+  }
+
+  return (
+    <div className="session-intelligence-dashboard">
+      <div className="dashboard-header">
+        <h1>Session Intelligence - {sessionData?.sessionType}</h1>
+        <div className="session-meta">
+          <span>Duration: {sessionData?.duration}</span>
+          <span>Date: {new Date(sessionData?.createdAt).toLocaleDateString()}</span>
+          <span className={`status ${intelligence?.status}`}>
+            {intelligence?.status}
+          </span>
+        </div>
+      </div>
+
+      <div className="dashboard-tabs">
+        <nav className="tab-navigation">
+          <button 
+            className={activeTab === 'overview' ? 'active' : ''}
+            onClick={() => setActiveTab('overview')}
+          >
+            Overview
+          </button>
+          <button 
+            className={activeTab === 'analysis' ? 'active' : ''}
+            onClick={() => setActiveTab('analysis')}
+          >
+            Analysis
+          </button>
+          <button 
+            className={activeTab === 'recommendations' ? 'active' : ''}
+            onClick={() => setActiveTab('recommendations')}
+          >
+            Recommendations
+          </button>
+          <button 
+            className={activeTab === 'compliance' ? 'active' : ''}
+            onClick={() => setActiveTab('compliance')}
+          >
+            Compliance
+          </button>
+          <button 
+            className={activeTab === 'notes' ? 'active' : ''}
+            onClick={() => setActiveTab('notes')}
+          >
+            Clinical Notes
+          </button>
+        </nav>
+
+        <div className="tab-content">
+          {activeTab === 'overview' && (
+            <SessionIntelligenceHub 
+              sessionId={sessionId}
+              intelligence={intelligence}
+            />
+          )}
+          
+          {activeTab === 'analysis' && (
+            <div className="analysis-tab">
+              <EnhancedTranscriptionViewer 
+                sessionId={sessionId}
+                transcription={sessionData?.transcription}
+              />
+              <VideoIntelligencePanel 
+                sessionId={sessionId}
+                videoAnalysis={intelligence?.videoAnalysis}
+              />
+            </div>
+          )}
+          
+          {activeTab === 'recommendations' && (
+            <ClinicalRecommendations 
+              recommendations={intelligence?.recommendations}
+              onAcceptRecommendation={handleAcceptRecommendation}
+              onDismissRecommendation={handleDismissRecommendation}
+            />
+          )}
+          
+          {activeTab === 'compliance' && (
+            <ComplianceDashboard 
+              compliance={intelligence?.compliance}
+              onResolveIssue={handleResolveCompliance}
+            />
+          )}
+          
+          {activeTab === 'notes' && (
+            <ClinicalNotesGenerator 
+              sessionId={sessionId}
+              intelligence={intelligence}
+              onGenerateNotes={handleGenerateNotes}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+```
+
+## Deployment and Configuration
+
+### 1. Environment Configuration
+```bash
+# .env additions
+# Azure Speech Service
+AZURE_SPEECH_KEY=your_azure_speech_key
+AZURE_SPEECH_REGION=your_azure_region
+
+# OpenAI for Clinical AI
+OPENAI_API_KEY=your_openai_api_key
+
+# Video Analysis (if using cloud services)
+VIDEO_ANALYSIS_ENDPOINT=your_video_analysis_endpoint
+VIDEO_ANALYSIS_KEY=your_video_analysis_key
+
+# Compliance Configuration
+COMPLIANCE_RULES_PATH=./config/compliance_rules.json
+CLINICAL_VOCABULARY_PATH=./config/clinical_vocabulary.json
+
+# Privacy and Security
+ENABLE_LOCAL_VIDEO_PROCESSING=true
+DATA_RETENTION_DAYS=30
+ENCRYPTION_KEY=your_encryption_key
+```
+
+### 2. Docker Configuration
+```dockerfile
+# Dockerfile additions for enhanced services
+FROM node:18-alpine
+
+# Install additional dependencies for video processing
+RUN apk add --no-cache \
+    python3 \
+    py3-pip \
+    ffmpeg \
+    opencv-dev
+
+# Install TensorFlow.js for video analysis
+RUN npm install -g @tensorflow/tfjs-node
+
+# Copy application files
+COPY . /app
+WORKDIR /app
+
+# Install dependencies
+RUN npm install
+
+# Download pre-trained models
+RUN mkdir -p /app/models
+RUN wget -O /app/models/face-detection.json https://example.com/models/face-detection.json
+RUN wget -O /app/models/emotion-recognition.json https://example.com/models/emotion-recognition.json
+
+EXPOSE 3000
+CMD ["npm", "start"]
+```
+
+This completes the comprehensive integrated session intelligence enhancement system that builds upon your existing Azure Speech-enabled behavioral health application. The system provides:
+
+1. **Enhanced Multi-Modal Analysis** - Combines audio, video, and transcript data
+2. **Real-Time Clinical Insights** - Provides live clinical observations and risk assessment
+3. **Compliance Monitoring** - Automated compliance checking with detailed reporting
+4. **AI-Powered Clinical Notes** - Generates professional clinical documentation
+5. **Privacy-First Video Analysis** - Client-side processing for maximum privacy
+6. **Seamless Integration** - Builds upon existing infrastructure and database schema
+
+The system is designed to enhance clinical decision-making while maintaining the highest standards of privacy, compliance, and clinical accuracy.

@@ -1197,6 +1197,172 @@ export const resourceRecommendationSchema = z.object({
 
 export type ResourceRecommendation = z.infer<typeof resourceRecommendationSchema>;
 
+// Session Intelligence Enhancement Schema
+export const sessionIntelligenceTable = pgTable('session_intelligence', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  sessionId: varchar('session_id', { length: 255 }).notNull(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  hasVideo: varchar('has_video', { length: 10 }).default('false'),
+  hasAudio: varchar('has_audio', { length: 10 }).default('false'),
+  transcriptionData: jsonb('transcription_data'),
+  audioAnalysis: jsonb('audio_analysis'),
+  videoAnalysis: jsonb('video_analysis'),
+  multiModalCorrelation: jsonb('multimodal_correlation'),
+  clinicalInsights: jsonb('clinical_insights'),
+  riskAssessment: jsonb('risk_assessment'),
+  complianceScore: integer('compliance_score'),
+  engagementScore: real('engagement_score'),
+  processingStatus: varchar('processing_status', { length: 20 }).default('pending'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const sessionVideoAnalysisTable = pgTable('session_video_analysis', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  sessionId: varchar('session_id', { length: 255 }).notNull(),
+  timestamp: timestamp('timestamp').notNull(),
+  frameNumber: integer('frame_number'),
+  detectedFaces: integer('detected_faces'),
+  dominantEmotion: varchar('dominant_emotion', { length: 50 }),
+  emotionConfidence: real('emotion_confidence'),
+  engagementScore: real('engagement_score'),
+  poseData: jsonb('pose_data'),
+  gazeData: jsonb('gaze_data'),
+  behavioralMarkers: jsonb('behavioral_markers'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const sessionClinicalInsightsTable = pgTable('session_clinical_insights', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  sessionId: varchar('session_id', { length: 255 }).notNull(),
+  insightType: varchar('insight_type', { length: 100 }).notNull(),
+  insightCategory: varchar('insight_category', { length: 50 }),
+  confidenceScore: real('confidence_score'),
+  clinicalSignificance: varchar('clinical_significance', { length: 20 }),
+  description: text('description'),
+  recommendations: jsonb('recommendations'),
+  supportingEvidence: jsonb('supporting_evidence'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const sessionComplianceTable = pgTable('session_compliance', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  sessionId: varchar('session_id', { length: 255 }).notNull(),
+  complianceType: varchar('compliance_type', { length: 100 }).notNull(),
+  status: varchar('status', { length: 20 }).notNull(),
+  score: integer('score'),
+  issues: jsonb('issues'),
+  recommendations: jsonb('recommendations'),
+  resolvedAt: timestamp('resolved_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const clinicalRecommendationsTable = pgTable('clinical_recommendations', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  sessionId: varchar('session_id', { length: 255 }).notNull(),
+  recommendationType: varchar('recommendation_type', { length: 50 }).notNull(),
+  priority: varchar('priority', { length: 20 }).notNull(),
+  title: varchar('title', { length: 200 }).notNull(),
+  description: text('description'),
+  clinicalRationale: text('clinical_rationale'),
+  suggestedActions: jsonb('suggested_actions'),
+  supportingEvidence: jsonb('supporting_evidence'),
+  status: varchar('status', { length: 20 }).default('pending'),
+  acceptedAt: timestamp('accepted_at'),
+  dismissedAt: timestamp('dismissed_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const behavioralPatternsTable = pgTable('behavioral_patterns', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  sessionId: varchar('session_id', { length: 255 }).notNull(),
+  patternType: varchar('pattern_type', { length: 100 }).notNull(),
+  patternName: varchar('pattern_name', { length: 200 }),
+  detectionConfidence: real('detection_confidence'),
+  frequencyScore: integer('frequency_score'),
+  severityScore: integer('severity_score'),
+  clinicalSignificance: varchar('clinical_significance', { length: 50 }),
+  indicators: jsonb('indicators'),
+  recommendations: jsonb('recommendations'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Schema definitions for Session Intelligence
+export const sessionIntelligenceSchema = z.object({
+  id: z.string(),
+  sessionId: z.string(),
+  userId: z.string(),
+  hasVideo: z.boolean().default(false),
+  hasAudio: z.boolean().default(false),
+  transcriptionData: z.any().optional(),
+  audioAnalysis: z.any().optional(),
+  videoAnalysis: z.any().optional(),
+  multiModalCorrelation: z.any().optional(),
+  clinicalInsights: z.any().optional(),
+  riskAssessment: z.any().optional(),
+  complianceScore: z.number().optional(),
+  engagementScore: z.number().optional(),
+  processingStatus: z.enum(['pending', 'processing', 'completed', 'failed']).default('pending'),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export const insertSessionIntelligenceSchema = sessionIntelligenceSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type SessionIntelligence = z.infer<typeof sessionIntelligenceSchema>;
+export type InsertSessionIntelligence = z.infer<typeof insertSessionIntelligenceSchema>;
+
+export const sessionVideoAnalysisSchema = z.object({
+  id: z.string(),
+  sessionId: z.string(),
+  timestamp: z.date(),
+  frameNumber: z.number().optional(),
+  detectedFaces: z.number().optional(),
+  dominantEmotion: z.string().optional(),
+  emotionConfidence: z.number().optional(),
+  engagementScore: z.number().optional(),
+  poseData: z.any().optional(),
+  gazeData: z.any().optional(),
+  behavioralMarkers: z.any().optional(),
+  createdAt: z.date(),
+});
+
+export const insertSessionVideoAnalysisSchema = sessionVideoAnalysisSchema.omit({
+  id: true,
+  createdAt: true,
+});
+
+export type SessionVideoAnalysis = z.infer<typeof sessionVideoAnalysisSchema>;
+export type InsertSessionVideoAnalysis = z.infer<typeof insertSessionVideoAnalysisSchema>;
+
+export const clinicalRecommendationSchema = z.object({
+  id: z.string(),
+  sessionId: z.string(),
+  recommendationType: z.string(),
+  priority: z.enum(['low', 'medium', 'high', 'urgent']),
+  title: z.string(),
+  description: z.string().optional(),
+  clinicalRationale: z.string().optional(),
+  suggestedActions: z.array(z.string()).default([]),
+  supportingEvidence: z.any().optional(),
+  status: z.enum(['pending', 'accepted', 'dismissed']).default('pending'),
+  acceptedAt: z.date().optional(),
+  dismissedAt: z.date().optional(),
+  createdAt: z.date(),
+});
+
+export const insertClinicalRecommendationSchema = clinicalRecommendationSchema.omit({
+  id: true,
+  createdAt: true,
+});
+
+export type ClinicalRecommendation = z.infer<typeof clinicalRecommendationSchema>;
+export type InsertClinicalRecommendation = z.infer<typeof insertClinicalRecommendationSchema>;
+
 // Compliance Alert Schema - for automated supervision alerts
 export const complianceAlertTable = pgTable('compliance_alerts', {
   id: varchar('id', { length: 255 }).primaryKey(),
