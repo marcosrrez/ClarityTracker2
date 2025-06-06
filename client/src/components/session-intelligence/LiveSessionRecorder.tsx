@@ -352,10 +352,12 @@ const LiveSessionRecorder: React.FC = () => {
     } catch (error) {
       console.error('Failed to start real-time analysis:', error);
       setRiskAlerts(prev => [...prev, {
+        id: `risk_${Date.now()}`,
         type: 'high',
         message: 'Failed to connect to transcription service. Please check Azure Speech credentials.',
         timestamp: Date.now(),
-        severity: 'high'
+        severity: 'high',
+        icon: '⚠️'
       }]);
     }
   };
@@ -393,10 +395,12 @@ const LiveSessionRecorder: React.FC = () => {
         if (analysis.riskIndicators) {
           analysis.riskIndicators.forEach((risk: any) => {
             setRiskAlerts(prev => [...prev, {
+              id: `risk_${Date.now()}_${Math.random()}`,
               type: risk.severity,
               message: risk.message,
               timestamp: Date.now(),
-              severity: risk.severity
+              severity: risk.severity,
+              icon: risk.severity === 'high' ? '🚨' : risk.severity === 'medium' ? '⚠️' : 'ℹ️'
             }]);
           });
         }

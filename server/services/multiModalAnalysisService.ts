@@ -495,6 +495,89 @@ class MultiModalAnalysisService {
     }
   }
 
+  async analyzeTranscriptSegment(text: string): Promise<{
+    insights?: Array<{ type: string; content: string; confidence: number }>;
+    riskIndicators?: Array<{ severity: string; message: string }>;
+    ebpRecommendations?: string[];
+  }> {
+    try {
+      if (!this.genAI) {
+        throw new Error('Google AI not configured. Please provide GOOGLE_AI_API_KEY.');
+      }
+
+      const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+      
+      const prompt = `Analyze this therapy session transcript segment for clinical insights, risk indicators, and evidence-based practice recommendations:
+
+"${text}"
+
+Provide a JSON response with:
+1. insights: Array of clinical observations with type, content, and confidence (0-1)
+2. riskIndicators: Array of any concerning elements with severity and message  
+3. ebpRecommendations: Array of specific evidence-based interventions
+
+Focus on therapeutic alliance, emotional state, cognitive patterns, and clinical significance.`;
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const analysis = JSON.parse(response.text());
+      
+      return analysis;
+    } catch (error) {
+      console.error('Error analyzing transcript segment:', error);
+      return {};
+    }
+  }
+
+  async analyzeEmotion(imageData: string): Promise<{
+    emotion: string;
+    intensity: number;
+    confidence: number;
+  }> {
+    try {
+      if (!this.genAI) {
+        throw new Error('Google AI not configured. Please provide GOOGLE_AI_API_KEY.');
+      }
+
+      const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+      
+      const prompt = `Analyze this facial image for emotional state in a therapy context. 
+
+Provide a JSON response with:
+- emotion: primary emotion detected (e.g., "calm", "anxious", "sad", "engaged", "frustrated")
+- intensity: emotional intensity from 0.0 to 1.0
+- confidence: detection confidence from 0.0 to 1.0
+
+Focus on therapeutic-relevant emotions and clinical significance.`;
+
+      const result = await model.generateContent([
+        prompt,
+        {
+          inlineData: {
+            data: imageData,
+            mimeType: 'image/jpeg'
+          }
+        }
+      ]);
+      
+      const response = await result.response;
+      const emotionData = JSON.parse(response.text());
+      
+      return {
+        emotion: emotionData.emotion || 'neutral',
+        intensity: emotionData.intensity || 0.5,
+        confidence: emotionData.confidence || 0.7
+      };
+    } catch (error) {
+      console.error('Error analyzing emotion:', error);
+      return {
+        emotion: 'neutral',
+        intensity: 0.5,
+        confidence: 0.5
+      };
+    }
+  }
+
   getAzureSpeechConfig() {
     if (!this.azureSpeechConfig) {
       throw new Error('Azure Speech Service not configured. Please provide AZURE_SPEECH_KEY and AZURE_SPEECH_REGION.');
