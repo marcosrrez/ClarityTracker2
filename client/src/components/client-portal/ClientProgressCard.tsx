@@ -63,36 +63,36 @@ export function ClientProgressCard({ client }: ClientProgressCardProps) {
     <Card className="transition-all duration-200 hover:shadow-md">
       <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
         <CollapsibleTrigger asChild>
-          <CardHeader className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
+          <CardHeader className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors p-4 md:p-6">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
                 {isExpanded ? (
-                  <ChevronDown className="h-4 w-4 text-gray-500" />
+                  <ChevronDown className="h-4 w-4 text-gray-500 flex-shrink-0" />
                 ) : (
-                  <ChevronRight className="h-4 w-4 text-gray-500" />
+                  <ChevronRight className="h-4 w-4 text-gray-500 flex-shrink-0" />
                 )}
-                <div>
-                  <CardTitle className="text-lg">{client.firstName} {client.lastName}</CardTitle>
-                  <CardDescription className="flex items-center gap-4">
-                    <span>{client.email}</span>
-                    <Badge variant={client.status === 'active' ? 'default' : 'secondary'}>
+                <div className="min-w-0 flex-1">
+                  <CardTitle className="text-base md:text-lg truncate">{client.firstName} {client.lastName}</CardTitle>
+                  <CardDescription className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                    <span className="text-xs md:text-sm truncate">{client.email}</span>
+                    <Badge variant={client.status === 'active' ? 'default' : 'secondary'} className="text-xs w-fit">
                       {client.status}
                     </Badge>
                   </CardDescription>
                 </div>
               </div>
-              <div className="flex items-center gap-4 text-sm">
+              <div className="flex items-center gap-1 md:gap-3 text-xs md:text-sm flex-shrink-0">
                 <div className="text-center">
                   <div className="font-semibold text-blue-600 dark:text-blue-400">
                     {summary?.totalInsights || 0}
                   </div>
-                  <div className="text-xs text-gray-500">Insights</div>
+                  <div className="text-xs text-gray-500 hidden sm:block">Insights</div>
                 </div>
                 <div className="text-center">
                   <div className="font-semibold text-green-600 dark:text-green-400">
                     {progressPercentage}%
                   </div>
-                  <div className="text-xs text-gray-500">Viewed</div>
+                  <div className="text-xs text-gray-500 hidden sm:block">Viewed</div>
                 </div>
               </div>
             </div>
@@ -102,27 +102,27 @@ export function ClientProgressCard({ client }: ClientProgressCardProps) {
         <CollapsibleContent>
           <CardContent className="pt-0 space-y-6">
             {/* Quick Stats */}
-            <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+            <div className="grid grid-cols-3 gap-2 md:gap-4 p-3 md:p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
               <div className="text-center">
-                <div className="flex items-center justify-center gap-1 text-blue-600 dark:text-blue-400">
-                  <MessageSquare className="h-4 w-4" />
-                  <span className="font-semibold">{summary?.totalInsights || 0}</span>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-1 text-blue-600 dark:text-blue-400">
+                  <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="font-semibold text-sm sm:text-base">{summary?.totalInsights || 0}</span>
                 </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">Total Insights</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">Total Insights</div>
               </div>
               <div className="text-center">
-                <div className="flex items-center justify-center gap-1 text-green-600 dark:text-green-400">
-                  <Eye className="h-4 w-4" />
-                  <span className="font-semibold">{summary?.viewedInsights || 0}</span>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-1 text-green-600 dark:text-green-400">
+                  <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="font-semibold text-sm sm:text-base">{summary?.viewedInsights || 0}</span>
                 </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">Viewed</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">Viewed</div>
               </div>
               <div className="text-center">
-                <div className="flex items-center justify-center gap-1 text-purple-600 dark:text-purple-400">
-                  <TrendingUp className="h-4 w-4" />
-                  <span className="font-semibold">{summary?.progressEntries || 0}</span>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-1 text-purple-600 dark:text-purple-400">
+                  <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="font-semibold text-sm sm:text-base">{summary?.progressEntries || 0}</span>
                 </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">Progress</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">Progress</div>
               </div>
             </div>
 
@@ -132,16 +132,16 @@ export function ClientProgressCard({ client }: ClientProgressCardProps) {
                 <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-3">Recent Insights</h4>
                 <div className="space-y-2">
                   {summary.recentInsights.map((insight) => (
-                    <div key={insight.id} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
-                      <div className="flex-1">
-                        <div className="font-medium text-sm">{insight.title}</div>
-                        <div className="text-xs text-gray-500 flex items-center gap-2">
+                    <div key={insight.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-sm truncate">{insight.title}</div>
+                        <div className="text-xs text-gray-500 flex flex-wrap items-center gap-1 sm:gap-2">
                           <span className="capitalize">{insight.type}</span>
-                          <span>•</span>
-                          <span>{new Date(insight.sharedAt).toLocaleDateString()}</span>
+                          <span className="hidden sm:inline">•</span>
+                          <span className="whitespace-nowrap">{new Date(insight.sharedAt).toLocaleDateString()}</span>
                         </div>
                       </div>
-                      <Badge variant={insight.clientViewed ? "default" : "secondary"} className="text-xs">
+                      <Badge variant={insight.clientViewed ? "default" : "secondary"} className="text-xs w-fit self-start sm:self-center">
                         {insight.clientViewed ? "Viewed" : "Pending"}
                       </Badge>
                     </div>
