@@ -115,6 +115,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Comprehensive system health check
+  app.get("/api/health/detailed", async (req, res) => {
+    const { checkDatabaseHealth } = await import("./db");
+    const startTime = Date.now();
+    
+    const health = {
+      status: "healthy",
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || "development",
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+      checks: {
+        database: { status: "unknown", latency: 0 },
+        api: { status: "healthy", latency: 0 },
+        security: { status: "healthy", rateLimit: "active" }
+      }
+    };
+
+    try {
+      // Database health check
+      const dbHealth = await checkDatabaseHealth();
+      health.checks.database = {
+        status: dbHealth.healthy ? "healthy" : "unhealthy",
+        latency: dbHealth.latency || 0,
+        error: dbHealth.error
+      };
+
+      // API response time
+      health.checks.api.latency = Date.now() - startTime;
+
+      // Overall status
+      const allHealthy = Object.values(health.checks).every(
+        check => check.status === "healthy"
+      );
+      health.status = allHealthy ? "healthy" : "degraded";
+
+      res.status(allHealthy ? 200 : 503).json(health);
+    } catch (error) {
+      health.status = "unhealthy";
+      health.checks.api.status = "error";
+      health.checks.api.error = error instanceof Error ? error.message : "Unknown error";
+      res.status(503).json(health);
+    }
+  });
+
   // Download browser extension as zip
   app.get("/api/download-extension", (req, res) => {
     const path = require('path');
@@ -342,6 +387,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Failed to track event:", error);
       res.status(500).json({ error: "Failed to track event" });
+    }
+  });
+
+  // Performance metrics collection endpoint
+  app.post("/api/analytics/performance", rateLimiters.general, express.json(), async (req, res) => {
+    try {
+      const { sessionId, userId, metrics, interactions, userAgent, viewport, timestamp } = req.body;
+      
+      // Store performance data (simplified - in production would use dedicated table)
+      await storage.trackUserEvent({
+        userId: userId || 'anonymous',
+        sessionId,
+        event: 'performance_metrics',
+        page: 'system',
+        metadata: JSON.stringify({
+          metrics,
+          interactions,
+          userAgent,
+          viewport,
+          timestamp,
+          collectedAt: new Date().toISOString()
+        })
+      });
+      
+      res.json({ success: true, processed: metrics?.length || 0 });
+    } catch (error) {
+      console.error("Failed to store performance metrics:", error);
+      res.status(500).json({ error: "Failed to store performance metrics" });
     }
   });
 
