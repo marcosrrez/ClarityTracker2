@@ -47,6 +47,22 @@ interface LACSupervisee {
   progressToLicense: number;
 }
 
+interface ComplianceAlert {
+  id: string;
+  superviseeId: string;
+  superviseeName: string;
+  alertType: 'session_due' | 'session_overdue' | 'hours_behind' | 'milestone_approaching';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  message: string;
+  dueDate: Date;
+  actionRequired: string;
+  autoScheduleSuggestion?: {
+    suggestedDate: Date;
+    duration: number;
+    type: 'individual' | 'group';
+  };
+}
+
 interface SupervisionMetrics {
   totalSupervisees: number;
   activeSupervisions: number;
@@ -123,6 +139,62 @@ export default function SupervisorAnalytics() {
     return { level: 'Needs Support', color: 'bg-red-500' };
   };
 
+  // Mock compliance alerts for demonstration
+  const complianceAlerts: ComplianceAlert[] = [
+    {
+      id: 'alert1',
+      superviseeId: 'sup1',
+      superviseeName: 'Sarah Chen',
+      alertType: 'session_overdue',
+      severity: 'critical',
+      message: 'Individual supervision session is 3 days overdue',
+      dueDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+      actionRequired: 'Schedule immediately',
+      autoScheduleSuggestion: {
+        suggestedDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+        duration: 60,
+        type: 'individual'
+      }
+    },
+    {
+      id: 'alert2',
+      superviseeId: 'sup2',
+      superviseeName: 'Michael Rodriguez',
+      alertType: 'session_due',
+      severity: 'medium',
+      message: 'Weekly supervision session due in 1 day',
+      dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
+      actionRequired: 'Schedule within 24 hours',
+      autoScheduleSuggestion: {
+        suggestedDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
+        duration: 60,
+        type: 'individual'
+      }
+    },
+    {
+      id: 'alert3',
+      superviseeId: 'sup3',
+      superviseeName: 'Emily Johnson',
+      alertType: 'hours_behind',
+      severity: 'high',
+      message: 'Behind on supervision hour requirements (8 hours deficit)',
+      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      actionRequired: 'Additional sessions needed',
+    }
+  ];
+
+  const handleScheduleSession = (alert: ComplianceAlert) => {
+    console.log('Scheduling session for:', alert.superviseeName);
+    // Implementation would integrate with calendar/scheduling system
+  };
+
+  const handleAutoSchedule = (alert: ComplianceAlert) => {
+    if (alert.autoScheduleSuggestion) {
+      console.log('Auto-scheduling session for:', alert.superviseeName, alert.autoScheduleSuggestion);
+      // Implementation would automatically create calendar event
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
       <div className="mb-8">
@@ -131,6 +203,72 @@ export default function SupervisorAnalytics() {
           Comprehensive oversight and progress tracking for LAC supervisees
         </p>
       </div>
+
+      {/* Compliance Alerts Section */}
+      {complianceAlerts.length > 0 && (
+        <Card className="border-orange-200 bg-orange-50 dark:bg-orange-900/10">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-orange-800 dark:text-orange-200">
+              <Bell className="h-5 w-5" />
+              Compliance Alerts ({complianceAlerts.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {complianceAlerts.map((alert) => (
+              <div key={alert.id} className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-orange-200 dark:border-orange-800">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant={alert.severity === 'critical' ? 'destructive' : 
+                                   alert.severity === 'high' ? 'destructive' :
+                                   alert.severity === 'medium' ? 'default' : 'secondary'}>
+                        {alert.severity.toUpperCase()}
+                      </Badge>
+                      <span className="font-medium text-gray-900 dark:text-gray-100">
+                        {alert.superviseeName}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                      {alert.message}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-500">
+                      Action Required: {alert.actionRequired}
+                    </p>
+                  </div>
+                  <div className="flex gap-2 ml-4">
+                    {alert.autoScheduleSuggestion && (
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleAutoSchedule(alert)}
+                        className="text-xs"
+                      >
+                        Auto-Schedule
+                      </Button>
+                    )}
+                    <Button 
+                      size="sm"
+                      onClick={() => handleScheduleSession(alert)}
+                      className="text-xs"
+                    >
+                      Schedule
+                    </Button>
+                  </div>
+                </div>
+                {alert.autoScheduleSuggestion && (
+                  <div className="mt-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-800">
+                    <p className="text-xs text-blue-700 dark:text-blue-300">
+                      Suggested: {alert.autoScheduleSuggestion.type} session on{' '}
+                      {alert.autoScheduleSuggestion.suggestedDate.toLocaleDateString()} 
+                      ({alert.autoScheduleSuggestion.duration} min)
+                    </p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Key Metrics Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
