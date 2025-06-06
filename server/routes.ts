@@ -4140,5 +4140,136 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
     }
   });
 
+  // Client Authentication Routes
+  app.post('/api/auth/client-signup', express.json(), async (req, res) => {
+    try {
+      const { firstName, lastName, email, password, communicationConsent } = req.body;
+      
+      // Validate required fields
+      if (!firstName || !lastName || !email || !password) {
+        return res.status(400).json({ error: 'All fields are required' });
+      }
+      
+      // Check if email already exists
+      const existingClient = await db
+        .select()
+        .from(clientTable)
+        .where(eq(clientTable.email, email))
+        .limit(1);
+      
+      if (existingClient.length > 0) {
+        return res.status(409).json({ error: 'Email already registered' });
+      }
+      
+      // Create client account
+      const [newClient] = await db
+        .insert(clientTable)
+        .values({
+          firstName,
+          lastName,
+          email,
+          hashedPassword: password, // In production, hash this password
+          accountType: 'standalone',
+          communicationConsent: communicationConsent || false,
+          onboardingCompleted: false,
+        })
+        .returning();
+      
+      res.json({ 
+        success: true, 
+        client: {
+          id: newClient.id,
+          firstName: newClient.firstName,
+          lastName: newClient.lastName,
+          email: newClient.email,
+        }
+      });
+    } catch (error) {
+      console.error('Client signup error:', error);
+      res.status(500).json({ error: 'Failed to create client account' });
+    }
+  });
+
+  app.post('/api/auth/client-login', express.json(), async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      
+      // Validate required fields
+      if (!email || !password) {
+        return res.status(400).json({ error: 'Email and password are required' });
+      }
+      
+      // Find client by email
+      const [client] = await db
+        .select()
+        .from(clientTable)
+        .where(eq(clientTable.email, email))
+        .limit(1);
+      
+      if (!client) {
+        return res.status(401).json({ error: 'Invalid email or password' });
+      }
+      
+      // In production, verify hashed password
+      if (client.hashedPassword !== password) {
+        return res.status(401).json({ error: 'Invalid email or password' });
+      }
+      
+      res.json({ 
+        success: true, 
+        client: {
+          id: client.id,
+          firstName: client.firstName,
+          lastName: client.lastName,
+          email: client.email,
+          onboardingCompleted: client.onboardingCompleted,
+        }
+      });
+    } catch (error) {
+      console.error('Client login error:', error);
+      res.status(500).json({ error: 'Failed to authenticate client' });
+    }
+  });
+
+  app.post('/api/client/onboarding', express.json(), async (req, res) => {
+    try {
+      const { 
+        preferredName, 
+        primaryGoals, 
+        reflectionFrequency, 
+        currentChallenges, 
+        privacyPreference,
+        interests 
+      } = req.body;
+      
+      // In a real implementation, you'd get the client ID from the session/JWT
+      const clientId = 'demo-client-id'; // This should come from authenticated session
+      
+      // Update client with onboarding data
+      const [updatedClient] = await db
+        .update(clientTable)
+        .set({
+          preferredName,
+          primaryGoals: JSON.stringify(primaryGoals),
+          reflectionFrequency,
+          currentChallenges: JSON.stringify(currentChallenges),
+          privacyPreference,
+          interests: JSON.stringify(interests),
+          onboardingCompleted: true,
+          updatedAt: new Date(),
+        })
+        .where(eq(clientTable.id, clientId))
+        .returning();
+      
+      res.json({ 
+        success: true, 
+        client: updatedClient 
+      });
+    } catch (error) {
+      console.error('Client onboarding error:', error);
+      res.status(500).json({ error: 'Failed to complete onboarding' });
+    }
+  });
+
   return httpServer;
 }
