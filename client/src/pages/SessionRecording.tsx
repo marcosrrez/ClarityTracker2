@@ -2,7 +2,7 @@ import React from 'react';
 import { Brain, Shield } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import LiveSessionRecorder from '@/components/session-intelligence/LiveSessionRecorder';
+import { EnhancedSessionRecorder } from '@/components/session-intelligence/EnhancedSessionRecorder';
 
 const SessionRecording = () => {
   return (
@@ -23,7 +23,7 @@ const SessionRecording = () => {
 
         {/* Main Recording Interface */}
         <div className="max-w-6xl mx-auto mb-12">
-          <LiveSessionRecorder />
+          <EnhancedSessionRecorder />
         </div>
 
         {/* Privacy Information */}
