@@ -72,7 +72,7 @@ export function AddClientModal({ isOpen, onClose, therapistId }: AddClientModalP
         therapistId,
         dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : undefined,
       };
-      return apiRequest(`/api/clients`, "POST", payload);
+      return apiRequest("POST", `/api/clients`, payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/clients', therapistId] });
