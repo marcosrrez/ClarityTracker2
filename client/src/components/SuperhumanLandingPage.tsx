@@ -28,10 +28,24 @@ export const SuperhumanLandingPage = () => {
   }, []);
 
   const handleGoogleSignup = async () => {
-    toast({
-      title: "Coming Soon",
-      description: "Google sign-up will be available soon. Please use email signup for now.",
-    });
+    setIsLoading(true);
+    try {
+      const { signInWithGoogle } = useAuth();
+      await signInWithGoogle();
+      toast({
+        title: "Welcome to ClarityLog!",
+        description: "You've been signed in with Google successfully.",
+      });
+    } catch (error: any) {
+      console.error("Google sign-in error:", error);
+      toast({
+        title: "Google Sign-In Failed",
+        description: error.message || "Please try again or use email signup.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleMicrosoftSignup = async () => {
