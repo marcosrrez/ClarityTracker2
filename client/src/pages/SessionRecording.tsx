@@ -43,59 +43,14 @@ const SessionRecording = () => {
         </div>
       </div>
 
-      {/* Features Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-6">
-        <Card className="text-center hover:bg-accent/50 transition-colors cursor-pointer">
-          <CardContent className="pt-3 pb-3">
-            <Mic className="h-4 w-4 mx-auto mb-1 text-blue-600" />
-            <h3 className="text-xs font-medium">Azure Speech</h3>
-            <p className="text-xs text-muted-foreground">Real-time transcription</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="text-center hover:bg-accent/50 transition-colors cursor-pointer">
-          <CardContent className="pt-3 pb-3">
-            <Video className="h-4 w-4 mx-auto mb-1 text-green-600" />
-            <h3 className="text-xs font-medium">Video Analysis</h3>
-            <p className="text-xs text-muted-foreground">Facial expressions & engagement</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="text-center hover:bg-accent/50 transition-colors cursor-pointer">
-          <CardContent className="pt-3 pb-3">
-            <Brain className="h-4 w-4 mx-auto mb-1 text-purple-600" />
-            <h3 className="text-xs font-medium">AI Documentation</h3>
-            <p className="text-xs text-muted-foreground">80% automation rate</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="text-center hover:bg-accent/50 transition-colors cursor-pointer">
-          <CardContent className="pt-3 pb-3">
-            <CheckCircle className="h-4 w-4 mx-auto mb-1 text-emerald-600" />
-            <h3 className="text-xs font-medium">Compliance AI</h3>
-            <p className="text-xs text-muted-foreground">100% note scanning</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="text-center hover:bg-accent/50 transition-colors cursor-pointer">
-          <CardContent className="pt-3 pb-3">
-            <Shield className="h-4 w-4 mx-auto mb-1 text-orange-600" />
-            <h3 className="text-xs font-medium">HIPAA Compliant</h3>
-            <p className="text-xs text-muted-foreground">SOC 2 certified</p>
-          </CardContent>
-        </Card>
-      </div>
+
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="record" className="flex items-center gap-2">
             <Video className="h-4 w-4" />
             Live Recording
-          </TabsTrigger>
-          <TabsTrigger value="features" className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4" />
-            Features
           </TabsTrigger>
           <TabsTrigger value="privacy" className="flex items-center gap-2">
             <Shield className="h-4 w-4" />
@@ -107,141 +62,7 @@ const SessionRecording = () => {
           <LiveSessionRecorder />
         </TabsContent>
 
-        <TabsContent value="features" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Brain className="h-5 w-5" />
-                  AI Documentation
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    80% provider acceptance rate for AI suggestions
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    70% reduction in documentation time
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    Generates 80% of progress note content
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    Multilingual support (100+ languages)
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    Behavioral health-specific AI models
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Video className="h-5 w-5" />
-                  Video Intelligence
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    Facial expression recognition
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    Engagement level monitoring
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    Body language analysis
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    Pose estimation and tracking
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    Behavioral pattern detection
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5" />
-                  Compliance AI
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    Scans 100% of notes for compliance red flags
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    Proactive error detection before fines
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    Continuous quality improvement (CQI)
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    Clinical documentation improvement
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    90% of notes submitted within 24 hours
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  Clinical Outcomes
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    3-4x better treatment outcomes
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    Double client engagement rates
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    80% reduction in administrative burden
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    Multimodal large language model
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    200+ years combined clinical experience
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
 
         <TabsContent value="privacy" className="mt-6">
           <div className="space-y-6">
