@@ -34,7 +34,12 @@ export default function AdminPage() {
   const [selectedFeedback, setSelectedFeedback] = useState<FeedbackItem | null>(null);
 
   // Check if user has admin access (you can modify this logic)
-  const isAdmin = user?.email === "leadershipcoachmarcos@gmail.com";
+  const adminEmails = [
+    "leadershipcoachmarcos@gmail.com",
+    "marcos@claritylog.com",
+    "admin@claritylog.com"
+  ];
+  const isAdmin = user?.email && adminEmails.includes(user.email);
 
   useEffect(() => {
     if (isAdmin) {
