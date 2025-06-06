@@ -48,6 +48,7 @@ import ClientSignup from "@/pages/ClientSignup";
 import ClientLogin from "@/pages/ClientLogin";
 import ClientOnboardingFlow from "@/pages/ClientOnboardingFlow";
 import SessionIntelligenceDemo from "@/pages/SessionIntelligenceDemo";
+import SessionIntelligence from "@/pages/SessionIntelligence";
 import SessionIntelligenceNew from "@/pages/SessionIntelligenceNew";
 
 import NotFound from "@/pages/not-found";
@@ -98,7 +99,7 @@ function Router() {
       <Route path="/client-onboarding/:inviteToken" component={ClientOnboarding} />
       <Route path="/client-dashboard" component={ClientDashboard} />
       <Route path="/session-intelligence-demo" component={SessionIntelligenceDemo} />
-      <Route path="/session-intelligence" component={SessionIntelligenceNew} />
+      <Route path="/session-intelligence" component={SessionIntelligence} />
       <Route path="/account-setup">
         <AuthGuard requireAccountSetup={false}>
           <AccountSetupPage />
