@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   Brain, 
   AlertTriangle, 
@@ -89,6 +90,7 @@ export default function SessionIntelligence() {
   const [activeSessionId, setActiveSessionId] = useState<string>('');
   const [newSessionTitle, setNewSessionTitle] = useState('');
   const [newSessionClient, setNewSessionClient] = useState('');
+  const [selectedSession, setSelectedSession] = useState<SessionAnalysis | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -389,7 +391,11 @@ export default function SessionIntelligence() {
                             {session.videoAnalysisData && <Camera className="h-4 w-4 text-blue-600" />}
                             {session.supervisorReview && <Eye className="h-4 w-4 text-purple-600" />}
                           </div>
-                          <Button size="sm" variant="ghost">
+                          <Button 
+                            size="sm" 
+                            variant="ghost"
+                            onClick={() => setSelectedSession(session)}
+                          >
                             View Details
                           </Button>
                         </div>
@@ -575,6 +581,162 @@ export default function SessionIntelligence() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Detailed Session View Modal */}
+      <Dialog open={!!selectedSession} onOpenChange={() => setSelectedSession(null)}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Brain className="h-5 w-5 text-blue-600" />
+              {selectedSession?.title} - Detailed Analysis
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedSession && (
+            <div className="space-y-6">
+              {/* Session Overview */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="space-y-2">
+                      <div className="text-sm text-muted-foreground">Client</div>
+                      <div className="font-medium">{selectedSession.clientInitials}</div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="space-y-2">
+                      <div className="text-sm text-muted-foreground">Duration</div>
+                      <div className="font-medium">{selectedSession.duration} min</div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="space-y-2">
+                      <div className="text-sm text-muted-foreground">Date</div>
+                      <div className="font-medium">{new Date(selectedSession.sessionDate).toLocaleDateString()}</div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Detailed Analysis Tabs */}
+              <Tabs defaultValue="clinical-insights" className="space-y-4">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="clinical-insights">Clinical Insights</TabsTrigger>
+                  <TabsTrigger value="emotional-analysis">Emotional Analysis</TabsTrigger>
+                  <TabsTrigger value="ebp-techniques">EBP Techniques</TabsTrigger>
+                  <TabsTrigger value="supervisor-review">Supervisor Review</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="clinical-insights" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <FileText className="h-5 w-5" />
+                        SOAP Note Generation
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <h4 className="font-medium mb-2">Subjective</h4>
+                          <div className="p-3 bg-muted rounded-lg text-sm">
+                            Client reported feeling "overwhelmed" with work responsibilities. Expressed concerns about sleep quality and increased anxiety levels.
+                          </div>
+                        </div>
+                        <div>
+                          <h4 className="font-medium mb-2">Objective</h4>
+                          <div className="p-3 bg-muted rounded-lg text-sm">
+                            Client appeared tense, fidgeting frequently. Speech was rapid at times. Good eye contact maintained throughout session.
+                          </div>
+                        </div>
+                        <div>
+                          <h4 className="font-medium mb-2">Assessment</h4>
+                          <div className="p-3 bg-muted rounded-lg text-sm">
+                            Client showing signs of work-related stress and mild anxiety. Therapeutic alliance remains strong. Progress noted in coping skills application.
+                          </div>
+                        </div>
+                        <div>
+                          <h4 className="font-medium mb-2">Plan</h4>
+                          <div className="p-3 bg-muted rounded-lg text-sm">
+                            Continue CBT techniques focusing on stress management. Introduce mindfulness exercises. Schedule follow-up in one week.
+                          </div>
+                        </div>
+                      </div>
+                      <Button className="w-full" variant="outline">
+                        Generate Complete SOAP Note with AI
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="emotional-analysis" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Emotional Metrics</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {selectedSession.therapeuticAllianceScore && (
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <span>Therapeutic Alliance</span>
+                            <span>{selectedSession.therapeuticAllianceScore}%</span>
+                          </div>
+                          <Progress value={selectedSession.therapeuticAllianceScore} />
+                        </div>
+                      )}
+                      {selectedSession.engagementScore && (
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <span>Engagement Score</span>
+                            <span>{selectedSession.engagementScore}%</span>
+                          </div>
+                          <Progress value={selectedSession.engagementScore} />
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="ebp-techniques" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Evidence-Based Techniques Used</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        {selectedSession.ebpTechniques.map((technique, index) => (
+                          <Badge key={index} variant="secondary" className="mr-2">
+                            {technique}
+                          </Badge>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="supervisor-review" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Supervision Notes</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="p-4 bg-muted rounded-lg">
+                        <p className="text-sm text-muted-foreground">
+                          Supervisor review pending. Session will be reviewed within 24 hours.
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
