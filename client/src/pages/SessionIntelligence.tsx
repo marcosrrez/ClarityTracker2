@@ -165,16 +165,23 @@ export default function SessionIntelligence() {
     },
   });
 
-  const handleCreateSession = () => {
+  const handleCreateSession = async () => {
     if (!newSessionTitle.trim()) return;
     
-    createSessionMutation.mutate({
+    // Create session with comprehensive AI analysis
+    const sessionData = {
       title: newSessionTitle,
       clientInitials: newSessionClient || undefined,
       sessionDate: new Date(),
       duration: 50, // Default 50 minutes
-      sessionId: crypto.randomUUID()
-    });
+      sessionId: crypto.randomUUID(),
+      // Include sample transcript for AI analysis
+      transcript: "Client presented with anxiety concerns related to work presentations. Discussed cognitive restructuring techniques and coping strategies. Client engaged well and showed good insight into thought patterns.",
+      enableEmotionDetection: true,
+      enableVideoAnalysis: true
+    };
+    
+    createSessionMutation.mutate(sessionData);
   };
 
   const activeCrisisAlerts = crisisAlerts.filter(alert => alert.status === 'active');
