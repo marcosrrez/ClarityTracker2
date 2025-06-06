@@ -251,6 +251,13 @@ const LiveSessionRecorder: React.FC = () => {
   };
 
   const startRealTimeAnalysis = () => {
+    console.log('Starting real-time analysis...');
+    
+    // Clear any existing analysis data
+    setTranscriptionSegments([]);
+    setSessionTranscript('');
+    setClinicalInsights([]);
+    
     // Simulate progressive transcription
     const transcriptionSimulation = [
       "Welcome to our session today.",
@@ -266,8 +273,12 @@ const LiveSessionRecorder: React.FC = () => {
     ];
 
     let transcriptIndex = 0;
+    let analysisRunning = true;
+    
     const transcriptInterval = setInterval(() => {
-      if (transcriptIndex < transcriptionSimulation.length && isRecording) {
+      if (transcriptIndex < transcriptionSimulation.length && analysisRunning) {
+        console.log(`Adding transcript segment ${transcriptIndex}: ${transcriptionSimulation[transcriptIndex]}`);
+        
         const newSegment = {
           text: transcriptionSimulation[transcriptIndex],
           timestamp: Date.now(),
@@ -278,10 +289,18 @@ const LiveSessionRecorder: React.FC = () => {
         setSessionTranscript(prev => prev + ' ' + newSegment.text);
         
         // Add clinical insights based on transcription
-        if (transcriptIndex % 3 === 0) {
+        if (transcriptIndex % 2 === 0) {
+          const insights = [
+            'Engagement Analysis - Client showing active participation',
+            'Emotional State - Detecting signs of anxiety and openness',
+            'Communication Pattern - Verbal pacing indicates thoughtful processing',
+            'Therapeutic Alliance - Strong rapport building observed',
+            'Progress Indicator - Client demonstrating self-awareness'
+          ];
+          
           setClinicalInsights(prev => [...prev, {
-            type: 'Engagement Analysis',
-            content: `Client engagement level: ${Math.floor(70 + Math.random() * 30)}%`,
+            type: 'Clinical Insight',
+            content: insights[Math.floor(Math.random() * insights.length)],
             confidence: 0.8 + Math.random() * 0.2,
             timestamp: Date.now()
           }]);
@@ -290,12 +309,13 @@ const LiveSessionRecorder: React.FC = () => {
         transcriptIndex++;
       } else {
         clearInterval(transcriptInterval);
+        analysisRunning = false;
       }
-    }, 3000);
+    }, 2000); // Faster interval for better demo
 
     // Simulate emotion detection
     const emotionInterval = setInterval(() => {
-      if (isRecording) {
+      if (analysisRunning) {
         const emotions = ['calm', 'anxious', 'hopeful', 'frustrated', 'engaged'];
         const emotion = emotions[Math.floor(Math.random() * emotions.length)];
         setEmotionalState({
@@ -306,10 +326,14 @@ const LiveSessionRecorder: React.FC = () => {
       } else {
         clearInterval(emotionInterval);
       }
-    }, 5000);
+    }, 4000);
+    
+    // Store intervals for cleanup
+    (window as any).analysisIntervals = { transcriptInterval, emotionInterval };
   };
 
   const stopRecording = () => {
+    console.log('Stopping recording and analysis...');
     setIsRecording(false);
     setSessionMode('review');
     
@@ -317,6 +341,13 @@ const LiveSessionRecorder: React.FC = () => {
     if (videoStream) {
       videoStream.getTracks().forEach(track => track.stop());
       setVideoStream(null);
+    }
+    
+    // Clean up analysis intervals
+    if ((window as any).analysisIntervals) {
+      clearInterval((window as any).analysisIntervals.transcriptInterval);
+      clearInterval((window as any).analysisIntervals.emotionInterval);
+      (window as any).analysisIntervals = null;
     }
     
     setHasVideo(false);
