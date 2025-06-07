@@ -4752,6 +4752,10 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
     }
   });
 
+  // Import and initialize intelligent session analyzer
+  const { IntelligentSessionAnalyzer } = await import('./services/intelligentSessionAnalyzer');
+  const sessionAnalyzer = new IntelligentSessionAnalyzer();
+
   // Analyze video frame with engagement detection
   app.post('/api/session-intelligence/analyze-video-frame', async (req, res) => {
     try {
@@ -4917,6 +4921,9 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
         behavioralMarkers: behavioralMarkers,
         source: 'engagement-analysis'
       };
+
+      // Feed video analysis to session analyzer for AI collaboration
+      await sessionAnalyzer.addVideoAnalysis(result);
 
       res.json({ success: true, data: result });
     } catch (error) {
