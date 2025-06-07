@@ -159,7 +159,7 @@ Provide a clinical assessment of emotional patterns. Focus on:
 
 Respond in JSON format: {"severity": "low|medium|high", "description": "brief description", "evidence": ["evidence1", "evidence2"], "recommendations": ["rec1", "rec2"]}`;
 
-      const model = googleAI.getGenerativeModel({ model: "gemini-pro" });
+      const model = googleAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       const result = await model.generateContent(prompt);
       const response = await result.response;
       const text = response.text();
@@ -201,7 +201,7 @@ Assess therapeutic progress and provide insights on:
 
 Respond in JSON format: {"severity": "low|medium|high", "description": "brief description", "evidence": ["evidence1", "evidence2"], "recommendations": ["rec1", "rec2"]}`;
 
-      const model = googleAI.getGenerativeModel({ model: "gemini-pro" });
+      const model = googleAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       const result = await model.generateContent(prompt);
       const response = await result.response;
       const text = response.text();

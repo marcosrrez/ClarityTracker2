@@ -57,7 +57,7 @@ export class ResearchService {
     }
 
     try {
-      const model = this.genAI.getGenerativeModel({ model: "gemini-pro" });
+      const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       
       const prompt = `
 Rate the relevance of this research result to the query on a scale of 0-100:

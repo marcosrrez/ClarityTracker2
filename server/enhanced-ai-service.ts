@@ -103,7 +103,7 @@ Respond in JSON format:
 
     try {
       if (googleAI) {
-        const model = googleAI.getGenerativeModel({ model: "gemini-pro" });
+        const model = googleAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const result = await model.generateContent(analysisPrompt);
         const response = await result.response;
         const text = response.text();
@@ -179,7 +179,7 @@ Respond in JSON format with array of spaces:
 
     try {
       if (googleAI) {
-        const model = googleAI.getGenerativeModel({ model: "gemini-pro" });
+        const model = googleAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const result = await model.generateContent(spacesPrompt);
         const response = await result.response;
         const text = response.text();
@@ -253,12 +253,12 @@ Only include items with high confidence. Be specific and professional.
           console.log('OpenAI failed, trying Google AI:', openaiError);
           if (!googleAI) throw new Error('No AI service available');
           
-          const model = googleAI.getGenerativeModel({ model: "gemini-pro" });
+          const model = googleAI.getGenerativeModel({ model: "gemini-1.5-flash" });
           const result = await model.generateContent(analysisPrompt + "\n\nProvide JSON response only.");
           response = result.response.text();
         }
       } else if (googleAI) {
-        const model = googleAI.getGenerativeModel({ model: "gemini-pro" });
+        const model = googleAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const result = await model.generateContent(analysisPrompt + "\n\nProvide JSON response only.");
         response = result.response.text();
       } else {

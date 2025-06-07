@@ -208,7 +208,7 @@ export class AdvancedDingerService {
       throw new Error('Google AI not available for enhanced responses');
     }
 
-    const model = this.genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const prompt = this.buildAdaptivePrompt(query, context);
 
     const result = await model.generateContent(prompt);
