@@ -19,7 +19,7 @@ import { getRandomQuote } from '@/lib/counseling-quotes';
 
 interface SuperhumanOnboardingProps {
   onComplete: () => void;
-  userType: 'individual' | 'supervisor' | 'enterprise';
+  userType: 'individual' | 'supervisor' | 'enterprise' | 'client';
 }
 
 export function SuperhumanOnboarding({ onComplete, userType }: SuperhumanOnboardingProps) {
@@ -36,31 +36,105 @@ export function SuperhumanOnboarding({ onComplete, userType }: SuperhumanOnboard
   const { user } = useAuth();
   const quote = getRandomQuote(['professional development'], 'intermediate');
 
-  const steps = [
-    {
-      id: 'speed',
-      title: 'Built for Speed',
-      subtitle: 'Log sessions in under 30 seconds',
-      description: 'Quick entry forms and smart defaults mean less time on paperwork, more time with clients.',
-      icon: <Zap className="h-12 w-12 text-blue-500" />,
-      keyboardShortcut: 'Cmd + N',
-      benefit: '10x faster than spreadsheets',
-      demo: (
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-4 border border-blue-100 dark:border-blue-800">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span>Session logged: 2 hours, individual therapy</span>
+  const getStepsForUserType = () => {
+    if (userType === 'client') {
+      return [
+        {
+          id: 'insights',
+          title: 'Your Growth Journey',
+          subtitle: 'Track your progress with AI insights',
+          description: 'See how your therapy sessions connect to create meaningful patterns and breakthroughs.',
+          icon: <Brain className="h-12 w-12 text-purple-500" />,
+          keyboardShortcut: 'Cmd + I',
+          benefit: 'Deeper self-awareness',
+          demo: (
+            <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg p-4 border border-purple-100 dark:border-purple-800">
+              <div className="space-y-2">
+                <div className="text-sm font-medium">Recent Insight:</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400">
+                  "You're showing stronger emotional regulation skills in stressful situations"
+                </div>
+                <Badge variant="secondary" className="text-xs">Emotional Growth ↗</Badge>
+              </div>
             </div>
-            <div className="text-xs text-gray-600 dark:text-gray-400">
-              <Timer className="h-3 w-3 inline mr-1" />
-              Completed in 12 seconds
+          )
+        },
+        {
+          id: 'connection',
+          title: 'Stay Connected',
+          subtitle: 'Seamless communication with your therapist',
+          description: 'Share reflections, receive feedback, and maintain momentum between sessions.',
+          icon: <Target className="h-12 w-12 text-green-500" />,
+          keyboardShortcut: 'Cmd + M',
+          benefit: 'Stronger therapeutic alliance',
+          demo: (
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg p-4 border border-green-100 dark:border-green-800">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span>Message from Dr. Sarah: "Great progress this week!"</span>
+                </div>
+                <div className="text-xs text-gray-600 dark:text-gray-400">
+                  <Timer className="h-3 w-3 inline mr-1" />
+                  2 minutes ago
+                </div>
+              </div>
+            </div>
+          )
+        },
+        {
+          id: 'progress',
+          title: 'Visual Progress',
+          subtitle: 'See your healing journey',
+          description: 'Beautiful dashboards show your growth, goal completion, and emotional patterns over time.',
+          icon: <TrendingUp className="h-12 w-12 text-blue-500" />,
+          keyboardShortcut: 'Cmd + D',
+          benefit: 'Motivating visual feedback',
+          demo: (
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-4 border border-blue-100 dark:border-blue-800">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Anxiety Management</span>
+                  <span className="font-medium">8.2 / 10</span>
+                </div>
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                  <div className="bg-blue-500 h-2 rounded-full" style={{ width: '82%' }}></div>
+                </div>
+                <div className="text-xs text-gray-600 dark:text-gray-400">
+                  +2.1 improvement this month
+                </div>
+              </div>
+            </div>
+          )
+        }
+      ];
+    }
+
+    return [
+      {
+        id: 'speed',
+        title: 'Built for Speed',
+        subtitle: 'Log sessions in under 30 seconds',
+        description: 'Quick entry forms and smart defaults mean less time on paperwork, more time with clients.',
+        icon: <Zap className="h-12 w-12 text-blue-500" />,
+        keyboardShortcut: 'Cmd + N',
+        benefit: '10x faster than spreadsheets',
+        demo: (
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-4 border border-blue-100 dark:border-blue-800">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span>Session logged: 2 hours, individual therapy</span>
+              </div>
+              <div className="text-xs text-gray-600 dark:text-gray-400">
+                <Timer className="h-3 w-3 inline mr-1" />
+                Completed in 12 seconds
+              </div>
             </div>
           </div>
-        </div>
-      )
-    },
-    {
+        )
+      },
+      {
       id: 'intelligence',
       title: 'AI-Powered Insights',
       subtitle: 'Discover patterns in your practice',

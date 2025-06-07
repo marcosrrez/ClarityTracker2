@@ -279,7 +279,7 @@ export const OnboardingFlow = () => {
   const currentStepData = steps[currentStep];
 
   // Show Superhuman onboarding if signup flow is complete
-  if (showSuperhumanOnboarding && data.accountType && data.accountType !== 'client') {
+  if (showSuperhumanOnboarding && data.accountType) {
     return (
       <SuperhumanOnboarding 
         onComplete={handleSuperhumanComplete}
@@ -514,7 +514,7 @@ export const OnboardingFlow = () => {
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                    {accountTypes.filter(type => type.id !== 'client').map((type) => {
+                    {accountTypes.map((type) => {
                       const Icon = type.icon;
                       return (
                         <motion.div
