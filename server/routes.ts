@@ -4752,7 +4752,7 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
     }
   });
 
-  // Analyze video frame
+  // Analyze video frame with OpenAI Vision API
   app.post('/api/session-intelligence/analyze-video-frame', async (req, res) => {
     try {
       const { imageData, timestamp } = req.body;
@@ -4761,23 +4761,63 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
         return res.status(400).json({ error: 'Image data is required' });
       }
 
-      // Simulate video analysis for demo
-      const emotions = ['calm', 'engaged', 'thoughtful', 'positive', 'neutral', 'focused'];
-      const behavioralMarkers = ['active-listening', 'engaged-posture', 'appropriate-affect', 'therapeutic-presence'];
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(503).json({ 
+          error: 'OpenAI API not configured',
+          message: 'Please configure OPENAI_API_KEY environment variable'
+        });
+      }
+
+      // Import OpenAI for video frame analysis
+      const OpenAI = (await import('openai')).default;
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+      // Analyze the video frame using OpenAI Vision API
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: "Analyze this therapy session video frame for facial expressions, emotional state, and engagement indicators. Respond with JSON containing: dominantEmotion (string), emotionConfidence (0-1), engagementScore (0-1), behavioralMarkers (array of strings like 'focused-attention', 'positive-affect', 'calm-demeanor'), detectedFaces (number)."
+          },
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: "Analyze the emotional state, engagement level, and behavioral markers visible in this therapy session frame."
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:image/jpeg;base64,${imageData}`
+                }
+              }
+            ]
+          }
+        ],
+        response_format: { type: "json_object" },
+        max_tokens: 500,
+      });
+
+      const analysis = JSON.parse(response.choices[0].message.content || '{}');
       
-      const analysis = {
+      const result = {
         timestamp,
-        detectedFaces: 1 + Math.floor(Math.random() * 2),
-        dominantEmotion: emotions[Math.floor(Math.random() * emotions.length)],
-        emotionConfidence: 0.7 + Math.random() * 0.3,
-        engagementScore: 0.6 + Math.random() * 0.4,
-        behavioralMarkers: behavioralMarkers.filter(() => Math.random() > 0.6)
+        detectedFaces: analysis.detectedFaces || 1,
+        dominantEmotion: analysis.dominantEmotion || 'neutral',
+        emotionConfidence: analysis.emotionConfidence || 0.8,
+        engagementScore: Math.round((analysis.engagementScore || 0.7) * 100),
+        behavioralMarkers: analysis.behavioralMarkers || []
       };
 
-      res.json({ success: true, data: analysis });
+      res.json({ success: true, data: result });
     } catch (error) {
       console.error('Video analysis error:', error);
-      res.status(500).json({ error: 'Failed to analyze video frame' });
+      res.status(500).json({ 
+        error: 'Failed to analyze video frame',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 
