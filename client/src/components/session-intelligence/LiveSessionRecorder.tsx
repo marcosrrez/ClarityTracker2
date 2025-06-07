@@ -138,7 +138,8 @@ const LiveSessionRecorder: React.FC = () => {
         throw new Error('Failed to analyze transcript');
       }
 
-      const analysis = await response.json();
+      const response_data = await response.json();
+      const analysis = response_data.success ? response_data.data : response_data;
       
       const newSegment: TranscriptionSegment = {
         text,
@@ -224,7 +225,7 @@ const LiveSessionRecorder: React.FC = () => {
     const imageData = canvas.toDataURL('image/jpeg', 0.8);
 
     try {
-      const response = await fetch('/api/session-intelligence/analyze-video', {
+      const response = await fetch('/api/session-intelligence/analyze-video-frame', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -239,7 +240,8 @@ const LiveSessionRecorder: React.FC = () => {
         throw new Error('Failed to analyze video frame');
       }
 
-      const analysis = await response.json();
+      const response_data = await response.json();
+      const analysis = response_data.success ? response_data.data : response_data;
 
       // Update emotional state
       if (analysis.dominantEmotion) {

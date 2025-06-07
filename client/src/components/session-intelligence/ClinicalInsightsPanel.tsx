@@ -93,8 +93,9 @@ const ClinicalInsightsPanel: React.FC<ClinicalInsightsPanelProps> = ({
       });
 
       if (response.ok) {
-        const data = await response.json();
-        setSoapNote(data.soapNote);
+        const response_data = await response.json();
+        const data = response_data.success ? response_data.data : response_data;
+        setSoapNote(data.soapNote || data);
         setBillingCodes(data.billingCodes || []);
       }
     } catch (error) {
