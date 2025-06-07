@@ -4765,6 +4765,10 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
   const { GoogleGenerativeAI } = await import('@google/generative-ai');
   const googleAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
 
+  // Import multi-provider emotion service
+  const { MultiProviderEmotionService } = await import('./services/multiProviderEmotionService');
+  const multiProviderEmotion = new MultiProviderEmotionService();
+
   // Analyze video frame with engagement detection
   app.post('/api/session-intelligence/analyze-video-frame', async (req, res) => {
     try {
