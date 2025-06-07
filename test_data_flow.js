@@ -7,7 +7,7 @@ const testDataFlow = async () => {
   // Test 1: Video Analysis Pipeline
   console.log('1. Testing Video Analysis (Azure Computer Vision)');
   try {
-    const videoResponse = await fetch('/api/session-intelligence/analyze-video-frame', {
+    const videoResponse = await fetch('http://localhost:5000/api/session-intelligence/analyze-video-frame', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -26,7 +26,7 @@ const testDataFlow = async () => {
   // Test 2: Speech Transcription Analysis
   console.log('\n2. Testing Speech Transcription Analysis');
   try {
-    const speechResponse = await fetch('/api/session-intelligence/analyze-transcript', {
+    const speechResponse = await fetch('http://localhost:5000/api/session-intelligence/analyze-transcript', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -45,7 +45,7 @@ const testDataFlow = async () => {
   // Test 3: Google AI Clinical Insights
   console.log('\n3. Testing Google AI Clinical Insights Generation');
   try {
-    const insightsResponse = await fetch('/api/session-intelligence/generate-insights', {
+    const insightsResponse = await fetch('http://localhost:5000/api/session-intelligence/generate-insights', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -60,7 +60,7 @@ const testDataFlow = async () => {
   // Test 4: SOAP Note Generation (Google AI)
   console.log('\n4. Testing SOAP Note Generation (Google AI)');
   try {
-    const soapResponse = await fetch('/api/session-intelligence/generate-soap', {
+    const soapResponse = await fetch('http://localhost:5000/api/session-intelligence/generate-soap', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
