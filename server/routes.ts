@@ -4765,9 +4765,9 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
   const { GoogleGenerativeAI } = await import('@google/generative-ai');
   const googleAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
 
-  // Import multi-provider emotion service
-  const { MultiProviderEmotionService } = await import('./services/multiProviderEmotionService');
-  const multiProviderEmotion = new MultiProviderEmotionService();
+  // Import Azure Face Service for emotion analysis
+  const { AzureFaceService } = await import('./services/azureFaceService');
+  const azureFaceService = new AzureFaceService();
 
   // Analyze video frame with engagement detection
   app.post('/api/session-intelligence/analyze-video-frame', async (req, res) => {
@@ -4778,38 +4778,37 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
         return res.status(400).json({ error: 'Image data is required' });
       }
 
-      // Use multi-provider emotion analysis for enhanced accuracy
-      try {
-        const analysis = await multiProviderEmotion.analyzeEmotions(imageData, timestamp);
-        
-        const result = {
-          timestamp,
-          detectedFaces: analysis.detectedFaces,
-          dominantEmotion: analysis.dominantEmotion,
-          emotionConfidence: analysis.emotionConfidence,
-          engagementScore: Math.round(analysis.engagementScore * 100),
-          behavioralMarkers: analysis.behavioralMarkers,
-          emotionScores: analysis.emotionScores,
-          consensusScore: analysis.consensusScore,
-          providers: analysis.providers,
-          source: 'multi-provider-ai' as const
-        };
+      // Use Azure Face Service for emotion analysis
+      if (azureFaceService.isAvailable()) {
+        try {
+          const analysis = await azureFaceService.analyzeVideoFrame(imageData);
+          
+          const result = {
+            timestamp,
+            detectedFaces: analysis.detectedFaces,
+            dominantEmotion: analysis.dominantEmotion,
+            emotionConfidence: analysis.emotionConfidence,
+            engagementScore: Math.round(analysis.engagementScore * 100),
+            behavioralMarkers: analysis.behavioralMarkers,
+            emotionScores: analysis.emotionScores,
+            source: 'azure-computer-vision' as const
+          };
 
-        console.log('Multi-provider emotion analysis completed:', {
-          faces: analysis.detectedFaces,
-          emotion: analysis.dominantEmotion,
-          confidence: analysis.emotionConfidence,
-          consensus: analysis.consensusScore,
-          availableProviders: multiProviderEmotion.getAvailableProviders()
-        });
+          console.log('Azure Face emotion analysis completed:', {
+            faces: analysis.detectedFaces,
+            emotion: analysis.dominantEmotion,
+            confidence: analysis.emotionConfidence,
+            engagement: analysis.engagementScore
+          });
 
-        // Feed multi-provider analysis to session analyzer
-        await sessionAnalyzer.addVideoAnalysis(result);
+          // Feed Azure analysis to session analyzer
+          await sessionAnalyzer.addVideoAnalysis(result);
 
-        return res.json({ success: true, data: result });
-        
-      } catch (multiProviderError) {
-        console.log('Multi-provider emotion analysis error:', multiProviderError instanceof Error ? multiProviderError.message : multiProviderError);
+          return res.json({ success: true, data: result });
+          
+        } catch (azureError) {
+          console.log('Azure Face Service error:', azureError instanceof Error ? azureError.message : azureError);
+        }
       }
 
       // Alternative engagement analysis when Azure Face API is unavailable
