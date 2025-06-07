@@ -4778,7 +4778,8 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
           
           // Call Azure Computer Vision API for general image analysis  
           const baseUrl = endpoint.replace(/\/$/, ''); // Remove trailing slash
-          const apiUrl = `${baseUrl}/vision/v3.2/analyze?visualFeatures=Objects,People`;
+          const apiUrl = `${baseUrl}/vision/v3.2/analyze?visualFeatures=Objects,Faces`;
+          console.log('Making Computer Vision API call to:', apiUrl);
           const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
@@ -4788,36 +4789,44 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
             body: imageBuffer
           });
 
+          console.log('Computer Vision API response status:', response.status);
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.log('Computer Vision API error:', errorText);
+          }
+
           if (response.ok) {
             const analysis = await response.json();
-            const peopleDetected = analysis.objects?.filter(obj => obj.object === 'person')?.length || 
-                                 analysis.people?.length || 0;
+            console.log('Computer Vision API success:', JSON.stringify(analysis, null, 2));
+            
+            const peopleDetected = analysis.objects?.filter(obj => 
+              obj.object === 'person' || obj.object === 'Person'
+            )?.length || 0;
+            
+            const facesDetected = analysis.faces?.length || 0;
             
             let engagementScore = 0.6;
             let dominantEmotion = 'neutral';
             let emotionConfidence = 0.7;
             const behavioralMarkers = ['session-active'];
 
-            if (peopleDetected > 0) {
+            if (peopleDetected > 0 || facesDetected > 0) {
               engagementScore += 0.25;
               behavioralMarkers.push('participant-detected', 'visual-presence');
               dominantEmotion = 'engaged';
               emotionConfidence = 0.8;
 
-              // Analyze people positioning for engagement
-              if (analysis.people && analysis.people[0]) {
-                const person = analysis.people[0];
-                const confidence = person.confidence || 0;
+              // Analyze face details for engagement
+              if (analysis.faces && analysis.faces[0]) {
+                const face = analysis.faces[0];
                 
-                if (confidence > 0.8) {
-                  behavioralMarkers.push('clear-visibility');
+                if (face.faceRectangle) {
+                  behavioralMarkers.push('face-detected');
                   engagementScore += 0.1;
-                }
-                
-                // Analyze bounding box for positioning
-                if (person.boundingBox) {
-                  const centerX = person.boundingBox.x + person.boundingBox.w / 2;
-                  const centerY = person.boundingBox.y + person.boundingBox.h / 2;
+                  
+                  // Analyze face positioning for engagement
+                  const centerX = face.faceRectangle.left + face.faceRectangle.width / 2;
+                  const centerY = face.faceRectangle.top + face.faceRectangle.height / 2;
                   
                   // Check if person is centered (indicating direct engagement)
                   if (centerX > 0.3 && centerX < 0.7 && centerY > 0.2 && centerY < 0.8) {
