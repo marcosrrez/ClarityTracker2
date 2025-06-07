@@ -507,10 +507,23 @@ export default function SessionRecording() {
 
         {/* Analysis Results */}
         <TabsContent value="results">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Session Intelligence */}
-            <Card>
-              <CardHeader>
+          <div className="space-y-6">
+            {analyzeSessionMutation.isPending && (
+              <Card>
+                <CardContent className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-muted-foreground">Running comprehensive AI analysis...</p>
+                  <div className="text-sm text-muted-foreground mt-2">
+                    Analyzing themes, interventions, risk factors, and evidence-based practices
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Session Intelligence */}
+              <Card>
+                <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Activity className="h-5 w-5" />
                   Session Intelligence
