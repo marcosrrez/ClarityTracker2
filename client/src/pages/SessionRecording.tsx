@@ -87,8 +87,11 @@ export default function SessionRecording() {
     themes: [] as string[],
     interventions: [] as string[],
     riskIndicators: [] as string[],
-    therapeuticAlliance: 0
+    therapeuticAlliance: 0,
+    treatmentSuggestions: [] as string[],
+    sessionQuality: 0
   });
+  const [clinicalAlerts, setClinicalAlerts] = useState<any[]>([]);
 
   // Initialize Azure Speech Service
   const initializeAzureSpeech = async () => {
@@ -253,8 +256,22 @@ export default function SessionRecording() {
         themes: insights.themes || [],
         interventions: insights.interventions || [],
         riskIndicators: insights.riskIndicators || [],
-        therapeuticAlliance: insights.therapeuticAlliance || 0
+        therapeuticAlliance: insights.therapeuticAlliance || 0,
+        treatmentSuggestions: insights.treatmentSuggestions || [],
+        sessionQuality: insights.sessionQuality || 0
       });
+
+      // Generate clinical alerts for critical insights
+      if (insights.riskIndicators?.length > 0) {
+        const newAlert = {
+          id: Date.now(),
+          type: 'warning',
+          message: `Risk indicators detected: ${insights.riskIndicators.slice(0, 2).join(', ')}`,
+          timestamp: new Date(),
+          priority: 'high'
+        };
+        setClinicalAlerts(prev => [newAlert, ...prev.slice(0, 4)]);
+      }
     } catch (error) {
       console.error('Real-time analysis error:', error);
     }
@@ -527,6 +544,29 @@ export default function SessionRecording() {
                             <div className="flex items-center gap-2 mt-1">
                               <Progress value={realtimeAnalysis.therapeuticAlliance * 10} className="flex-1 h-2" />
                               <span className="text-xs font-bold">{realtimeAnalysis.therapeuticAlliance}/10</span>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {realtimeAnalysis.treatmentSuggestions.length > 0 && (
+                          <div>
+                            <span className="text-xs font-medium text-muted-foreground">Treatment Suggestions:</span>
+                            <div className="mt-1 space-y-1">
+                              {realtimeAnalysis.treatmentSuggestions.slice(0, 2).map((suggestion, i) => (
+                                <div key={i} className="text-xs bg-green-50 dark:bg-green-950 p-2 rounded border-l-2 border-green-500">
+                                  {suggestion}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {realtimeAnalysis.sessionQuality > 0 && (
+                          <div>
+                            <span className="text-xs font-medium text-muted-foreground">Session Quality:</span>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Progress value={realtimeAnalysis.sessionQuality * 10} className="flex-1 h-2" />
+                              <span className="text-xs font-bold">{realtimeAnalysis.sessionQuality}/10</span>
                             </div>
                           </div>
                         )}
