@@ -422,6 +422,9 @@ const LiveSessionRecorder: React.FC = () => {
                   <div className="bg-black bg-opacity-50 text-white px-2 py-1 rounded text-sm">
                     {formatDuration(sessionDuration)}
                   </div>
+                  <div className="bg-blue-600 text-white px-2 py-1 rounded text-sm">
+                    Azure Computer Vision Active
+                  </div>
                 </div>
               )}
 
