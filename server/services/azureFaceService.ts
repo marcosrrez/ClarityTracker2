@@ -74,11 +74,19 @@ export class AzureFaceService {
       // Convert base64 image to buffer
       const imageBuffer = Buffer.from(imageData, 'base64');
 
-      // Define face attributes to detect - emotion/age/gender deprecated in newer API
+      // Define face attributes to detect using proper enum values
       const faceAttributes: FaceModels.FaceAttributeType[] = [
+        'age',
+        'gender',
+        'smile',
+        'facialHair',
+        'glasses',
+        'emotion',
         'blur',
         'exposure',
         'noise',
+        'makeup',
+        'accessories',
         'occlusion',
         'headPose'
       ];
@@ -120,21 +128,23 @@ export class AzureFaceService {
 
       // Process the first detected face
       const primaryFace = faces[0];
-      
-      // Since emotion attributes are deprecated, calculate engagement from face positioning and quality
-      const engagementScore = this.calculateEngagementFromFaceData(primaryFace.faceAttributes);
-      
-      // Generate emotion scores based on engagement and face quality
-      const emotionScores = this.deriveEmotionFromEngagement(engagementScore, primaryFace.faceAttributes);
-      
+      const emotions = primaryFace.faceAttributes?.emotion;
+
+      if (!emotions) {
+        throw new Error('No emotion data returned from Azure Face API');
+      }
+
       // Find dominant emotion
-      const emotionEntries = Object.entries(emotionScores) as [keyof EmotionScores, number][];
+      const emotionEntries = Object.entries(emotions) as [keyof EmotionScores, number][];
       const [dominantEmotion, emotionConfidence] = emotionEntries.reduce((max, [emotion, score]) => 
         score > max[1] ? [emotion, score] : max
       );
 
+      // Calculate engagement score based on positive emotions and attention indicators
+      const engagementScore = this.calculateEngagementScore(primaryFace.faceAttributes);
+
       // Determine behavioral markers based on facial analysis
-      const behavioralMarkers = this.determineBehavioralMarkers(primaryFace.faceAttributes, engagementScore);
+      const behavioralMarkers = this.determineBehavioralMarkers(primaryFace.faceAttributes);
 
       return {
         detectedFaces: faces.length,
@@ -142,7 +152,7 @@ export class AzureFaceService {
         emotionConfidence: emotionConfidence,
         engagementScore: engagementScore,
         behavioralMarkers: behavioralMarkers,
-        emotionScores: emotionScores,
+        emotionScores: emotions,
         faceAttributes: faces.map(face => face.faceAttributes || {})
       };
 
@@ -152,113 +162,75 @@ export class AzureFaceService {
     }
   }
 
-  private calculateEngagementFromFaceData(faceAttributes: any): number {
-    if (!faceAttributes) return 0.4;
+  private calculateEngagementScore(faceAttributes: any): number {
+    if (!faceAttributes) return 0;
 
     let score = 0.5; // Base score
+
+    // Positive emotions increase engagement
+    if (faceAttributes.emotion) {
+      score += (faceAttributes.emotion.happiness || 0) * 0.3;
+      score += (faceAttributes.emotion.surprise || 0) * 0.1;
+      score -= (faceAttributes.emotion.sadness || 0) * 0.2;
+      score -= (faceAttributes.emotion.anger || 0) * 0.2;
+    }
+
+    // Smile contributes to engagement
+    if (faceAttributes.smile) {
+      score += faceAttributes.smile * 0.2;
+    }
 
     // Good head pose indicates attention
     if (faceAttributes.headPose) {
       const { pitch, roll, yaw } = faceAttributes.headPose;
       const headPoseScore = 1 - (Math.abs(pitch) + Math.abs(roll) + Math.abs(yaw)) / 90;
-      score += Math.max(0, headPoseScore) * 0.3;
+      score += Math.max(0, headPoseScore) * 0.2;
     }
 
     // Clear, unobstructed face indicates engagement
     if (faceAttributes.occlusion) {
       const { eyeOccluded, foreheadOccluded, mouthOccluded } = faceAttributes.occlusion;
       if (!eyeOccluded && !foreheadOccluded && !mouthOccluded) {
-        score += 0.2;
+        score += 0.1;
       }
-    }
-
-    // Good image quality suggests active participation
-    if (faceAttributes.blur && faceAttributes.blur.blurLevel === 'low') {
-      score += 0.1;
-    }
-
-    if (faceAttributes.exposure && faceAttributes.exposure.exposureLevel === 'goodExposure') {
-      score += 0.1;
     }
 
     return Math.max(0, Math.min(1, score));
   }
 
-  private deriveEmotionFromEngagement(engagementScore: number, faceAttributes: any): EmotionScores {
-    // Generate plausible emotion scores based on engagement level and face positioning
-    const baseNeutral = 0.4;
-    const engagementBonus = engagementScore * 0.6;
+  private determineBehavioralMarkers(faceAttributes: any): string[] {
+    const markers: string[] = [];
 
-    let emotionScores: EmotionScores = {
-      anger: 0.05,
-      contempt: 0.03,
-      disgust: 0.02,
-      fear: 0.05,
-      happiness: baseNeutral + engagementBonus * 0.7,
-      neutral: baseNeutral + (1 - engagementScore) * 0.3,
-      sadness: 0.1 - engagementScore * 0.05,
-      surprise: 0.1 + engagementBonus * 0.2
-    };
+    if (!faceAttributes) return markers;
 
-    // Adjust based on head pose - extreme poses suggest less engagement
-    if (faceAttributes?.headPose) {
-      const { pitch, roll, yaw } = faceAttributes.headPose;
-      const poseStability = 1 - (Math.abs(pitch) + Math.abs(roll) + Math.abs(yaw)) / 120;
-      
-      if (poseStability < 0.5) {
-        emotionScores.neutral += 0.2;
-        emotionScores.happiness -= 0.1;
-      }
+    // Analyze emotions for behavioral markers
+    if (faceAttributes.emotion) {
+      const { happiness, neutral, sadness, anger, fear, surprise } = faceAttributes.emotion;
+
+      if (happiness > 0.6) markers.push('positive-affect');
+      if (neutral > 0.7) markers.push('calm-demeanor');
+      if (sadness > 0.4) markers.push('emotional-distress');
+      if (anger > 0.3) markers.push('agitation');
+      if (fear > 0.3) markers.push('anxiety-indicators');
+      if (surprise > 0.4) markers.push('reactive-engagement');
     }
 
-    // Normalize scores to sum to 1
-    const total = Object.values(emotionScores).reduce((sum, score) => sum + score, 0);
-    Object.keys(emotionScores).forEach(key => {
-      emotionScores[key as keyof EmotionScores] /= total;
-    });
-
-    return emotionScores;
-  }
-
-  private determineBehavioralMarkers(faceAttributes: any, engagementScore: number): string[] {
-    const markers: string[] = ['face-detected'];
-
-    // Add engagement-based markers
-    if (engagementScore > 0.7) {
-      markers.push('highly-engaged');
-    } else if (engagementScore > 0.5) {
-      markers.push('moderately-engaged');
-    } else {
-      markers.push('low-engagement');
+    // Analyze smile
+    if (faceAttributes.smile && faceAttributes.smile > 0.5) {
+      markers.push('genuine-engagement');
     }
 
     // Analyze head pose for attention
-    if (faceAttributes?.headPose) {
+    if (faceAttributes.headPose) {
       const { pitch, roll, yaw } = faceAttributes.headPose;
       if (Math.abs(pitch) < 15 && Math.abs(roll) < 15 && Math.abs(yaw) < 20) {
         markers.push('focused-attention');
-      } else {
-        markers.push('distracted-posture');
       }
     }
 
     // Check for clear facial features (indicates openness)
-    if (faceAttributes?.occlusion) {
-      const { eyeOccluded, foreheadOccluded, mouthOccluded } = faceAttributes.occlusion;
-      if (!eyeOccluded && !foreheadOccluded && !mouthOccluded) {
-        markers.push('open-communication');
-      } else {
-        markers.push('partial-occlusion');
-      }
-    }
-
-    // Image quality indicators
-    if (faceAttributes?.blur?.blurLevel === 'low') {
-      markers.push('stable-positioning');
-    }
-
-    if (faceAttributes?.exposure?.exposureLevel === 'goodExposure') {
-      markers.push('optimal-lighting');
+    if (faceAttributes.occlusion && !faceAttributes.occlusion.eyeOccluded) {
+      markers.push('open-communication');
     }
 
     return markers;
