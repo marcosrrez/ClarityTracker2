@@ -279,7 +279,7 @@ export const OnboardingFlow = () => {
   const currentStepData = steps[currentStep];
 
   // Show Superhuman onboarding if signup flow is complete
-  if (showSuperhumanOnboarding && data.accountType) {
+  if (showSuperhumanOnboarding && data.accountType && data.accountType !== 'client') {
     return (
       <SuperhumanOnboarding 
         onComplete={handleSuperhumanComplete}
