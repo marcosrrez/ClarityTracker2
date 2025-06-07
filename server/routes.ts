@@ -4752,7 +4752,7 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
     }
   });
 
-  // Analyze video frame with OpenAI Vision API
+  // Analyze video frame with Azure Face API
   app.post('/api/session-intelligence/analyze-video-frame', async (req, res) => {
     try {
       const { imageData, timestamp } = req.body;
@@ -4761,54 +4761,104 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
         return res.status(400).json({ error: 'Image data is required' });
       }
 
-      if (!process.env.OPENAI_API_KEY) {
+      if (!process.env.AZURE_FACE_KEY || !process.env.AZURE_FACE_ENDPOINT) {
         return res.status(503).json({ 
-          error: 'OpenAI API not configured',
-          message: 'Please configure OPENAI_API_KEY environment variable'
+          error: 'Azure Computer Vision API not configured',
+          message: 'Please configure AZURE_FACE_KEY and AZURE_FACE_ENDPOINT environment variables'
         });
       }
 
-      // Import OpenAI for video frame analysis
-      const OpenAI = (await import('openai')).default;
-      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-      // Analyze the video frame using OpenAI Vision API
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [
-          {
-            role: "system",
-            content: "Analyze this therapy session video frame for facial expressions, emotional state, and engagement indicators. Respond with JSON containing: dominantEmotion (string), emotionConfidence (0-1), engagementScore (0-1), behavioralMarkers (array of strings like 'focused-attention', 'positive-affect', 'calm-demeanor'), detectedFaces (number)."
-          },
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: "Analyze the emotional state, engagement level, and behavioral markers visible in this therapy session frame."
-              },
-              {
-                type: "image_url",
-                image_url: {
-                  url: `data:image/jpeg;base64,${imageData}`
-                }
-              }
-            ]
-          }
-        ],
-        response_format: { type: "json_object" },
-        max_tokens: 500,
+      // Use Azure Computer Vision API for image analysis
+      const endpoint = process.env.AZURE_FACE_ENDPOINT.replace('/face/', '/vision/');
+      const subscriptionKey = process.env.AZURE_FACE_KEY;
+      
+      // Convert base64 to buffer
+      const imageBuffer = Buffer.from(imageData, 'base64');
+      
+      // Call Azure Computer Vision API for general image analysis
+      const response = await fetch(`${endpoint}/v3.2/analyze?visualFeatures=Adult,Color,Description,Faces,Objects,Tags`, {
+        method: 'POST',
+        headers: {
+          'Ocp-Apim-Subscription-Key': subscriptionKey,
+          'Content-Type': 'application/octet-stream'
+        },
+        body: imageBuffer
       });
 
-      const analysis = JSON.parse(response.choices[0].message.content || '{}');
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Azure Computer Vision API error: ${response.status} ${response.statusText} - ${errorText}`);
+      }
+
+      const analysis = await response.json();
       
+      // Extract face detection without emotion recognition (privacy compliant)
+      const detectedFaces = analysis.faces?.length || 0;
+      
+      // Analyze image content for engagement indicators
+      const tags = analysis.tags || [];
+      const description = analysis.description?.captions?.[0]?.text || '';
+      
+      // Determine engagement based on visual content analysis
+      let engagementScore = 0.5; // Base score
+      let dominantEmotion = 'neutral';
+      let emotionConfidence = 0.7;
+      const behavioralMarkers = [];
+
+      // Analyze tags for engagement indicators
+      const positiveIndicators = ['person', 'indoor', 'sitting', 'looking', 'smiling', 'talking', 'meeting'];
+      const negativeIndicators = ['distracted', 'tired', 'looking away'];
+      
+      let positiveCount = 0;
+      let negativeCount = 0;
+      
+      tags.forEach(tag => {
+        if (positiveIndicators.some(indicator => tag.name.toLowerCase().includes(indicator))) {
+          positiveCount += tag.confidence;
+        }
+        if (negativeIndicators.some(indicator => tag.name.toLowerCase().includes(indicator))) {
+          negativeCount += tag.confidence;
+        }
+      });
+
+      // Calculate engagement based on visual cues
+      if (positiveCount > 0.6) {
+        engagementScore += 0.3;
+        behavioralMarkers.push('positive-engagement');
+      }
+      if (negativeCount > 0.4) {
+        engagementScore -= 0.2;
+        behavioralMarkers.push('distraction-indicators');
+      }
+
+      // Determine emotion from description and tags
+      if (description.includes('smiling') || tags.some(t => t.name === 'smile')) {
+        dominantEmotion = 'happiness';
+        emotionConfidence = 0.8;
+        behavioralMarkers.push('positive-affect');
+      } else if (description.includes('serious') || description.includes('focused')) {
+        dominantEmotion = 'concentration';
+        emotionConfidence = 0.7;
+        behavioralMarkers.push('focused-attention');
+      }
+
+      if (detectedFaces > 0) {
+        behavioralMarkers.push('appropriate-presence');
+      }
+
+      engagementScore = Math.max(0, Math.min(1, engagementScore));
+
       const result = {
         timestamp,
-        detectedFaces: analysis.detectedFaces || 1,
-        dominantEmotion: analysis.dominantEmotion || 'neutral',
-        emotionConfidence: analysis.emotionConfidence || 0.8,
-        engagementScore: Math.round((analysis.engagementScore || 0.7) * 100),
-        behavioralMarkers: analysis.behavioralMarkers || []
+        detectedFaces: detectedFaces,
+        dominantEmotion: dominantEmotion,
+        emotionConfidence: emotionConfidence,
+        engagementScore: Math.round(engagementScore * 100),
+        behavioralMarkers: behavioralMarkers,
+        visualAnalysis: {
+          description: description,
+          confidence: analysis.description?.captions?.[0]?.confidence || 0
+        }
       };
 
       res.json({ success: true, data: result });
