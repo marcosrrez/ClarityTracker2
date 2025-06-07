@@ -134,8 +134,10 @@ export const corsOptions = {
 /**
  * Helmet security configuration - development-friendly
  */
+const isProduction = process.env.NODE_ENV === 'production';
+
 export const helmetConfig = helmet({
-  contentSecurityPolicy: {
+  contentSecurityPolicy: isProduction ? {
     directives: {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
@@ -161,12 +163,23 @@ export const helmetConfig = helmet({
       frameSrc: ["'self'", "https://accounts.google.com"],
       objectSrc: ["'none'"],
     },
-  } : false, // Disable CSP in development
-  hsts: process.env.NODE_ENV === 'production' ? {
+  } : {
+    directives: {
+      defaultSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https:", "data:"],
+      fontSrc: ["'self'", "https:", "data:"],
+      imgSrc: ["'self'", "data:", "https:", "blob:"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      connectSrc: ["'self'", "https:", "wss:", "ws:"],
+      frameSrc: ["'self'", "https:"],
+      objectSrc: ["'none'"],
+    },
+  },
+  hsts: isProduction ? {
     maxAge: 31536000,
     includeSubDomains: true,
     preload: true,
-  } : false,
+  } : undefined,
   noSniff: true,
   xssFilter: true,
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
