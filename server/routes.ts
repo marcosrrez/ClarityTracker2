@@ -4776,9 +4776,10 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
           // Convert base64 to buffer
           const imageBuffer = Buffer.from(imageData, 'base64');
           
-          // Call Azure Computer Vision API for general image analysis
-          console.log('Testing Computer Vision endpoint:', `${endpoint}/vision/v3.2/analyze?visualFeatures=Objects,People`);
-          const response = await fetch(`${endpoint}/vision/v3.2/analyze?visualFeatures=Objects,People`, {
+          // Call Azure Computer Vision API for general image analysis  
+          const baseUrl = endpoint.replace(/\/$/, ''); // Remove trailing slash
+          const apiUrl = `${baseUrl}/vision/v3.2/analyze?visualFeatures=Objects,People`;
+          const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
               'Ocp-Apim-Subscription-Key': subscriptionKey,
@@ -4860,7 +4861,10 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
             });
           }
         } catch (azureError) {
-          console.log('Azure Computer Vision error:', azureError);
+          console.log('Azure Computer Vision error details:', {
+            error: azureError instanceof Error ? azureError.message : azureError,
+            endpoint: apiUrl
+          });
         }
       }
 
