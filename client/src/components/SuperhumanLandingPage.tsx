@@ -38,6 +38,8 @@ export const SuperhumanLandingPage = () => {
       });
     } catch (error: any) {
       console.error("Google sign-in error:", error);
+      console.log("Current domain:", window.location.hostname);
+      console.log("Current origin:", window.location.origin);
       
       // Provide specific error messages based on Firebase error codes
       let errorMessage = "Please try email signup instead.";
@@ -49,6 +51,8 @@ export const SuperhumanLandingPage = () => {
         errorMessage = "Network error. Please check your connection and try again.";
       } else if (error?.code === 'auth/internal-error') {
         errorMessage = "Google sign-in is temporarily unavailable. Please use email signup.";
+      } else if (error?.code === 'auth/unauthorized-domain') {
+        errorMessage = `Domain ${window.location.hostname} needs to be added to Firebase authorized domains. Add claritylog.net to your Firebase console.`;
       }
       
       toast({
