@@ -104,7 +104,7 @@ const testDataFlow = async () => {
   // Test 5: API Status Check
   console.log('\n5. Testing AI Integration Status');
   try {
-    const statusResponse = await fetch('/api/ai/integration-status');
+    const statusResponse = await fetch('http://localhost:5000/api/ai/integration-status');
     const statusData = await statusResponse.json();
     console.log('   ✓ Azure Computer Vision:', statusData.azureVision?.status || 'Unknown');
     console.log('   ✓ Azure Speech:', statusData.azureSpeech?.status || 'Unknown');

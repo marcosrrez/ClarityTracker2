@@ -4979,7 +4979,7 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
       }
 
       // Use Google AI to generate comprehensive SOAP notes
-      const model = googleAI.getGenerativeModel({ model: "gemini-pro" });
+      const model = googleAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       
       const contextData = {
         transcriptionSegments: transcription,
