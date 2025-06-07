@@ -72,8 +72,27 @@ export const FirebaseConnectivityTest = () => {
     // Test 4: Current Domain Check
     addResult("\n4. Domain Authorization Check:");
     const currentDomain = window.location.hostname;
+    const currentOrigin = window.location.origin;
     addResult(`Current domain: ${currentDomain}`);
-    addResult(`Full URL: ${window.location.origin}`);
+    addResult(`Full URL: ${currentOrigin}`);
+    
+    // Determine environment and show required domains
+    const isDevelopment = currentDomain.includes('replit.dev') || currentDomain.includes('localhost');
+    const isProduction = currentDomain.includes('replit.app');
+    
+    addResult(`Environment: ${isDevelopment ? 'Development' : isProduction ? 'Production' : 'Unknown'}`);
+    
+    addResult("\n✓ Firebase Authorized Domains Required:");
+    addResult(`  → ${currentDomain} (current)`);
+    if (isDevelopment) {
+      const prodDomain = currentDomain.replace('.replit.dev', '.replit.app').replace(/--\d+\.prod\w+/, '');
+      addResult(`  → ${prodDomain} (production version)`);
+    }
+    
+    addResult("\n🔧 To fix authentication:");
+    addResult("1. Go to Firebase Console → Authentication → Settings");
+    addResult("2. Add the domains above to 'Authorized domains'");
+    addResult("3. Save changes and test again");
     
     // Test 5: Browser Environment
     addResult("\n5. Browser Environment:");

@@ -285,7 +285,7 @@ export const SuperhumanLandingPage = () => {
   }
 
   // Create scroll-triggered section component
-  const ScrollSection = ({ children, className = "" }) => {
+  const ScrollSection = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => {
     const ref = useRef(null);
     const isInView = useInView(ref, { once: true, margin: "-100px" });
     
