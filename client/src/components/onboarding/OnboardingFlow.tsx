@@ -30,7 +30,7 @@ interface OnboardingStep {
   canContinue: boolean;
   showAccountSelection?: boolean;
   showForm?: boolean;
-  showDemo?: 'quick-log' | 'ai-insights' | 'progress-tracking' | 'supervisor-dashboard' | 'compliance-alerts' | 'enterprise-analytics';
+  showDemo?: 'quick-log' | 'ai-insights' | 'progress-tracking' | 'supervisor-dashboard' | 'compliance-alerts' | 'enterprise-analytics' | 'quick-reflection' | 'insight-patterns' | 'therapist-connection';
 }
 
 export const OnboardingFlow = () => {
@@ -174,8 +174,8 @@ export const OnboardingFlow = () => {
       };
     } else if (data.accountType === 'client') {
       return {
-        title: "Your therapy journey should feel supported",
-        subtitle: "But how do you track progress and stay connected with your therapist?"
+        title: "Therapy insights shouldn't fade after each session",
+        subtitle: "But how do you remember and build on your breakthroughs between appointments?"
       };
     }
     return {
@@ -219,7 +219,28 @@ export const OnboardingFlow = () => {
     }
 
     // Add tailored feature demonstrations based on account type
-    if (data.accountType === 'individual') {
+    if (data.accountType === 'client') {
+      baseSteps.push(
+        {
+          title: "Capture insights right after therapy",
+          subtitle: "Record breakthroughs while they're fresh in your mind.",
+          showDemo: 'quick-reflection',
+          canContinue: true
+        },
+        {
+          title: "AI helps you see patterns",
+          subtitle: "Discover how your growth connects across sessions.",
+          showDemo: 'insight-patterns',
+          canContinue: true
+        },
+        {
+          title: "Stay connected between sessions",
+          subtitle: "Share updates and get support from your therapist.",
+          showDemo: 'therapist-connection',
+          canContinue: true
+        }
+      );
+    } else if (data.accountType === 'individual') {
       baseSteps.push(
         {
           title: "Just tap to log a session",
@@ -352,6 +373,78 @@ export const OnboardingFlow = () => {
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: 0.3, duration: 0.5 }}
                     >
+                      {currentStepData.showDemo === 'quick-reflection' && (
+                        <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-10 shadow-2xl border border-white/50">
+                          <div className="space-y-8">
+                            <div className="flex items-center justify-center gap-3 text-base text-gray-500 font-light">
+                              <motion.div 
+                                className="w-3 h-3 bg-green-400 rounded-full"
+                                animate={{ scale: [1, 1.2, 1] }}
+                                transition={{ repeat: Infinity, duration: 2 }}
+                              />
+                              Just finished therapy? Capture your insights
+                            </div>
+                            <motion.div 
+                              className="bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-2xl p-6 text-center font-medium text-lg tracking-wide cursor-pointer hover:shadow-lg transition-all duration-200"
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                            >
+                              + Record Reflection
+                            </motion.div>
+                            <div className="text-center text-gray-400 font-light">
+                              Capture breakthroughs while they're fresh
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {currentStepData.showDemo === 'insight-patterns' && (
+                        <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-10 shadow-2xl border border-white/50">
+                          <div className="space-y-8">
+                            <div className="text-base text-gray-500 font-light mb-6">Your reflection:</div>
+                            <div className="bg-gray-50/80 rounded-2xl p-6 text-base font-light leading-relaxed">
+                              "Today I used breathing techniques when I felt anxious about the presentation. It really helped me stay calm."
+                            </div>
+                            <motion.div 
+                              className="bg-gradient-to-br from-purple-50 to-pink-50 border-l-4 border-purple-500 rounded-2xl p-6"
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: 0.5 }}
+                            >
+                              <div className="text-base font-medium text-purple-900 mb-2">AI Pattern Recognition</div>
+                              <div className="text-base text-purple-700 font-light leading-relaxed">You've used breathing techniques 4 times this month with great success. This coping strategy is becoming stronger for you.</div>
+                            </motion.div>
+                          </div>
+                        </div>
+                      )}
+
+                      {currentStepData.showDemo === 'therapist-connection' && (
+                        <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-10 shadow-2xl border border-white/50">
+                          <div className="space-y-6">
+                            <div className="flex items-center gap-3 text-base text-gray-500 font-light mb-4">
+                              <motion.div 
+                                className="w-3 h-3 bg-blue-400 rounded-full"
+                                animate={{ scale: [1, 1.2, 1] }}
+                                transition={{ repeat: Infinity, duration: 2 }}
+                              />
+                              New message from Dr. Sarah
+                            </div>
+                            <motion.div 
+                              className="bg-blue-50/80 rounded-2xl p-6 border border-blue-100"
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.3 }}
+                            >
+                              <div className="text-base font-medium text-blue-900 mb-2">Dr. Sarah Johnson</div>
+                              <div className="text-base text-blue-700 font-light leading-relaxed">"I noticed your anxiety management has improved significantly. Keep practicing those breathing exercises - you're doing great work!"</div>
+                            </motion.div>
+                            <div className="text-center text-gray-400 font-light">
+                              Stay connected between sessions
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       {currentStepData.showDemo === 'quick-log' && (
                         <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-10 shadow-2xl border border-white/50">
                           <div className="space-y-8">
