@@ -4762,16 +4762,23 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
       }
 
       // Try Azure Computer Vision for image analysis
-      if (process.env.AZURE_FACE_KEY && process.env.AZURE_FACE_ENDPOINT) {
+      console.log('Computer Vision credentials check:', {
+        hasKey: !!process.env.AZURE_COMPUTER_VISION_KEY,
+        hasEndpoint: !!process.env.AZURE_COMPUTER_VISION_ENDPOINT,
+        endpoint: process.env.AZURE_COMPUTER_VISION_ENDPOINT
+      });
+      
+      if (process.env.AZURE_COMPUTER_VISION_KEY && process.env.AZURE_COMPUTER_VISION_ENDPOINT) {
         try {
-          const endpoint = process.env.AZURE_FACE_ENDPOINT.replace('face.', 'cognitiveservices.');
-          const subscriptionKey = process.env.AZURE_FACE_KEY;
+          const endpoint = process.env.AZURE_COMPUTER_VISION_ENDPOINT;
+          const subscriptionKey = process.env.AZURE_COMPUTER_VISION_KEY;
           
           // Convert base64 to buffer
           const imageBuffer = Buffer.from(imageData, 'base64');
           
           // Call Azure Computer Vision API for general image analysis
-          const response = await fetch(`${endpoint}/vision/v3.2/analyze?visualFeatures=Objects,People,Adult`, {
+          console.log('Testing Computer Vision endpoint:', `${endpoint}/vision/v3.2/analyze?visualFeatures=Objects,People`);
+          const response = await fetch(`${endpoint}/vision/v3.2/analyze?visualFeatures=Objects,People`, {
             method: 'POST',
             headers: {
               'Ocp-Apim-Subscription-Key': subscriptionKey,
@@ -4853,7 +4860,7 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
             });
           }
         } catch (azureError) {
-          console.log('Azure Computer Vision unavailable, using alternative analysis');
+          console.log('Azure Computer Vision error:', azureError);
         }
       }
 
