@@ -4778,122 +4778,38 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
         return res.status(400).json({ error: 'Image data is required' });
       }
 
-      // Try Azure Computer Vision for image analysis
-      console.log('Computer Vision credentials check:', {
-        hasKey: !!process.env.AZURE_COMPUTER_VISION_KEY,
-        hasEndpoint: !!process.env.AZURE_COMPUTER_VISION_ENDPOINT,
-        endpoint: process.env.AZURE_COMPUTER_VISION_ENDPOINT
-      });
-      
-      if (process.env.AZURE_COMPUTER_VISION_KEY && process.env.AZURE_COMPUTER_VISION_ENDPOINT) {
-        try {
-          const endpoint = process.env.AZURE_COMPUTER_VISION_ENDPOINT;
-          const subscriptionKey = process.env.AZURE_COMPUTER_VISION_KEY;
-          
-          // Convert base64 to buffer
-          const imageBuffer = Buffer.from(imageData, 'base64');
-          
-          // Call Azure Computer Vision API for general image analysis  
-          const baseUrl = endpoint.replace(/\/$/, ''); // Remove trailing slash
-          const apiUrl = `${baseUrl}/vision/v3.2/analyze?visualFeatures=Objects,Faces`;
-          console.log('Making Computer Vision API call to:', apiUrl);
-          const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-              'Ocp-Apim-Subscription-Key': subscriptionKey,
-              'Content-Type': 'application/octet-stream'
-            },
-            body: imageBuffer
-          });
+      // Use multi-provider emotion analysis for enhanced accuracy
+      try {
+        const analysis = await multiProviderEmotion.analyzeEmotions(imageData, timestamp);
+        
+        const result = {
+          timestamp,
+          detectedFaces: analysis.detectedFaces,
+          dominantEmotion: analysis.dominantEmotion,
+          emotionConfidence: analysis.emotionConfidence,
+          engagementScore: Math.round(analysis.engagementScore * 100),
+          behavioralMarkers: analysis.behavioralMarkers,
+          emotionScores: analysis.emotionScores,
+          consensusScore: analysis.consensusScore,
+          providers: analysis.providers,
+          source: 'multi-provider-ai' as const
+        };
 
-          console.log('Computer Vision API response status:', response.status);
-          if (!response.ok) {
-            const errorText = await response.text();
-            console.log('Computer Vision API error:', errorText);
-          }
+        console.log('Multi-provider emotion analysis completed:', {
+          faces: analysis.detectedFaces,
+          emotion: analysis.dominantEmotion,
+          confidence: analysis.emotionConfidence,
+          consensus: analysis.consensusScore,
+          availableProviders: multiProviderEmotion.getAvailableProviders()
+        });
 
-          if (response.ok) {
-            const analysis = await response.json();
-            console.log('Computer Vision API success:', JSON.stringify(analysis, null, 2));
-            
-            const peopleDetected = analysis.objects?.filter(obj => 
-              obj.object === 'person' || obj.object === 'Person'
-            )?.length || 0;
-            
-            const facesDetected = analysis.faces?.length || 0;
-            
-            let engagementScore = 0.6;
-            let dominantEmotion = 'neutral';
-            let emotionConfidence = 0.7;
-            const behavioralMarkers = ['session-active'];
+        // Feed multi-provider analysis to session analyzer
+        await sessionAnalyzer.addVideoAnalysis(result);
 
-            if (peopleDetected > 0 || facesDetected > 0) {
-              engagementScore += 0.25;
-              behavioralMarkers.push('participant-detected', 'visual-presence');
-              dominantEmotion = 'engaged';
-              emotionConfidence = 0.8;
-
-              // Analyze face details for engagement
-              if (analysis.faces && analysis.faces[0]) {
-                const face = analysis.faces[0];
-                
-                if (face.faceRectangle) {
-                  behavioralMarkers.push('face-detected');
-                  engagementScore += 0.1;
-                  
-                  // Analyze face positioning for engagement
-                  const centerX = face.faceRectangle.left + face.faceRectangle.width / 2;
-                  const centerY = face.faceRectangle.top + face.faceRectangle.height / 2;
-                  
-                  // Check if person is centered (indicating direct engagement)
-                  if (centerX > 0.3 && centerX < 0.7 && centerY > 0.2 && centerY < 0.8) {
-                    behavioralMarkers.push('centered-positioning');
-                    engagementScore += 0.05;
-                  }
-                }
-              }
-            }
-
-            // Add time-based variation
-            const timeVariation = Math.sin(timestamp / 15000) * 0.1;
-            engagementScore += timeVariation;
-            
-            if (engagementScore > 0.75) {
-              behavioralMarkers.push('high-engagement');
-              dominantEmotion = 'attentive';
-            } else if (engagementScore < 0.5) {
-              behavioralMarkers.push('variable-attention');
-              dominantEmotion = 'distracted';
-            }
-
-            engagementScore = Math.max(0.3, Math.min(1, engagementScore));
-
-            const result = {
-              timestamp,
-              detectedFaces: peopleDetected,
-              dominantEmotion: dominantEmotion,
-              emotionConfidence: emotionConfidence,
-              engagementScore: Math.round(engagementScore * 100),
-              behavioralMarkers: behavioralMarkers,
-              visionAnalysis: {
-                peopleDetected: peopleDetected,
-                objects: analysis.objects?.slice(0, 5) || [],
-                confidence: analysis.people?.[0]?.confidence || 0
-              },
-              source: 'azure-computer-vision' as const
-            };
-
-            // Feed Azure Computer Vision analysis to session analyzer
-            await sessionAnalyzer.addVideoAnalysis(result);
-
-            return res.json({ success: true, data: result });
-          }
-        } catch (azureError) {
-          console.log('Azure Computer Vision error details:', {
-            error: azureError instanceof Error ? azureError.message : azureError,
-            endpoint: apiUrl
-          });
-        }
+        return res.json({ success: true, data: result });
+        
+      } catch (multiProviderError) {
+        console.log('Multi-provider emotion analysis error:', multiProviderError instanceof Error ? multiProviderError.message : multiProviderError);
       }
 
       // Alternative engagement analysis when Azure Face API is unavailable
