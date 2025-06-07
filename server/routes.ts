@@ -4761,17 +4761,17 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
         return res.status(400).json({ error: 'Image data is required' });
       }
 
-      // Try Azure Face API first, fallback to engagement analysis if unavailable
+      // Try Azure Computer Vision for image analysis
       if (process.env.AZURE_FACE_KEY && process.env.AZURE_FACE_ENDPOINT) {
         try {
-          const endpoint = process.env.AZURE_FACE_ENDPOINT;
+          const endpoint = process.env.AZURE_FACE_ENDPOINT.replace('face.', 'cognitiveservices.');
           const subscriptionKey = process.env.AZURE_FACE_KEY;
           
           // Convert base64 to buffer
           const imageBuffer = Buffer.from(imageData, 'base64');
           
-          // Call Azure Face API with supported features
-          const response = await fetch(`${endpoint}/face/v1.0/detect?returnFaceAttributes=age,gender,headPose&returnFaceLandmarks=true`, {
+          // Call Azure Computer Vision API for general image analysis
+          const response = await fetch(`${endpoint}/vision/v3.2/analyze?visualFeatures=Objects,People,Adult`, {
             method: 'POST',
             headers: {
               'Ocp-Apim-Subscription-Key': subscriptionKey,
@@ -4781,57 +4781,41 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
           });
 
           if (response.ok) {
-            const faces = await response.json();
-            const detectedFaces = faces?.length || 0;
+            const analysis = await response.json();
+            const peopleDetected = analysis.objects?.filter(obj => obj.object === 'person')?.length || 
+                                 analysis.people?.length || 0;
             
-            // Extract detailed face analysis data
-            let faceData = {};
             let engagementScore = 0.6;
             let dominantEmotion = 'neutral';
             let emotionConfidence = 0.7;
             const behavioralMarkers = ['session-active'];
 
-            if (detectedFaces > 0 && faces[0]) {
-              const primaryFace = faces[0];
-              const attributes = primaryFace.faceAttributes || {};
-              const landmarks = primaryFace.faceLandmarks || {};
-              
-              faceData = {
-                age: attributes.age,
-                gender: attributes.gender,
-                headPose: attributes.headPose,
-                faceRectangle: primaryFace.faceRectangle,
-                landmarks: landmarks
-              };
-
-              engagementScore += 0.2;
-              behavioralMarkers.push('participant-present', 'visual-attention');
-              dominantEmotion = 'focused';
+            if (peopleDetected > 0) {
+              engagementScore += 0.25;
+              behavioralMarkers.push('participant-detected', 'visual-presence');
+              dominantEmotion = 'engaged';
               emotionConfidence = 0.8;
 
-              // Analyze head pose for engagement indicators
-              if (attributes.headPose) {
-                const { pitch, yaw, roll } = attributes.headPose;
+              // Analyze people positioning for engagement
+              if (analysis.people && analysis.people[0]) {
+                const person = analysis.people[0];
+                const confidence = person.confidence || 0;
                 
-                if (Math.abs(yaw) < 15 && Math.abs(pitch) < 20) {
-                  behavioralMarkers.push('direct-attention');
+                if (confidence > 0.8) {
+                  behavioralMarkers.push('clear-visibility');
                   engagementScore += 0.1;
-                } else if (Math.abs(yaw) > 30) {
-                  behavioralMarkers.push('attention-deviation');
-                  engagementScore -= 0.1;
                 }
                 
-                if (Math.abs(pitch) > 30) {
-                  behavioralMarkers.push('head-movement-pattern');
-                }
-              }
-
-              // Add demographic context
-              if (attributes.age) {
-                if (attributes.age < 25) {
-                  behavioralMarkers.push('young-adult-engagement');
-                } else if (attributes.age > 55) {
-                  behavioralMarkers.push('mature-adult-engagement');
+                // Analyze bounding box for positioning
+                if (person.boundingBox) {
+                  const centerX = person.boundingBox.x + person.boundingBox.w / 2;
+                  const centerY = person.boundingBox.y + person.boundingBox.h / 2;
+                  
+                  // Check if person is centered (indicating direct engagement)
+                  if (centerX > 0.3 && centerX < 0.7 && centerY > 0.2 && centerY < 0.8) {
+                    behavioralMarkers.push('centered-positioning');
+                    engagementScore += 0.05;
+                  }
                 }
               }
             }
@@ -4854,18 +4838,22 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
               success: true, 
               data: {
                 timestamp,
-                detectedFaces: detectedFaces,
+                detectedFaces: peopleDetected,
                 dominantEmotion: dominantEmotion,
                 emotionConfidence: emotionConfidence,
                 engagementScore: Math.round(engagementScore * 100),
                 behavioralMarkers: behavioralMarkers,
-                faceAnalysis: faceData,
-                source: 'azure-face-api'
+                visionAnalysis: {
+                  peopleDetected: peopleDetected,
+                  objects: analysis.objects?.slice(0, 5) || [],
+                  confidence: analysis.people?.[0]?.confidence || 0
+                },
+                source: 'azure-computer-vision'
               }
             });
           }
         } catch (azureError) {
-          console.log('Azure Face API unavailable, using alternative analysis');
+          console.log('Azure Computer Vision unavailable, using alternative analysis');
         }
       }
 
