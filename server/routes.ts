@@ -4738,12 +4738,17 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
                            clinicalTags.includes('progress') ? 'positive' : 'neutral';
 
       const analysis = {
+        text,
+        timestamp,
         speaker,
         clinicalTags,
         riskIndicators,
         emotionalTone,
         themes: clinicalTags.length > 0 ? clinicalTags.slice(0, 3) : ['general-discussion']
       };
+
+      // Feed transcript analysis to session analyzer for AI collaboration
+      await sessionAnalyzer.addTranscriptAnalysis(analysis);
 
       res.json(analysis);
     } catch (error) {
@@ -4855,23 +4860,25 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
 
             engagementScore = Math.max(0.3, Math.min(1, engagementScore));
 
-            return res.json({ 
-              success: true, 
-              data: {
-                timestamp,
-                detectedFaces: peopleDetected,
-                dominantEmotion: dominantEmotion,
-                emotionConfidence: emotionConfidence,
-                engagementScore: Math.round(engagementScore * 100),
-                behavioralMarkers: behavioralMarkers,
-                visionAnalysis: {
-                  peopleDetected: peopleDetected,
-                  objects: analysis.objects?.slice(0, 5) || [],
-                  confidence: analysis.people?.[0]?.confidence || 0
-                },
-                source: 'azure-computer-vision'
-              }
-            });
+            const result = {
+              timestamp,
+              detectedFaces: peopleDetected,
+              dominantEmotion: dominantEmotion,
+              emotionConfidence: emotionConfidence,
+              engagementScore: Math.round(engagementScore * 100),
+              behavioralMarkers: behavioralMarkers,
+              visionAnalysis: {
+                peopleDetected: peopleDetected,
+                objects: analysis.objects?.slice(0, 5) || [],
+                confidence: analysis.people?.[0]?.confidence || 0
+              },
+              source: 'azure-computer-vision'
+            };
+
+            // Feed Azure Computer Vision analysis to session analyzer
+            await sessionAnalyzer.addVideoAnalysis(result);
+
+            return res.json({ success: true, data: result });
           }
         } catch (azureError) {
           console.log('Azure Computer Vision error details:', {
@@ -4935,50 +4942,26 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
     }
   });
 
-  // Generate clinical insights
+  // Generate comprehensive clinical insights using AI collaboration
   app.post('/api/session-intelligence/generate-insights', async (req, res) => {
     try {
-      const { transcriptionSegments, videoAnalysis, sessionDuration } = req.body;
-      
-      // Generate simulated clinical insights
-      const insights = [];
-      
-      if (transcriptionSegments && transcriptionSegments.length > 0) {
-        insights.push({
-          type: 'engagement',
-          content: 'Strong therapeutic rapport observed in conversation patterns',
-          confidence: 0.85,
-          timestamp: Date.now()
-        });
-        
-        if (sessionDuration > 300) { // > 5 minutes
-          insights.push({
-            type: 'progress',
-            content: 'Client showing sustained engagement throughout session',
-            confidence: 0.78,
-            timestamp: Date.now()
-          });
-        }
-      }
-      
-      if (videoAnalysis && videoAnalysis.engagementScore > 0.7) {
-        insights.push({
-          type: 'visual-engagement',
-          content: 'High visual engagement metrics indicate active participation',
-          confidence: 0.82,
-          timestamp: Date.now()
-        });
-      }
-
-      const complianceScore = 85 + Math.floor(Math.random() * 15);
+      const insights = await sessionAnalyzer.generateClinicalInsights();
       
       res.json({
-        clinicalInsights: insights,
-        complianceScore
+        success: true,
+        insights: insights,
+        timestamp: Date.now(),
+        analysisCount: {
+          videoFrames: sessionAnalyzer.getVideoDataCount(),
+          transcriptSegments: sessionAnalyzer.getTranscriptDataCount()
+        }
       });
     } catch (error) {
-      console.error('Insights generation error:', error);
-      res.status(500).json({ error: 'Failed to generate insights' });
+      console.error('Error generating clinical insights:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate clinical insights',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 

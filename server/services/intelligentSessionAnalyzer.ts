@@ -1,7 +1,6 @@
-import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const googleAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
 
 export interface VideoAnalysisData {
   timestamp: number;
@@ -160,13 +159,12 @@ Provide a clinical assessment of emotional patterns. Focus on:
 
 Respond in JSON format: {"severity": "low|medium|high", "description": "brief description", "evidence": ["evidence1", "evidence2"], "recommendations": ["rec1", "rec2"]}`;
 
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [{ role: "user", content: prompt }],
-        response_format: { type: "json_object" },
-      });
-
-      const analysis = JSON.parse(response.choices[0].message.content || '{}');
+      const model = googleAI.getGenerativeModel({ model: "gemini-pro" });
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+      
+      const analysis = JSON.parse(text.replace(/```json|```/g, '').trim());
       
       return {
         type: 'emotional',
@@ -203,13 +201,12 @@ Assess therapeutic progress and provide insights on:
 
 Respond in JSON format: {"severity": "low|medium|high", "description": "brief description", "evidence": ["evidence1", "evidence2"], "recommendations": ["rec1", "rec2"]}`;
 
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [{ role: "user", content: prompt }],
-        response_format: { type: "json_object" },
-      });
-
-      const analysis = JSON.parse(response.choices[0].message.content || '{}');
+      const model = googleAI.getGenerativeModel({ model: "gemini-pro" });
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+      
+      const analysis = JSON.parse(text.replace(/```json|```/g, '').trim());
       
       return {
         type: 'therapeutic',
@@ -283,5 +280,13 @@ Respond in JSON format: {"severity": "low|medium|high", "description": "brief de
   clearBuffers(): void {
     this.videoDataBuffer = [];
     this.transcriptDataBuffer = [];
+  }
+
+  getVideoDataCount(): number {
+    return this.videoDataBuffer.length;
+  }
+
+  getTranscriptDataCount(): number {
+    return this.transcriptDataBuffer.length;
   }
 }
