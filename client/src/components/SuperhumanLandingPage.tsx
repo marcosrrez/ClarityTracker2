@@ -37,9 +37,22 @@ export const SuperhumanLandingPage = () => {
       });
     } catch (error: any) {
       console.error("Google sign-in error:", error);
+      
+      // Provide specific error messages based on Firebase error codes
+      let errorMessage = "Please try email signup instead.";
+      if (error?.code === 'auth/popup-blocked') {
+        errorMessage = "Pop-up was blocked. Please allow pop-ups and try again.";
+      } else if (error?.code === 'auth/popup-closed-by-user') {
+        errorMessage = "Sign-in was cancelled. Please try again.";
+      } else if (error?.code === 'auth/network-request-failed') {
+        errorMessage = "Network error. Please check your connection and try again.";
+      } else if (error?.code === 'auth/internal-error') {
+        errorMessage = "Google sign-in is temporarily unavailable. Please use email signup.";
+      }
+      
       toast({
         title: "Google Sign-In Failed",
-        description: error.message || "Please try again or use email signup.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -249,7 +262,7 @@ export const SuperhumanLandingPage = () => {
                     <button
                       onClick={handleForgotPassword}
                       disabled={isLoading}
-                      className="text-blue-600 hover:text-blue-700 text-sm transition-colors"
+                      className="text-purple-300 hover:text-white text-sm transition-colors"
                     >
                       Forgot your password?
                     </button>
