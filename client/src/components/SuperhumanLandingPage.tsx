@@ -147,12 +147,10 @@ export const SuperhumanLandingPage = () => {
   if (showSignupForm) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900">
-        {/* Firebase Connectivity Diagnostic - Development Only */}
-        {import.meta.env.NODE_ENV === 'development' && (
-          <div className="relative z-50 p-4">
-            <FirebaseConnectivityTest />
-          </div>
-        )}
+        {/* Firebase Connectivity Diagnostic */}
+        <div className="relative z-50 p-4">
+          <FirebaseConnectivityTest />
+        </div>
 
         {/* Logo */}
         <div className="absolute top-6 sm:top-8 left-6 sm:left-8 z-10">
