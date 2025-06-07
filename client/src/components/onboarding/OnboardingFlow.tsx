@@ -519,24 +519,24 @@ export const OnboardingFlow = () => {
                       return (
                         <motion.div
                           key={type.id}
-                          className={`p-8 rounded-3xl border-2 cursor-pointer transition-all duration-300 ${
+                          className={`p-8 rounded-3xl border-2 cursor-pointer transition-all duration-300 backdrop-blur-md ${
                             data.accountType === type.id
-                              ? 'border-blue-500 bg-blue-50/50 shadow-lg scale-105'
-                              : 'border-gray-200 bg-white/60 hover:border-gray-300 hover:shadow-md'
+                              ? 'border-purple-400 bg-white/20 shadow-2xl shadow-purple-500/25 scale-105'
+                              : 'border-white/20 bg-white/10 hover:border-purple-300/50 hover:bg-white/15 hover:shadow-xl'
                           }`}
                           onClick={() => setData({ ...data, accountType: type.id })}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                         >
                           <div className="space-y-6">
-                            <Icon className={`w-12 h-12 ${data.accountType === type.id ? 'text-blue-600' : 'text-gray-400'}`} />
+                            <Icon className={`w-12 h-12 ${data.accountType === type.id ? 'text-purple-300' : 'text-white/60'}`} />
                             <div>
-                              <h3 className="text-xl font-semibold text-gray-900 mb-2">{type.title}</h3>
-                              <p className="text-gray-600 font-light leading-relaxed">{type.description}</p>
+                              <h3 className="text-xl font-semibold text-white mb-2">{type.title}</h3>
+                              <p className="text-purple-200 font-medium leading-relaxed">{type.description}</p>
                             </div>
                             <div className="space-y-2">
                               {type.features.map((feature, index) => (
-                                <div key={index} className="text-sm text-gray-500 font-light">
+                                <div key={index} className="text-sm text-purple-100 font-light">
                                   • {feature}
                                 </div>
                               ))}
@@ -553,45 +553,45 @@ export const OnboardingFlow = () => {
               {currentStepData.showForm && (
                 <div className="space-y-12">
                   <div className="text-center space-y-6">
-                    <h1 className="text-5xl md:text-6xl font-light text-gray-900 leading-[1.1] tracking-tight">
+                    <h1 className="text-5xl md:text-6xl font-bold text-white leading-[1.1] tracking-tight">
                       {currentStepData.title}
                     </h1>
                   </div>
                   
                   <div className="max-w-md mx-auto space-y-8">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-3">
+                      <label className="block text-sm font-medium text-purple-200 mb-3">
                         What should we call you?
                       </label>
                       <Input
                         value={data.preferredName}
                         onChange={(e) => setData({ ...data, preferredName: e.target.value })}
                         placeholder="Your preferred name"
-                        className="w-full p-4 text-lg font-light border-gray-200 rounded-2xl focus:border-blue-500"
+                        className="w-full p-4 text-lg font-light bg-white/10 border-white/20 rounded-2xl focus:border-purple-400 text-white placeholder:text-purple-200/60 backdrop-blur-md"
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-3">
+                      <label className="block text-sm font-medium text-purple-200 mb-3">
                         State/Region
                       </label>
                       <Input
                         value={data.stateRegion}
                         onChange={(e) => setData({ ...data, stateRegion: e.target.value })}
                         placeholder="e.g., California, Ontario"
-                        className="w-full p-4 text-lg font-light border-gray-200 rounded-2xl focus:border-blue-500"
+                        className="w-full p-4 text-lg font-light bg-white/10 border-white/20 rounded-2xl focus:border-purple-400 text-white placeholder:text-purple-200/60 backdrop-blur-md"
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-3">
+                      <label className="block text-sm font-medium text-purple-200 mb-3">
                         Biggest tracking challenge?
                       </label>
                       <Input
                         value={data.trackingChallenge}
                         onChange={(e) => setData({ ...data, trackingChallenge: e.target.value })}
                         placeholder="e.g., remembering to log hours"
-                        className="w-full p-4 text-lg font-light border-gray-200 rounded-2xl focus:border-blue-500"
+                        className="w-full p-4 text-lg font-light bg-white/10 border-white/20 rounded-2xl focus:border-purple-400 text-white placeholder:text-purple-200/60 backdrop-blur-md"
                       />
                     </div>
                   </div>
@@ -603,13 +603,13 @@ export const OnboardingFlow = () => {
       </div>
 
       {/* Bottom Navigation */}
-      <div className="fixed bottom-8 left-8 right-8">
+      <div className="fixed bottom-8 left-8 right-8 relative z-10">
         <div className="flex justify-center">
           {currentStep === steps.length - 1 ? (
             <Button
               onClick={handleComplete}
               disabled={!currentStepData.canContinue || isLoading}
-              className="px-12 py-4 text-lg font-medium bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200"
+              className="px-12 py-4 text-lg font-medium bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 backdrop-blur-md border border-purple-400/50"
             >
               {isLoading ? "Setting up..." : "Get Started"}
             </Button>
@@ -617,7 +617,7 @@ export const OnboardingFlow = () => {
             <Button
               onClick={handleNext}
               disabled={!currentStepData.canContinue}
-              className="px-12 py-4 text-lg font-medium bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200"
+              className="px-12 py-4 text-lg font-medium bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 backdrop-blur-md border border-purple-400/50"
             >
               Next
             </Button>
