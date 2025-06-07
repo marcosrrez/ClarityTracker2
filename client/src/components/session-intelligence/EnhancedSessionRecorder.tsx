@@ -299,21 +299,23 @@ const EnhancedSessionRecorder: React.FC = () => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            transcriptionSegments: transcriptionSegments.slice(-5),
-            videoAnalysis,
-            sessionDuration: recordingDuration
-          }),
         });
 
-        const insights = await response.json();
+        const data = await response.json();
         
-        if (insights.clinicalInsights) {
-          setClinicalInsights(prev => [...prev.slice(-3), ...insights.clinicalInsights]);
-        }
-
-        if (insights.complianceScore) {
-          setComplianceScore(insights.complianceScore);
+        if (data.success && data.insights) {
+          const formattedInsights = data.insights.map((insight: any) => ({
+            type: insight.type,
+            content: insight.description,
+            confidence: insight.confidence,
+            timestamp: insight.timestamp
+          }));
+          
+          setClinicalInsights(prev => [...prev.slice(-3), ...formattedInsights]);
+          
+          // Update compliance score based on AI analysis confidence
+          const avgConfidence = data.insights.reduce((sum: number, insight: any) => sum + insight.confidence, 0) / data.insights.length;
+          setComplianceScore(Math.round(avgConfidence * 100));
         }
 
       } catch (error) {

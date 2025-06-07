@@ -4872,7 +4872,7 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
                 objects: analysis.objects?.slice(0, 5) || [],
                 confidence: analysis.people?.[0]?.confidence || 0
               },
-              source: 'azure-computer-vision'
+              source: 'azure-computer-vision' as const
             };
 
             // Feed Azure Computer Vision analysis to session analyzer
@@ -4926,7 +4926,7 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
         emotionConfidence: emotionConfidence,
         engagementScore: Math.round(engagementScore * 100),
         behavioralMarkers: behavioralMarkers,
-        source: 'engagement-analysis'
+        source: 'engagement-analysis' as const
       };
 
       // Feed video analysis to session analyzer for AI collaboration
@@ -4962,6 +4962,17 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
         error: 'Failed to generate clinical insights',
         details: error instanceof Error ? error.message : 'Unknown error'
       });
+    }
+  });
+
+  // Clear session analyzer buffers
+  app.post('/api/session-intelligence/clear-session', async (req, res) => {
+    try {
+      sessionAnalyzer.clearBuffers();
+      res.json({ success: true, message: 'Session data cleared' });
+    } catch (error) {
+      console.error('Error clearing session data:', error);
+      res.status(500).json({ error: 'Failed to clear session data' });
     }
   });
 
