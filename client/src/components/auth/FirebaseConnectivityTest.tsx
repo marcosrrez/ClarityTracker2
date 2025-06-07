@@ -38,17 +38,35 @@ export const FirebaseConnectivityTest = () => {
     
     try {
       addResult("Testing Firebase Auth endpoint...");
-      const response = await fetch(`https://identitytoolkit.googleapis.com/v1/projects?key=${import.meta.env.VITE_FIREBASE_API_KEY}`);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
+      const response = await fetch(`https://identitytoolkit.googleapis.com/v1/projects?key=${import.meta.env.VITE_FIREBASE_API_KEY}`, {
+        signal: controller.signal,
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      clearTimeout(timeoutId);
+      
       if (response.ok) {
         const data = await response.json();
         addResult(`✓ Firebase Auth API accessible`);
         addResult(`Project ID: ${data.projectId}`);
         addResult(`Authorized Domains: ${data.authorizedDomains?.join(', ')}`);
       } else {
+        const errorText = await response.text();
         addResult(`✗ Firebase Auth API error: ${response.status} ${response.statusText}`);
+        addResult(`Response: ${errorText.substring(0, 200)}`);
       }
     } catch (error: any) {
-      addResult(`✗ Network error accessing Firebase: ${error.message}`);
+      if (error.name === 'AbortError') {
+        addResult(`✗ Firebase request timed out - possible network connectivity issue`);
+      } else {
+        addResult(`✗ Network error accessing Firebase: ${error.message}`);
+      }
     }
     
     // Test 4: Current Domain Check
@@ -68,7 +86,8 @@ export const FirebaseConnectivityTest = () => {
     try {
       addResult(`Auth instance: ${auth ? "✓ Available" : "✗ Not available"}`);
       addResult(`Current user: ${auth.currentUser?.email || "None"}`);
-      addResult(`Auth ready: ${await auth.authStateReady() ? "✓ Ready" : "⏳ Loading"}`);
+      await auth.authStateReady();
+      addResult(`Auth ready: ✓ Ready`);
     } catch (error: any) {
       addResult(`✗ Auth configuration error: ${error.message}`);
     }
