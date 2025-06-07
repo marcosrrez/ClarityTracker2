@@ -33,7 +33,7 @@ interface AmazonEmotionAnalysis {
 }
 
 export class AmazonRekognitionService {
-  private rekognition: AWS.Rekognition | null = null;
+  private rekognition: any | null = null;
   private isConfigured = false;
 
   constructor() {
@@ -58,7 +58,7 @@ export class AmazonRekognitionService {
         region: region
       });
       
-      this.rekognition = new AWS.Rekognition();
+      this.rekognition = new (AWS as any).Rekognition();
       this.isConfigured = true;
       console.log('Amazon Rekognition initialized successfully');
     } catch (error) {
@@ -121,7 +121,9 @@ export class AmazonRekognitionService {
         emotionScores,
         detectedFaces: result.FaceDetails.length,
         faceAttributes: [{
-          age: face.AgeRange ? (face.AgeRange.Low + face.AgeRange.High) / 2 : undefined,
+          age: face.AgeRange && face.AgeRange.Low !== undefined && face.AgeRange.High !== undefined 
+          ? (face.AgeRange.Low + face.AgeRange.High) / 2 
+          : undefined,
           gender: face.Gender?.Value,
           smile: face.Smile?.Confidence,
           eyesOpen: face.EyesOpen?.Confidence,

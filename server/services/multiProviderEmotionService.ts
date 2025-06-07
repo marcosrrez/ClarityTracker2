@@ -40,7 +40,7 @@ export class MultiProviderEmotionService {
     // Try Azure Computer Vision first
     try {
       if (this.azureService.isAvailable()) {
-        const azureResult = await this.azureService.analyzeEmotions(imageData);
+        const azureResult = await this.azureService.analyzeVideoFrame(imageData);
         providers.azure = azureResult;
         results.push({
           provider: 'azure',
@@ -88,9 +88,10 @@ export class MultiProviderEmotionService {
 
     // Find dominant emotion from combined scores
     const dominantEmotion = Object.entries(combinedEmotionScores)
-      .reduce((max, [emotion, score]) => 
-        score > max.score ? { emotion, score } : max, 
-        { emotion: 'neutral', score: 0 }
+      .reduce((max, [emotion, score]) => {
+        const currentScore = typeof score === 'number' ? score : 0;
+        return currentScore > max.score ? { emotion, score: currentScore } : max;
+      }, { emotion: 'neutral', score: 0 }
       ).emotion;
 
     // Average confidence scores
