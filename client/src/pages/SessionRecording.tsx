@@ -82,6 +82,13 @@ export default function SessionRecording() {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const azureSpeechRef = useRef<AzureSpeechService | null>(null);
   const [transcriptionSegments, setTranscriptionSegments] = useState<TranscriptionSegment[]>([]);
+  const [liveInsights, setLiveInsights] = useState<any>(null);
+  const [realtimeAnalysis, setRealtimeAnalysis] = useState({
+    themes: [] as string[],
+    interventions: [] as string[],
+    riskIndicators: [] as string[],
+    therapeuticAlliance: 0
+  });
 
   // Initialize Azure Speech Service
   const initializeAzureSpeech = async () => {
@@ -166,6 +173,11 @@ export default function SessionRecording() {
             ...prev,
             transcript: prev.transcript + ' ' + segment.text
           }));
+          
+          // Trigger real-time analysis every 30 seconds or significant content
+          if (segment.text.length > 50) {
+            performRealtimeAnalysis(recordingState.transcript + ' ' + segment.text);
+          }
         },
         (error: string) => {
           console.error('Azure Speech transcription error:', error);
@@ -222,6 +234,29 @@ export default function SessionRecording() {
       }
       
       setCurrentTab('analysis');
+    }
+  };
+
+  // Real-time analysis function
+  const performRealtimeAnalysis = async (transcript: string) => {
+    if (transcript.length < 100) return; // Only analyze substantial content
+    
+    try {
+      const response = await apiRequest('POST', '/api/session-intelligence/generate-insights', {
+        transcript: transcript,
+        analysisType: 'realtime',
+        userId: 'current-user'
+      });
+      const insights = await response.json();
+      
+      setRealtimeAnalysis({
+        themes: insights.themes || [],
+        interventions: insights.interventions || [],
+        riskIndicators: insights.riskIndicators || [],
+        therapeuticAlliance: insights.therapeuticAlliance || 0
+      });
+    } catch (error) {
+      console.error('Real-time analysis error:', error);
     }
   };
 
@@ -418,40 +453,99 @@ export default function SessionRecording() {
                 </div>
               </div>
 
-              {/* Real-time Transcription Display */}
+              {/* Real-time Transcription and Clinical Insights */}
               {recordingState.isTranscribing && (
                 <div className="space-y-4">
                   <Alert>
                     <Activity className="h-4 w-4" />
                     <AlertDescription>
-                      Azure Speech Service is actively transcribing audio in real-time
+                      Azure Speech Service is actively transcribing audio with real-time clinical analysis
                     </AlertDescription>
                   </Alert>
                   
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="font-medium mb-2">Live Transcript</h4>
-                    <div className="max-h-40 overflow-y-auto">
-                      {transcriptionSegments.length > 0 ? (
-                        <div className="space-y-2">
-                          {transcriptionSegments.slice(-10).map((segment, index) => (
-                            <div key={index} className="text-sm">
-                              <span className="text-xs text-muted-foreground mr-2">
-                                {new Date(segment.timestamp).toLocaleTimeString()}
-                              </span>
-                              <span className={segment.confidence > 0.7 ? 'text-gray-900' : 'text-gray-600'}>
-                                {segment.text}
-                              </span>
-                              {segment.confidence <= 0.5 && (
-                                <span className="text-xs text-yellow-600 ml-2">(low confidence)</span>
-                              )}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {/* Live Transcript */}
+                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
+                      <h4 className="font-medium mb-2">Live Transcript</h4>
+                      <div className="max-h-40 overflow-y-auto">
+                        {transcriptionSegments.length > 0 ? (
+                          <div className="space-y-2">
+                            {transcriptionSegments.slice(-10).map((segment, index) => (
+                              <div key={index} className="text-sm">
+                                <span className="text-xs text-muted-foreground mr-2">
+                                  {new Date(segment.timestamp).toLocaleTimeString()}
+                                </span>
+                                <span className={segment.confidence > 0.7 ? 'text-gray-900 dark:text-gray-100' : 'text-gray-600'}>
+                                  {segment.text}
+                                </span>
+                                {segment.confidence <= 0.5 && (
+                                  <span className="text-xs text-yellow-600 ml-2">(low confidence)</span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-sm text-muted-foreground">
+                            Listening for speech...
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Real-time Clinical Insights */}
+                    <div className="bg-blue-50 dark:bg-blue-950 rounded-lg p-4">
+                      <h4 className="font-medium mb-2 flex items-center gap-2">
+                        <Brain className="h-4 w-4" />
+                        Live Clinical Insights
+                      </h4>
+                      <div className="space-y-3">
+                        {realtimeAnalysis.themes.length > 0 && (
+                          <div>
+                            <span className="text-xs font-medium text-muted-foreground">Emerging Themes:</span>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {realtimeAnalysis.themes.slice(0, 3).map((theme, i) => (
+                                <Badge key={i} variant="secondary" className="text-xs">{theme}</Badge>
+                              ))}
                             </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-sm text-muted-foreground">
-                          Listening for speech...
-                        </div>
-                      )}
+                          </div>
+                        )}
+                        
+                        {realtimeAnalysis.interventions.length > 0 && (
+                          <div>
+                            <span className="text-xs font-medium text-muted-foreground">Interventions Detected:</span>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {realtimeAnalysis.interventions.slice(0, 2).map((intervention, i) => (
+                                <Badge key={i} variant="outline" className="text-xs">{intervention}</Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {realtimeAnalysis.therapeuticAlliance > 0 && (
+                          <div>
+                            <span className="text-xs font-medium text-muted-foreground">Alliance Score:</span>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Progress value={realtimeAnalysis.therapeuticAlliance * 10} className="flex-1 h-2" />
+                              <span className="text-xs font-bold">{realtimeAnalysis.therapeuticAlliance}/10</span>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {realtimeAnalysis.riskIndicators.length > 0 && (
+                          <Alert className="py-2">
+                            <AlertTriangle className="h-3 w-3" />
+                            <AlertDescription className="text-xs">
+                              <strong>Risk Indicators:</strong> {realtimeAnalysis.riskIndicators.slice(0, 2).join(', ')}
+                            </AlertDescription>
+                          </Alert>
+                        )}
+                        
+                        {realtimeAnalysis.themes.length === 0 && realtimeAnalysis.interventions.length === 0 && (
+                          <div className="text-xs text-muted-foreground">
+                            Analyzing session content for clinical insights...
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -524,157 +618,255 @@ export default function SessionRecording() {
               {/* Session Intelligence */}
               <Card>
                 <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-5 w-5" />
-                  Session Intelligence
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {analysisResults.sessionAnalysis ? (
-                  <div className="space-y-3">
-                    <div>
-                      <h4 className="font-medium mb-2">Key Themes</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {analysisResults.sessionAnalysis.themes?.map((theme: string, i: number) => (
-                          <Badge key={i} variant="secondary">{theme}</Badge>
-                        ))}
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="h-5 w-5" />
+                    Session Intelligence
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {analysisResults.sessionAnalysis ? (
+                    <div className="space-y-3">
+                      <div>
+                        <h4 className="font-medium mb-2">Key Themes</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {analysisResults.sessionAnalysis.analysis?.themes?.map((theme: string, i: number) => (
+                            <Badge key={i} variant="secondary">{theme}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <Separator />
+                      
+                      <div>
+                        <h4 className="font-medium mb-2">Interventions Used</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {analysisResults.sessionAnalysis.analysis?.interventions?.map((intervention: string, i: number) => (
+                            <Badge key={i} variant="outline">{intervention}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <Separator />
+                      
+                      <div>
+                        <h4 className="font-medium mb-2">Therapeutic Alliance</h4>
+                        <div className="flex items-center gap-2">
+                          <Progress value={analysisResults.sessionAnalysis.analysis?.therapeuticAlliance * 10} className="flex-1" />
+                          <span className="font-bold">{analysisResults.sessionAnalysis.analysis?.therapeuticAlliance}/10</span>
+                        </div>
                       </div>
                     </div>
-                    
-                    <Separator />
-                    
-                    <div>
-                      <h4 className="font-medium mb-2">Therapeutic Alliance</h4>
-                      <div className="flex items-center gap-2">
-                        <Progress value={analysisResults.sessionAnalysis.therapeuticAlliance * 10} className="flex-1" />
-                        <span className="font-bold">{analysisResults.sessionAnalysis.therapeuticAlliance}/10</span>
-                      </div>
+                  ) : (
+                    <div className="text-center text-muted-foreground">
+                      Analysis pending...
                     </div>
-                  </div>
-                ) : (
-                  <div className="text-center text-muted-foreground">
-                    Analysis pending...
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                  )}
+                </CardContent>
+              </Card>
 
-            {/* Risk Assessment */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="h-5 w-5" />
-                  Risk Assessment
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {analysisResults.riskAssessment ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span>Risk Level:</span>
-                      <Badge variant={
-                        analysisResults.riskAssessment.riskLevel === 'low' ? 'secondary' : 'destructive'
-                      }>
-                        {analysisResults.riskAssessment.riskLevel.toUpperCase()}
-                      </Badge>
+              {/* Risk Assessment */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="h-5 w-5" />
+                    Risk Assessment
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {analysisResults.riskAssessment ? (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span>Risk Level:</span>
+                        <Badge variant={
+                          analysisResults.riskAssessment.riskLevel === 'low' ? 'secondary' : 'destructive'
+                        }>
+                          {analysisResults.riskAssessment.riskLevel.toUpperCase()}
+                        </Badge>
+                      </div>
+                      
+                      {analysisResults.riskAssessment.immediateActions?.length > 0 && (
+                        <Alert>
+                          <AlertTriangle className="h-4 w-4" />
+                          <AlertDescription>
+                            <strong>Immediate Actions Required:</strong>
+                            <ul className="list-disc list-inside mt-1">
+                              {analysisResults.riskAssessment.immediateActions.map((action: string, i: number) => (
+                                <li key={i}>{action}</li>
+                              ))}
+                            </ul>
+                          </AlertDescription>
+                        </Alert>
+                      )}
                     </div>
-                    
-                    {analysisResults.riskAssessment.immediateActions?.length > 0 && (
-                      <Alert>
-                        <AlertTriangle className="h-4 w-4" />
-                        <AlertDescription>
-                          <strong>Immediate Actions Required:</strong>
-                          <ul className="list-disc list-inside mt-1">
-                            {analysisResults.riskAssessment.immediateActions.map((action: string, i: number) => (
-                              <li key={i}>{action}</li>
+                  ) : (
+                    <div className="text-center text-muted-foreground">
+                      Assessment pending...
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Evidence-Based Practice Analysis */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Brain className="h-5 w-5" />
+                    Evidence-Based Practice
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {analysisResults.ebpAnalysis ? (
+                    <div className="space-y-3">
+                      <div>
+                        <h4 className="font-medium mb-2">Techniques Used</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {analysisResults.ebpAnalysis.techniquesUsed?.map((technique: string, i: number) => (
+                            <Badge key={i} variant="outline">{technique}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <Separator />
+                      
+                      <div>
+                        <h4 className="font-medium mb-2">Adherence Score</h4>
+                        <div className="flex items-center gap-2">
+                          <Progress value={analysisResults.ebpAnalysis.adherenceScore * 10} className="flex-1" />
+                          <span className="font-bold">{analysisResults.ebpAnalysis.adherenceScore}/10</span>
+                        </div>
+                      </div>
+                      
+                      {analysisResults.ebpAnalysis.recommendations?.length > 0 && (
+                        <div>
+                          <h4 className="font-medium mb-2">Recommendations</h4>
+                          <ul className="text-sm space-y-1">
+                            {analysisResults.ebpAnalysis.recommendations.map((rec: string, i: number) => (
+                              <li key={i} className="text-muted-foreground">• {rec}</li>
                             ))}
                           </ul>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center text-muted-foreground">
+                      EBP analysis pending...
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Progress Notes */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Auto-Generated Notes
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {analysisResults.progressNotes ? (
+                    <div className="space-y-3">
+                      <div className="p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg text-sm">
+                        {analysisResults.progressNotes.generatedNotes}
+                      </div>
+                      
+                      <div>
+                        <h4 className="font-medium mb-2">Billing Codes</h4>
+                        <div className="flex gap-2">
+                          {analysisResults.progressNotes.billingCodes?.map((code: string, i: number) => (
+                            <Badge key={i} variant="outline">{code}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center text-muted-foreground">
+                      Notes generation pending...
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Time Efficiency */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    Efficiency Metrics
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {analysisResults.sessionAnalysis?.timeEfficiency ? (
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <span className="text-sm text-muted-foreground">Manual Time:</span>
+                          <div className="text-lg font-semibold">
+                            {analysisResults.sessionAnalysis.timeEfficiency.estimatedManualTime} min
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-sm text-muted-foreground">AI Time:</span>
+                          <div className="text-lg font-semibold">
+                            {analysisResults.sessionAnalysis.timeEfficiency.aiAssistedTime} min
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <Alert>
+                        <CheckCircle className="h-4 w-4" />
+                        <AlertDescription>
+                          <strong>Time Saved: {analysisResults.sessionAnalysis.timeEfficiency.timeSaved} minutes</strong>
+                          <br />
+                          Efficiency Gain: {analysisResults.sessionAnalysis.timeEfficiency.efficiencyGain}
                         </AlertDescription>
                       </Alert>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-center text-muted-foreground">
-                    Assessment pending...
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                    </div>
+                  ) : (
+                    <div className="text-center text-muted-foreground">
+                      Efficiency calculation pending...
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
-            {/* Progress Notes */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Auto-Generated Notes
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {analysisResults.progressNotes ? (
-                  <div className="space-y-3">
-                    <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm">
-                      {analysisResults.progressNotes.generatedNotes}
-                    </div>
-                    
-                    <div>
-                      <h4 className="font-medium mb-2">Billing Codes</h4>
-                      <div className="flex gap-2">
-                        {analysisResults.progressNotes.billingCodes?.map((code: string, i: number) => (
-                          <Badge key={i} variant="outline">{code}</Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center text-muted-foreground">
-                    Notes generation pending...
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Time Efficiency */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  Efficiency Metrics
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {analysisResults.sessionAnalysis?.timeEfficiency ? (
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-4">
+              {/* Clinical Insights */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="h-5 w-5" />
+                    Clinical Insights
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {analysisResults.treatmentRecommendations ? (
+                    <div className="space-y-3">
                       <div>
-                        <span className="text-sm text-muted-foreground">Manual Time:</span>
-                        <div className="text-lg font-semibold">
-                          {analysisResults.sessionAnalysis.timeEfficiency.estimatedManualTime} min
-                        </div>
+                        <h4 className="font-medium mb-2">Treatment Recommendations</h4>
+                        <ul className="text-sm space-y-1">
+                          {analysisResults.treatmentRecommendations.recommendations?.map((rec: string, i: number) => (
+                            <li key={i} className="text-muted-foreground">• {rec}</li>
+                          ))}
+                        </ul>
                       </div>
-                      <div>
-                        <span className="text-sm text-muted-foreground">AI Time:</span>
-                        <div className="text-lg font-semibold">
-                          {analysisResults.sessionAnalysis.timeEfficiency.aiAssistedTime} min
+                      
+                      {analysisResults.treatmentRecommendations.nextSessionFocus && (
+                        <div>
+                          <h4 className="font-medium mb-2">Next Session Focus</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {analysisResults.treatmentRecommendations.nextSessionFocus}
+                          </p>
                         </div>
-                      </div>
+                      )}
                     </div>
-                    
-                    <Alert>
-                      <CheckCircle className="h-4 w-4" />
-                      <AlertDescription>
-                        <strong>Time Saved: {analysisResults.sessionAnalysis.timeEfficiency.timeSaved} minutes</strong>
-                        <br />
-                        Efficiency Gain: {analysisResults.sessionAnalysis.timeEfficiency.efficiencyGain}
-                      </AlertDescription>
-                    </Alert>
-                  </div>
-                ) : (
-                  <div className="text-center text-muted-foreground">
-                    Efficiency calculation pending...
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                  ) : (
+                    <div className="text-center text-muted-foreground">
+                      Insights generation pending...
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </TabsContent>
       </Tabs>
