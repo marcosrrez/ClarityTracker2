@@ -12,7 +12,8 @@ import {
   ArrowRight,
   Sparkles,
   Timer,
-  TrendingUp
+  TrendingUp,
+  Heart
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { getRandomQuote } from '@/lib/counseling-quotes';
@@ -64,7 +65,7 @@ export function SuperhumanOnboarding({ onComplete, userType }: SuperhumanOnboard
           title: 'Stay Connected',
           subtitle: 'Seamless communication with your therapist',
           description: 'Share reflections, receive feedback, and maintain momentum between sessions.',
-          icon: <Target className="h-12 w-12 text-green-500" />,
+          icon: <Heart className="h-12 w-12 text-green-500" />,
           keyboardShortcut: 'Cmd + M',
           benefit: 'Stronger therapeutic alliance',
           demo: (
@@ -135,60 +136,63 @@ export function SuperhumanOnboarding({ onComplete, userType }: SuperhumanOnboard
         )
       },
       {
-      id: 'intelligence',
-      title: 'AI-Powered Insights',
-      subtitle: 'Discover patterns in your practice',
-      description: 'Dinger analyzes your notes to identify growth areas, suggest resources, and prepare you for supervision.',
-      icon: <Brain className="h-12 w-12 text-purple-500" />,
-      keyboardShortcut: 'Cmd + I',
-      benefit: 'Smarter supervision prep',
-      demo: (
-        <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg p-4 border border-purple-100 dark:border-purple-800">
-          <div className="space-y-2">
-            <div className="text-sm font-medium">Pattern Detected:</div>
-            <div className="text-xs text-gray-600 dark:text-gray-400">
-              "You're developing strong rapport-building skills with anxious clients"
-            </div>
-            <Badge variant="secondary" className="text-xs">Therapeutic Alliance ↗</Badge>
-          </div>
-        </div>
-      )
-    },
-    {
-      id: 'progress',
-      title: 'Visual Progress',
-      subtitle: 'See your journey to licensure',
-      description: 'Beautiful dashboards show exactly where you stand and what milestones are coming next.',
-      icon: <TrendingUp className="h-12 w-12 text-green-500" />,
-      keyboardShortcut: 'Cmd + D',
-      benefit: 'Never miss requirements',
-      demo: (
-        <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg p-4 border border-green-100 dark:border-green-800">
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Direct Hours</span>
-              <span className="font-medium">1,847 / 4,000</span>
-            </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-              <div className="bg-green-500 h-2 rounded-full" style={{ width: '46%' }}></div>
-            </div>
-            <div className="text-xs text-gray-600 dark:text-gray-400">
-              On track for December 2025
+        id: 'intelligence',
+        title: 'AI-Powered Insights',
+        subtitle: 'Discover patterns in your practice',
+        description: 'Dinger analyzes your notes to identify growth areas, suggest resources, and prepare you for supervision.',
+        icon: <Brain className="h-12 w-12 text-purple-500" />,
+        keyboardShortcut: 'Cmd + I',
+        benefit: 'Smarter supervision prep',
+        demo: (
+          <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg p-4 border border-purple-100 dark:border-purple-800">
+            <div className="space-y-2">
+              <div className="text-sm font-medium">Pattern Detected:</div>
+              <div className="text-xs text-gray-600 dark:text-gray-400">
+                "You're developing strong rapport-building skills with anxious clients"
+              </div>
+              <Badge variant="secondary" className="text-xs">Therapeutic Alliance ↗</Badge>
             </div>
           </div>
-        </div>
-      )
-    },
-    {
-      id: 'first-session',
-      title: 'Create Your First Entry',
-      subtitle: 'Start your LPC journey today',
-      description: 'Log your most recent session to see ClarityLog in action and begin tracking your progress.',
-      icon: <Target className="h-12 w-12 text-orange-500" />,
-      benefit: 'Immediate progress tracking',
-      isInteractive: true
-    }
-  ];
+        )
+      },
+      {
+        id: 'progress',
+        title: 'Visual Progress',
+        subtitle: 'See your journey to licensure',
+        description: 'Beautiful dashboards show exactly where you stand and what milestones are coming next.',
+        icon: <TrendingUp className="h-12 w-12 text-green-500" />,
+        keyboardShortcut: 'Cmd + D',
+        benefit: 'Never miss requirements',
+        demo: (
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg p-4 border border-green-100 dark:border-green-800">
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Direct Hours</span>
+                <span className="font-medium">1,847 / 4,000</span>
+              </div>
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div className="bg-green-500 h-2 rounded-full" style={{ width: '46%' }}></div>
+              </div>
+              <div className="text-xs text-gray-600 dark:text-gray-400">
+                Only 2,153 hours to go!
+              </div>
+            </div>
+          </div>
+        )
+      },
+      {
+        id: 'first-session',
+        title: 'Create Your First Entry',
+        subtitle: 'Start your LPC journey today',
+        description: 'Log your most recent session to see ClarityLog in action and begin tracking your progress.',
+        icon: <Target className="h-12 w-12 text-orange-500" />,
+        benefit: 'Immediate progress tracking',
+        isInteractive: true
+      }
+    ];
+  };
+
+  const steps = getStepsForUserType();
 
   const handleCreateFirstEntry = async () => {
     setIsCreatingEntry(true);
@@ -276,6 +280,9 @@ export function SuperhumanOnboarding({ onComplete, userType }: SuperhumanOnboard
               </div>
             ))}
           </div>
+          <p className="text-center text-purple-200 text-sm font-medium">
+            {currentStep + 1} of {steps.length} — Setting up your superhuman workflow
+          </p>
         </div>
 
         <AnimatePresence mode="wait">
@@ -284,99 +291,104 @@ export function SuperhumanOnboarding({ onComplete, userType }: SuperhumanOnboard
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-            className="text-center"
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="text-center space-y-8"
           >
-            {/* Main Content */}
-            <div className="mb-12">
-              <motion.div
-                initial={{ scale: 0.8 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2, duration: 0.4 }}
-                className="mb-6 flex justify-center"
-              >
+            {/* Step Icon */}
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.4 }}
+              className="flex justify-center mb-6"
+            >
+              <div className="p-6 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 shadow-2xl">
                 {currentStepData.icon}
-              </motion.div>
+              </div>
+            </motion.div>
 
-              <motion.div
+            {/* Step Content */}
+            <div className="space-y-6 max-w-3xl mx-auto">
+              <motion.h1 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3, duration: 0.4 }}
-                className="space-y-6 mb-12"
+                className="text-4xl md:text-5xl font-bold text-white leading-tight"
               >
-                <h1 className="text-5xl sm:text-6xl font-bold text-white leading-tight">
-                  {currentStepData.title}
-                </h1>
-                <p className="text-xl sm:text-2xl text-purple-200 font-medium">
-                  {currentStepData.subtitle}
-                </p>
-                <p className="text-lg text-purple-100/80 max-w-2xl mx-auto leading-relaxed">
-                  {currentStepData.description}
-                </p>
-              </motion.div>
-
-              {/* Feature Demo or Interactive Form */}
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
+                {currentStepData.title}
+              </motion.h1>
+              
+              <motion.p 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4, duration: 0.4 }}
+                className="text-xl text-purple-200 font-medium"
+              >
+                {currentStepData.subtitle}
+              </motion.p>
+              
+              <motion.p 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
                 transition={{ delay: 0.5, duration: 0.4 }}
-                className="max-w-md mx-auto mb-8"
+                className="text-lg text-purple-100 leading-relaxed max-w-2xl mx-auto"
+              >
+                {currentStepData.description}
+              </motion.p>
+
+              {/* Demo or Interactive Content */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.6, duration: 0.4 }}
+                className="max-w-md mx-auto"
               >
                 {currentStepData.isInteractive ? (
-                  <Card className="p-8 bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl">
-                    <CardContent className="space-y-6 p-0">
-                      <div className="grid grid-cols-2 gap-6">
+                  <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-2xl">
+                    <CardContent className="p-6 space-y-4">
+                      <h3 className="text-lg font-semibold text-white mb-4">Your First Session Entry</h3>
+                      <div className="space-y-3">
                         <div>
-                          <label className="block text-sm font-semibold text-purple-100 mb-2">
-                            Session Date
-                          </label>
+                          <label className="block text-sm font-medium text-purple-200 mb-1">Date</label>
                           <input
                             type="date"
                             value={firstSessionData.date}
                             onChange={(e) => setFirstSessionData(prev => ({ ...prev, date: e.target.value }))}
-                            className="w-full px-4 py-3 border border-white/30 rounded-xl bg-white/10 backdrop-blur-sm text-white placeholder-purple-200 focus:border-purple-300 focus:ring-2 focus:ring-purple-500/25 transition-all"
+                            className="w-full px-3 py-2 border border-white/20 rounded-md bg-white/10 text-white placeholder:text-purple-200/60 backdrop-blur-md"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-semibold text-purple-100 mb-2">
-                            Hours
-                          </label>
+                          <label className="block text-sm font-medium text-purple-200 mb-1">Hours</label>
                           <input
                             type="number"
-                            step="0.25"
+                            step="0.5"
                             value={firstSessionData.hours}
                             onChange={(e) => setFirstSessionData(prev => ({ ...prev, hours: parseFloat(e.target.value) }))}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                            className="w-full px-3 py-2 border border-white/20 rounded-md bg-white/10 text-white placeholder:text-purple-200/60 backdrop-blur-md"
                           />
                         </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Session Type
-                        </label>
-                        <select
-                          value={firstSessionData.sessionType}
-                          onChange={(e) => setFirstSessionData(prev => ({ ...prev, sessionType: e.target.value }))}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                        >
-                          <option>Individual Therapy</option>
-                          <option>Group Therapy</option>
-                          <option>Family Therapy</option>
-                          <option>Assessment</option>
-                          <option>Crisis Intervention</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Brief Notes (Optional)
-                        </label>
-                        <textarea
-                          value={firstSessionData.notes}
-                          onChange={(e) => setFirstSessionData(prev => ({ ...prev, notes: e.target.value }))}
-                          placeholder="Focus areas, interventions used, client response..."
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-none"
-                          rows={3}
-                        />
+                        <div>
+                          <label className="block text-sm font-medium text-purple-200 mb-1">Session Type</label>
+                          <select
+                            value={firstSessionData.sessionType}
+                            onChange={(e) => setFirstSessionData(prev => ({ ...prev, sessionType: e.target.value }))}
+                            className="w-full px-3 py-2 border border-white/20 rounded-md bg-white/10 text-white backdrop-blur-md"
+                          >
+                            <option value="Individual Therapy">Individual Therapy</option>
+                            <option value="Group Therapy">Group Therapy</option>
+                            <option value="Family Therapy">Family Therapy</option>
+                            <option value="Assessment">Assessment</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-purple-200 mb-1">Notes (Optional)</label>
+                          <textarea
+                            value={firstSessionData.notes}
+                            onChange={(e) => setFirstSessionData(prev => ({ ...prev, notes: e.target.value }))}
+                            placeholder="Focus areas, interventions used, client response..."
+                            className="w-full px-3 py-2 border border-white/20 rounded-md bg-white/10 text-white placeholder:text-purple-200/60 backdrop-blur-md resize-none"
+                            rows={3}
+                          />
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -393,15 +405,15 @@ export function SuperhumanOnboarding({ onComplete, userType }: SuperhumanOnboard
                   transition={{ delay: 0.6, duration: 0.4 }}
                   className="flex items-center justify-center gap-6 mb-8"
                 >
-                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                    <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
+                  <div className="flex items-center gap-2 text-sm text-purple-200">
+                    <kbd className="px-2 py-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded text-xs font-mono text-purple-100">
                       {currentStepData.keyboardShortcut}
                     </kbd>
                     <span>Quick access</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
-                    <Sparkles className="h-4 w-4 text-yellow-500" />
-                    <span className="text-gray-600 dark:text-gray-400">{currentStepData.benefit}</span>
+                    <Sparkles className="h-4 w-4 text-yellow-400" />
+                    <span className="text-purple-200">{currentStepData.benefit}</span>
                   </div>
                 </motion.div>
               )}
