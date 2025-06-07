@@ -135,7 +135,7 @@ export const corsOptions = {
  * Helmet security configuration - development-friendly
  */
 export const helmetConfig = helmet({
-  contentSecurityPolicy: {
+  contentSecurityPolicy: process.env.NODE_ENV === 'production' ? {
     directives: {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
@@ -149,12 +149,15 @@ export const helmetConfig = helmet({
         "https://securetoken.googleapis.com",
         "https://identitytoolkit.googleapis.com",
         "https://www.googleapis.com",
-        "https://accounts.google.com"
+        "https://accounts.google.com",
+        "https://firestore.googleapis.com",
+        "https://firebase.googleapis.com",
+        "https://*.googleapis.com"
       ],
       frameSrc: ["'self'", "https://accounts.google.com"],
       objectSrc: ["'none'"],
     },
-  },
+  } : false, // Disable CSP in development
   hsts: process.env.NODE_ENV === 'production' ? {
     maxAge: 31536000,
     includeSubDomains: true,
