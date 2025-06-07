@@ -76,13 +76,13 @@ const SessionIntelligenceNew = () => {
                   </p>
                 </CardHeader>
                 <CardContent>
-                  <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-6">
+                  <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
                     <div className="flex items-start gap-3">
-                      <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
+                      <Shield className="h-5 w-5 text-blue-600 mt-0.5" />
                       <div>
-                        <h4 className="font-medium text-yellow-800 dark:text-yellow-200 mb-1">Demo Mode Active</h4>
-                        <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                          This demonstration uses simulated analysis for privacy. In production, the system integrates with your existing Azure Speech Service for real transcription and clinical analysis.
+                        <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-1">Live Analysis Active</h4>
+                        <p className="text-sm text-blue-700 dark:text-blue-300">
+                          Real-time session intelligence powered by Azure Speech Service for transcription and OpenAI Vision API for behavioral analysis. All processing follows HIPAA compliance protocols.
                         </p>
                       </div>
                     </div>
