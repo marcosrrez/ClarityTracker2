@@ -59,6 +59,7 @@ const LiveSessionRecorder: React.FC = () => {
     intensity: 0.5,
     confidence: 0.8
   });
+  const [currentEmotions, setCurrentEmotions] = useState<EmotionState[]>([]);
   const [engagementScore, setEngagementScore] = useState(75);
   const [complianceScore, setComplianceScore] = useState(88);
   const [transcriptionSegments, setTranscriptionSegments] = useState<TranscriptionSegment[]>([]);
@@ -250,6 +251,20 @@ const LiveSessionRecorder: React.FC = () => {
           intensity: analysis.emotionConfidence || 0.5,
           confidence: analysis.emotionConfidence || 0.8
         });
+
+        // Update currentEmotions array for ClinicalInsightsPanel
+        const emotionUpdate: EmotionState = {
+          emotion: analysis.dominantEmotion,
+          intensity: analysis.emotionConfidence || 0.5,
+          confidence: analysis.emotionConfidence || 0.8
+        };
+
+        // If Azure Face API provides multiple emotions, use them; otherwise use dominant emotion
+        if (analysis.emotions && Array.isArray(analysis.emotions)) {
+          setCurrentEmotions(analysis.emotions);
+        } else {
+          setCurrentEmotions([emotionUpdate]);
+        }
       }
 
       // Update engagement score
