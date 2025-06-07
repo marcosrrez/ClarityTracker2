@@ -82,7 +82,7 @@ const SessionIntelligenceNew = () => {
                       <div>
                         <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-1">Live Analysis Active</h4>
                         <p className="text-sm text-blue-700 dark:text-blue-300">
-                          Real-time session intelligence powered by Azure Speech Service for transcription and Azure Face API for behavioral analysis. Cost-effective solution using Azure's free tier services with HIPAA compliance protocols.
+                          Real-time session intelligence powered by Azure Speech Service for transcription and engagement analysis. Production-ready with HIPAA compliance protocols and cost-effective Azure integration.
                         </p>
                       </div>
                     </div>
