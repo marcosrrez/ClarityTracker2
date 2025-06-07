@@ -54,6 +54,16 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Skip Firebase and Google services - let them handle their own connections
+  if (url.hostname.includes('googleapis.com') || 
+      url.hostname.includes('google.com') ||
+      url.hostname.includes('firebase.com') ||
+      url.hostname.includes('gstatic.com') ||
+      url.protocol === 'chrome-extension:' ||
+      url.protocol === 'wss:') {
+    return;
+  }
+
   // Handle API requests
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(handleApiRequest(request));

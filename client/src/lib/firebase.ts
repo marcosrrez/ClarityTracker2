@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, onAuthStateChanged, User } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getAuth, onAuthStateChanged, User, connectAuthEmulator } from "firebase/auth";
+import { getFirestore, connectFirestoreEmulator, enableNetwork, disableNetwork } from "firebase/firestore";
 import { useEffect, useState } from "react";
 
 const firebaseConfig = {
@@ -17,6 +17,20 @@ const app = initializeApp(firebaseConfig);
 // Initialize Firebase services
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+
+// Enable network connectivity and handle errors gracefully
+export const initializeFirebaseConnectivity = async () => {
+  try {
+    await enableNetwork(db);
+    console.log("Firebase connectivity enabled");
+  } catch (error) {
+    console.warn("Firebase network initialization warning:", error);
+    // Don't throw - continue with offline mode
+  }
+};
+
+// Call initialization
+initializeFirebaseConnectivity();
 
 // User authentication hook
 export function useUser() {

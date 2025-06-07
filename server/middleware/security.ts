@@ -135,7 +135,7 @@ export const corsOptions = {
  * Helmet security configuration - development-friendly
  */
 export const helmetConfig = helmet({
-  contentSecurityPolicy: process.env.NODE_ENV === 'production' ? {
+  contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
@@ -152,7 +152,11 @@ export const helmetConfig = helmet({
         "https://accounts.google.com",
         "https://firestore.googleapis.com",
         "https://firebase.googleapis.com",
-        "https://*.googleapis.com"
+        "https://*.googleapis.com",
+        "https://www.google.com",
+        "https://ssl.gstatic.com",
+        "wss://firestore.googleapis.com",
+        "wss://*.googleapis.com"
       ],
       frameSrc: ["'self'", "https://accounts.google.com"],
       objectSrc: ["'none'"],
