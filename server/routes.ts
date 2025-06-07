@@ -4769,14 +4769,19 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
       }
 
       // Use Azure Computer Vision API for image analysis
-      const endpoint = process.env.AZURE_FACE_ENDPOINT.replace('/face/', '/vision/');
+      let endpoint = process.env.AZURE_FACE_ENDPOINT;
+      // Ensure we're using the Computer Vision endpoint format
+      if (endpoint.includes('cognitive')) {
+        // Already correct format: https://clarityvision.cognitiveservices.azure.com/
+        endpoint = endpoint.replace(/\/$/, ''); // Remove trailing slash if present
+      }
       const subscriptionKey = process.env.AZURE_FACE_KEY;
       
       // Convert base64 to buffer
       const imageBuffer = Buffer.from(imageData, 'base64');
       
       // Call Azure Computer Vision API for general image analysis
-      const response = await fetch(`${endpoint}/v3.2/analyze?visualFeatures=Adult,Color,Description,Faces,Objects,Tags`, {
+      const response = await fetch(`${endpoint}/vision/v3.2/analyze?visualFeatures=Adult,Color,Description,Faces,Objects,Tags`, {
         method: 'POST',
         headers: {
           'Ocp-Apim-Subscription-Key': subscriptionKey,
