@@ -47,6 +47,12 @@ interface BillingCode {
   justification: string;
 }
 
+interface EmotionState {
+  emotion: string;
+  intensity: number;
+  confidence: number;
+}
+
 interface ClinicalInsightsPanelProps {
   transcriptionSegments: any[];
   videoAnalysisFrames: any[];
@@ -55,6 +61,7 @@ interface ClinicalInsightsPanelProps {
   complianceScore: number;
   sessionDuration: number;
   isRecording: boolean;
+  currentEmotions?: EmotionState[];
 }
 
 const ClinicalInsightsPanel: React.FC<ClinicalInsightsPanelProps> = ({
@@ -64,7 +71,8 @@ const ClinicalInsightsPanel: React.FC<ClinicalInsightsPanelProps> = ({
   engagementScore,
   complianceScore,
   sessionDuration,
-  isRecording
+  isRecording,
+  currentEmotions = []
 }) => {
   const [soapNote, setSoapNote] = useState<SOAPNote | null>(null);
   const [complianceMetrics, setComplianceMetrics] = useState<ComplianceMetric[]>([]);
@@ -172,9 +180,39 @@ const ClinicalInsightsPanel: React.FC<ClinicalInsightsPanelProps> = ({
           </TabsList>
 
           <TabsContent value="insights" className="space-y-4 mt-4">
+            {/* Real-time Emotion Analysis from Azure Computer Vision */}
+            {currentEmotions.length > 0 && (
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium">Real-time Emotional Analysis</h4>
+                <div className="p-3 bg-purple-50 dark:bg-purple-950 rounded-lg">
+                  <div className="space-y-2">
+                    {currentEmotions.map((emotion, index) => (
+                      <div key={index} className="flex items-center gap-3">
+                        <span className="text-sm font-medium capitalize text-purple-800 dark:text-purple-200 w-20">
+                          {emotion.emotion}
+                        </span>
+                        <div className="flex-1 bg-purple-100 dark:bg-purple-900 rounded-full h-2">
+                          <div 
+                            className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${emotion.intensity * 100}%` }}
+                          />
+                        </div>
+                        <span className="text-xs text-purple-600 dark:text-purple-300 w-12">
+                          {Math.round(emotion.intensity * 100)}%
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-2 text-xs text-purple-600 dark:text-purple-400">
+                    Azure Computer Vision Analysis
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Real-time Clinical Insights */}
             <div className="space-y-3">
-              <h4 className="text-sm font-medium">Real-time Clinical Insights</h4>
+              <h4 className="text-sm font-medium">AI Clinical Insights</h4>
               <AnimatePresence>
                 {clinicalInsights.slice(-4).map((insight, index) => (
                   <motion.div

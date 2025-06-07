@@ -264,12 +264,24 @@ const EnhancedSessionRecorder: React.FC = () => {
           }),
         });
 
-        const analysis = await response.json();
+        const response_data = await response.json();
+        const analysis = response_data.success ? response_data.data : response_data;
         
-        if (analysis.success) {
-          setVideoAnalysis(analysis.data);
-          updateEmotionalState(analysis.data);
-          updateEngagementScore(analysis.data.engagementScore);
+        if (analysis) {
+          const videoFrame: VideoAnalysisFrame = {
+            timestamp: Date.now(),
+            detectedFaces: analysis.detectedFaces || 1,
+            dominantEmotion: analysis.dominantEmotion || 'neutral',
+            emotionConfidence: analysis.emotionConfidence || 0.8,
+            engagementScore: analysis.engagementScore || 75,
+            poseData: analysis.poseData || {},
+            gazeData: analysis.gazeData || {},
+            behavioralMarkers: analysis.behavioralMarkers || []
+          };
+          
+          setVideoAnalysis(videoFrame);
+          updateEmotionalState(videoFrame);
+          updateEngagementScore(analysis.engagementScore || 0.75);
         }
 
       } catch (error) {

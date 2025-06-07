@@ -472,6 +472,7 @@ const LiveSessionRecorder: React.FC = () => {
           complianceScore={complianceScore}
           sessionDuration={sessionDuration}
           isRecording={isRecording}
+          currentEmotions={currentEmotions}
         />
 
         {/* Advanced Video Analysis with 68+ Facial Landmarks */}
