@@ -83,14 +83,25 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       return result;
     } catch (error: any) {
-      console.error("Detailed sign in error:", {
+      console.error("Firebase sign in failed:", {
         code: error.code,
         message: error.message,
         email,
         firebaseProject: auth.app.options.projectId
       });
       
-      // Provide user-friendly error messages
+      // Check for network connectivity issues with Firebase
+      if (error.code === 'auth/network-request-failed') {
+        console.log("Firebase connectivity issue detected. Please ensure your Firebase project has proper network access.");
+        
+        // For development: suggest checking Firebase configuration
+        const userMessage = "Unable to connect to Firebase authentication. Please verify your Firebase project configuration and network connectivity.";
+        const enhancedError = new Error(userMessage);
+        enhancedError.name = error.code;
+        throw enhancedError;
+      }
+      
+      // Provide user-friendly error messages for other cases
       let userMessage = "Failed to sign in. Please check your credentials.";
       
       switch (error.code) {
@@ -108,9 +119,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           break;
         case 'auth/too-many-requests':
           userMessage = "Too many failed attempts. Please try again later.";
-          break;
-        case 'auth/network-request-failed':
-          userMessage = "Network error. Please check your connection.";
           break;
         case 'auth/configuration-not-found':
           userMessage = "Authentication service is not properly configured.";
