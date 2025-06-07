@@ -184,11 +184,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const signInWithGoogle = async () => {
     try {
+      console.log("Starting Google sign-in...");
       const provider = new GoogleAuthProvider();
       provider.addScope('email');
       provider.addScope('profile');
       
+      console.log("Attempting Google popup sign-in...");
       const result = await signInWithPopup(auth, provider);
+      console.log("Google sign-in successful:", result.user.email);
       
       // If this is a new user, ensure they have a display name
       if (result.user && !result.user.displayName && result.user.email) {
@@ -199,10 +202,45 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           .join(' ');
         
         await updateProfile(result.user, { displayName: formattedName });
+        console.log("Updated display name:", formattedName);
       }
-    } catch (error) {
-      console.error("Error signing in with Google:", error);
-      throw error;
+    } catch (error: any) {
+      console.error("Detailed Google sign-in error:", {
+        code: error.code,
+        message: error.message,
+        customData: error.customData
+      });
+      
+      // Enhanced error handling for Google sign-in specific issues
+      let userMessage = "Google sign-in failed. Please try email signup instead.";
+      
+      switch (error.code) {
+        case 'auth/popup-blocked':
+          userMessage = "Pop-up was blocked by your browser. Please allow pop-ups for this site and try again.";
+          break;
+        case 'auth/popup-closed-by-user':
+          userMessage = "Sign-in was cancelled. Please try again.";
+          break;
+        case 'auth/cancelled-popup-request':
+          userMessage = "Another sign-in popup is already open. Please close it and try again.";
+          break;
+        case 'auth/unauthorized-domain':
+          userMessage = "This domain is not authorized for Google sign-in. Please use email signup.";
+          break;
+        case 'auth/operation-not-allowed':
+          userMessage = "Google sign-in is not enabled. Please use email signup.";
+          break;
+        case 'auth/account-exists-with-different-credential':
+          userMessage = "An account already exists with this email using a different sign-in method.";
+          break;
+        case 'auth/network-request-failed':
+          userMessage = "Network error. Please check your connection and try again.";
+          break;
+      }
+      
+      const enhancedError = new Error(userMessage);
+      enhancedError.name = error.code;
+      throw enhancedError;
     }
   };
 
