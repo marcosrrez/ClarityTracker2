@@ -289,33 +289,38 @@ export const OnboardingFlow = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex flex-col relative overflow-hidden">
+      {/* Background effects matching landing page */}
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.03%22%3E%3Ccircle%20cx%3D%2230%22%20cy%3D%2230%22%20r%3D%221%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
+      <div className="absolute top-0 left-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
+      
       {/* Navigation */}
-      <div className="flex justify-between items-center p-8">
+      <div className="flex justify-between items-center p-8 relative z-10">
         <Button 
           variant="ghost" 
           onClick={handleBack}
           disabled={currentStep === 0}
-          className="text-gray-500 hover:text-gray-700 font-light"
+          className="text-purple-200 hover:text-white font-light hover:bg-white/10"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
         </Button>
         
-        <div className="text-sm font-light text-gray-400">
+        <div className="text-sm font-light text-purple-200">
           {currentStep + 1} / {steps.length}
         </div>
         
         <Button 
           variant="ghost"
-          className="text-gray-500 hover:text-gray-700 font-light"
+          className="text-purple-200 hover:text-white font-light hover:bg-white/10"
         >
           Skip
         </Button>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center px-8 pb-32">
+      <div className="flex-1 flex items-center justify-center px-8 pb-32 relative z-10">
         <div className="w-full max-w-4xl">
           <AnimatePresence mode="wait">
             <motion.div
@@ -329,11 +334,11 @@ export const OnboardingFlow = () => {
               {!currentStepData.showAccountSelection && !currentStepData.showForm && (
                 <div className="space-y-16">
                   <div className="space-y-6 text-center max-w-2xl mx-auto">
-                    <h1 className="text-5xl md:text-6xl font-light text-gray-900 leading-[1.1] tracking-tight">
+                    <h1 className="text-5xl md:text-6xl font-bold text-white leading-[1.1] tracking-tight">
                       {currentStepData.title}
                     </h1>
                     {currentStepData.subtitle && (
-                      <p className="text-2xl text-gray-500 font-light leading-relaxed">
+                      <p className="text-2xl text-purple-200 font-medium leading-relaxed">
                         {currentStepData.subtitle}
                       </p>
                     )}
@@ -503,13 +508,13 @@ export const OnboardingFlow = () => {
               {currentStepData.showAccountSelection && (
                 <div className="space-y-12">
                   <div className="text-center space-y-6">
-                    <h1 className="text-5xl md:text-6xl font-light text-gray-900 leading-[1.1] tracking-tight">
+                    <h1 className="text-5xl md:text-6xl font-bold text-white leading-[1.1] tracking-tight">
                       {currentStepData.title}
                     </h1>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-                    {accountTypes.map((type) => {
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                    {accountTypes.filter(type => type.id !== 'client').map((type) => {
                       const Icon = type.icon;
                       return (
                         <motion.div
