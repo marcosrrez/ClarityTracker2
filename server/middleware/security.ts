@@ -135,18 +135,26 @@ export const corsOptions = {
  * Helmet security configuration - development-friendly
  */
 export const helmetConfig = helmet({
-  contentSecurityPolicy: process.env.NODE_ENV === 'production' ? {
+  contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:", "blob:"],
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-      connectSrc: ["'self'", "https://api.openai.com", "https://generativelanguage.googleapis.com"],
-      frameSrc: ["'none'"],
+      connectSrc: [
+        "'self'", 
+        "https://api.openai.com", 
+        "https://generativelanguage.googleapis.com",
+        "https://securetoken.googleapis.com",
+        "https://identitytoolkit.googleapis.com",
+        "https://www.googleapis.com",
+        "https://accounts.google.com"
+      ],
+      frameSrc: ["'self'", "https://accounts.google.com"],
       objectSrc: ["'none'"],
     },
-  } : false, // Disable CSP in development
+  },
   hsts: process.env.NODE_ENV === 'production' ? {
     maxAge: 31536000,
     includeSubDomains: true,
