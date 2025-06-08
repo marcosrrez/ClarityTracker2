@@ -3305,27 +3305,7 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
     }
   });
 
-  // Azure Speech Service Configuration API
-  app.get('/api/azure/speech-config', async (req, res) => {
-    try {
-      const subscriptionKey = process.env.AZURE_SPEECH_KEY;
-      const serviceRegion = process.env.AZURE_SPEECH_REGION;
-      
-      if (!subscriptionKey || !serviceRegion) {
-        return res.status(400).json({ 
-          error: 'Azure Speech Service credentials not configured' 
-        });
-      }
-      
-      res.json({
-        subscriptionKey,
-        serviceRegion
-      });
-    } catch (error) {
-      console.error('Azure Speech config error:', error);
-      res.status(500).json({ error: 'Failed to retrieve Azure Speech configuration' });
-    }
-  });
+
 
   // Enhanced Note Taking API with AI Integration
   app.post('/api/notes/ai-enhance', async (req, res) => {
@@ -4695,20 +4675,33 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
 
   // Session Intelligence Enhancement Routes
 
-  // Azure Speech Service configuration endpoint
-  app.get('/api/azure-speech/config', (req, res) => {
+  // Azure Speech Service configuration endpoint (updated path)
+  app.get('/api/azure/speech-config', (req, res) => {
     try {
-      if (!process.env.AZURE_SPEECH_KEY || !process.env.AZURE_SPEECH_REGION) {
-        return res.status(500).json({ error: 'Azure Speech Service not configured' });
+      // Check for Azure Speech credentials first
+      const speechKey = process.env.AZURE_SPEECH_KEY;
+      const speechRegion = process.env.AZURE_SPEECH_REGION;
+      
+      // If no dedicated speech credentials, use Face API credentials as fallback
+      const subscriptionKey = speechKey || process.env.AZURE_FACE_KEY;
+      const serviceRegion = speechRegion || 'eastus'; // Default region
+      
+      if (!subscriptionKey) {
+        return res.status(500).json({ 
+          error: 'Azure Speech Service not configured - no credentials available' 
+        });
       }
       
       const config = {
-        key: process.env.AZURE_SPEECH_KEY,
-        region: process.env.AZURE_SPEECH_REGION
+        subscriptionKey,
+        serviceRegion
       };
+      
+      console.log(`Azure Speech config provided: region=${serviceRegion}, keyPresent=${!!subscriptionKey}`);
       res.json(config);
     } catch (error) {
-      res.status(500).json({ error: 'Azure Speech Service not configured' });
+      console.error('Azure Speech config error:', error);
+      res.status(500).json({ error: 'Azure Speech Service configuration failed' });
     }
   });
 

@@ -81,6 +81,7 @@ export default function SessionRecording() {
   const streamRef = useRef<MediaStream | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const azureSpeechRef = useRef<AzureSpeechService | null>(null);
+  const webSpeechRef = useRef<any>(null);
   const [transcriptionSegments, setTranscriptionSegments] = useState<TranscriptionSegment[]>([]);
   const [liveInsights, setLiveInsights] = useState<any>(null);
   const [realtimeAnalysis, setRealtimeAnalysis] = useState({
@@ -93,24 +94,99 @@ export default function SessionRecording() {
   });
   const [clinicalAlerts, setClinicalAlerts] = useState<any[]>([]);
 
-  // Initialize Azure Speech Service
+  // Initialize Azure Speech Service with fallback
   const initializeAzureSpeech = async () => {
     try {
       // Get credentials from server-side environment
       const response = await apiRequest('GET', '/api/azure/speech-config');
+      
+      if (!response.ok) {
+        throw new Error(`Azure config request failed: ${response.status}`);
+      }
+      
       const config = await response.json();
+      
+      if (!config.subscriptionKey || !config.serviceRegion) {
+        throw new Error('Invalid Azure Speech configuration received');
+      }
       
       azureSpeechRef.current = new AzureSpeechService({
         subscriptionKey: config.subscriptionKey,
         serviceRegion: config.serviceRegion,
         language: 'en-US'
       });
-      console.log('Azure Speech Service initialized');
+      console.log('Azure Speech Service initialized successfully');
+      
+      // Test the connection
+      const isConnected = await AzureSpeechService.testConnection(config);
+      if (!isConnected) {
+        console.warn('Azure Speech Service connection test failed');
+      }
+      
     } catch (error) {
-      console.error('Failed to initialize Azure Speech Service:', error);
+      console.error('Azure Speech Service initialization failed:', error);
+      
+      // Initialize fallback Web Speech API
+      initializeWebSpeechFallback();
+      
       toast({
-        title: "Speech Service Error",
-        description: "Failed to initialize Azure Speech Service. Check your credentials.",
+        title: "Using Fallback Speech Recognition",
+        description: "Azure Speech Service unavailable. Using browser speech recognition.",
+        variant: "default"
+      });
+    }
+  };
+
+  // Fallback to Web Speech API
+  const initializeWebSpeechFallback = () => {
+    try {
+      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+        
+        recognition.onresult = (event: any) => {
+          const last = event.results.length - 1;
+          const transcript = event.results[last][0].transcript;
+          const confidence = event.results[last][0].confidence || 0.8;
+          
+          if (event.results[last].isFinal) {
+            const segment = {
+              text: transcript,
+              timestamp: Date.now(),
+              confidence: confidence
+            };
+            
+            setTranscriptionSegments(prev => [...prev, segment]);
+            setRecordingState(prev => ({
+              ...prev,
+              transcript: prev.transcript + ' ' + transcript
+            }));
+            
+            // Trigger real-time analysis for substantial content
+            if (transcript.length > 50) {
+              performRealtimeAnalysis(recordingState.transcript + ' ' + transcript);
+            }
+          }
+        };
+        
+        recognition.onerror = (event: any) => {
+          console.error('Web Speech API error:', event.error);
+        };
+        
+        webSpeechRef.current = recognition;
+        console.log('Web Speech API fallback initialized');
+      } else {
+        throw new Error('No speech recognition support available');
+      }
+    } catch (error) {
+      console.error('Failed to initialize speech recognition fallback:', error);
+      toast({
+        title: "Speech Recognition Unavailable",
+        description: "Neither Azure Speech Service nor browser speech recognition is available.",
         variant: "destructive"
       });
     }
@@ -160,18 +236,19 @@ export default function SessionRecording() {
     }
   };
 
-  // Start Azure Speech Service transcription
+  // Start transcription service (Azure or fallback)
   const startAzureTranscription = async () => {
-    if (!azureSpeechRef.current) {
+    if (!azureSpeechRef.current && !webSpeechRef.current) {
       await initializeAzureSpeech();
     }
 
     try {
-      await azureSpeechRef.current?.startContinuousRecognition(
-        (segment: TranscriptionSegment) => {
-          setTranscriptionSegments(prev => [...prev, segment]);
-          
-          // Update the main transcript with the latest segment
+      if (azureSpeechRef.current) {
+        await azureSpeechRef.current.startContinuousRecognition(
+          (segment: TranscriptionSegment) => {
+            setTranscriptionSegments(prev => [...prev, segment]);
+            
+            // Update the main transcript with the latest segment
           setRecordingState(prev => ({
             ...prev,
             transcript: prev.transcript + ' ' + segment.text
