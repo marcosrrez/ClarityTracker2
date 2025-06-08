@@ -1,7 +1,7 @@
 /**
  * Session Intelligence Service for ClarityLog
  * Provides AI-powered session analysis, transcription, and progress note automation
- * Competing directly with Eleos Health's session intelligence capabilities
+ * Advanced clinical decision support with real-time insights
  */
 
 import OpenAI from 'openai';

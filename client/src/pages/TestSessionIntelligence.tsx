@@ -135,7 +135,7 @@ export default function TestSessionIntelligence() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Session Intelligence Testing</h1>
         <p className="text-muted-foreground">
-          Test the new AI-powered session analysis features that compete with industry leaders like Eleos Health
+          Test the advanced AI-powered session analysis features and clinical decision support
         </p>
       </div>
 

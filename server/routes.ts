@@ -2983,7 +2983,7 @@ Please provide a helpful, professional response that's personalized to their sit
     }
   });
 
-  // Session Intelligence API Routes - Competing with Eleos Health
+  // Session Intelligence API Routes - Advanced Clinical Decision Support
   app.post('/api/session/analyze', async (req, res) => {
     try {
       const { transcript, sessionDuration, clientPopulation, counselorExperience, userId } = req.body;
@@ -3084,7 +3084,7 @@ Please provide a helpful, professional response that's personalized to their sit
     }
   });
 
-  // Audio Transcription API - Competing with Eleos Real-time Processing
+  // Audio Transcription API - Real-time Processing
   app.post('/api/session/transcribe', async (req, res) => {
     try {
       const { audio, sessionMetadata } = req.body;
@@ -3103,7 +3103,7 @@ Please provide a helpful, professional response that's personalized to their sit
     }
   });
 
-  // Full Session Analysis Pipeline - Complete Eleos Competitor
+  // Full Session Analysis Pipeline - Complete Clinical Intelligence
   app.post('/api/session/full-analysis', async (req, res) => {
     try {
       const { transcript, sessionDuration, sessionMetadata, userId } = req.body;

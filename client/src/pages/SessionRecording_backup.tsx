@@ -491,7 +491,7 @@ export default function SessionRecording() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Session Recording & Analysis</h1>
         <p className="text-muted-foreground">
-          Complete session intelligence platform competing with industry leaders like Eleos Health
+          Complete session intelligence platform with advanced AI-powered clinical insights
         </p>
       </div>
 
