@@ -4,7 +4,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { FirebaseConnectivityTest } from "@/components/auth/FirebaseConnectivityTest";
 
 import { Loader2, Sprout, Clock, Brain, Users, BarChart3, ArrowRight, Menu, MessageCircle, Calendar, Target, Award, Shield, TrendingUp, UserPlus, Zap } from "lucide-react";
 
@@ -152,11 +151,6 @@ export const SuperhumanLandingPage = () => {
   if (showSignupForm) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900">
-        {/* Firebase Connectivity Diagnostic */}
-        <div className="relative z-50 p-4">
-          <FirebaseConnectivityTest />
-        </div>
-
         {/* Logo */}
         <div className="absolute top-6 sm:top-8 left-6 sm:left-8 z-10">
           <div className="flex items-center gap-3">
