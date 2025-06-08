@@ -3036,29 +3036,168 @@ Please provide a helpful, professional response that's personalized to their sit
     }
   });
 
-  // Session Intelligence Video Analysis
+  // Session Intelligence Video Analysis with Azure Computer Vision
   app.post('/api/session-intelligence/analyze-video-frame', async (req, res) => {
     try {
-      const { frameData, timestamp } = req.body;
+      const { imageData, timestamp } = req.body;
       
-      // Mock video analysis response since real computer vision would require Azure Computer Vision
+      if (!imageData) {
+        return res.status(400).json({ error: 'Image data is required' });
+      }
+
+      // Check if Azure Computer Vision credentials are available
+      const azureEndpoint = process.env.AZURE_COMPUTER_VISION_ENDPOINT;
+      const azureKey = process.env.AZURE_COMPUTER_VISION_KEY;
+      const faceEndpoint = process.env.AZURE_FACE_ENDPOINT;
+      const faceKey = process.env.AZURE_FACE_KEY;
+
+      if (!azureEndpoint || !azureKey || !faceEndpoint || !faceKey) {
+        return res.status(500).json({ 
+          error: 'Azure Computer Vision or Face API not configured',
+          details: 'Missing required Azure credentials'
+        });
+      }
+
+      // Convert base64 to buffer
+      const imageBuffer = Buffer.from(imageData, 'base64');
+
+      // Analyze with Azure Face API for emotion detection
+      const faceResponse = await fetch(`${faceEndpoint}/face/v1.0/detect?returnFaceAttributes=emotion,age,gender`, {
+        method: 'POST',
+        headers: {
+          'Ocp-Apim-Subscription-Key': faceKey,
+          'Content-Type': 'application/octet-stream'
+        },
+        body: imageBuffer
+      });
+
+      let faceAnalysis = null;
+      if (faceResponse.ok) {
+        const faceData = await faceResponse.json();
+        if (faceData && faceData.length > 0) {
+          faceAnalysis = faceData[0];
+        }
+      }
+
+      // Analyze with Azure Computer Vision for general image analysis
+      const visionResponse = await fetch(`${azureEndpoint}/vision/v3.2/analyze?visualFeatures=Categories,Description,Faces,Objects`, {
+        method: 'POST',
+        headers: {
+          'Ocp-Apim-Subscription-Key': azureKey,
+          'Content-Type': 'application/octet-stream'
+        },
+        body: imageBuffer
+      });
+
+      let visionAnalysis = null;
+      if (visionResponse.ok) {
+        visionAnalysis = await visionResponse.json();
+      }
+
+      // Process Azure Face API emotions
+      let dominantEmotion = 'neutral';
+      let emotionConfidence = 0.5;
+      let emotions = [];
+
+      if (faceAnalysis?.faceAttributes?.emotion) {
+        const emotionData = faceAnalysis.faceAttributes.emotion;
+        
+        // Find dominant emotion
+        let maxScore = 0;
+        for (const [emotion, score] of Object.entries(emotionData)) {
+          if (score > maxScore) {
+            maxScore = score;
+            dominantEmotion = emotion;
+            emotionConfidence = score;
+          }
+        }
+
+        // Convert to format expected by frontend
+        emotions = Object.entries(emotionData).map(([emotion, score]) => ({
+          emotion,
+          intensity: score,
+          confidence: score
+        }));
+      }
+
+      // Calculate engagement score based on emotions and face detection
+      let engagementScore = 50; // baseline
+      if (faceAnalysis) {
+        // Increase engagement based on positive emotions
+        const positiveEmotions = ['happiness', 'surprise'];
+        const negativeEmotions = ['sadness', 'anger', 'fear', 'disgust'];
+        
+        positiveEmotions.forEach(emotion => {
+          if (faceAnalysis.faceAttributes.emotion[emotion]) {
+            engagementScore += faceAnalysis.faceAttributes.emotion[emotion] * 30;
+          }
+        });
+
+        negativeEmotions.forEach(emotion => {
+          if (faceAnalysis.faceAttributes.emotion[emotion]) {
+            engagementScore -= faceAnalysis.faceAttributes.emotion[emotion] * 20;
+          }
+        });
+
+        // Adjust for attention (neutral can indicate focus)
+        if (faceAnalysis.faceAttributes.emotion.neutral > 0.5) {
+          engagementScore += 10; // neutral can indicate focused attention
+        }
+      }
+
+      // Ensure engagement score is within bounds
+      engagementScore = Math.max(0, Math.min(100, Math.round(engagementScore)));
+
+      // Determine behavioral markers based on analysis
+      const behavioralMarkers = [];
+      if (faceAnalysis) {
+        if (faceAnalysis.faceAttributes.emotion.happiness > 0.3) {
+          behavioralMarkers.push('positive_affect');
+        }
+        if (faceAnalysis.faceAttributes.emotion.neutral > 0.5) {
+          behavioralMarkers.push('attentive', 'focused');
+        }
+        if (engagementScore > 70) {
+          behavioralMarkers.push('engaged');
+        }
+        if (faceAnalysis.faceAttributes.emotion.sadness > 0.3) {
+          behavioralMarkers.push('emotional_distress');
+        }
+      }
+
       const analysis = {
-        detectedFaces: 1,
-        dominantEmotion: 'engaged',
-        emotionConfidence: 0.85,
-        engagementScore: Math.floor(Math.random() * 20) + 70, // 70-90
-        behavioralMarkers: ['attentive', 'responsive'],
-        poseData: { posture: 'upright', engagement: 'high' },
-        gazeData: { direction: 'forward', attention: 'focused' }
+        detectedFaces: visionAnalysis?.faces?.length || (faceAnalysis ? 1 : 0),
+        dominantEmotion,
+        emotionConfidence,
+        emotions,
+        engagementScore,
+        behavioralMarkers,
+        poseData: {
+          faceDetected: !!faceAnalysis,
+          age: faceAnalysis?.faceAttributes?.age,
+          gender: faceAnalysis?.faceAttributes?.gender
+        },
+        gazeData: {
+          faceRectangle: faceAnalysis?.faceRectangle,
+          attention: engagementScore > 60 ? 'focused' : 'distracted'
+        },
+        azureAnalysis: {
+          faceDetected: !!faceAnalysis,
+          visionProcessed: !!visionAnalysis
+        }
       };
 
       res.json({
         success: true,
         data: analysis
       });
+
     } catch (error) {
-      console.error('Video analysis error:', error);
-      res.status(500).json({ error: 'Failed to analyze video frame' });
+      console.error('Azure video analysis error:', error);
+      res.status(500).json({ 
+        error: 'Failed to analyze video frame',
+        details: error.message 
+      });
     }
   });
 

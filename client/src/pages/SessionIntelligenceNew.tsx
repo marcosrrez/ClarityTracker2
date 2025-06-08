@@ -6,6 +6,7 @@ import { Brain, Video, Mic, Eye, Shield, TrendingUp, Users, AlertTriangle, Datab
 import { motion } from 'framer-motion';
 import LiveSessionRecorder from '@/components/session-intelligence/LiveSessionRecorder';
 import { SessionManagement } from '@/components/session-intelligence/SessionManagement';
+import AzureIntegrationStatus from '@/components/session-intelligence/AzureIntegrationStatus';
 
 const SessionIntelligenceNew = () => {
   const [currentSessionData, setCurrentSessionData] = useState(null);
