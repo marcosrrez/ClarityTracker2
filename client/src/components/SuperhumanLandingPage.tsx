@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { FirebaseConnectivityTest } from "@/components/auth/FirebaseConnectivityTest";
 
 import { Loader2, Sprout, Clock, Brain, Users, BarChart3, ArrowRight, Menu, MessageCircle, Calendar, Target, Award, Shield, TrendingUp, UserPlus, Zap } from "lucide-react";
 
