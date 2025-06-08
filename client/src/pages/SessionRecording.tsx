@@ -249,25 +249,31 @@ export default function SessionRecording() {
             setTranscriptionSegments(prev => [...prev, segment]);
             
             // Update the main transcript with the latest segment
-          setRecordingState(prev => ({
-            ...prev,
-            transcript: prev.transcript + ' ' + segment.text
-          }));
-          
-          // Trigger real-time analysis every 30 seconds or significant content
-          if (segment.text.length > 50) {
-            performRealtimeAnalysis(recordingState.transcript + ' ' + segment.text);
+            setRecordingState(prev => ({
+              ...prev,
+              transcript: prev.transcript + ' ' + segment.text
+            }));
+            
+            // Trigger real-time analysis for substantial content
+            if (segment.text.length > 50) {
+              performRealtimeAnalysis(recordingState.transcript + ' ' + segment.text);
+            }
+          },
+          (error: string) => {
+            console.error('Azure Speech transcription error:', error);
+            toast({
+              title: "Transcription Error",
+              description: "Real-time transcription encountered an issue.",
+              variant: "destructive"
+            });
           }
-        },
-        (error: string) => {
-          console.error('Azure Speech transcription error:', error);
-          toast({
-            title: "Transcription Error",
-            description: "Real-time transcription encountered an issue.",
-            variant: "destructive"
-          });
-        }
-      );
+        );
+      } else if (webSpeechRef.current) {
+        // Use Web Speech API fallback
+        webSpeechRef.current.start();
+      } else {
+        throw new Error('No transcription service available');
+      }
     } catch (error) {
       console.error('Failed to start Azure transcription:', error);
       toast({
@@ -275,6 +281,41 @@ export default function SessionRecording() {
         description: "Failed to start real-time transcription. Falling back to audio recording only.",
         variant: "destructive"
       });
+    }
+  };
+
+  // Real-time analysis for live insights
+  const performRealtimeAnalysis = async (transcript: string) => {
+    if (transcript.length < 100) return; // Wait for substantial content
+    
+    try {
+      const response = await apiRequest('POST', '/api/session-intelligence/analyze-transcript', {
+        transcript,
+        sessionType: sessionMetadata.sessionType,
+        partialAnalysis: true
+      });
+      
+      if (response.ok) {
+        const analysis = await response.json();
+        
+        // Update live insights
+        setLiveInsights(analysis);
+        
+        // Update real-time analysis state
+        setRealtimeAnalysis(prev => ({
+          ...prev,
+          themes: analysis.themes || prev.themes,
+          interventions: analysis.suggestedInterventions || prev.interventions,
+          sessionQuality: analysis.sessionQuality || prev.sessionQuality
+        }));
+        
+        // Check for clinical alerts
+        if (analysis.clinicalAlerts && analysis.clinicalAlerts.length > 0) {
+          setClinicalAlerts(prev => [...prev, ...analysis.clinicalAlerts]);
+        }
+      }
+    } catch (error) {
+      console.error('Real-time analysis error:', error);
     }
   };
 
@@ -317,40 +358,77 @@ export default function SessionRecording() {
     }
   };
 
-  // Real-time analysis function
-  const performRealtimeAnalysis = async (transcript: string) => {
-    if (transcript.length < 100) return; // Only analyze substantial content
-    
-    try {
-      const response = await apiRequest('POST', '/api/session-intelligence/generate-insights', {
-        transcript: transcript,
-        analysisType: 'realtime',
-        userId: 'current-user'
-      });
-      const insights = await response.json();
-      
-      setRealtimeAnalysis({
-        themes: insights.themes || [],
-        interventions: insights.interventions || [],
-        riskIndicators: insights.riskIndicators || [],
-        therapeuticAlliance: insights.therapeuticAlliance || 0,
-        treatmentSuggestions: insights.treatmentSuggestions || [],
-        sessionQuality: insights.sessionQuality || 0
-      });
+  const pauseRecording = () => {
+    if (mediaRecorderRef.current && recordingState.isRecording) {
+      if (recordingState.isPaused) {
+        mediaRecorderRef.current.resume();
+        intervalRef.current = setInterval(() => {
+          setRecordingState(prev => ({ ...prev, duration: prev.duration + 1 }));
+        }, 1000);
+        setRecordingState(prev => ({ ...prev, isPaused: false }));
+      } else {
+        mediaRecorderRef.current.pause();
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+        }
+        setRecordingState(prev => ({ ...prev, isPaused: true }));
+      }
+    }
+  };
 
-      // Generate clinical alerts for critical insights
-      if (insights.riskIndicators?.length > 0) {
-        const newAlert = {
-          id: Date.now(),
-          type: 'warning',
-          message: `Risk indicators detected: ${insights.riskIndicators.slice(0, 2).join(', ')}`,
-          timestamp: new Date(),
-          priority: 'high'
-        };
-        setClinicalAlerts(prev => [newAlert, ...prev.slice(0, 4)]);
+  const stopRecording = async () => {
+    if (mediaRecorderRef.current && recordingState.isRecording) {
+      mediaRecorderRef.current.stop();
+      
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+      
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+      
+      // Stop Azure Speech Service transcription
+      if (azureSpeechRef.current) {
+        await azureSpeechRef.current.stopContinuousRecognition();
+      }
+      
+      // Stop Web Speech API fallback
+      if (webSpeechRef.current) {
+        webSpeechRef.current.stop();
+      }
+      
+      setRecordingState(prev => ({ 
+        ...prev, 
+        isRecording: false, 
+        isPaused: false, 
+        isTranscribing: false 
+      }));
+      
+      // Trigger final analysis
+      if (recordingState.transcript.length > 50) {
+        await performFinalAnalysis();
+      }
+      
+      setCurrentTab('analysis');
+    }
+  };
+
+  const performFinalAnalysis = async () => {
+    try {
+      const response = await apiRequest('POST', '/api/session-intelligence/comprehensive-analysis', {
+        transcript: recordingState.transcript,
+        sessionMetadata,
+        transcriptionSegments,
+        duration: recordingState.duration
+      });
+      
+      if (response.ok) {
+        const analysis = await response.json();
+        setAnalysisResults(analysis);
       }
     } catch (error) {
-      console.error('Real-time analysis error:', error);
+      console.error('Final analysis error:', error);
     }
   };
 
