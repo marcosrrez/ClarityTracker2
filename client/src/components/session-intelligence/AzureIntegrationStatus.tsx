@@ -13,7 +13,8 @@ export default function AzureIntegrationStatus() {
   const [services, setServices] = useState<ServiceStatus[]>([
     { name: 'Azure Speech Service', status: 'checking' },
     { name: 'Azure Computer Vision', status: 'checking' },
-    { name: 'Azure Face API', status: 'checking' }
+    { name: 'Azure Face API', status: 'checking' },
+    { name: 'Google AI Clinical Analysis', status: 'checking' }
   ]);
 
   useEffect(() => {
@@ -80,6 +81,39 @@ export default function AzureIntegrationStatus() {
     } catch (error) {
       setServices(prev => prev.map(s => 
         (s.name === 'Azure Computer Vision' || s.name === 'Azure Face API')
+          ? { ...s, status: 'error', details: 'Service unavailable' }
+          : s
+      ));
+    }
+
+    // Test Google AI Clinical Analysis
+    try {
+      const googleResponse = await fetch('/api/session-intelligence/analyze-transcript', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          text: 'Test clinical analysis functionality', 
+          timestamp: Date.now() 
+        })
+      });
+      
+      if (googleResponse.ok) {
+        const googleData = await googleResponse.json();
+        if (googleData.success) {
+          setServices(prev => prev.map(s => 
+            s.name === 'Google AI Clinical Analysis' 
+              ? { ...s, status: 'connected', details: 'Gemini analysis ready' }
+              : s
+          ));
+        } else {
+          throw new Error('API returned error');
+        }
+      } else {
+        throw new Error('HTTP error');
+      }
+    } catch (error) {
+      setServices(prev => prev.map(s => 
+        s.name === 'Google AI Clinical Analysis'
           ? { ...s, status: 'error', details: 'Service unavailable' }
           : s
       ));
