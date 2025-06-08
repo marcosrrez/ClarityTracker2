@@ -333,13 +333,10 @@ export default function SessionRecording() {
     try {
       const analysisData = {
         transcript: recordingState.transcript,
-        sessionMetadata,
-        transcriptionSegments,
-        duration: recordingState.duration,
-        clientProfile: sessionMetadata.clientId ? {
-          id: sessionMetadata.clientId,
-          demographics: {}
-        } : null
+        sessionDuration: recordingState.duration,
+        clientPopulation: `${sessionMetadata.sessionType} therapy`,
+        counselorExperience: 'LAC in training',
+        userId: 'demo-user'
       };
       
       const response = await fetch('/api/session/analyze', {
@@ -349,21 +346,25 @@ export default function SessionRecording() {
       });
       
       if (response.ok) {
-        const analysis = await response.json();
-        setAnalysisResults(analysis);
+        const result = await response.json();
+        setAnalysisResults({
+          sessionAnalysis: result.analysis,
+          timeEfficiency: result.timeEfficiency
+        });
         toast({
           title: "Analysis Complete",
           description: "Comprehensive session analysis has been generated.",
           variant: "default"
         });
       } else {
-        throw new Error('Analysis failed');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Analysis failed');
       }
     } catch (error) {
       console.error('Error generating analysis:', error);
       toast({
         title: "Analysis Error",
-        description: "Failed to generate session analysis. Please try again.",
+        description: error.message || "Failed to generate session analysis. Please try again.",
         variant: "destructive"
       });
     }
