@@ -4708,10 +4708,13 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
   // Analyze transcript segment
   app.post('/api/session-intelligence/analyze-transcript', async (req, res) => {
     try {
-      const { text, timestamp } = req.body;
+      const { text, transcript, timestamp, sessionType, partialAnalysis } = req.body;
       
-      if (!text) {
-        return res.status(400).json({ error: 'Text is required' });
+      // Accept either 'text' or 'transcript' field
+      const analysisText = text || transcript;
+      
+      if (!analysisText || typeof analysisText !== 'string' || analysisText.trim().length === 0) {
+        return res.status(400).json({ error: 'Valid text or transcript is required' });
       }
 
       // Simulate clinical analysis for demo
@@ -4719,25 +4722,33 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
       const riskKeywords = ['harm', 'hurt', 'end', 'hopeless', 'worthless'];
       
       const clinicalTags = clinicalKeywords.filter(keyword => 
-        text.toLowerCase().includes(keyword)
+        analysisText.toLowerCase().includes(keyword)
       );
       
       const riskIndicators = riskKeywords.some(keyword => 
-        text.toLowerCase().includes(keyword)
+        analysisText.toLowerCase().includes(keyword)
       ) ? [{ type: 'emotional-distress', severity: 'medium', message: 'Emotional distress indicators detected' }] : [];
 
-      const speaker = text.length > 50 ? 'Client' : 'Therapist'; // Simple heuristic
+      const speaker = analysisText.length > 50 ? 'Client' : 'Therapist'; // Simple heuristic
       const emotionalTone = riskIndicators.length > 0 ? 'distressed' : 
                            clinicalTags.includes('progress') ? 'positive' : 'neutral';
 
       const analysis = {
-        text,
-        timestamp,
+        text: analysisText,
+        transcript: analysisText,
+        timestamp: timestamp || Date.now(),
         speaker,
         clinicalTags,
         riskIndicators,
         emotionalTone,
-        themes: clinicalTags.length > 0 ? clinicalTags.slice(0, 3) : ['general-discussion']
+        themes: clinicalTags.length > 0 ? clinicalTags.slice(0, 3) : ['general-discussion'],
+        suggestedInterventions: clinicalTags.length > 0 ? 
+          [`Address ${clinicalTags[0]} concerns`, 'Use active listening techniques'] : 
+          ['Continue therapeutic rapport building'],
+        sessionQuality: Math.min(0.8 + (clinicalTags.length * 0.1), 1.0),
+        clinicalAlerts: riskIndicators.length > 0 ? 
+          [{ type: 'warning', message: `Risk indicators detected`, priority: 'high' }] : 
+          []
       };
 
       // Feed transcript analysis to session analyzer for AI collaboration
