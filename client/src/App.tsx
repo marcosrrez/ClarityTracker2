@@ -120,21 +120,36 @@ function App() {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
-          <AuthProvider>
-            <TooltipProvider>
-              <AuthGuard fallback={
-                <div className="min-h-screen">
-                  <SuperhumanLandingPage />
-                </div>
-              }>
-                <AppLayout>
-                  <Router />
-                </AppLayout>
-                <OnboardingTrigger />
-              </AuthGuard>
-              <Toaster />
-            </TooltipProvider>
-          </AuthProvider>
+          <ErrorBoundary fallback={
+            <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 flex items-center justify-center">
+              <div className="text-white text-center">
+                <h1 className="text-2xl font-bold mb-4">ClarityLog</h1>
+                <p className="mb-4">Loading your mental health platform...</p>
+                <button 
+                  onClick={() => window.location.reload()} 
+                  className="bg-white text-purple-900 px-4 py-2 rounded"
+                >
+                  Refresh
+                </button>
+              </div>
+            </div>
+          }>
+            <AuthProvider>
+              <TooltipProvider>
+                <AuthGuard fallback={
+                  <div className="min-h-screen">
+                    <SuperhumanLandingPage />
+                  </div>
+                }>
+                  <AppLayout>
+                    <Router />
+                  </AppLayout>
+                  <OnboardingTrigger />
+                </AuthGuard>
+                <Toaster />
+              </TooltipProvider>
+            </AuthProvider>
+          </ErrorBoundary>
         </ThemeProvider>
       </QueryClientProvider>
     </ErrorBoundary>

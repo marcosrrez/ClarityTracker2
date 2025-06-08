@@ -47,26 +47,50 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+    
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setUser(user);
+      if (!mounted) return;
       
-      if (user) {
-        // Load user profile from Firestore
-        try {
-          const profile = await getUserProfile(user.uid);
-          setUserProfile(profile);
-        } catch (error) {
-          console.error("Error loading user profile:", error);
-          setUserProfile(null);
+      try {
+        setUser(user);
+        
+        if (user) {
+          // Load user profile from Firestore
+          try {
+            const profile = await getUserProfile(user.uid);
+            if (mounted) {
+              setUserProfile(profile);
+            }
+          } catch (error) {
+            console.error("Error loading user profile:", error);
+            if (mounted) {
+              setUserProfile(null);
+            }
+          }
+        } else {
+          if (mounted) {
+            setUserProfile(null);
+          }
         }
-      } else {
-        setUserProfile(null);
+        
+        if (mounted) {
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error("Auth state change error:", error);
+        if (mounted) {
+          setUser(null);
+          setUserProfile(null);
+          setLoading(false);
+        }
       }
-      
-      setLoading(false);
     });
 
-    return unsubscribe;
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
