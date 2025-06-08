@@ -26,6 +26,11 @@ export class AzureSpeechService {
 
   private initializeSpeechConfig(config: AzureSpeechConfig) {
     try {
+      // Validate configuration
+      if (!config.subscriptionKey || !config.serviceRegion) {
+        throw new Error('Missing Azure Speech Service credentials');
+      }
+
       this.speechConfig = SpeechSDK.SpeechConfig.fromSubscription(
         config.subscriptionKey,
         config.serviceRegion
@@ -38,10 +43,17 @@ export class AzureSpeechService {
       // Enable detailed results for confidence scores
       this.speechConfig.outputFormat = SpeechSDK.OutputFormat.Detailed;
       
+      // Set connection timeout and retry policies
+      this.speechConfig.setProperty(SpeechSDK.PropertyId.Speech_SegmentationSilenceTimeoutMs, "2000");
+      this.speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_InitialSilenceTimeoutMs, "10000");
+      
       console.log('Azure Speech Service initialized successfully');
     } catch (error) {
       console.error('Failed to initialize Azure Speech Service:', error);
-      throw new Error('Azure Speech Service initialization failed');
+      if (this.onErrorCallback) {
+        this.onErrorCallback(`Azure Speech Service initialization failed: ${error.message}`);
+      }
+      throw error;
     }
   }
 
@@ -50,7 +62,10 @@ export class AzureSpeechService {
     onError?: (error: string) => void
   ): Promise<void> {
     if (!this.speechConfig) {
-      throw new Error('Speech config not initialized');
+      const errorMsg = 'Azure Speech Service not properly configured. Please verify your Azure credentials.';
+      console.error(errorMsg);
+      onError?.(errorMsg);
+      throw new Error(errorMsg);
     }
 
     if (this.isRecognizing) {
@@ -58,37 +73,59 @@ export class AzureSpeechService {
       return;
     }
 
+    this.onTranscriptionCallback = onTranscription;
+    this.onErrorCallback = onError;
+
     try {
+      // Check microphone permission first
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(track => track.stop()); // Stop the test stream
+
       // Create audio config from microphone stream
       const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
       
       // Create speech recognizer
       this.recognizer = new SpeechSDK.SpeechRecognizer(this.speechConfig, audioConfig);
       
-      this.onTranscriptionCallback = onTranscription;
-      this.onErrorCallback = onError;
-
       // Set up event handlers
       this.setupEventHandlers();
 
-      // Start continuous recognition
-      this.recognizer.startContinuousRecognitionAsync(
-        () => {
-          this.isRecognizing = true;
-          console.log('Azure Speech Service: Continuous recognition started');
-        },
-        (error) => {
-          console.error('Azure Speech Service failed to start:', error);
+      // Start continuous recognition with timeout protection
+      return new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          const timeoutError = 'Azure Speech Service connection timeout. Falling back to browser speech recognition.';
+          console.warn(timeoutError);
           this.isRecognizing = false;
-          this.onErrorCallback?.(`Azure Speech Service initialization failed: ${error}`);
-        }
-      );
+          onError?.(timeoutError);
+          reject(new Error(timeoutError));
+        }, 15000); // 15 second timeout
 
-    } catch (error) {
+        this.recognizer!.startContinuousRecognitionAsync(
+          () => {
+            clearTimeout(timeout);
+            this.isRecognizing = true;
+            console.log('Azure Speech Service: Continuous recognition started successfully');
+            resolve();
+          },
+          (error) => {
+            clearTimeout(timeout);
+            console.error('Azure Speech Service failed to start:', error);
+            this.isRecognizing = false;
+            const errorMsg = `Azure Speech Service connection failed: ${error}. Switching to browser speech recognition.`;
+            onError?.(errorMsg);
+            reject(new Error(errorMsg));
+          }
+        );
+      });
+
+    } catch (error: any) {
       console.error('Error starting Azure Speech recognition:', error);
       this.isRecognizing = false;
-      this.onErrorCallback?.(`Failed to start Azure Speech recognition: ${error}`);
-      throw error;
+      const errorMsg = error.name === 'NotAllowedError' 
+        ? 'Microphone access denied. Please enable microphone permissions.'
+        : `Failed to start Azure Speech recognition: ${error.message}`;
+      onError?.(errorMsg);
+      throw new Error(errorMsg);
     }
   }
 
