@@ -66,6 +66,8 @@ const SessionIntelligenceNew = () => {
             </TabsList>
 
             <TabsContent value="live-session" className="space-y-6">
+              <AzureIntegrationStatus />
+              
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -77,18 +79,6 @@ const SessionIntelligenceNew = () => {
                   </p>
                 </CardHeader>
                 <CardContent>
-                  <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
-                    <div className="flex items-start gap-3">
-                      <Shield className="h-5 w-5 text-blue-600 mt-0.5" />
-                      <div>
-                        <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-1">Azure AI Integration Active</h4>
-                        <p className="text-sm text-blue-700 dark:text-blue-300">
-                          Azure Speech Service: Real-time transcription ✓ | Video Analysis: Engagement detection algorithms ✓ | Clinical Insights: AI-powered session analysis ✓
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  
                   <LiveSessionRecorder />
                 </CardContent>
               </Card>
