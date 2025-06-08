@@ -59,16 +59,6 @@ export class AzureSpeechService {
     }
 
     try {
-      // Request microphone access
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-          sampleRate: 16000
-        } 
-      });
-
       // Create audio config from microphone stream
       const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
       
@@ -85,17 +75,20 @@ export class AzureSpeechService {
       this.recognizer.startContinuousRecognitionAsync(
         () => {
           this.isRecognizing = true;
-          console.log('Continuous recognition started');
+          console.log('Azure Speech Service: Continuous recognition started');
         },
         (error) => {
-          console.error('Failed to start recognition:', error);
-          this.onErrorCallback?.(error);
+          console.error('Azure Speech Service failed to start:', error);
+          this.isRecognizing = false;
+          this.onErrorCallback?.(`Azure Speech Service initialization failed: ${error}`);
         }
       );
 
     } catch (error) {
-      console.error('Error starting recognition:', error);
-      throw new Error('Failed to start speech recognition');
+      console.error('Error starting Azure Speech recognition:', error);
+      this.isRecognizing = false;
+      this.onErrorCallback?.(`Failed to start Azure Speech recognition: ${error}`);
+      throw error;
     }
   }
 

@@ -277,14 +277,20 @@ export default function SessionRecording() {
 
   // Start transcription service (Azure or fallback)
   const startTranscription = async () => {
-    if (!azureSpeechRef.current && !webSpeechRef.current) {
-      await initializeAzureSpeech();
-    }
-
     try {
+      // First try Azure Speech Service
+      if (!azureSpeechRef.current) {
+        const azureInitialized = await initializeAzureSpeech();
+        if (!azureInitialized && !webSpeechRef.current) {
+          initializeWebSpeechFallback();
+        }
+      }
+
       if (azureSpeechRef.current) {
+        console.log('Starting Azure Speech Service transcription...');
         await azureSpeechRef.current.startContinuousRecognition(
           (segment: TranscriptionSegment) => {
+            console.log('Azure transcription segment:', segment.text);
             setTranscriptionSegments(prev => [...prev, segment]);
             
             setRecordingState(prev => ({
@@ -293,20 +299,32 @@ export default function SessionRecording() {
             }));
             
             // Trigger real-time analysis for substantial content
-            if (segment.text.length > 50) {
+            if (segment.text.length > 20) {
               performRealtimeAnalysis(recordingState.transcript + ' ' + segment.text);
             }
           },
           (error: string) => {
             console.error('Azure Speech transcription error:', error);
-            toast({
-              title: "Transcription Error",
-              description: "Real-time transcription encountered an issue.",
-              variant: "destructive"
-            });
+            // Fall back to Web Speech API on error
+            if (webSpeechRef.current) {
+              console.log('Falling back to Web Speech API...');
+              webSpeechRef.current.start();
+              toast({
+                title: "Switched to Browser Speech Recognition",
+                description: "Azure Speech Service unavailable, using browser fallback.",
+                variant: "default"
+              });
+            } else {
+              toast({
+                title: "Transcription Error",
+                description: "Real-time transcription encountered an issue.",
+                variant: "destructive"
+              });
+            }
           }
         );
       } else if (webSpeechRef.current) {
+        console.log('Starting Web Speech API transcription...');
         webSpeechRef.current.start();
       } else {
         throw new Error('No transcription service available');
@@ -316,7 +334,7 @@ export default function SessionRecording() {
       toast({
         title: "Transcription Error",
         description: "Failed to start real-time transcription. Recording audio only.",
-        variant: "destructive"
+        variant: "default"
       });
     }
   };
