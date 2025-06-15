@@ -760,29 +760,29 @@ PLAN:
         
         <Tabs defaultValue="emotions" className="w-full">
           <TabsList className="grid w-full grid-cols-8">
-            <TabsTrigger value="emotions" className="p-3" title="Real-Time Emotional Analysis">
-              <Heart className="h-4 w-4" />
+            <TabsTrigger value="emotions" className="p-4" title="Real-Time Emotional Analysis">
+              <Heart className="h-5 w-5" />
             </TabsTrigger>
-            <TabsTrigger value="congruence" className="p-3" title="Verbal-Nonverbal Congruence Analysis">
-              <Scale className="h-4 w-4" />
+            <TabsTrigger value="congruence" className="p-4" title="Verbal-Nonverbal Congruence Analysis">
+              <Scale className="h-5 w-5" />
             </TabsTrigger>
-            <TabsTrigger value="risk" className="p-3" title="Clinical Risk Assessment">
-              <AlertTriangle className="h-4 w-4" />
+            <TabsTrigger value="risk" className="p-4" title="Clinical Risk Assessment">
+              <AlertTriangle className="h-5 w-5" />
             </TabsTrigger>
-            <TabsTrigger value="insights" className="p-3" title="Therapeutic Process Insights">
-              <Brain className="h-4 w-4" />
+            <TabsTrigger value="insights" className="p-4" title="Therapeutic Process Insights">
+              <Brain className="h-5 w-5" />
             </TabsTrigger>
-            <TabsTrigger value="treatment" className="p-3" title="Treatment Response Analytics">
-              <TrendingUp className="h-4 w-4" />
+            <TabsTrigger value="treatment" className="p-4" title="Treatment Response Analytics">
+              <TrendingUp className="h-5 w-5" />
             </TabsTrigger>
-            <TabsTrigger value="notes" className="p-3" title="Session Documentation Intelligence">
-              <FileText className="h-4 w-4" />
+            <TabsTrigger value="notes" className="p-4" title="Session Documentation Intelligence">
+              <FileText className="h-5 w-5" />
             </TabsTrigger>
-            <TabsTrigger value="patterns" className="p-3" title="Cross-Session Pattern Recognition">
-              <BarChart3 className="h-4 w-4" />
+            <TabsTrigger value="patterns" className="p-4" title="Cross-Session Pattern Recognition">
+              <BarChart3 className="h-5 w-5" />
             </TabsTrigger>
-            <TabsTrigger value="feedback" className="p-3" title="Counselor Performance Feedback">
-              <MessageSquare className="h-4 w-4" />
+            <TabsTrigger value="feedback" className="p-4" title="Counselor Performance Feedback">
+              <MessageSquare className="h-5 w-5" />
             </TabsTrigger>
           </TabsList>
 
