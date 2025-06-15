@@ -80,7 +80,9 @@ export function SimpleLocalAnalysis() {
         // Initialize video element
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
-          videoRef.current.play();
+          videoRef.current.onloadedmetadata = () => {
+            videoRef.current?.play().catch(console.error);
+          };
         }
         
         // Start speech recognition
@@ -106,31 +108,48 @@ export function SimpleLocalAnalysis() {
       recognition.continuous = true;
       recognition.interimResults = true;
       recognition.lang = 'en-US';
+      recognition.maxAlternatives = 1;
       
       recognition.onstart = () => {
         setIsListening(true);
-        console.log('Speech recognition started');
+        console.log('Speech recognition started - speak clearly for best results');
       };
 
       recognition.onresult = (event: any) => {
-        let transcript = '';
+        let finalTranscript = '';
+        let interimTranscript = '';
+        
         for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
           if (event.results[i].isFinal) {
-            transcript += event.results[i][0].transcript;
+            finalTranscript += transcript;
+          } else {
+            interimTranscript += transcript;
           }
         }
-        if (transcript.trim()) {
-          transcriptRef.current.push(transcript.trim());
-          setLastTranscript(transcript.trim());
+        
+        if (finalTranscript.trim()) {
+          const cleanTranscript = finalTranscript.trim();
+          transcriptRef.current.push(cleanTranscript);
+          setLastTranscript(cleanTranscript);
           setSessionData(prev => ({
             ...prev,
-            transcript: [...prev.transcript, transcript.trim()]
+            transcript: [...prev.transcript, cleanTranscript]
           }));
+          console.log('Captured speech:', cleanTranscript);
+        }
+        
+        // Show interim results as well
+        if (interimTranscript.trim()) {
+          setLastTranscript(`${interimTranscript.trim()} (listening...)`);
         }
       };
 
       recognition.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
+        if (event.error === 'not-allowed') {
+          alert('Microphone access denied. Please enable microphone permissions and try again.');
+        }
         setIsListening(false);
       };
 
@@ -143,12 +162,20 @@ export function SimpleLocalAnalysis() {
             } catch (error) {
               console.error('Failed to restart speech recognition:', error);
             }
-          }, 100);
+          }, 500);
         }
       };
 
       speechRecognitionRef.current = recognition;
-      recognition.start();
+      
+      try {
+        recognition.start();
+      } catch (error) {
+        console.error('Failed to start speech recognition:', error);
+        alert('Speech recognition not supported or blocked. Please use Chrome or Edge for best results.');
+      }
+    } else {
+      console.warn('Speech recognition not supported in this browser');
     }
   }, [isRecording]);
 
@@ -242,7 +269,7 @@ PLAN:
         </div>
 
         {/* Video Preview */}
-        {isRecording && videoStream && (
+        {isRecording && (
           <div className="mb-4 p-3 border rounded-lg bg-gray-50 dark:bg-gray-800">
             <h4 className="text-sm font-medium mb-2">Live Video Feed</h4>
             <div className="relative">
@@ -251,11 +278,23 @@ PLAN:
                 autoPlay
                 muted
                 playsInline
-                className="w-full max-w-md h-48 object-cover rounded border"
+                className="w-full max-w-md h-48 object-cover rounded border bg-black"
+                style={{ transform: 'scaleX(-1)' }} // Mirror effect for natural selfie view
               />
+              <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs">
+                LIVE
+              </div>
             </div>
-            <div className="mt-2 text-xs text-muted-foreground">
-              Video analysis running - all processing happens locally
+            <div className="mt-2 flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">
+                Video analysis running - all processing happens locally
+              </span>
+              {isListening && (
+                <div className="flex items-center gap-2 text-green-600">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  Listening
+                </div>
+              )}
             </div>
             {lastTranscript && (
               <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-950 rounded text-xs">
