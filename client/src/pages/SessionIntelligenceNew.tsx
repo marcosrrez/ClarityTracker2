@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import LiveSessionRecorder from '@/components/session-intelligence/LiveSessionRecorder';
 import { SessionManagement } from '@/components/session-intelligence/SessionManagement';
 import AzureIntegrationStatus from '@/components/session-intelligence/AzureIntegrationStatus';
-import { DiagnosticLocalAnalysis } from '@/components/session-intelligence/DiagnosticLocalAnalysis';
+import FixedLocalVideoAnalysis from '@/components/session-intelligence/FixedLocalVideoAnalysis';
 
 const SessionIntelligenceNew = () => {
   const [currentSessionData, setCurrentSessionData] = useState(null);

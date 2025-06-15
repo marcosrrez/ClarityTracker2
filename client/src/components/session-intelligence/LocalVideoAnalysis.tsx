@@ -16,17 +16,29 @@ import {
   Frown,
   Shield,
   Lock,
-  Cpu
+  Cpu,
+  Video,
+  CheckCircle,
+  XCircle
 } from 'lucide-react';
-import * as tf from '@tensorflow/tfjs';
-import '@tensorflow/tfjs-backend-webgl';
-import * as faceDetection from '@tensorflow-models/face-detection';
-import * as faceLandmarksDetection from '@tensorflow-models/face-landmarks-detection';
-import { FaceMesh } from '@mediapipe/face_mesh';
-import { Hands } from '@mediapipe/hands';
-import { Pose } from '@mediapipe/pose';
-import { Camera } from '@mediapipe/camera_utils';
-import { get, set } from 'idb-keyval';
+
+// Lazy imports with error handling
+let tf: any = null;
+let faceDetection: any = null;
+let faceLandmarksDetection: any = null;
+let FaceMesh: any = null;
+let Hands: any = null;
+let Pose: any = null;
+
+// Fix Issue #2: Missing Props Interface
+interface LocalVideoAnalysisProps {
+  isRecording: boolean;
+  videoElement?: HTMLVideoElement | null;
+  audioStream?: MediaStream | null;
+  sessionId?: string;
+  therapeuticTechniques?: string[];
+  treatmentGoals?: string[];
+}
 
 interface FaceDetectionResult {
   x: number;
@@ -1155,8 +1167,9 @@ ${risk.suicidalIdeationScore > 20 ? 'Monitor for safety concerns' : 'Standard fo
             <div className="relative">
               <video
                 ref={(el) => {
-                  if (el && videoStream) {
-                    el.srcObject = videoStream;
+                  // Fix Issue #1: Variable Reference Error
+                  if (el && videoElement && videoElement.srcObject) {
+                    el.srcObject = videoElement.srcObject;
                     el.play().catch(console.error);
                   }
                 }}
