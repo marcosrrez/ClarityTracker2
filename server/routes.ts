@@ -5228,30 +5228,44 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
     }
   });
 
-  // Generate SOAP notes using Google AI
+  // Generate SOAP notes using Google AI - handles both array and object inputs
   app.post('/api/session-intelligence/generate-soap', async (req, res) => {
     try {
-      const { transcription, videoAnalysis, clinicalInsights, sessionDuration } = req.body;
+      let { transcription, videoAnalysis, clinicalInsights, sessionDuration, sessionData } = req.body;
       
-      if (!transcription || transcription.length === 0) {
+      // Handle both direct parameters and sessionData object
+      if (sessionData) {
+        transcription = sessionData.transcriptSegments || sessionData.transcript;
+        videoAnalysis = sessionData.videoFrames;
+        clinicalInsights = sessionData.clinicalInsights;
+        sessionDuration = sessionData.duration;
+      }
+      
+      // Convert string transcript to array format if needed
+      if (typeof transcription === 'string') {
+        transcription = [{ text: transcription, speaker: 'Client', timestamp: Date.now() }];
+      }
+      
+      if (!transcription || (Array.isArray(transcription) && transcription.length === 0)) {
         return res.status(400).json({ error: 'Transcription data is required' });
       }
 
       // Use Google AI to generate comprehensive SOAP notes
       const model = googleAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       
-      const contextData = {
-        transcriptionSegments: transcription,
-        videoAnalysisFrames: videoAnalysis || [],
-        clinicalInsights: clinicalInsights || [],
-        sessionDuration: sessionDuration || 0
-      };
+      const transcriptText = Array.isArray(transcription) 
+        ? transcription.map((t: any) => t.text || t).join(' ')
+        : transcription;
+      
+      const insightsText = clinicalInsights?.map((insight: any) => 
+        typeof insight === 'string' ? insight : `${insight.type}: ${insight.content}`
+      ).join('\n') || 'Session insights pending analysis';
 
       const prompt = `Generate a comprehensive SOAP note based on the following therapy session data:
 
-Transcription: ${JSON.stringify(transcription.map((t: any) => t.text).join(' '))}
+Transcription: ${transcriptText}
 Session Duration: ${Math.floor((sessionDuration || 0) / 60)} minutes
-Clinical Insights: ${JSON.stringify(clinicalInsights)}
+Clinical Insights: ${insightsText}
 
 Create a detailed SOAP note with:
 - SUBJECTIVE: Client's reported concerns and experiences
@@ -5414,75 +5428,7 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
     }
   });
 
-  // Generate SOAP notes from session data
-  app.post('/api/session-intelligence/generate-soap', async (req, res) => {
-    try {
-      const { transcription, videoAnalysis, clinicalInsights, sessionDuration } = req.body;
 
-      if (!transcription || transcription.length === 0) {
-        return res.status(400).json({ error: 'Transcription data required' });
-      }
-
-      // Use Google AI to generate comprehensive SOAP notes
-      const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
-
-      const transcriptText = transcription.map((segment: any) => segment.text).join(' ');
-      const insightsText = clinicalInsights.map((insight: any) => `${insight.type}: ${insight.content}`).join('\n');
-      
-      const prompt = `Generate a comprehensive SOAP note based on the following therapy session data:
-
-Session Duration: ${sessionDuration} minutes
-Transcription: ${transcriptText}
-Clinical Insights: ${insightsText}
-
-Generate a professional SOAP note with:
-1. Subjective: Client's reported experience and concerns
-2. Objective: Observable behaviors and therapeutic interventions
-3. Assessment: Clinical assessment and progress evaluation
-4. Plan: Treatment plan and next steps
-
-Also recommend appropriate billing codes (CPT codes) with justification.
-
-Respond in JSON format:
-{
-  "soapNote": {
-    "subjective": "...",
-    "objective": "...",
-    "assessment": "...",
-    "plan": "...",
-    "confidence": 0.95
-  },
-  "billingCodes": [
-    {
-      "code": "90834",
-      "description": "Individual psychotherapy, 45 minutes",
-      "confidence": 0.9,
-      "justification": "Standard individual therapy session"
-    }
-  ]
-}`;
-
-      const model = genAI.getGenerativeModel({ 
-        model: "gemini-1.5-pro",
-        generationConfig: {
-          responseMimeType: "application/json"
-        }
-      });
-
-      const response = await model.generateContent([
-        "You are a clinical documentation specialist. Generate accurate, professional SOAP notes and billing recommendations based on therapy session data.",
-        prompt
-      ]);
-
-      const result = JSON.parse(response.response.text());
-      result.soapNote.generatedAt = Date.now();
-
-      res.json(result);
-    } catch (error) {
-      console.error('Error generating SOAP note:', error);
-      res.status(500).json({ error: 'Failed to generate SOAP note' });
-    }
-  });
 
   // Session Data Management Routes
   
