@@ -761,28 +761,28 @@ PLAN:
         <Tabs defaultValue="emotions" className="w-full">
           <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="emotions" className="p-4" title="Real-Time Emotional Analysis">
-              <Heart className="h-5 w-5" />
+              <Heart className="h-5 w-5 text-gray-600 dark:text-gray-300" />
             </TabsTrigger>
             <TabsTrigger value="congruence" className="p-4" title="Verbal-Nonverbal Congruence Analysis">
-              <Scale className="h-5 w-5" />
+              <Scale className="h-5 w-5 text-gray-600 dark:text-gray-300" />
             </TabsTrigger>
             <TabsTrigger value="risk" className="p-4" title="Clinical Risk Assessment">
-              <AlertTriangle className="h-5 w-5" />
+              <AlertTriangle className="h-5 w-5 text-gray-600 dark:text-gray-300" />
             </TabsTrigger>
             <TabsTrigger value="insights" className="p-4" title="Therapeutic Process Insights">
-              <Brain className="h-5 w-5" />
+              <Brain className="h-5 w-5 text-gray-600 dark:text-gray-300" />
             </TabsTrigger>
             <TabsTrigger value="treatment" className="p-4" title="Treatment Response Analytics">
-              <TrendingUp className="h-5 w-5" />
+              <TrendingUp className="h-5 w-5 text-gray-600 dark:text-gray-300" />
             </TabsTrigger>
             <TabsTrigger value="notes" className="p-4" title="Session Documentation Intelligence">
-              <FileText className="h-5 w-5" />
+              <FileText className="h-5 w-5 text-gray-600 dark:text-gray-300" />
             </TabsTrigger>
             <TabsTrigger value="patterns" className="p-4" title="Cross-Session Pattern Recognition">
-              <BarChart3 className="h-5 w-5" />
+              <BarChart3 className="h-5 w-5 text-gray-600 dark:text-gray-300" />
             </TabsTrigger>
             <TabsTrigger value="feedback" className="p-4" title="Counselor Performance Feedback">
-              <MessageSquare className="h-5 w-5" />
+              <MessageSquare className="h-5 w-5 text-gray-600 dark:text-gray-300" />
             </TabsTrigger>
           </TabsList>
 
