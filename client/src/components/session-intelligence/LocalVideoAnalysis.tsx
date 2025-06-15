@@ -1209,6 +1209,239 @@ ${risk.suicidalIdeationScore > 20 ? 'Monitor for safety concerns' : 'Standard fo
               </div>
             </div>
           </TabsContent>
+
+          <TabsContent value="congruence" className="space-y-4 mt-4">
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium">Verbal-Nonverbal Congruence Analysis</h4>
+              <div className="p-3 border rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium">Congruence Score</span>
+                  <span className="text-sm font-bold">{Math.round(congruenceAnalysis.congruenceScore)}%</span>
+                </div>
+                <Progress value={congruenceAnalysis.congruenceScore} className="h-2" />
+                <div className="mt-3 space-y-2 text-sm">
+                  <div>
+                    <strong>Discrepancies:</strong> 
+                    {congruenceAnalysis.discrepancies.length > 0 ? (
+                      <ul className="list-disc list-inside mt-1">
+                        {congruenceAnalysis.discrepancies.map((item, idx) => (
+                          <li key={idx} className="text-red-600">{item}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <span className="text-green-600 ml-2">None detected</span>
+                    )}
+                  </div>
+                  <div>
+                    <strong>Breakthrough Moments:</strong>
+                    {congruenceAnalysis.breakthroughMoments.length > 0 ? (
+                      <ul className="list-disc list-inside mt-1">
+                        {congruenceAnalysis.breakthroughMoments.map((item, idx) => (
+                          <li key={idx} className="text-green-600">{item}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <span className="text-gray-500 ml-2">None detected</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="risk" className="space-y-4 mt-4">
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium">Clinical Risk Assessment</h4>
+              <div className="space-y-3">
+                <div className="p-3 border rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Suicidal Ideation Risk</span>
+                    <span className="text-sm font-bold">{Math.round(clinicalRisk.suicidalIdeationScore)}%</span>
+                  </div>
+                  <Progress value={clinicalRisk.suicidalIdeationScore} className="h-2" />
+                </div>
+                <div className="p-3 border rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Emotional Volatility</span>
+                    <span className="text-sm font-bold">{Math.round(clinicalRisk.emotionalVolatility)}%</span>
+                  </div>
+                  <Progress value={clinicalRisk.emotionalVolatility} className="h-2" />
+                </div>
+                <div className="p-3 border rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Substance Use Indicators</span>
+                    <span className="text-sm font-bold">{Math.round(clinicalRisk.substanceUseIndicators)}%</span>
+                  </div>
+                  <Progress value={clinicalRisk.substanceUseIndicators} className="h-2" />
+                </div>
+                {clinicalRisk.mentalHealthWarning.length > 0 && (
+                  <div className="p-3 border border-red-200 bg-red-50 dark:bg-red-950 rounded-lg">
+                    <h5 className="text-sm font-medium text-red-800 dark:text-red-200 mb-2">
+                      Mental Health Warnings:
+                    </h5>
+                    <ul className="list-disc list-inside text-sm text-red-700 dark:text-red-300">
+                      {clinicalRisk.mentalHealthWarning.map((warning, idx) => (
+                        <li key={idx}>{warning}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="insights" className="space-y-4 mt-4">
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium">Therapeutic Process Insights</h4>
+              <div className="space-y-3">
+                <div className="p-3 border rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Alliance Strength</span>
+                    <span className="text-sm font-bold">{Math.round(therapeuticInsights.allianceStrength)}%</span>
+                  </div>
+                  <Progress value={therapeuticInsights.allianceStrength} className="h-2" />
+                </div>
+                <div className="p-3 border rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Client Comfort Level</span>
+                    <span className="text-sm font-bold">{Math.round(therapeuticInsights.comfortLevel)}%</span>
+                  </div>
+                  <Progress value={therapeuticInsights.comfortLevel} className="h-2" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 border rounded-lg">
+                    <h5 className="text-sm font-medium mb-2">Resistance Patterns</h5>
+                    {therapeuticInsights.resistancePatterns.length > 0 ? (
+                      <ul className="list-disc list-inside text-sm text-orange-600">
+                        {therapeuticInsights.resistancePatterns.map((pattern, idx) => (
+                          <li key={idx}>{pattern}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <span className="text-sm text-green-600">None detected</span>
+                    )}
+                  </div>
+                  <div className="p-3 border rounded-lg">
+                    <h5 className="text-sm font-medium mb-2">Intervention Timing</h5>
+                    {therapeuticInsights.interventionTiming.length > 0 ? (
+                      <ul className="list-disc list-inside text-sm text-blue-600">
+                        {therapeuticInsights.interventionTiming.map((timing, idx) => (
+                          <li key={idx}>{timing}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <span className="text-sm text-gray-500">No recommendations</span>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="p-3 border rounded-lg">
+                  <h5 className="text-sm font-medium mb-2">Treatment Response Analytics</h5>
+                  <div className="space-y-2">
+                    <div>
+                      <span className="text-sm font-medium">Emotional Regulation: </span>
+                      <span className="text-sm">{Math.round(treatmentResponse.emotionalRegulation)}%</span>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium">Adherence Score: </span>
+                      <span className="text-sm">{Math.round(treatmentResponse.adherenceScore)}%</span>
+                    </div>
+                    {Object.keys(treatmentResponse.techniqueEffectiveness).length > 0 && (
+                      <div>
+                        <span className="text-sm font-medium">Technique Effectiveness:</span>
+                        <div className="mt-1 grid grid-cols-2 gap-2">
+                          {Object.entries(treatmentResponse.techniqueEffectiveness).map(([technique, score]) => (
+                            <div key={technique} className="text-xs">
+                              <span>{technique}: </span>
+                              <span className="font-medium">{Math.round(score)}%</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="notes" className="space-y-4 mt-4">
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium">Session Documentation Intelligence</h4>
+              <div className="p-3 border rounded-lg">
+                <h5 className="text-sm font-medium mb-2">Auto-Generated SOAP Notes</h5>
+                <pre className="text-xs whitespace-pre-wrap bg-gray-50 dark:bg-gray-800 p-3 rounded border">
+                  {sessionNotes.soapNotes || 'No session data available yet. Start recording to generate notes.'}
+                </pre>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 border rounded-lg">
+                  <h5 className="text-sm font-medium mb-2">Key Moments</h5>
+                  {sessionNotes.keyMoments.length > 0 ? (
+                    <ul className="list-disc list-inside text-sm">
+                      {sessionNotes.keyMoments.map((moment, idx) => (
+                        <li key={idx}>{moment}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <span className="text-sm text-gray-500">No key moments identified</span>
+                  )}
+                </div>
+                <div className="p-3 border rounded-lg">
+                  <h5 className="text-sm font-medium mb-2">Risk Summary</h5>
+                  <div className="text-sm">
+                    {sessionNotes.riskSummary || 'No risk factors detected'}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-3 border rounded-lg">
+                <h5 className="text-sm font-medium mb-2">Treatment Goal Progress</h5>
+                <div className="space-y-2">
+                  {Object.entries(sessionNotes.goalProgress).map(([goal, progress]) => (
+                    <div key={goal}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm">{goal}</span>
+                        <span className="text-sm font-bold">{Math.round(progress)}%</span>
+                      </div>
+                      <Progress value={progress} className="h-1" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="p-3 border rounded-lg">
+                <h5 className="text-sm font-medium mb-2">Counselor Feedback</h5>
+                <div className="space-y-2 text-sm">
+                  <div>
+                    <span className="font-medium">Intervention Effectiveness: </span>
+                    <span>{Math.round(counselorFeedback.interventionEffectiveness)}%</span>
+                  </div>
+                  {counselorFeedback.missedOpportunities.length > 0 && (
+                    <div>
+                      <span className="font-medium">Missed Opportunities:</span>
+                      <ul className="list-disc list-inside mt-1 text-orange-600">
+                        {counselorFeedback.missedOpportunities.map((opp, idx) => (
+                          <li key={idx}>{opp}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {counselorFeedback.developmentRecommendations.length > 0 && (
+                    <div>
+                      <span className="font-medium">Development Recommendations:</span>
+                      <ul className="list-disc list-inside mt-1 text-blue-600">
+                        {counselorFeedback.developmentRecommendations.map((rec, idx) => (
+                          <li key={idx}>{rec}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </TabsContent>
         </Tabs>
       </CardContent>
     </Card>
