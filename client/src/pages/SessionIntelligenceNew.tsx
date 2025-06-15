@@ -12,10 +12,46 @@ import LocalVideoAnalysis from '@/components/session-intelligence/LocalVideoAnal
 const SessionIntelligenceNew = () => {
   const [currentSessionData, setCurrentSessionData] = useState(null);
   const [activeTab, setActiveTab] = useState('live-session');
+  const [isPrivacyTestRecording, setIsPrivacyTestRecording] = useState(false);
+  const [privacyTestVideoElement, setPrivacyTestVideoElement] = useState<HTMLVideoElement | null>(null);
+  const [privacyTestAudioStream, setPrivacyTestAudioStream] = useState<MediaStream | null>(null);
 
   const handleSessionComplete = (sessionData: any) => {
     setCurrentSessionData(sessionData);
     setActiveTab('session-management');
+  };
+
+  const startPrivacyTestRecording = async () => {
+    try {
+      // Get user media for video and audio
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: true, 
+        audio: true 
+      });
+      
+      // Create video element
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      video.autoplay = true;
+      video.muted = true;
+      await video.play();
+      
+      setPrivacyTestVideoElement(video);
+      setPrivacyTestAudioStream(stream);
+      setIsPrivacyTestRecording(true);
+    } catch (error) {
+      console.error('Error accessing camera/microphone:', error);
+      alert('Please allow camera and microphone access to test the therapeutic intelligence features.');
+    }
+  };
+
+  const stopPrivacyTestRecording = () => {
+    if (privacyTestAudioStream) {
+      privacyTestAudioStream.getTracks().forEach(track => track.stop());
+    }
+    setPrivacyTestVideoElement(null);
+    setPrivacyTestAudioStream(null);
+    setIsPrivacyTestRecording(false);
   };
 
   return (
@@ -105,10 +141,51 @@ const SessionIntelligenceNew = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border">
+                    {/* Recording Controls */}
+                    <div className="mb-4 p-3 border rounded-lg bg-gray-50 dark:bg-gray-800">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-medium">Therapeutic Intelligence Test</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Test comprehensive clinical analysis with local processing
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          {!isPrivacyTestRecording ? (
+                            <button
+                              onClick={startPrivacyTestRecording}
+                              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                            >
+                              <Video className="h-4 w-4" />
+                              Start Analysis
+                            </button>
+                          ) : (
+                            <button
+                              onClick={stopPrivacyTestRecording}
+                              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                            >
+                              <Video className="h-4 w-4" />
+                              Stop Analysis
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      {isPrivacyTestRecording && (
+                        <div className="mt-2 flex items-center gap-2 text-sm text-green-600">
+                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                          Recording and analyzing with complete privacy protection
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Enhanced LocalVideoAnalysis with therapeutic intelligence */}
                     <LocalVideoAnalysis 
-                      isRecording={false}
-                      videoElement={null}
+                      isRecording={isPrivacyTestRecording}
+                      videoElement={privacyTestVideoElement}
                       sessionId="privacy-test-session"
+                      audioStream={privacyTestAudioStream}
+                      therapeuticTechniques={['CBT', 'DBT', 'Trauma-Informed Care', 'Mindfulness', 'Active Listening']}
+                      treatmentGoals={['Emotional Regulation', 'Anxiety Management', 'Communication Skills', 'Self-Awareness', 'Coping Strategies']}
                     />
                   </div>
                 </CardContent>
