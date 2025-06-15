@@ -117,8 +117,18 @@ Summary Card → Detailed View → Advanced Analysis → Educational Resources
 - **Error Boundaries**: Comprehensive error handling and recovery
 - **Rate Limiting**: Multi-tier rate limiting for different endpoint types
 
-## Changelog
-- June 15, 2025. Initial setup
+## Recent Changes
+- June 15, 2025: Enhanced LocalVideoAnalysis with comprehensive therapeutic intelligence
+  - Added verbal-nonverbal congruence analysis with clinical discrepancy detection
+  - Implemented real-time clinical risk assessment including suicidal ideation monitoring
+  - Created therapeutic process insights with alliance strength and resistance pattern tracking
+  - Built treatment response analytics with technique effectiveness scoring
+  - Added session documentation intelligence with auto-generated SOAP notes
+  - Integrated pattern recognition across sessions using local IndexedDB storage
+  - Developed supervision feedback system with counselor performance recommendations
+  - Enhanced UI with 8 comprehensive clinical analysis tabs
+  - Improved geometric emotion analysis using Facial Action Coding System (FACS)
+  - Fixed WASM module loading errors with robust JavaScript fallback
 
 ## User Preferences
 

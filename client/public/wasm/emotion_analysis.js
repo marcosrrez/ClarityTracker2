@@ -109,5 +109,3 @@ class EmotionAnalysisWasm {
 
 // Export for use in React components
 window.EmotionAnalysisWasm = EmotionAnalysisWasm;
-
-export default EmotionAnalysisWasm;
