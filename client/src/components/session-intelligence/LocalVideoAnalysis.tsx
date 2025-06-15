@@ -87,8 +87,9 @@ const LocalVideoAnalysis: React.FC<LocalVideoAnalysisProps> = ({
   });
   const [isProcessing, setIsProcessing] = useState(false);
   const [modelStatus, setModelStatus] = useState({
-    faceDetection: false, emotionAnalysis: false, gazeTracking: false
+    faceDetection: false, emotionAnalysis: false, gazeTracking: false, wasmLoaded: false
   });
+  const [wasmModule, setWasmModule] = useState<any>(null);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const analysisCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -104,10 +105,31 @@ const LocalVideoAnalysis: React.FC<LocalVideoAnalysisProps> = ({
     lastBlink: 0, blinkCount: 0
   });
 
-  // Initialize TensorFlow.js and MediaPipe models
+  // Initialize TensorFlow.js, MediaPipe models, and WASM
   useEffect(() => {
     const initializeModels = async () => {
       try {
+        // Initialize WASM emotion analysis module
+        const wasmScript = document.createElement('script');
+        wasmScript.src = '/wasm/emotion_analysis.js';
+        document.head.appendChild(wasmScript);
+        
+        await new Promise((resolve) => {
+          wasmScript.onload = async () => {
+            try {
+              const EmotionAnalysisWasm = (window as any).EmotionAnalysisWasm;
+              const wasmInstance = new EmotionAnalysisWasm();
+              await wasmInstance.initialize();
+              setWasmModule(wasmInstance);
+              setModelStatus(prev => ({ ...prev, wasmLoaded: true }));
+              resolve(null);
+            } catch (error) {
+              console.error('WASM initialization failed:', error);
+              resolve(null);
+            }
+          };
+        });
+
         // Initialize TensorFlow.js with WebGL
         await tf.setBackend('webgl');
         await tf.ready();
@@ -165,11 +187,12 @@ const LocalVideoAnalysis: React.FC<LocalVideoAnalysisProps> = ({
           camera: null,
         };
 
-        setModelStatus({
+        setModelStatus(prev => ({
+          ...prev,
           faceDetection: true,
           emotionAnalysis: true,
           gazeTracking: true,
-        });
+        }));
       } catch (error) {
         console.error('Model loading error:', error);
       }
@@ -184,54 +207,49 @@ const LocalVideoAnalysis: React.FC<LocalVideoAnalysisProps> = ({
     };
   }, []);
 
-  // WebAssembly-based emotion analysis (placeholder for now, ready for WASM integration)
+  // WebAssembly-based emotion analysis using facial landmark geometry
   const analyzeEmotionsWithWasm = useCallback(async (landmarks: any[]): Promise<EmotionAnalysis> => {
     try {
-      if (!landmarks || landmarks.length === 0) {
+      if (!landmarks || landmarks.length === 0 || !wasmModule) {
         return {
           happiness: 0, sadness: 0, anger: 0, fear: 0,
           surprise: 0, disgust: 0, contempt: 0, neutral: 100
         };
       }
 
-      // Analyze facial landmarks for emotional indicators
-      // This is a simplified algorithm ready for WASM replacement
-      const mouthLandmarks = landmarks.slice(0, 20); // Approximate mouth region
-      const eyeLandmarks = landmarks.slice(36, 48); // Approximate eye region
+      // Use WASM module for advanced emotion analysis
+      const emotions = wasmModule.analyzeEmotions(landmarks);
+      return emotions;
+    } catch (error) {
+      console.error('WASM emotion analysis error:', error);
       
-      // Calculate mouth curvature (happiness/sadness indicator)
-      const mouthCurvature = mouthLandmarks.reduce((sum, landmark) => sum + (landmark.z || 0), 0) / mouthLandmarks.length;
-      const happiness = Math.max(0, Math.min(100, (mouthCurvature + 0.5) * 100));
+      // Fallback to geometric analysis if WASM fails
+      const mouthPoints = landmarks.slice(48, 68); // Mouth landmarks
+      const eyePoints = landmarks.slice(36, 48); // Eye landmarks
+      const browPoints = landmarks.slice(17, 27); // Eyebrow landmarks
       
-      // Calculate eye openness (surprise/tiredness indicator)
-      const eyeOpenness = eyeLandmarks.reduce((sum, landmark) => sum + Math.abs(landmark.y || 0), 0) / eyeLandmarks.length;
-      const surprise = Math.max(0, Math.min(50, eyeOpenness * 100));
+      // Calculate geometric features
+      const mouthCurvature = mouthPoints.reduce((sum, p) => sum + (p.y || 0), 0) / mouthPoints.length;
+      const eyeOpenness = eyePoints.reduce((sum, p) => sum + Math.abs(p.y || 0), 0) / eyePoints.length;
+      const browHeight = browPoints.reduce((sum, p) => sum + (p.y || 0), 0) / browPoints.length;
       
-      // Calculate overall facial activity (expressiveness)
-      const facialActivity = landmarks.reduce((sum, landmark) => 
-        sum + Math.abs(landmark.x || 0) + Math.abs(landmark.y || 0), 0) / landmarks.length;
+      // Emotion calculation based on facial geometry
+      const happiness = Math.max(0, Math.min(100, mouthCurvature * 150 + 20));
+      const sadness = Math.max(0, Math.min(100, (0.3 - mouthCurvature) * 200));
+      const surprise = Math.max(0, Math.min(100, eyeOpenness * 100 + browHeight * 50));
+      const anger = Math.max(0, Math.min(100, (0.2 - browHeight) * 150));
+      const fear = Math.max(0, Math.min(100, eyeOpenness * 80 + sadness * 0.3));
+      const disgust = Math.max(0, Math.min(100, Math.abs(mouthCurvature - 0.15) * 80));
+      const contempt = Math.max(0, Math.min(100, Math.abs(mouthCurvature - 0.4) * 60));
       
-      const sadness = Math.max(0, Math.min(30, (0.5 - mouthCurvature) * 60));
-      const neutral = Math.max(0, 100 - happiness - sadness - surprise);
+      const total = happiness + sadness + surprise + anger + fear + disgust + contempt;
+      const neutral = Math.max(0, 100 - total);
 
       return {
-        happiness,
-        sadness,
-        anger: Math.random() * 10, // Placeholder for complex analysis
-        fear: Math.random() * 15,
-        surprise,
-        disgust: Math.random() * 8,
-        contempt: Math.random() * 5,
-        neutral,
-      };
-    } catch (error) {
-      console.error('Emotion analysis error:', error);
-      return {
-        happiness: 0, sadness: 0, anger: 0, fear: 0,
-        surprise: 0, disgust: 0, contempt: 0, neutral: 100
+        happiness, sadness, anger, fear, surprise, disgust, contempt, neutral
       };
     }
-  }, []);
+  }, [wasmModule]);
 
   // Detect faces using TensorFlow.js
   const detectFaces = useCallback(async (video: HTMLVideoElement): Promise<FaceDetectionResult[]> => {
@@ -515,7 +533,11 @@ const LocalVideoAnalysis: React.FC<LocalVideoAnalysisProps> = ({
             </Badge>
             <Badge variant={modelStatus.faceDetection ? "default" : "secondary"} className="text-xs">
               <Cpu className="h-3 w-3 mr-1" />
-              Models {modelStatus.faceDetection ? "Loaded" : "Loading"}
+              TensorFlow {modelStatus.faceDetection ? "Ready" : "Loading"}
+            </Badge>
+            <Badge variant={modelStatus.wasmLoaded ? "default" : "secondary"} className="text-xs">
+              <Brain className="h-3 w-3 mr-1" />
+              WASM {modelStatus.wasmLoaded ? "Ready" : "Loading"}
             </Badge>
             {isProcessing && (
               <Badge variant="outline" className="text-xs">
