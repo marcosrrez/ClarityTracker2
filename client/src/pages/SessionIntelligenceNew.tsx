@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import LiveSessionRecorder from '@/components/session-intelligence/LiveSessionRecorder';
 import { SessionManagement } from '@/components/session-intelligence/SessionManagement';
 import AzureIntegrationStatus from '@/components/session-intelligence/AzureIntegrationStatus';
+import LocalVideoAnalysis from '@/components/session-intelligence/LocalVideoAnalysis';
 
 const SessionIntelligenceNew = () => {
   const [currentSessionData, setCurrentSessionData] = useState(null);
@@ -45,10 +46,17 @@ const SessionIntelligenceNew = () => {
           transition={{ delay: 0.2 }}
         >
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="live-session" className="flex items-center gap-2">
                 <Video className="w-4 h-4" />
                 Live Session Analysis
+              </TabsTrigger>
+              <TabsTrigger value="privacy-test" className="flex items-center gap-2">
+                <Shield className="w-4 h-4" />
+                Privacy Test
+                <Badge variant="outline" className="ml-1 text-xs bg-green-50 text-green-700">
+                  Local
+                </Badge>
               </TabsTrigger>
               <TabsTrigger value="session-management" className="flex items-center gap-2">
                 <Database className="w-4 h-4" />
@@ -80,6 +88,62 @@ const SessionIntelligenceNew = () => {
                 </CardHeader>
                 <CardContent>
                   <LiveSessionRecorder />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="privacy-test" className="space-y-6">
+              <Card className="border-green-200 bg-green-50 dark:bg-green-950">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-green-800 dark:text-green-200">
+                    <Shield className="h-5 w-5" />
+                    Privacy-First Local Processing Test
+                  </CardTitle>
+                  <p className="text-green-700 dark:text-green-300">
+                    Test our new privacy-conscious video analysis using TensorFlow.js and MediaPipe for 100% local processing
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border">
+                    <LocalVideoAnalysis 
+                      isRecording={false}
+                      videoElement={null}
+                      sessionId="privacy-test-session"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Eye className="h-5 w-5" />
+                    Privacy Comparison
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-medium text-blue-700 mb-2">Azure Cloud Processing</h4>
+                      <ul className="text-sm space-y-1 text-muted-foreground">
+                        <li>• Video frames sent to Microsoft servers</li>
+                        <li>• Advanced clinical-grade AI analysis</li>
+                        <li>• Requires internet connection</li>
+                        <li>• Per-request API costs</li>
+                        <li>• Potential data retention concerns</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 border border-green-200 bg-green-50 dark:bg-green-950 rounded-lg">
+                      <h4 className="font-medium text-green-700 mb-2">Local Processing</h4>
+                      <ul className="text-sm space-y-1 text-green-600">
+                        <li>• All analysis happens on your device</li>
+                        <li>• No data transmitted externally</li>
+                        <li>• Works offline</li>
+                        <li>• No ongoing API costs</li>
+                        <li>• Complete privacy protection</li>
+                      </ul>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
