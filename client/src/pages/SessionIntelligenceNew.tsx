@@ -131,13 +131,42 @@ const SessionIntelligenceNew = () => {
             <TabsContent value="privacy-test" className="space-y-6">
               <Card className="border-green-200 bg-green-50 dark:bg-green-950">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-green-800 dark:text-green-200">
-                    <Shield className="h-5 w-5" />
-                    Privacy-First Local Processing Test
-                  </CardTitle>
-                  <p className="text-green-700 dark:text-green-300">
-                    Test our new privacy-conscious video analysis using TensorFlow.js and MediaPipe for 100% local processing
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="flex items-center gap-2 text-green-800 dark:text-green-200">
+                        <Shield className="h-5 w-5" />
+                        Privacy-First Local Processing Test
+                      </CardTitle>
+                      <p className="text-green-700 dark:text-green-300">
+                        Test our new privacy-conscious video analysis using TensorFlow.js and MediaPipe for 100% local processing
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      {!isPrivacyTestRecording ? (
+                        <button
+                          onClick={startPrivacyTestRecording}
+                          className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                        >
+                          <Video className="h-4 w-4" />
+                          Start Analysis
+                        </button>
+                      ) : (
+                        <button
+                          onClick={stopPrivacyTestRecording}
+                          className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                        >
+                          <Video className="h-4 w-4" />
+                          Stop Analysis
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  {isPrivacyTestRecording && (
+                    <div className="mt-3 flex items-center gap-2 text-sm text-green-600">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      Recording and analyzing with complete privacy protection
+                    </div>
+                  )}
                 </CardHeader>
                 <CardContent>
                   <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border">
