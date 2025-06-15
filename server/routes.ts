@@ -1507,55 +1507,56 @@ Respond as the most accomplished clinical expert in the field, providing compreh
       ];
 
       let aiResponse;
-      let usedProvider = 'openai';
+      let usedProvider = 'google';
 
       try {
-        // Try OpenAI first
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'gpt-4o',
-            messages,
-            max_tokens: 1500,
-            temperature: 0.8,
-            presence_penalty: 0.1,
-            frequency_penalty: 0.1,
-          }),
-        });
+        // Try Google AI first
+        const { GoogleGenerativeAI } = await import('@google/generative-ai');
+        const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-        if (!response.ok) {
-          throw new Error(`OpenAI API error: ${response.status}`);
-        }
+        // Convert messages to Google AI format
+        const conversationText = messages
+          .filter(m => m.role !== 'system')
+          .map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
+          .join('\n\n');
 
-        const data = await response.json();
-        aiResponse = data.choices[0]?.message?.content;
-      } catch (openaiError) {
-        console.log('OpenAI failed, trying Google AI:', openaiError);
+        const prompt = `${systemPrompt}\n\nConversation:\n${conversationText}`;
         
-        // Fallback to Google AI
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        aiResponse = response.text();
+        usedProvider = 'google';
+      } catch (googleError) {
+        console.log('Google AI failed, trying OpenAI:', googleError);
+        
+        // Fallback to OpenAI
         try {
-          const { GoogleGenerativeAI } = await import('@google/generative-ai');
-          const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
-          const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+          const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'gpt-4o',
+              messages,
+              max_tokens: 1500,
+              temperature: 0.8,
+              presence_penalty: 0.1,
+              frequency_penalty: 0.1,
+            }),
+          });
 
-          // Convert messages to Google AI format
-          const conversationText = messages
-            .filter(m => m.role !== 'system')
-            .map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
-            .join('\n\n');
+          if (!response.ok) {
+            throw new Error(`OpenAI API error: ${response.status}`);
+          }
 
-          const prompt = `${systemPrompt}\n\nConversation:\n${conversationText}`;
-          
-          const result = await model.generateContent(prompt);
-          const response = await result.response;
-          aiResponse = response.text();
-          usedProvider = 'google';
-        } catch (googleError) {
-          console.log('Google AI also failed, using counseling dataset:', googleError);
+          const data = await response.json();
+          aiResponse = data.choices[0]?.message?.content;
+          usedProvider = 'openai';
+        } catch (openaiError) {
+          console.log('OpenAI also failed, using counseling dataset:', openaiError);
           
           // Final fallback to counseling dataset
           const { getCounselingResponse } = await import('./counseling-dataset');
@@ -1645,37 +1646,37 @@ Keep the analysis practical and relevant to counseling practice.`;
       let analysisResult;
       let usedProvider = 'none';
 
-      // Try OpenAI first
+      // Try Google AI first
       try {
-        const { default: OpenAI } = await import('openai');
-        const openai = new OpenAI({
-          apiKey: process.env.OPENAI_API_KEY,
-        });
-
-        const response = await openai.chat.completions.create({
-          model: 'gpt-4o',
-          messages: [{ role: 'user', content: analysisPrompt }],
-          max_tokens: 500,
-          temperature: 0.7,
-        });
-
-        analysisResult = response.choices[0]?.message?.content || 'Analysis completed but no content received.';
-        usedProvider = 'openai';
-      } catch (openaiError) {
-        console.log('OpenAI failed, trying Google AI:', openaiError);
+        const { GoogleGenerativeAI } = await import('@google/generative-ai');
+        const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
+        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
         
-        // Fallback to Google AI
+        const result = await model.generateContent(analysisPrompt);
+        const response = await result.response;
+        analysisResult = response.text();
+        usedProvider = 'google';
+      } catch (googleError) {
+        console.log('Google AI failed, trying OpenAI:', googleError);
+        
+        // Fallback to OpenAI
         try {
-          const { GoogleGenerativeAI } = await import('@google/generative-ai');
-          const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
-          const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-          
-          const result = await model.generateContent(analysisPrompt);
-          const response = await result.response;
-          analysisResult = response.text();
-          usedProvider = 'google';
-        } catch (googleError) {
-          console.log('Google AI also failed:', googleError);
+          const { default: OpenAI } = await import('openai');
+          const openai = new OpenAI({
+            apiKey: process.env.OPENAI_API_KEY,
+          });
+
+          const response = await openai.chat.completions.create({
+            model: 'gpt-4o',
+            messages: [{ role: 'user', content: analysisPrompt }],
+            max_tokens: 500,
+            temperature: 0.7,
+          });
+
+          analysisResult = response.choices[0]?.message?.content || 'Analysis completed but no content received.';
+          usedProvider = 'openai';
+        } catch (openaiError) {
+          console.log('OpenAI also failed:', openaiError);
           throw new Error('Both AI providers failed');
         }
       }
