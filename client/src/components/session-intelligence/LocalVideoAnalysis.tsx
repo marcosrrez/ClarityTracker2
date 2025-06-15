@@ -5,7 +5,8 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Eye, Brain, Activity, Target, TrendingUp, AlertTriangle, Users, Hand,
-  Smile, Frown, Shield, Lock, Cpu, Video, CheckCircle, XCircle, Loader2
+  Smile, Frown, Shield, Lock, Cpu, Video, CheckCircle, XCircle, Loader2,
+  Heart, Scale, FileText, BarChart3, MessageSquare
 } from 'lucide-react';
 
 // Props interface
@@ -717,15 +718,31 @@ PLAN:
         </div>
         
         <Tabs defaultValue="emotions" className="w-full">
-          <TabsList className="grid w-full grid-cols-8 text-xs">
-            <TabsTrigger value="emotions">Emotions</TabsTrigger>
-            <TabsTrigger value="congruence">Congruence</TabsTrigger>
-            <TabsTrigger value="risk">Risk</TabsTrigger>
-            <TabsTrigger value="insights">Insights</TabsTrigger>
-            <TabsTrigger value="treatment">Treatment</TabsTrigger>
-            <TabsTrigger value="notes">Notes</TabsTrigger>
-            <TabsTrigger value="patterns">Patterns</TabsTrigger>
-            <TabsTrigger value="feedback">Feedback</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-8">
+            <TabsTrigger value="emotions" className="p-3" title="Real-Time Emotional Analysis">
+              <Heart className="h-4 w-4" />
+            </TabsTrigger>
+            <TabsTrigger value="congruence" className="p-3" title="Verbal-Nonverbal Congruence Analysis">
+              <Scale className="h-4 w-4" />
+            </TabsTrigger>
+            <TabsTrigger value="risk" className="p-3" title="Clinical Risk Assessment">
+              <AlertTriangle className="h-4 w-4" />
+            </TabsTrigger>
+            <TabsTrigger value="insights" className="p-3" title="Therapeutic Process Insights">
+              <Brain className="h-4 w-4" />
+            </TabsTrigger>
+            <TabsTrigger value="treatment" className="p-3" title="Treatment Response Analytics">
+              <TrendingUp className="h-4 w-4" />
+            </TabsTrigger>
+            <TabsTrigger value="notes" className="p-3" title="Session Documentation Intelligence">
+              <FileText className="h-4 w-4" />
+            </TabsTrigger>
+            <TabsTrigger value="patterns" className="p-3" title="Cross-Session Pattern Recognition">
+              <BarChart3 className="h-4 w-4" />
+            </TabsTrigger>
+            <TabsTrigger value="feedback" className="p-3" title="Counselor Performance Feedback">
+              <MessageSquare className="h-4 w-4" />
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="emotions" className="space-y-4">
