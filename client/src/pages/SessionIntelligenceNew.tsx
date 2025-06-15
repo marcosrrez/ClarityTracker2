@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import LiveSessionRecorder from '@/components/session-intelligence/LiveSessionRecorder';
 import { SessionManagement } from '@/components/session-intelligence/SessionManagement';
 import AzureIntegrationStatus from '@/components/session-intelligence/AzureIntegrationStatus';
-import LocalVideoAnalysis from '@/components/session-intelligence/LocalVideoAnalysis';
+import { SimpleLocalAnalysis } from '@/components/session-intelligence/SimpleLocalAnalysis';
 
 const SessionIntelligenceNew = () => {
   const [currentSessionData, setCurrentSessionData] = useState(null);
@@ -207,15 +207,8 @@ const SessionIntelligenceNew = () => {
                       )}
                     </div>
 
-                    {/* Enhanced LocalVideoAnalysis with therapeutic intelligence */}
-                    <LocalVideoAnalysis 
-                      isRecording={isPrivacyTestRecording}
-                      videoElement={privacyTestVideoElement}
-                      sessionId="privacy-test-session"
-                      audioStream={privacyTestAudioStream}
-                      therapeuticTechniques={['CBT', 'DBT', 'Trauma-Informed Care', 'Mindfulness', 'Active Listening']}
-                      treatmentGoals={['Emotional Regulation', 'Anxiety Management', 'Communication Skills', 'Self-Awareness', 'Coping Strategies']}
-                    />
+                    {/* Enhanced SimpleLocalAnalysis with therapeutic intelligence */}
+                    <SimpleLocalAnalysis />
                   </div>
                 </CardContent>
               </Card>

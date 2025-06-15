@@ -1149,23 +1149,26 @@ ${risk.suicidalIdeationScore > 20 ? 'Monitor for safety concerns' : 'Standard fo
       </CardHeader>
       <CardContent>
         {/* Video Preview */}
-        {isRecording && videoElement && (
+        {isRecording && (
           <div className="mb-4 p-3 border rounded-lg bg-gray-50 dark:bg-gray-800">
             <h4 className="text-sm font-medium mb-2">Live Video Analysis</h4>
             <div className="relative">
               <video
                 ref={(el) => {
-                  if (el && videoElement) {
-                    el.srcObject = videoElement.srcObject;
-                    el.play();
+                  if (el && videoStream) {
+                    el.srcObject = videoStream;
+                    el.play().catch(console.error);
                   }
                 }}
                 autoPlay
                 muted
+                playsInline
                 className="w-full max-w-md h-48 object-cover rounded border"
               />
               <canvas
                 ref={analysisCanvasRef}
+                width="320"
+                height="240"
                 className="absolute top-0 left-0 w-full h-48 max-w-md pointer-events-none"
                 style={{ mixBlendMode: 'multiply' }}
               />
