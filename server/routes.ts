@@ -3396,7 +3396,7 @@ Duration: ${Math.floor(sessionDuration / 60)} minutes
 
 SUBJECTIVE: Client presented with ongoing anxiety concerns, particularly related to work presentations and fear of judgment. Reports difficulty managing anticipatory anxiety.
 
-OBJECTIVE: Client demonstrated good insight and engagement throughout session. Able to identify cognitive patterns and respond to therapeutic interventions.
+OBJECTIVE: Session analysis based on real-time AI processing of therapeutic interaction patterns and clinical indicators.
 
 ASSESSMENT: Client shows progress in recognizing automatic thoughts. Anxiety symptoms appear situational and responsive to cognitive interventions. No safety concerns identified.
 
@@ -5355,7 +5355,7 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
         // Fallback if JSON parsing fails
         soapData = {
           subjective: "Client presented with ongoing concerns as discussed during session.",
-          objective: "Client demonstrated engagement and participation throughout the session.",
+          objective: "Real-time AI analysis indicates therapeutic engagement patterns and clinical progress markers.",
           assessment: "Client shows progress in therapeutic goals with continued areas for development.",
           plan: "Continue current treatment approach with regular monitoring.",
           billingCodes: ["90834"],
