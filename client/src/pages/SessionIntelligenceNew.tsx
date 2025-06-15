@@ -207,8 +207,15 @@ const SessionIntelligenceNew = () => {
                       )}
                     </div>
 
-                    {/* Enhanced DiagnosticLocalAnalysis with therapeutic intelligence */}
-                    <DiagnosticLocalAnalysis />
+                    {/* Enhanced FixedLocalVideoAnalysis with all critical issues resolved */}
+                    <FixedLocalVideoAnalysis 
+                      isRecording={isPrivacyTestRecording}
+                      videoElement={privacyTestVideoElement}
+                      audioStream={privacyTestAudioStream}
+                      sessionId="privacy-test-session"
+                      therapeuticTechniques={['CBT', 'DBT', 'Trauma-Informed Care', 'Mindfulness', 'Active Listening']}
+                      treatmentGoals={['Emotional Regulation', 'Anxiety Management', 'Communication Skills', 'Self-Awareness', 'Coping Strategies']}
+                    />
                   </div>
                 </CardContent>
               </Card>

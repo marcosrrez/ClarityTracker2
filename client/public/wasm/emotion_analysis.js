@@ -117,3 +117,9 @@ export function greet() {
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = { analyzeEmotions, greet };
 }
+
+// Expose functions globally for dynamic loading
+if (typeof window !== 'undefined') {
+  window.analyzeEmotions = analyzeEmotions;
+  window.greet = greet;
+}
