@@ -26,6 +26,7 @@ import { FaceMesh } from '@mediapipe/face_mesh';
 import { Hands } from '@mediapipe/hands';
 import { Pose } from '@mediapipe/pose';
 import { Camera } from '@mediapipe/camera_utils';
+import { get, set } from 'idb-keyval';
 
 interface FaceDetectionResult {
   x: number;
@@ -61,16 +62,70 @@ interface EngagementMetrics {
   attentiveness: number;
 }
 
+interface VerbalNonverbalCongruence {
+  congruenceScore: number;
+  discrepancies: string[];
+  breakthroughMoments: string[];
+}
+
+interface ClinicalRisk {
+  suicidalIdeationScore: number;
+  emotionalVolatility: number;
+  substanceUseIndicators: number;
+  mentalHealthWarning: string[];
+}
+
+interface TherapeuticInsights {
+  allianceStrength: number;
+  comfortLevel: number;
+  resistancePatterns: string[];
+  interventionTiming: string[];
+}
+
+interface TreatmentResponse {
+  techniqueEffectiveness: { [technique: string]: number };
+  topicSensitivity: { [topic: string]: number };
+  emotionalRegulation: number;
+  adherenceScore: number;
+}
+
+interface SessionNotes {
+  soapNotes: string;
+  keyMoments: string[];
+  riskSummary: string;
+  goalProgress: { [goal: string]: number };
+}
+
+interface PatternAnalysis {
+  emotionalTrends: { [date: string]: EmotionAnalysis };
+  recurringThemes: string[];
+  medicationEfficacy: { [med: string]: number };
+  cyclicalPatterns: string[];
+}
+
+interface CounselorFeedback {
+  interventionEffectiveness: number;
+  responseTiming: string[];
+  missedOpportunities: string[];
+  developmentRecommendations: string[];
+}
+
 interface LocalVideoAnalysisProps {
   isRecording: boolean;
   videoElement?: HTMLVideoElement | null;
   sessionId?: string;
+  audioStream?: MediaStream | null;
+  therapeuticTechniques?: string[];
+  treatmentGoals?: string[];
 }
 
 const LocalVideoAnalysis: React.FC<LocalVideoAnalysisProps> = ({
   isRecording,
   videoElement,
-  sessionId = 'local-session'
+  sessionId = 'local-session',
+  audioStream,
+  therapeuticTechniques = ['CBT', 'DBT', 'Mindfulness', 'Active Listening'],
+  treatmentGoals = ['Emotional Regulation', 'Communication Skills', 'Anxiety Management', 'Self-Awareness']
 }) => {
   // State management
   const [faceDetections, setFaceDetections] = useState<FaceDetectionResult[]>([]);
@@ -91,6 +146,49 @@ const LocalVideoAnalysis: React.FC<LocalVideoAnalysisProps> = ({
   });
   const [wasmModule, setWasmModule] = useState<any>(null);
 
+  // New therapeutic intelligence state
+  const [congruenceAnalysis, setCongruenceAnalysis] = useState<VerbalNonverbalCongruence>({ 
+    congruenceScore: 0, 
+    discrepancies: [], 
+    breakthroughMoments: [] 
+  });
+  const [clinicalRisk, setClinicalRisk] = useState<ClinicalRisk>({ 
+    suicidalIdeationScore: 0, 
+    emotionalVolatility: 0, 
+    substanceUseIndicators: 0, 
+    mentalHealthWarning: [] 
+  });
+  const [therapeuticInsights, setTherapeuticInsights] = useState<TherapeuticInsights>({ 
+    allianceStrength: 0, 
+    comfortLevel: 0, 
+    resistancePatterns: [], 
+    interventionTiming: [] 
+  });
+  const [treatmentResponse, setTreatmentResponse] = useState<TreatmentResponse>({ 
+    techniqueEffectiveness: {}, 
+    topicSensitivity: {}, 
+    emotionalRegulation: 0, 
+    adherenceScore: 0 
+  });
+  const [sessionNotes, setSessionNotes] = useState<SessionNotes>({ 
+    soapNotes: '', 
+    keyMoments: [], 
+    riskSummary: '', 
+    goalProgress: {} 
+  });
+  const [patternAnalysis, setPatternAnalysis] = useState<PatternAnalysis>({ 
+    emotionalTrends: {}, 
+    recurringThemes: [], 
+    medicationEfficacy: {}, 
+    cyclicalPatterns: [] 
+  });
+  const [counselorFeedback, setCounselorFeedback] = useState<CounselorFeedback>({ 
+    interventionEffectiveness: 0, 
+    responseTiming: [], 
+    missedOpportunities: [], 
+    developmentRecommendations: [] 
+  });
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const analysisCanvasRef = useRef<HTMLCanvasElement>(null);
   const modelsRef = useRef<{
@@ -104,6 +202,11 @@ const LocalVideoAnalysis: React.FC<LocalVideoAnalysisProps> = ({
   const blinkDetectionRef = useRef<{ lastBlink: number; blinkCount: number }>({
     lastBlink: 0, blinkCount: 0
   });
+  
+  // Audio processing refs
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const speechRecognitionRef = useRef<SpeechRecognition | null>(null);
+  const transcriptRef = useRef<string[]>([]);
 
   // Initialize TensorFlow.js, MediaPipe models, and WASM
   useEffect(() => {
