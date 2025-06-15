@@ -468,9 +468,27 @@ const LocalVideoAnalysis: React.FC<LocalVideoAnalysisProps> = ({
     }
   }, [audioStream, systemStatus, isRecording]);
 
-  // Fix Issue #8: Separate Video Analysis Function
+  // Debug video analysis function
   const performVideoAnalysis = useCallback(async () => {
-    if (!videoElement || !videoElement.srcObject || !modelsRef.current.faceMesh) {
+    console.log('DEBUG: Starting analysis check...');
+    console.log('Video element exists:', !!videoElement);
+    console.log('Video has srcObject:', !!videoElement?.srcObject);
+    console.log('FaceMesh model loaded:', !!modelsRef.current.faceMesh);
+    console.log('Emotion module loaded:', !!modelsRef.current.emotionModule);
+    console.log('Recording state:', isRecording);
+    
+    if (!videoElement) {
+      console.log('BLOCKED: No video element');
+      return;
+    }
+    
+    if (!videoElement.srcObject) {
+      console.log('BLOCKED: No video stream');
+      return;
+    }
+    
+    if (!modelsRef.current.faceMesh) {
+      console.log('BLOCKED: No FaceMesh model');
       return;
     }
 
@@ -478,42 +496,56 @@ const LocalVideoAnalysis: React.FC<LocalVideoAnalysisProps> = ({
       const videoCanvas = videoCanvasRef.current;
       const overlayCanvas = overlayCanvasRef.current;
       
-      if (!videoCanvas || !overlayCanvas) return;
+      console.log('Canvas elements exist:', !!videoCanvas, !!overlayCanvas);
+      
+      if (!videoCanvas || !overlayCanvas) {
+        console.log('BLOCKED: Missing canvas elements');
+        return;
+      }
 
-      // Clear and draw video frame
       const videoCtx = videoCanvas.getContext('2d');
       const overlayCtx = overlayCanvas.getContext('2d');
       
-      if (!videoCtx || !overlayCtx) return;
+      if (!videoCtx || !overlayCtx) {
+        console.log('BLOCKED: Missing canvas contexts');
+        return;
+      }
 
       videoCanvas.width = videoElement.videoWidth || 640;
       videoCanvas.height = videoElement.videoHeight || 480;
       overlayCanvas.width = videoCanvas.width;
       overlayCanvas.height = videoCanvas.height;
 
+      console.log('Video dimensions:', videoCanvas.width, 'x', videoCanvas.height);
+      console.log('Video ready state:', videoElement.readyState);
+
       videoCtx.drawImage(videoElement, 0, 0);
       overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
 
-      // Process with MediaPipe
+      console.log('Sending frame to MediaPipe...');
       await modelsRef.current.faceMesh.send({ image: videoElement });
 
-      // Analyze emotions if landmarks are available
       if (modelsRef.current.emotionModule) {
-        const mockLandmarks = Array.from({ length: 68 }, (_, i) => ({
-          x: Math.random(),
-          y: Math.random()
+        console.log('Processing emotions...');
+        // For debugging: use simple test data first
+        const testLandmarks = Array.from({ length: 68 }, (_, i) => ({
+          x: 0.5 + (Math.random() - 0.5) * 0.2,
+          y: 0.5 + (Math.random() - 0.5) * 0.2
         }));
 
-        const emotions = modelsRef.current.emotionModule.analyzeEmotions(mockLandmarks);
+        const emotions = modelsRef.current.emotionModule.analyzeEmotions(testLandmarks);
+        console.log('Emotion analysis result:', emotions);
         setCurrentEmotions(emotions);
 
-        // Generate other analyses
+        console.log('Current transcript length:', transcriptRef.current.length);
+        console.log('Recent transcript:', transcriptRef.current.slice(-2));
         generateClinicalAnalyses(emotions, transcriptRef.current);
+        console.log('Clinical analyses generated');
       }
     } catch (error) {
-      console.error('Video analysis error:', error);
+      console.error('Analysis error details:', error);
     }
-  }, [videoElement]);
+  }, [videoElement, isRecording]);
 
   // Generate comprehensive clinical analyses
   const generateClinicalAnalyses = useCallback((emotions: EmotionAnalysis, transcript: string[]) => {
