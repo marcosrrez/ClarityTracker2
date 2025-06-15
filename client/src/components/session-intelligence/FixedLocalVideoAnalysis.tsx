@@ -760,29 +760,29 @@ PLAN:
         
         <Tabs defaultValue="emotions" className="w-full">
           <TabsList className="grid w-full grid-cols-8">
-            <TabsTrigger value="emotions" className="p-4 [&>svg]:text-slate-700 data-[state=active]:[&>svg]:text-blue-600" title="Real-Time Emotional Analysis">
-              <Heart className="h-5 w-5" />
+            <TabsTrigger value="emotions" className="p-4" title="Real-Time Emotional Analysis">
+              <Heart className="h-5 w-5" style={{ color: '#475569' }} />
             </TabsTrigger>
-            <TabsTrigger value="congruence" className="p-4 [&>svg]:text-slate-700 data-[state=active]:[&>svg]:text-blue-600" title="Verbal-Nonverbal Congruence Analysis">
-              <Scale className="h-5 w-5" />
+            <TabsTrigger value="congruence" className="p-4" title="Verbal-Nonverbal Congruence Analysis">
+              <Scale className="h-5 w-5" style={{ color: '#475569' }} />
             </TabsTrigger>
-            <TabsTrigger value="risk" className="p-4 [&>svg]:text-slate-700 data-[state=active]:[&>svg]:text-blue-600" title="Clinical Risk Assessment">
-              <AlertTriangle className="h-5 w-5" />
+            <TabsTrigger value="risk" className="p-4" title="Clinical Risk Assessment">
+              <AlertTriangle className="h-5 w-5" style={{ color: '#475569' }} />
             </TabsTrigger>
-            <TabsTrigger value="insights" className="p-4 [&>svg]:text-slate-700 data-[state=active]:[&>svg]:text-blue-600" title="Therapeutic Process Insights">
-              <Brain className="h-5 w-5" />
+            <TabsTrigger value="insights" className="p-4" title="Therapeutic Process Insights">
+              <Brain className="h-5 w-5" style={{ color: '#475569' }} />
             </TabsTrigger>
-            <TabsTrigger value="treatment" className="p-4 [&>svg]:text-slate-700 data-[state=active]:[&>svg]:text-blue-600" title="Treatment Response Analytics">
-              <TrendingUp className="h-5 w-5" />
+            <TabsTrigger value="treatment" className="p-4" title="Treatment Response Analytics">
+              <TrendingUp className="h-5 w-5" style={{ color: '#475569' }} />
             </TabsTrigger>
-            <TabsTrigger value="notes" className="p-4 [&>svg]:text-slate-700 data-[state=active]:[&>svg]:text-blue-600" title="Session Documentation Intelligence">
-              <FileText className="h-5 w-5" />
+            <TabsTrigger value="notes" className="p-4" title="Session Documentation Intelligence">
+              <FileText className="h-5 w-5" style={{ color: '#475569' }} />
             </TabsTrigger>
-            <TabsTrigger value="patterns" className="p-4 [&>svg]:text-slate-700 data-[state=active]:[&>svg]:text-blue-600" title="Cross-Session Pattern Recognition">
-              <BarChart3 className="h-5 w-5" />
+            <TabsTrigger value="patterns" className="p-4" title="Cross-Session Pattern Recognition">
+              <BarChart3 className="h-5 w-5" style={{ color: '#475569' }} />
             </TabsTrigger>
-            <TabsTrigger value="feedback" className="p-4 [&>svg]:text-slate-700 data-[state=active]:[&>svg]:text-blue-600" title="Counselor Performance Feedback">
-              <MessageSquare className="h-5 w-5" />
+            <TabsTrigger value="feedback" className="p-4" title="Counselor Performance Feedback">
+              <MessageSquare className="h-5 w-5" style={{ color: '#475569' }} />
             </TabsTrigger>
           </TabsList>
 
