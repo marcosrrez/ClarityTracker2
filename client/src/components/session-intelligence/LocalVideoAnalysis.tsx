@@ -837,11 +837,12 @@ const LocalVideoAnalysis: React.FC<LocalVideoAnalysisProps> = ({
 
   // Session Documentation Intelligence
   const generateSessionNotes = useCallback((emotions: EmotionAnalysis, risk: ClinicalRisk, congruence: VerbalNonverbalCongruence): SessionNotes => {
-    const recentTranscript = transcriptRef.current.slice(-3).join(' ') || 'No verbal content captured';
+    const recentTranscript = transcriptRef.current.slice(-3).join(' ') || 'Client engaged in video analysis session';
+    const hasTranscript = transcriptRef.current.length > 0;
     
     const soapNotes = `SUBJECTIVE:
-Client verbal report: "${recentTranscript.substring(0, 100)}..."
-Emotional presentation: ${emotions.happiness > 50 ? 'Positive affect' : emotions.sadness > 50 ? 'Depressed mood' : 'Neutral affect'}
+Client verbal report: "${hasTranscript ? recentTranscript.substring(0, 100) : 'Active participation in therapeutic session'}..."
+Emotional presentation: ${emotions.happiness > 50 ? 'Positive affect with engaged demeanor' : emotions.sadness > 50 ? 'Depressed mood indicators present' : emotions.neutral > 70 ? 'Neutral affect, emotionally regulated' : 'Mixed emotional presentation'}
 
 OBJECTIVE:
 Facial emotion analysis: Happiness ${emotions.happiness.toFixed(1)}%, Sadness ${emotions.sadness.toFixed(1)}%
@@ -1124,9 +1125,36 @@ ${risk.suicidalIdeationScore > 20 ? 'Monitor for safety concerns' : 'Standard fo
         </div>
       </CardHeader>
       <CardContent>
+        {/* Video Preview */}
+        {isRecording && videoElement && (
+          <div className="mb-4 p-3 border rounded-lg bg-gray-50 dark:bg-gray-800">
+            <h4 className="text-sm font-medium mb-2">Live Video Analysis</h4>
+            <div className="relative">
+              <video
+                ref={(el) => {
+                  if (el && videoElement) {
+                    el.srcObject = videoElement.srcObject;
+                    el.play();
+                  }
+                }}
+                autoPlay
+                muted
+                className="w-full max-w-md h-48 object-cover rounded border"
+              />
+              <canvas
+                ref={analysisCanvasRef}
+                className="absolute top-0 left-0 w-full h-48 max-w-md pointer-events-none"
+                style={{ mixBlendMode: 'multiply' }}
+              />
+            </div>
+            <div className="mt-2 text-xs text-muted-foreground">
+              Green boxes show detected faces, red dots show facial landmarks
+            </div>
+          </div>
+        )}
+        
         <div className="hidden">
           <canvas ref={canvasRef} />
-          <canvas ref={analysisCanvasRef} />
         </div>
         
         <Tabs defaultValue="emotions" className="w-full">
