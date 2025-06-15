@@ -188,6 +188,8 @@ const LocalVideoAnalysis: React.FC<LocalVideoAnalysisProps> = ({
     missedOpportunities: [], 
     developmentRecommendations: [] 
   });
+  const [isListening, setIsListening] = useState(false);
+  const [lastTranscript, setLastTranscript] = useState('');
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const analysisCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -612,6 +614,11 @@ const LocalVideoAnalysis: React.FC<LocalVideoAnalysisProps> = ({
         recognition.interimResults = true;
         recognition.lang = 'en-US';
         
+        recognition.onstart = () => {
+          setIsListening(true);
+          console.log('Speech recognition started');
+        };
+
         recognition.onresult = (event: any) => {
           let transcript = '';
           for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -621,12 +628,28 @@ const LocalVideoAnalysis: React.FC<LocalVideoAnalysisProps> = ({
           }
           if (transcript.trim()) {
             transcriptRef.current.push(transcript.trim());
+            setLastTranscript(transcript.trim());
             console.log('Transcript captured:', transcript.trim());
           }
         };
 
         recognition.onerror = (event: any) => {
           console.error('Speech recognition error:', event.error);
+          setIsListening(false);
+        };
+
+        recognition.onend = () => {
+          setIsListening(false);
+          // Restart recognition if still recording
+          if (isRecording) {
+            setTimeout(() => {
+              try {
+                recognition.start();
+              } catch (error) {
+                console.error('Failed to restart speech recognition:', error);
+              }
+            }, 100);
+          }
         };
 
         speechRecognitionRef.current = recognition;
@@ -1147,9 +1170,22 @@ ${risk.suicidalIdeationScore > 20 ? 'Monitor for safety concerns' : 'Standard fo
                 style={{ mixBlendMode: 'multiply' }}
               />
             </div>
-            <div className="mt-2 text-xs text-muted-foreground">
-              Green boxes show detected faces, red dots show facial landmarks
+            <div className="mt-2 flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">
+                Green boxes show detected faces, red dots show facial landmarks
+              </span>
+              {isListening && (
+                <div className="flex items-center gap-2 text-green-600">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  Listening for speech
+                </div>
+              )}
             </div>
+            {lastTranscript && (
+              <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-950 rounded text-xs">
+                <strong>Last captured:</strong> "{lastTranscript}"
+              </div>
+            )}
           </div>
         )}
         
