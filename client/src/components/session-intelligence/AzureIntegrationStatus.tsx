@@ -24,12 +24,12 @@ export default function AzureIntegrationStatus() {
   const checkAzureServices = async () => {
     // Check Azure Speech Service
     try {
-      const speechResponse = await fetch('/api/azure-speech/config');
+      const speechResponse = await fetch('/api/azure/speech-config');
       if (speechResponse.ok) {
         const speechData = await speechResponse.json();
         setServices(prev => prev.map(s => 
           s.name === 'Azure Speech Service' 
-            ? { ...s, status: 'connected', details: `Region: ${speechData.region}` }
+            ? { ...s, status: 'connected', details: `Region: ${speechData.serviceRegion}` }
             : s
         ));
       } else {
@@ -99,14 +99,14 @@ export default function AzureIntegrationStatus() {
       
       if (googleResponse.ok) {
         const googleData = await googleResponse.json();
-        if (googleData.success) {
+        if (googleData.text && googleData.clinicalTags) {
           setServices(prev => prev.map(s => 
             s.name === 'Google AI Clinical Analysis' 
-              ? { ...s, status: 'connected', details: 'Gemini analysis ready' }
+              ? { ...s, status: 'connected', details: 'Gemini analysis active' }
               : s
           ));
         } else {
-          throw new Error('API returned error');
+          throw new Error('Invalid response format');
         }
       } else {
         throw new Error('HTTP error');
