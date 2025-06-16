@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useRef } from "react";
 import {
   User,
   UserCredential,
@@ -10,6 +10,9 @@ import {
   onAuthStateChanged,
   sendPasswordResetEmail,
   updateProfile,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { getUserProfile, createUserProfile, updateUserProfile as updateUserProfileInFirestore } from "@/lib/firestore";
@@ -19,12 +22,14 @@ interface AuthContextType {
   user: User | null;
   userProfile: UserProfile | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<UserCredential>;
+  signIn: (email: string, password: string, rememberMe?: boolean) => Promise<UserCredential>;
   signUp: (email: string, password: string, displayName?: string) => Promise<UserCredential>;
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updateUserProfile: (updates: Partial<UserProfile>) => Promise<void>;
+  sessionTimeout: number | null;
+  setSessionTimeout: (timeout: number | null) => void;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -45,6 +50,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sessionTimeout, setSessionTimeout] = useState<number | null>(null);
+  const sessionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -93,12 +100,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
   }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, rememberMe: boolean = true) => {
     try {
+      // Set Firebase persistence based on user choice
+      const persistence = rememberMe ? browserLocalPersistence : browserSessionPersistence;
+      await setPersistence(auth, persistence);
+      
       // Add detailed logging for debugging
       console.log("Attempting Firebase sign in...", { 
         email, 
         hasPassword: !!password,
+        rememberMe,
+        persistence: rememberMe ? 'local' : 'session',
         firebaseConfigured: !!auth.app.options.apiKey 
       });
       
@@ -325,6 +338,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     logout,
     resetPassword,
     updateUserProfile,
+    sessionTimeout,
+    setSessionTimeout,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
