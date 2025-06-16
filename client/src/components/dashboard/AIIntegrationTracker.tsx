@@ -17,7 +17,8 @@ import {
   Users,
   Target,
   Mail,
-  X
+  X,
+  Brain
 } from "lucide-react";
 
 interface AIIntegrationStatus {

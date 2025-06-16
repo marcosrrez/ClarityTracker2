@@ -22,6 +22,71 @@ export default function AzureIntegrationStatus() {
   }, []);
 
   const checkAzureServices = async () => {
+    // Check all Azure services status from integration endpoint
+    try {
+      const integrationResponse = await fetch('/api/ai/integration-status');
+      if (integrationResponse.ok) {
+        const integrationData = await integrationResponse.json();
+        
+        // Update Azure Speech Service status
+        setServices(prev => prev.map(s => 
+          s.name === 'Azure Speech Service' 
+            ? { 
+                ...s, 
+                status: integrationData.azure?.speech?.available ? 'connected' : 'error', 
+                details: integrationData.azure?.speech?.available 
+                  ? `Region: ${integrationData.azure.speech.region}` 
+                  : 'Service not configured'
+              }
+            : s
+        ));
+
+        // Update Azure Computer Vision status
+        setServices(prev => prev.map(s => 
+          s.name === 'Azure Computer Vision' 
+            ? { 
+                ...s, 
+                status: integrationData.azure?.computerVision?.available ? 'connected' : 'error', 
+                details: integrationData.azure?.computerVision?.available 
+                  ? 'Vision API active' 
+                  : 'Service not configured'
+              }
+            : s
+        ));
+
+        // Update Azure Face API status
+        setServices(prev => prev.map(s => 
+          s.name === 'Azure Face API' 
+            ? { 
+                ...s, 
+                status: integrationData.azure?.faceApi?.available ? 'connected' : 'error', 
+                details: integrationData.azure?.faceApi?.available 
+                  ? 'Face detection ready' 
+                  : 'Service not configured'
+              }
+            : s
+        ));
+
+        // Update Google AI status
+        setServices(prev => prev.map(s => 
+          s.name === 'Google AI Clinical Analysis' 
+            ? { 
+                ...s, 
+                status: integrationData.google?.clinical?.available ? 'connected' : 'error', 
+                details: integrationData.google?.clinical?.available 
+                  ? `${integrationData.google.clinical.model} active` 
+                  : 'Service not available'
+              }
+            : s
+        ));
+      }
+    } catch (error) {
+      // Fallback to individual service checks if integration endpoint fails
+      await checkIndividualServices();
+    }
+  };
+
+  const checkIndividualServices = async () => {
     // Check Azure Speech Service
     try {
       const speechResponse = await fetch('/api/azure/speech-config');
