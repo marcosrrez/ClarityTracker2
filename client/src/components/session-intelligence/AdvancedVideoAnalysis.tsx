@@ -117,78 +117,70 @@ const AdvancedVideoAnalysis: React.FC<AdvancedVideoAnalysisProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const analysisIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Test Azure connections on component mount
+  // Get Azure connection status from centralized integration API
   useEffect(() => {
-    const testAzureConnections = async () => {
-      // Test Azure Face API connection
-      if (AZURE_FACE_ENDPOINT && AZURE_FACE_KEY) {
-        try {
-          const response = await fetch(`${AZURE_FACE_ENDPOINT}/face/v1.0/detect`, {
-            method: 'POST',
-            headers: {
-              'Ocp-Apim-Subscription-Key': AZURE_FACE_KEY,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ url: 'https://example.com/test.jpg' })
+    const checkAzureStatus = async () => {
+      try {
+        const response = await fetch('/api/ai/integration-status');
+        if (response.ok) {
+          const integrationData = await response.json();
+          setConnectionStatus({
+            azure: integrationData.azure?.faceApi?.available || false,
+            computerVision: integrationData.azure?.computerVision?.available || false,
+            processing: false
           });
-          
-          setConnectionStatus(prev => ({ ...prev, azure: response.status === 400 || response.status === 200 }));
-        } catch (error) {
-          console.log('Azure Face API test - endpoint ready for use');
-          setConnectionStatus(prev => ({ ...prev, azure: true }));
         }
-      }
-
-      // Test Azure Computer Vision connection
-      if (AZURE_COMPUTER_VISION_ENDPOINT && AZURE_COMPUTER_VISION_KEY) {
-        try {
-          const response = await fetch(`${AZURE_COMPUTER_VISION_ENDPOINT}/vision/v3.2/analyze`, {
-            method: 'POST',
-            headers: {
-              'Ocp-Apim-Subscription-Key': AZURE_COMPUTER_VISION_KEY,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ url: 'https://example.com/test.jpg' })
-          });
-          
-          setConnectionStatus(prev => ({ ...prev, computerVision: response.status === 400 || response.status === 200 }));
-        } catch (error) {
-          console.log('Azure Computer Vision API test - endpoint ready for use');
-          setConnectionStatus(prev => ({ ...prev, computerVision: true }));
-        }
+      } catch (error) {
+        console.error('Error checking Azure integration status:', error);
+        setConnectionStatus({
+          azure: false,
+          computerVision: false,
+          processing: false
+        });
       }
     };
 
-    testAzureConnections();
+    checkAzureStatus();
+    // Check status every 30 seconds
+    const interval = setInterval(checkAzureStatus, 30000);
+    return () => clearInterval(interval);
   }, []);
 
-  // Azure Face API call for emotion detection
+  // Azure Face API call for emotion detection through backend
   const analyzeWithAzureFace = useCallback(async (imageBlob: Blob) => {
-    if (!AZURE_FACE_ENDPOINT || !AZURE_FACE_KEY) {
-      console.error('Azure Face API credentials not configured');
-      return null;
-    }
-
     try {
-      const response = await fetch(
-        `${AZURE_FACE_ENDPOINT}/face/v1.0/detect?returnFaceId=true&returnFaceLandmarks=true&returnFaceAttributes=emotion,headPose`,
-        {
-          method: 'POST',
-          headers: {
-            'Ocp-Apim-Subscription-Key': AZURE_FACE_KEY,
-            'Content-Type': 'application/octet-stream',
-          },
-          body: imageBlob,
-        }
-      );
+      // Convert blob to base64 for backend processing
+      const base64 = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64String = (reader.result as string).split(',')[1];
+          resolve(base64String);
+        };
+        reader.readAsDataURL(imageBlob);
+      });
+
+      const response = await fetch('/api/session-intelligence/analyze-video-frame', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          imageData: base64,
+          timestamp: Date.now()
+        }),
+      });
 
       if (!response.ok) {
-        throw new Error(`Azure Face API error: ${response.status}`);
+        throw new Error(`Azure analysis error: ${response.status}`);
       }
 
       const result = await response.json();
-      setConnectionStatus(prev => ({ ...prev, azure: true }));
-      return result;
+      if (result.success) {
+        setConnectionStatus(prev => ({ ...prev, azure: true }));
+        return result.data;
+      } else {
+        throw new Error('Analysis failed');
+      }
     } catch (error) {
       console.error('Azure Face analysis error:', error);
       setConnectionStatus(prev => ({ ...prev, azure: false }));
@@ -196,39 +188,11 @@ const AdvancedVideoAnalysis: React.FC<AdvancedVideoAnalysisProps> = ({
     }
   }, []);
 
-  // Azure Computer Vision API call for additional analysis
+  // Azure Computer Vision API call through backend (uses same endpoint as Face API)
   const analyzeWithComputerVision = useCallback(async (imageBlob: Blob) => {
-    if (!AZURE_COMPUTER_VISION_ENDPOINT || !AZURE_COMPUTER_VISION_KEY) {
-      console.error('Azure Computer Vision credentials not configured');
-      return null;
-    }
-
-    try {
-      const response = await fetch(
-        `${AZURE_COMPUTER_VISION_ENDPOINT}/vision/v3.2/analyze?visualFeatures=Faces,Objects,Tags`,
-        {
-          method: 'POST',
-          headers: {
-            'Ocp-Apim-Subscription-Key': AZURE_COMPUTER_VISION_KEY,
-            'Content-Type': 'application/octet-stream',
-          },
-          body: imageBlob,
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Azure Computer Vision API error: ${response.status}`);
-      }
-
-      const result = await response.json();
-      setConnectionStatus(prev => ({ ...prev, computerVision: true }));
-      return result;
-    } catch (error) {
-      console.error('Azure Computer Vision analysis error:', error);
-      setConnectionStatus(prev => ({ ...prev, computerVision: false }));
-      return null;
-    }
-  }, []);
+    // Use the same backend endpoint that handles both Face API and Computer Vision
+    return await analyzeWithAzureFace(imageBlob);
+  }, [analyzeWithAzureFace]);
 
   // Capture frame from video
   const captureVideoFrame = useCallback(() => {
