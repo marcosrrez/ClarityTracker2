@@ -157,7 +157,24 @@ export function AIIntegrationTracker() {
 
   if (isLoading || !status) return null;
 
-  const progress = Math.min((status.totalInsights / 25) * 100, 100);
+  // Provide default values for milestones to prevent crashes
+  const statusWithDefaults = {
+    totalInsights: status.totalInsights || 0,
+    sessionsAnalyzed: status.sessionsAnalyzed || 0,
+    patternsDetected: status.patternsDetected || 0,
+    supervisionPrepsGenerated: status.supervisionPrepsGenerated || 0,
+    competenciesTracked: status.competenciesTracked || 0,
+    milestones: status.milestones || {
+      firstInsight: false,
+      tenInsights: false,
+      firstPattern: false,
+      firstSupervisionPrep: false,
+      twentyFiveInsights: false,
+      fiftyInsights: false,
+    }
+  };
+
+  const progress = Math.min((statusWithDefaults.totalInsights / 25) * 100, 100);
 
   return (
     <>
@@ -172,7 +189,7 @@ export function AIIntegrationTracker() {
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">Intelligence Building</span>
-              <span className="font-bold text-black">{status.totalInsights}/25 insights</span>
+              <span className="font-bold text-black">{statusWithDefaults.totalInsights}/25 insights</span>
             </div>
             <Progress value={progress} className="h-2" />
           </div>
@@ -181,7 +198,7 @@ export function AIIntegrationTracker() {
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 mb-1">
                 <TrendingUp className="h-4 w-4 text-green-600" />
-                <span className="text-lg font-bold text-black">{status.patternsDetected}</span>
+                <span className="text-lg font-bold text-black">{statusWithDefaults.patternsDetected}</span>
               </div>
               <p className="text-xs text-gray-600">Patterns</p>
             </div>
@@ -189,7 +206,7 @@ export function AIIntegrationTracker() {
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 mb-1">
                 <Users className="h-4 w-4 text-blue-600" />
-                <span className="text-lg font-bold text-black">{status.supervisionPrepsGenerated}</span>
+                <span className="text-lg font-bold text-black">{statusWithDefaults.supervisionPrepsGenerated}</span>
               </div>
               <p className="text-xs text-gray-600">Supervision Preps</p>
             </div>
@@ -197,7 +214,7 @@ export function AIIntegrationTracker() {
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 mb-1">
                 <Target className="h-4 w-4 text-purple-600" />
-                <span className="text-lg font-bold text-black">{status.competenciesTracked}</span>
+                <span className="text-lg font-bold text-black">{statusWithDefaults.competenciesTracked}</span>
               </div>
               <p className="text-xs text-gray-600">Competencies</p>
             </div>
@@ -205,32 +222,32 @@ export function AIIntegrationTracker() {
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 mb-1">
                 <Brain className="h-4 w-4 text-orange-600" />
-                <span className="text-lg font-bold text-black">{status.sessionsAnalyzed}</span>
+                <span className="text-lg font-bold text-black">{statusWithDefaults.sessionsAnalyzed}</span>
               </div>
               <p className="text-xs text-gray-600">Sessions</p>
             </div>
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {status.milestones.firstInsight && (
+            {statusWithDefaults.milestones.firstInsight && (
               <Badge className="bg-green-100 text-green-800">
                 <CheckCircle className="h-3 w-3 mr-1" />
                 First Insight
               </Badge>
             )}
-            {status.milestones.tenInsights && (
+            {statusWithDefaults.milestones.tenInsights && (
               <Badge className="bg-blue-100 text-blue-800">
                 <CheckCircle className="h-3 w-3 mr-1" />
                 10+ Insights
               </Badge>
             )}
-            {status.milestones.firstPattern && (
+            {statusWithDefaults.milestones.firstPattern && (
               <Badge className="bg-purple-100 text-purple-800">
                 <CheckCircle className="h-3 w-3 mr-1" />
                 Pattern Detection
               </Badge>
             )}
-            {status.milestones.twentyFiveInsights && (
+            {statusWithDefaults.milestones.twentyFiveInsights && (
               <Badge className="bg-yellow-100 text-yellow-800">
                 <CheckCircle className="h-3 w-3 mr-1" />
                 Advanced Features
