@@ -79,7 +79,7 @@ const LiveSessionRecorder: React.FC = () => {
   // Initialize Azure Speech SDK with live credentials
   const initializeAzureSpeech = async () => {
     try {
-      const response = await fetch('/api/azure-speech/config');
+      const response = await fetch('/api/azure/speech-config');
       if (!response.ok) {
         throw new Error('Failed to get Azure Speech configuration');
       }
@@ -91,7 +91,7 @@ const LiveSessionRecorder: React.FC = () => {
       const sdk = await import('microsoft-cognitiveservices-speech-sdk');
       
       // Create speech configuration
-      const speechConfig = sdk.SpeechConfig.fromSubscription(config.key, config.region);
+      const speechConfig = sdk.SpeechConfig.fromSubscription(config.subscriptionKey, config.serviceRegion);
       speechConfig.speechRecognitionLanguage = 'en-US';
       speechConfig.enableDictation();
       speechConfig.setProperty(sdk.PropertyId.SpeechServiceConnection_LanguageIdMode, "Continuous");
@@ -103,17 +103,34 @@ const LiveSessionRecorder: React.FC = () => {
       const recognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig);
       speechRecognitionRef.current = recognizer;
       
-      // Configure event handlers
+      // Configure event handlers with detailed logging
+      recognizer.recognizing = (s: any, e: any) => {
+        console.log('Azure Speech recognizing:', e.result.text);
+      };
+
       recognizer.recognized = (s: any, e: any) => {
+        console.log('Azure Speech recognized result:', e.result);
         if (e.result.reason === sdk.ResultReason.RecognizedSpeech && e.result.text.trim()) {
+          console.log('Processing transcription:', e.result.text);
           processTranscriptionSegment(e.result.text, 0.95);
+        } else {
+          console.log('Speech result reason:', e.result.reason);
         }
       };
       
       recognizer.canceled = (s: any, e: any) => {
+        console.error('Azure Speech canceled:', e.reason, e.errorDetails);
         if (e.reason === sdk.CancellationReason.Error) {
           console.error('Azure Speech recognition error:', e.errorDetails);
         }
+      };
+
+      recognizer.sessionStarted = (s: any, e: any) => {
+        console.log('Azure Speech session started:', e.sessionId);
+      };
+
+      recognizer.sessionStopped = (s: any, e: any) => {
+        console.log('Azure Speech session stopped:', e.sessionId);
       };
       
       console.log('Azure Speech SDK initialized successfully');
@@ -303,10 +320,19 @@ const LiveSessionRecorder: React.FC = () => {
       // Initialize video stream
       await initializeVideo();
 
-      // Start audio recognition
+      // Start audio recognition with error handling
       if (speechRecognitionRef.current) {
-        await speechRecognitionRef.current.startContinuousRecognitionAsync();
-        setHasAudio(true);
+        console.log('Starting Azure Speech continuous recognition...');
+        speechRecognitionRef.current.startContinuousRecognitionAsync(
+          () => {
+            console.log('Azure Speech recognition started successfully');
+            setHasAudio(true);
+          },
+          (error: any) => {
+            console.error('Failed to start Azure Speech recognition:', error);
+            setHasAudio(false);
+          }
+        );
       }
 
       // Start video analysis interval
@@ -330,8 +356,19 @@ const LiveSessionRecorder: React.FC = () => {
 
       // Stop audio recognition
       if (speechRecognitionRef.current) {
-        await speechRecognitionRef.current.stopContinuousRecognitionAsync();
-        speechRecognitionRef.current.close();
+        console.log('Stopping Azure Speech recognition...');
+        speechRecognitionRef.current.stopContinuousRecognitionAsync(
+          () => {
+            console.log('Azure Speech recognition stopped successfully');
+            speechRecognitionRef.current.close();
+            setHasAudio(false);
+          },
+          (error: any) => {
+            console.error('Error stopping Azure Speech recognition:', error);
+            speechRecognitionRef.current.close();
+            setHasAudio(false);
+          }
+        );
       }
 
       // Stop video analysis
