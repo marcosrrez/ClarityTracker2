@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Brain, Target, Users, FileText, Activity, TrendingUp } from 'lucide-react';
-import EnhancedClinicalRecorder from '@/components/session-intelligence/EnhancedClinicalRecorder';
+import { MinimalistRecorder } from '@/components/session-intelligence/MinimalistRecorder';
 
 const EnhancedSessionRecording: React.FC = () => {
   return (
@@ -217,7 +217,7 @@ const EnhancedSessionRecording: React.FC = () => {
         </Card>
 
         {/* Main Recording Interface */}
-        <EnhancedClinicalRecorder />
+        <MinimalistRecorder />
       </div>
     </div>
   );
