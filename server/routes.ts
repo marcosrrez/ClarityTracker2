@@ -1433,6 +1433,30 @@ Source: ${entry.sourceTitle} (${entry.sourceType})`;
         });
       }
 
+      // Retrieve recent conversation history from database if not provided
+      let contextHistory = conversationHistory || [];
+      if (!contextHistory.length) {
+        try {
+          const recentConversations = await db.select()
+            .from(dingerConversationMemoryTable)
+            .where(eq(dingerConversationMemoryTable.userId, userId))
+            .orderBy(desc(dingerConversationMemoryTable.timestamp))
+            .limit(10);
+          
+          contextHistory = recentConversations.map(conv => ({
+            role: 'user',
+            content: conv.query,
+            timestamp: conv.timestamp
+          })).concat(recentConversations.map(conv => ({
+            role: 'assistant', 
+            content: conv.response,
+            timestamp: conv.timestamp
+          }))).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+        } catch (dbError) {
+          console.log('Could not retrieve conversation history:', dbError);
+        }
+      }
+
       // Build conversation context for counseling-focused AI assistant
       const systemPrompt = `You are Dinger, a distinguished clinical supervisor, licensed psychologist, and expert AI assistant with over 30 years of experience in mental health, counseling, and therapy. You are recognized internationally as a leading authority in clinical practice, research, and supervision, providing responses that exceed the quality of premier clinical resources and expert consultations.
 
@@ -1535,8 +1559,8 @@ Respond as the most accomplished clinical expert in the field, providing compreh
       // Format conversation history for context
       const messages = [
         { role: 'system', content: systemPrompt },
-        ...conversationHistory.slice(-10).map((msg: any) => ({
-          role: msg.isUser ? 'user' : 'assistant',
+        ...contextHistory.slice(-10).map((msg: any) => ({
+          role: msg.role || (msg.isUser ? 'user' : 'assistant'),
           content: msg.content
         })),
         { role: 'user', content: message }
@@ -1608,6 +1632,35 @@ Respond as the most accomplished clinical expert in the field, providing compreh
       // Record successful AI call only if we used external AI
       if (usedProvider !== 'dataset') {
         UsageLimiter.recordAICall(userId);
+      }
+      
+      // Store conversation in database for context continuity
+      try {
+        const conversationId = `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const sessionId = `session_${userId}_${new Date().toISOString().split('T')[0]}`;
+        
+        await db.insert(dingerConversationMemoryTable).values({
+          id: conversationId,
+          userId: userId,
+          sessionId: sessionId,
+          query: message,
+          response: aiResponse,
+          mode: 'supervisor',
+          reasoningType: 'chain-of-thought',
+          competencyAreas: JSON.stringify([]),
+          emotionalTone: 'confident',
+          complexity: 50,
+          confidence: 85,
+          followUpNeeded: 0,
+          tags: JSON.stringify(['coaching-chat']),
+          resourcesProvided: JSON.stringify([]),
+          supervisionItems: JSON.stringify([]),
+          timestamp: new Date(),
+          createdAt: new Date()
+        });
+      } catch (storageError) {
+        console.log('Conversation storage failed:', storageError);
+        // Continue without breaking the response
       }
       
       const stats = UsageLimiter.getUsageStats(userId);

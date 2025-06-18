@@ -288,14 +288,17 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
 
   // Handle summarization of research results
   const handleSummarizeClick = async (result: any) => {
+    if (!user?.uid) return;
+    
     setIsAiLoading(true);
     
     try {
       const summary = await summarizeContent(result.url, "Licensed Associate Counselor seeking practical applications");
       
+      // Display the summary in chat
       const summaryMessage = {
         id: Date.now().toString(),
-        content: `**Summary of "${result.title}"**\n\n${summary}\n\n*Source: ${result.domain}*`,
+        content: `**Clinical Summary: ${result.title}**\n\n${summary}\n\n*Source: ${result.domain}*\n\n*This summary has been automatically saved as an insight card for future reference.*`,
         isUser: false,
         timestamp: new Date()
       };
@@ -304,6 +307,31 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
         ...prev,
         [currentThreadId]: [...(prev[currentThreadId] || []), summaryMessage]
       }));
+
+      // Automatically create insight card from the summary
+      try {
+        const insightCard = {
+          type: 'research' as const,
+          title: `Research Summary: ${result.title}`,
+          content: `**Original Title:** ${result.title}\n\n**Source:** ${result.domain}\n\n**Clinical Summary:**\n${summary}\n\n**Original URL:** ${result.url}`,
+          tags: ['research-summary', 'pubmed', result.source?.toLowerCase() || 'research'],
+        };
+
+        await createInsightCard(user.uid, insightCard);
+        
+        toast({
+          title: "Summary Created",
+          description: "Research summary saved as insight card",
+        });
+
+        if (onRefresh) {
+          await onRefresh();
+        }
+      } catch (cardError) {
+        console.error('Failed to create insight card:', cardError);
+        // Don't show error to user since the summary was still displayed
+      }
+      
     } catch (error) {
       console.error('Summarization error:', error);
       const errorMessage = {
@@ -1700,17 +1728,18 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                   const isResearchQuery = detectResearchIntent(userMessage.content);
                   
                   if (isResearchQuery) {
-                    // Perform research
+                    // Perform research first
                     const searchResults = await performResearch(userMessage.content);
                     
                     if (searchResults.length > 0) {
-                      // Display research results
+                      // Display research results with enhanced context
                       const researchResponse = {
                         id: Date.now().toString() + '_research',
-                        content: `I found ${searchResults.length} relevant research sources for you:`,
+                        content: `I found ${searchResults.length} relevant research sources for your query about "${userMessage.content}". Click "Summarize" on any result to get a detailed clinical analysis tailored to your practice:`,
                         isUser: false,
                         timestamp: new Date(),
-                        searchResults: searchResults
+                        searchResults: searchResults,
+                        isResearchMode: true
                       };
                       
                       setThreads(prev => ({
@@ -1718,29 +1747,23 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
                         [currentThreadId]: [...(prev[currentThreadId] || []), researchResponse]
                       }));
                     } else {
-                      // No results found, fall back to enhanced AI coaching
-                      const response = await fetch('/api/dinger/enhanced-chat', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          query: userMessage.content,
-                          userId: user?.uid || 'anonymous',
-                          mode: 'researcher' // Use researcher mode for research queries
-                        }),
-                      });
-                      const data = await response.json();
-                      
-                      const aiResponse = {
-                        id: Date.now().toString() + '_ai',
-                        content: data.response || "I couldn't find specific research results, but I can provide guidance based on my knowledge.",
+                      // No results found, provide research guidance
+                      const noResultsResponse = {
+                        id: Date.now().toString() + '_no_results',
+                        content: `I couldn't find specific research results for "${userMessage.content}". Try using different keywords like:
+                        
+• More specific intervention names (e.g., "cognitive restructuring anxiety")
+• Population terms (e.g., "adolescent CBT")  
+• Specific disorders (e.g., "GAD treatment efficacy")
+
+You can also try searching PubMed directly or ask me to explore evidence-based approaches for your topic.`,
                         isUser: false,
-                        timestamp: new Date(),
-                        enhancedData: data
+                        timestamp: new Date()
                       };
                       
                       setThreads(prev => ({
                         ...prev,
-                        [currentThreadId]: [...(prev[currentThreadId] || []), aiResponse]
+                        [currentThreadId]: [...(prev[currentThreadId] || []), noResultsResponse]
                       }));
                     }
                   } else {
