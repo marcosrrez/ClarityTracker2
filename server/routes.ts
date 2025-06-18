@@ -59,6 +59,22 @@ import {
 import { db } from "./db";
 import { eq, desc, and, sql } from "drizzle-orm";
 
+// Configure multer for file uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept audio and video files
+    if (file.mimetype.startsWith('audio/') || file.mimetype.startsWith('video/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only audio and video files are allowed'));
+    }
+  }
+});
+
 // Email reminder scheduling function
 async function scheduleSessionReminders(session: any, reminderDays: number) {
   const sessionDate = new Date(session.sessionDate);
