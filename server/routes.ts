@@ -6422,6 +6422,93 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
     }
   });
 
+  // Real-time engagement analysis endpoint for advanced mode
+  app.post('/api/ai/analyze-realtime-engagement', async (req, res) => {
+    try {
+      const { text, speaker, timestamp } = req.body;
+      
+      if (!text || !speaker) {
+        return res.status(400).json({ error: 'Missing required fields' });
+      }
+
+      // Analyze emotional state from speech content using Google AI
+      const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      
+      const prompt = `
+        Analyze this real-time therapy session speech for emotional state and therapeutic alliance:
+        
+        Speaker: ${speaker}
+        Text: "${text}"
+        Timestamp: ${timestamp}s
+        
+        Provide analysis in JSON format:
+        {
+          "emotionalState": "one word emotional state (calm, anxious, engaged, resistant, breakthrough, concerned)",
+          "therapeuticAlliance": number (0-100 based on engagement and rapport indicators),
+          "confidence": number (0-1)
+        }
+      `;
+
+      const result = await model.generateContent(prompt);
+      const response = result.response;
+      const analysisText = response.text();
+      
+      // Parse JSON response
+      const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const analysis = JSON.parse(jsonMatch[0]);
+        res.json(analysis);
+      } else {
+        // Fallback analysis based on keyword detection
+        const emotionalKeywords = {
+          therapist: {
+            calm: ['understand', 'explore', 'makes sense', 'feel'],
+            engaged: ['tell me more', 'notice', 'aware', 'what comes up'],
+            concerned: ['worried', 'risk', 'safety', 'harm']
+          },
+          client: {
+            engaged: ['yes', 'I think', 'maybe', 'helps'],
+            anxious: ['worried', 'scared', 'nervous', 'afraid'],
+            resistant: ['don\'t know', 'whatever', 'fine'],
+            breakthrough: ['realize', 'understand', 'makes sense', 'better']
+          }
+        };
+
+        const speakerKeywords = emotionalKeywords[speaker.toLowerCase()] || {};
+        let detectedEmotion = 'neutral';
+        
+        for (const [emotion, keywords] of Object.entries(speakerKeywords)) {
+          if (keywords.some((keyword: string) => text.toLowerCase().includes(keyword))) {
+            detectedEmotion = emotion;
+            break;
+          }
+        }
+
+        // Calculate therapeutic alliance
+        let alliance = 75;
+        if (speaker.toLowerCase() === 'client') {
+          if (text.includes('yes') || text.includes('helps') || text.includes('better')) {
+            alliance += 15;
+          }
+          if (text.includes('don\'t') || text.includes('whatever')) {
+            alliance -= 10;
+          }
+        }
+
+        res.json({
+          emotionalState: detectedEmotion,
+          therapeuticAlliance: Math.max(0, Math.min(100, alliance)),
+          confidence: 0.7
+        });
+      }
+
+    } catch (error) {
+      console.error('Real-time engagement analysis error:', error);
+      res.status(500).json({ error: 'Analysis failed' });
+    }
+  });
+
   // Session file upload endpoint for actual file processing
   app.post('/api/sessions/upload', upload.single('file'), async (req, res) => {
     try {
