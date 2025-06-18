@@ -383,62 +383,175 @@ export function MinimalistRecorder() {
         </CardContent>
       </Card>
 
-      {/* Analysis Results */}
+      {/* Comprehensive Analysis Results */}
       {analysisResult && (
-        <Card className="border-0 shadow-lg">
-          <CardContent className="p-6">
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium">Session Analysis</h3>
-                <Badge variant="outline" className="text-xs">
-                  <Activity className="h-3 w-3 mr-1" />
-                  AI Generated
-                </Badge>
-              </div>
+        <div className="space-y-6">
+          {/* Main Analysis Card */}
+          <Card className="border-0 shadow-lg">
+            <CardContent className="p-6">
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-medium">Clinical Session Analysis</h3>
+                  <Badge variant="outline" className="text-xs">
+                    <Activity className="h-3 w-3 mr-1" />
+                    AI Generated
+                  </Badge>
+                </div>
 
-              {/* Session Summary */}
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium text-gray-900 dark:text-white">Summary</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                  {analysisResult.sessionSummary}
-                </p>
-              </div>
-
-              {/* EBP Techniques */}
-              {analysisResult.ebpTechniques.length > 0 && (
+                {/* Session Summary */}
                 <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-gray-900 dark:text-white">Evidence-Based Techniques</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {analysisResult.ebpTechniques.map((ebp, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs">
-                        {ebp.technique} ({ebp.adherence}%)
-                      </Badge>
-                    ))}
+                  <h4 className="text-sm font-medium text-gray-900 dark:text-white">Session Summary</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+                    {analysisResult.sessionSummary}
+                  </p>
+                </div>
+
+                {/* Key Metrics Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <div className="text-lg font-semibold text-blue-600 dark:text-blue-400">
+                      {analysisResult.therapeuticAlliance}%
+                    </div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">Therapeutic Alliance</div>
+                  </div>
+                  <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                    <div className="text-lg font-semibold text-green-600 dark:text-green-400">
+                      {analysisResult.ebpTechniques.length}
+                    </div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">EBP Techniques</div>
+                  </div>
+                  <div className="text-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                    <div className="text-lg font-semibold text-purple-600 dark:text-purple-400">
+                      {analysisResult.supervisionPoints?.length || 0}
+                    </div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">Supervision Points</div>
+                  </div>
+                  <div className="text-center p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                    <div className="text-lg font-semibold text-orange-600 dark:text-orange-400">
+                      {analysisResult.riskAssessment.level.toUpperCase()}
+                    </div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">Risk Level</div>
                   </div>
                 </div>
-              )}
+              </div>
+            </CardContent>
+          </Card>
 
-              {/* Progress Note */}
-              {analysisResult.progressNote && (
-                <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-gray-900 dark:text-white">Progress Note</h4>
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-2 text-sm">
-                    <div><strong>S:</strong> {analysisResult.progressNote.sections.subjective}</div>
-                    <div><strong>O:</strong> {analysisResult.progressNote.sections.objective}</div>
-                    <div><strong>A:</strong> {analysisResult.progressNote.sections.assessment}</div>
-                    <div><strong>P:</strong> {analysisResult.progressNote.sections.plan}</div>
+          {/* Evidence-Based Practice Analysis */}
+          {analysisResult.ebpTechniques.length > 0 && (
+            <Card className="border-0 shadow-lg">
+              <CardContent className="p-6">
+                <h4 className="text-lg font-medium mb-4">Evidence-Based Practice Analysis</h4>
+                <div className="space-y-4">
+                  {analysisResult.ebpTechniques.map((ebp, index) => (
+                    <div key={index} className="border rounded-lg p-4 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h5 className="font-medium">{ebp.technique}</h5>
+                        <div className="flex gap-2">
+                          <Badge variant="outline" className="text-xs">
+                            Adherence: {ebp.adherence}%
+                          </Badge>
+                          <Badge variant="outline" className="text-xs">
+                            Effectiveness: {ebp.effectiveness}%
+                          </Badge>
+                        </div>
+                      </div>
+                      {ebp.supervisorNotes && (
+                        <p className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded p-2">
+                          <strong>Supervisor Notes:</strong> {ebp.supervisorNotes}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Supervision Markers */}
+          {analysisResult.supervisionPoints && analysisResult.supervisionPoints.length > 0 && (
+            <Card className="border-0 shadow-lg">
+              <CardContent className="p-6">
+                <h4 className="text-lg font-medium mb-4">Supervision Markers</h4>
+                <div className="space-y-3">
+                  {analysisResult.supervisionPoints.map((point, index) => (
+                    <div key={index} className="border-l-4 border-blue-500 pl-4 py-2">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge 
+                          variant={point.priority === 'high' ? 'destructive' : point.priority === 'medium' ? 'default' : 'secondary'}
+                          className="text-xs"
+                        >
+                          {point.category.toUpperCase()}
+                        </Badge>
+                        <span className="text-xs text-gray-500">{point.priority} priority</span>
+                      </div>
+                      <p className="text-sm">{point.content}</p>
+                      {point.transcriptSnippet && (
+                        <blockquote className="text-xs text-gray-500 mt-1 italic">
+                          "{point.transcriptSnippet}"
+                        </blockquote>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* SOAP Progress Note */}
+          {analysisResult.progressNote && (
+            <Card className="border-0 shadow-lg">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-lg font-medium">Progress Note (SOAP Format)</h4>
+                  <div className="flex gap-2">
+                    <Badge variant="outline" className="text-xs">
+                      Confidence: {analysisResult.progressNote.confidence}%
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">
+                      Completeness: {analysisResult.progressNote.completeness}%
+                    </Badge>
                   </div>
                 </div>
-              )}
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-3 text-sm font-mono">
+                  <div>
+                    <strong className="text-blue-600 dark:text-blue-400">SUBJECTIVE:</strong>
+                    <p className="mt-1 ml-4">{analysisResult.progressNote.sections.subjective}</p>
+                  </div>
+                  <div>
+                    <strong className="text-green-600 dark:text-green-400">OBJECTIVE:</strong>
+                    <p className="mt-1 ml-4">{analysisResult.progressNote.sections.objective}</p>
+                  </div>
+                  <div>
+                    <strong className="text-purple-600 dark:text-purple-400">ASSESSMENT:</strong>
+                    <p className="mt-1 ml-4">{analysisResult.progressNote.sections.assessment}</p>
+                  </div>
+                  <div>
+                    <strong className="text-orange-600 dark:text-orange-400">PLAN:</strong>
+                    <p className="mt-1 ml-4">{analysisResult.progressNote.sections.plan}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-              {/* Therapeutic Alliance */}
-              <div className="flex items-center justify-between text-sm">
-                <span>Therapeutic Alliance</span>
-                <Badge variant="outline">{analysisResult.therapeuticAlliance}%</Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          {/* Clinical Recommendations */}
+          {analysisResult.recommendations && analysisResult.recommendations.length > 0 && (
+            <Card className="border-0 shadow-lg">
+              <CardContent className="p-6">
+                <h4 className="text-lg font-medium mb-4">Clinical Recommendations</h4>
+                <div className="space-y-2">
+                  {analysisResult.recommendations.map((recommendation, index) => (
+                    <div key={index} className="flex items-start gap-2">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                      <p className="text-sm text-gray-700 dark:text-gray-300">{recommendation}</p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       )}
     </div>
   );
