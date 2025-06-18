@@ -6337,7 +6337,8 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
       const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       const result = await model.generateContent(prompt);
-      const analysis = JSON.parse(result.response.text());
+      const responseText = result.response.text().replace(/```json|```/g, '').trim();
+      const analysis = JSON.parse(responseText);
       
       res.json(analysis);
     } catch (error) {
@@ -6456,7 +6457,8 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
       const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       const result = await model.generateContent(prompt);
-      const note = JSON.parse(result.response.text());
+      const responseText = result.response.text().replace(/```json|```/g, '').trim();
+      const note = JSON.parse(responseText);
       
       res.json(note);
     } catch (error) {
@@ -6498,7 +6500,8 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
       const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       const result = await model.generateContent(prompt);
-      const assessment = JSON.parse(result.response.text());
+      const responseText = result.response.text().replace(/```json|```/g, '').trim();
+      const assessment = JSON.parse(responseText);
       
       res.json(assessment);
     } catch (error) {
@@ -6600,7 +6603,8 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
       const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       const result = await model.generateContent(prompt);
-      const markers = JSON.parse(result.response.text());
+      const responseText = result.response.text().replace(/```json|```/g, '').trim();
+      const markers = JSON.parse(responseText);
       
       res.json(markers);
     } catch (error) {
