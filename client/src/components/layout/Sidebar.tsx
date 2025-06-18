@@ -84,7 +84,7 @@ const getNavigationItems = (accountType: string, permissions: any) => {
 
   const professionalItems = [
     { href: "/supervisors", label: "Supervisors", icon: Users, group: "professional" },
-    { href: "/session-recording", label: "Session Recording", icon: Mic, group: "professional" },
+    { href: "/enhanced-session-recording", label: "Clinical Recording", icon: Mic, group: "professional" },
     { href: "/session-intelligence", label: "Session Intelligence", icon: Brain, group: "professional" },
     { href: "/research-library", label: "Research Library", icon: BookOpen, group: "professional" },
     { href: "/requirements", label: "Requirements", icon: ClipboardList, group: "professional" },
