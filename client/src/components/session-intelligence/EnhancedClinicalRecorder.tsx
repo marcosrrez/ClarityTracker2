@@ -96,6 +96,13 @@ const EnhancedClinicalRecorder: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
 
+  // File upload and session description states
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [sessionDescription, setSessionDescription] = useState('');
+  const [sessionType, setSessionType] = useState('individual');
+  const [primaryIntervention, setPrimaryIntervention] = useState('cbt');
+  const [isProcessing, setIsProcessing] = useState(false);
+
   const sessionModes: SessionMode[] = [
     { type: 'in-person', label: 'Record In-Person', icon: Video, description: 'Live session with video analysis', active: true },
     { type: 'telehealth', label: 'Record Telehealth', icon: Users, description: 'Remote session capture', active: true },
@@ -103,6 +110,96 @@ const EnhancedClinicalRecorder: React.FC = () => {
     { type: 'dictate', label: 'Dictate Notes', icon: Mic, description: 'Voice-to-text documentation', active: true },
     { type: 'describe', label: 'Describe Session', icon: FileText, description: 'Manual session summary', active: true }
   ];
+
+  // File upload handler
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadedFile(file);
+    setIsProcessing(true);
+
+    try {
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('analysisType', 'session-analysis');
+
+      // Upload and process the file
+      const response = await fetch('/api/sessions/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        
+        // Update transcript with uploaded file analysis
+        setSpeakerDiarization(result.transcript || []);
+        
+        // Process EBP analysis
+        if (result.transcript) {
+          for (const segment of result.transcript) {
+            await analyzeEBPImplementation(segment.text, segment.speaker);
+            generateSupervisionMarkers(segment.text, segment.speaker);
+          }
+        }
+
+        // Generate progress note
+        await generateProgressNote();
+      }
+    } catch (error) {
+      console.error('File upload failed:', error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Session description processor
+  const processSessionDescription = async () => {
+    if (!sessionDescription.trim()) return;
+
+    setIsProcessing(true);
+
+    try {
+      // Analyze the session description using AI
+      const response = await fetch('/api/ai/analyze-session-description', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          description: sessionDescription,
+          sessionType,
+          primaryIntervention,
+          analysisType: 'comprehensive'
+        })
+      });
+
+      const analysis = await response.json();
+
+      // Update EBP implementations based on description
+      if (analysis.ebpTechniques) {
+        setEbpImplementations(analysis.ebpTechniques);
+      }
+
+      // Update supervision markers
+      if (analysis.supervisionPoints) {
+        setSupervisionMarkers(analysis.supervisionPoints);
+      }
+
+      // Update measurement-based care if assessments mentioned
+      if (analysis.assessments) {
+        setMeasurementBasedCare(analysis.assessments);
+      }
+
+      // Generate progress note from description
+      await generateProgressNote();
+
+    } catch (error) {
+      console.error('Session description analysis failed:', error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   // Enhanced recording initialization with multi-modal setup
   const initializeRecording = async () => {
@@ -453,8 +550,87 @@ const EnhancedClinicalRecorder: React.FC = () => {
               <canvas ref={canvasRef} className="hidden" />
             </div>
 
+            {/* File Upload Interface for Upload Mode */}
+            {currentMode === 'upload' && (
+              <div className="mb-4 p-6 border-2 border-dashed border-gray-300 rounded-lg">
+                <input
+                  type="file"
+                  accept="audio/*,video/*"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                  id="file-upload"
+                />
+                <label htmlFor="file-upload" className="cursor-pointer">
+                  <div className="text-center">
+                    <Upload className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                    <h3 className="text-lg font-medium mb-2">Upload Session Recording</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Drag and drop or click to select audio/video files
+                    </p>
+                    <Button variant="outline">Choose File</Button>
+                  </div>
+                </label>
+              </div>
+            )}
+
+            {/* Session Description Interface for Describe Mode */}
+            {currentMode === 'describe' && (
+              <div className="mb-4 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Session Description</label>
+                  <Textarea
+                    placeholder="Describe the therapy session in detail. Include therapeutic techniques used, client responses, key insights, and any notable interactions..."
+                    value={sessionDescription}
+                    onChange={(e) => setSessionDescription(e.target.value)}
+                    className="min-h-32"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Session Type</label>
+                    <Select value={sessionType} onValueChange={setSessionType}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select session type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="individual">Individual Therapy</SelectItem>
+                        <SelectItem value="group">Group Therapy</SelectItem>
+                        <SelectItem value="family">Family Therapy</SelectItem>
+                        <SelectItem value="couples">Couples Therapy</SelectItem>
+                        <SelectItem value="assessment">Assessment Session</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Primary Intervention</label>
+                    <Select value={primaryIntervention} onValueChange={setPrimaryIntervention}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select intervention" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cbt">Cognitive Behavioral Therapy</SelectItem>
+                        <SelectItem value="dbt">Dialectical Behavior Therapy</SelectItem>
+                        <SelectItem value="emdr">EMDR</SelectItem>
+                        <SelectItem value="psychodynamic">Psychodynamic</SelectItem>
+                        <SelectItem value="humanistic">Humanistic/Person-Centered</SelectItem>
+                        <SelectItem value="mindfulness">Mindfulness-Based</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <Button 
+                  onClick={processSessionDescription}
+                  className="w-full"
+                  disabled={!sessionDescription.trim()}
+                >
+                  <Brain className="h-4 w-4 mr-2" />
+                  Analyze Session Description
+                </Button>
+              </div>
+            )}
+
             <div className="flex items-center justify-center gap-4">
-              {!isRecording ? (
+              {!isRecording && currentMode !== 'upload' && currentMode !== 'describe' ? (
                 <Button
                   onClick={initializeRecording}
                   size="lg"
@@ -463,7 +639,7 @@ const EnhancedClinicalRecorder: React.FC = () => {
                   <Play className="h-5 w-5 mr-2" />
                   Start Recording
                 </Button>
-              ) : (
+              ) : isRecording ? (
                 <div className="flex gap-2">
                   <Button
                     onClick={() => setIsPaused(!isPaused)}
@@ -481,7 +657,7 @@ const EnhancedClinicalRecorder: React.FC = () => {
                     Stop Recording
                   </Button>
                 </div>
-              )}
+              ) : null}
             </div>
 
             {/* Recording Quality Indicators */}
