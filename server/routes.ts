@@ -6335,7 +6335,7 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
       `;
 
       const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       const result = await model.generateContent(prompt);
       const analysis = JSON.parse(result.response.text());
       
@@ -6454,7 +6454,7 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
       `;
 
       const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       const result = await model.generateContent(prompt);
       const note = JSON.parse(result.response.text());
       
@@ -6496,7 +6496,7 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
       `;
 
       const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       const result = await model.generateContent(prompt);
       const assessment = JSON.parse(result.response.text());
       
@@ -6598,7 +6598,7 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
       `;
 
       const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       const result = await model.generateContent(prompt);
       const markers = JSON.parse(result.response.text());
       
