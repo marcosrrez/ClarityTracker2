@@ -6335,14 +6335,11 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
         }
       `;
 
-      // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-      const result = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [{ role: "user", content: prompt }],
-        response_format: { type: "json_object" }
-      });
-      const analysis = JSON.parse(result.choices[0].message.content!);
+      const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const result = await model.generateContent(prompt);
+      const responseText = result.response.text().replace(/```json|```/g, '').trim();
+      const analysis = JSON.parse(responseText);
       
       res.json(analysis);
     } catch (error) {
@@ -6459,14 +6456,11 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
         }
       `;
 
-      // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-      const result = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [{ role: "user", content: prompt }],
-        response_format: { type: "json_object" }
-      });
-      const note = JSON.parse(result.choices[0].message.content!);
+      const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const result = await model.generateContent(prompt);
+      const responseText = result.response.text().replace(/```json|```/g, '').trim();
+      const note = JSON.parse(responseText);
       
       res.json(note);
     } catch (error) {
@@ -6505,14 +6499,11 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
         }
       `;
 
-      // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-      const result = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [{ role: "user", content: prompt }],
-        response_format: { type: "json_object" }
-      });
-      const assessment = JSON.parse(result.choices[0].message.content!);
+      const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const result = await model.generateContent(prompt);
+      const responseText = result.response.text().replace(/```json|```/g, '').trim();
+      const assessment = JSON.parse(responseText);
       
       res.json(assessment);
     } catch (error) {
@@ -6611,14 +6602,11 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
         Respond in JSON format with an array of supervision markers.
       `;
 
-      // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-      const result = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [{ role: "user", content: prompt }],
-        response_format: { type: "json_object" }
-      });
-      const markers = JSON.parse(result.choices[0].message.content!);
+      const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const result = await model.generateContent(prompt);
+      const responseText = result.response.text().replace(/```json|```/g, '').trim();
+      const markers = JSON.parse(responseText);
       
       res.json(markers);
     } catch (error) {
