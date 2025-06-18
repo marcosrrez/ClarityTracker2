@@ -20,6 +20,7 @@ import {
   securityErrorHandler 
 } from "./middleware/security";
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import OpenAI from "openai";
 import { 
   insertKnowledgeEntrySchema, 
   sessionAnalysisTable, 
@@ -6346,7 +6347,8 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
       res.json(analysis);
     } catch (error) {
       console.error("EBP analysis error:", error);
-      res.status(500).json({ error: "Failed to analyze EBP implementation" });
+      console.error("Error details:", JSON.stringify(error, null, 2));
+      res.status(500).json({ error: "Failed to analyze EBP implementation", details: error instanceof Error ? error.message : String(error) });
     }
   });
 
@@ -6609,11 +6611,14 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
         Respond in JSON format with an array of supervision markers.
       `;
 
-      const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-      const result = await model.generateContent(prompt);
-      const responseText = result.response.text().replace(/```json|```/g, '').trim();
-      const markers = JSON.parse(responseText);
+      // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      const result = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [{ role: "user", content: prompt }],
+        response_format: { type: "json_object" }
+      });
+      const markers = JSON.parse(result.choices[0].message.content!);
       
       res.json(markers);
     } catch (error) {
