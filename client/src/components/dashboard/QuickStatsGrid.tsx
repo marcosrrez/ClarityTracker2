@@ -501,6 +501,53 @@ export const QuickStatsGrid = () => {
           </div>
           </div>
         </ClickableMetricCard>
+
+        {/* Clinical Intelligence Score */}
+        <ClickableMetricCard 
+          category="clinical_intelligence" 
+          value={clinicalMetrics?.overallScore || 0}
+          className="block"
+        >
+          <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-xl rounded-xl p-4 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-emerald-50/30 to-transparent rounded-full -translate-y-8 translate-x-8" />
+          
+          <div className="relative">
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-2 bg-emerald-500/10 rounded-lg">
+                <Brain className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <span className={`text-xs font-semibold capitalize ${
+                clinicalMetrics?.trend === 'improving' ? 'text-emerald-600 dark:text-emerald-400' :
+                clinicalMetrics?.trend === 'declining' ? 'text-orange-600 dark:text-orange-400' :
+                'text-blue-600 dark:text-blue-400'
+              }`}>
+                {clinicalMetrics?.trend || 'Analyzing'}
+              </span>
+            </div>
+            
+            <div className="text-xl font-bold text-black dark:text-white mb-1">
+              {clinicalMetrics?.overallScore ? `${Math.round(clinicalMetrics.overallScore)}/100` : "—"}
+            </div>
+            
+            <div className="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2">
+              Clinical Intelligence
+            </div>
+            
+            {/* Progress indicator */}
+            <div className="flex items-center justify-between">
+              <div className="w-16 h-1 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-emerald-500 rounded-full transition-all duration-1000"
+                  style={{ width: `${clinicalMetrics?.overallScore || 0}%` }}
+                />
+              </div>
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                AI Analysis
+              </span>
+            </div>
+          </div>
+          </div>
+        </ClickableMetricCard>
       </div>
     </section>
   );
