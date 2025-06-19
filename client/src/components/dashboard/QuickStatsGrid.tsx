@@ -355,7 +355,7 @@ export const QuickStatsGrid = () => {
         {/* Supervision Compliance */}
         <ClickableMetricCard 
           category="supervision_hours" 
-          value={totalSupervisionHours}
+          value={metrics.totalSupervisionHours}
           className="block"
         >
           <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-xl rounded-xl p-4 relative overflow-hidden">
@@ -372,7 +372,7 @@ export const QuickStatsGrid = () => {
             </div>
             
             <div className="text-xl font-bold text-black dark:text-white mb-1">
-              {totalSupervisionHours.toFixed(1)}
+              {metrics.totalSupervisionHours.toFixed(1)}
             </div>
             
             <div className="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2">
@@ -384,11 +384,11 @@ export const QuickStatsGrid = () => {
               <div className="w-16 h-1 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
                 <div 
                   className="h-full bg-purple-500 rounded-full transition-all duration-1000"
-                  style={{ width: `${Math.min((totalSupervisionHours / 50) * 100, 100)}%` }}
+                  style={{ width: `${Math.min((metrics.totalSupervisionHours / 50) * 100, 100)}%` }}
                 />
               </div>
               <span className="text-xs text-gray-500 dark:text-gray-400">
-                {50 - totalSupervisionHours > 0 ? `${(50 - totalSupervisionHours).toFixed(1)}h to go` : 'Complete!'}
+                {50 - metrics.totalSupervisionHours > 0 ? `${(50 - metrics.totalSupervisionHours).toFixed(1)}h to go` : 'Complete!'}
               </span>
             </div>
           </div>
@@ -398,21 +398,21 @@ export const QuickStatsGrid = () => {
         {/* Time to Licensure */}
         <ClickableMetricCard 
           category="licensure_timeline" 
-          value={totalClientHours >= 100 ? 1 : Math.ceil((100 - totalClientHours) / Math.max(thisWeekClientHours, 1))}
+          value={metrics.totalClientHours >= 100 ? 1 : Math.ceil((100 - metrics.totalClientHours) / Math.max(metrics.thisWeekClientHours, 1))}
           className="block"
         >
           <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-xl rounded-xl p-4 relative overflow-hidden">
           <div className={`absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl to-transparent rounded-full -translate-y-8 translate-x-8 ${
-            totalClientHours >= 100 ? 'from-green-50/30' : 'from-blue-50/30'
+            metrics.totalClientHours >= 100 ? 'from-green-50/30' : 'from-blue-50/30'
           }`} />
           
           <div className="relative">
             <div className="flex items-center justify-between mb-3">
               <div className={`p-2 rounded-lg ${
-                totalClientHours >= 100 ? 'bg-green-500/10' : 'bg-blue-500/10'
+                metrics.totalClientHours >= 100 ? 'bg-green-500/10' : 'bg-blue-500/10'
               }`}>
                 <Clock className={`h-4 w-4 ${
-                  totalClientHours >= 100 
+                  metrics.totalClientHours >= 100 
                     ? 'text-green-600 dark:text-green-400' 
                     : 'text-blue-600 dark:text-blue-400'
                 }`} />
@@ -420,17 +420,17 @@ export const QuickStatsGrid = () => {
             </div>
             
             <div className="text-xl font-bold text-black dark:text-white mb-1">
-              {totalClientHours >= 100 ? 'Ready' : `${Math.ceil((100 - totalClientHours) / Math.max(thisWeekClientHours, 1))}w`}
+              {metrics.totalClientHours >= 100 ? 'Ready' : `${Math.ceil((100 - metrics.totalClientHours) / Math.max(metrics.thisWeekClientHours, 1))}w`}
             </div>
             
             <div className="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2">
-              {totalClientHours >= 100 ? 'For Application' : 'Est. Completion'}
+              {metrics.totalClientHours >= 100 ? 'For Application' : 'Est. Completion'}
             </div>
             
             <div className="text-xs text-gray-500 dark:text-gray-400">
-              {totalClientHours >= 100 
+              {metrics.totalClientHours >= 100 
                 ? 'All hour requirements met' 
-                : `At current pace: ${thisWeekClientHours.toFixed(1)}h/week`
+                : `At current pace: ${metrics.thisWeekClientHours.toFixed(1)}h/week`
               }
             </div>
           </div>
