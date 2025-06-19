@@ -4683,22 +4683,20 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
       const savedData = insertSavedResearchSchema.parse(req.body);
       const savedId = `saved_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
-      // Generate comprehensive clinical analysis for saved research
+      // Generate comprehensive analysis using original proven ResearchService
       let comprehensiveSummary = savedData.snippet || '';
       
-      if (savedData.title && savedData.snippet) {
+      if (savedData.url) {
         try {
-          console.log('Generating comprehensive clinical analysis for:', savedData.title);
-          // Use clinical research service to generate comprehensive analysis
-          comprehensiveSummary = await clinicalResearchService.generateComprehensiveClinicalAnalysis(
-            savedData.title,
-            savedData.snippet,
-            savedData.authors,
-            savedData.source
-          );
+          console.log('Generating comprehensive analysis for:', savedData.title);
+          // Extract content and generate comprehensive analysis using original service
+          const content = await researchService.extractContentFromUrl(savedData.url);
+          if (content && content.content && content.content.length > 200) {
+            comprehensiveSummary = await researchService.generateComprehensiveSummary(content);
+          }
           console.log('Generated comprehensive analysis, length:', comprehensiveSummary.length);
         } catch (summaryError) {
-          console.log('Could not generate comprehensive clinical analysis, using snippet:', summaryError);
+          console.log('Could not generate comprehensive analysis, using snippet:', summaryError);
           // Continue with original snippet if comprehensive analysis fails
         }
       }
