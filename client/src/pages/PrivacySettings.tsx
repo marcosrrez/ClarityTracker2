@@ -223,6 +223,127 @@ export default function PrivacySettings() {
         </CardContent>
       </Card>
 
+      {/* Automatic Anonymization */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5 text-green-600" />
+            Automatic Anonymization
+          </CardTitle>
+          <CardDescription>
+            AI-powered PII protection with therapeutic context preservation
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Enable Anonymization */}
+          <div className="flex items-center justify-between p-4 rounded-lg border bg-green-50 dark:bg-green-950/20">
+            <div className="space-y-1">
+              <div className="font-medium">Enable Automatic Anonymization</div>
+              <div className="text-sm text-gray-600">
+                Automatically detect and replace personally identifiable information in session recordings
+              </div>
+            </div>
+            <Switch
+              checked={settings.automaticAnonymization}
+              onCheckedChange={(checked) => 
+                setSettings(prev => ({ ...prev, automaticAnonymization: checked }))
+              }
+            />
+          </div>
+
+          {settings.automaticAnonymization && (
+            <AnimatePresence>
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="space-y-4 pl-4 border-l-2 border-green-200 dark:border-green-800"
+              >
+                {/* Detection Level */}
+                <div className="space-y-3">
+                  <div className="font-medium">PII Detection Level</div>
+                  <Select 
+                    value={settings.piiDetectionLevel} 
+                    onValueChange={(value: 'basic' | 'standard' | 'comprehensive') => 
+                      setSettings(prev => ({ ...prev, piiDetectionLevel: value }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="basic">
+                        <div className="space-y-1">
+                          <div className="font-medium">Basic</div>
+                          <div className="text-xs text-gray-500">Names, phone numbers, emails, SSN</div>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="standard">
+                        <div className="space-y-1">
+                          <div className="font-medium">Standard</div>
+                          <div className="text-xs text-gray-500">Basic + addresses, workplaces, family members</div>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="comprehensive">
+                        <div className="space-y-1">
+                          <div className="font-medium">Comprehensive</div>
+                          <div className="text-xs text-gray-500">Standard + AI-powered contextual detection</div>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Preserve Context */}
+                <div className="flex items-center justify-between p-4 rounded-lg border">
+                  <div className="space-y-1">
+                    <div className="font-medium">Preserve Therapeutic Context</div>
+                    <div className="text-sm text-gray-600">
+                      Use consistent pseudonyms to maintain clinical continuity
+                    </div>
+                  </div>
+                  <Switch
+                    checked={settings.preserveTherapeuticContext}
+                    onCheckedChange={(checked) => 
+                      setSettings(prev => ({ ...prev, preserveTherapeuticContext: checked }))
+                    }
+                  />
+                </div>
+
+                {/* Review Required */}
+                <div className="flex items-center justify-between p-4 rounded-lg border">
+                  <div className="space-y-1">
+                    <div className="font-medium">Require Review Before Processing</div>
+                    <div className="text-sm text-gray-600">
+                      Show detected PII for manual approval before anonymization
+                    </div>
+                  </div>
+                  <Switch
+                    checked={settings.anonymizationReviewRequired}
+                    onCheckedChange={(checked) => 
+                      setSettings(prev => ({ ...prev, anonymizationReviewRequired: checked }))
+                    }
+                  />
+                </div>
+
+                {/* Privacy Benefits */}
+                <div className="bg-green-50 dark:bg-green-950/30 p-4 rounded-lg">
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm text-green-700 dark:text-green-300">
+                      <div className="font-medium mb-1">Privacy-First Intelligence</div>
+                      <div className="text-xs">
+                        Your sessions are automatically protected while preserving all therapeutic insights and clinical context for supervision and analysis.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Data Processing Controls */}
       <Card>
         <CardHeader>

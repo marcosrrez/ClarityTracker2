@@ -8,6 +8,7 @@ import { storage } from "./storage";
 import { handleTwilioWebhook } from "./sms-service";
 import { sendWelcomeEmail } from "./welcome-email";
 import { sendWelcomeEmail as sendCampaignWelcome } from "./email-campaigns";
+import { piiAnonymizer } from "./pii-anonymizer";
 import { 
   rateLimiters, 
   speedLimiters, 
@@ -2892,6 +2893,68 @@ Please provide a helpful, professional response that's personalized to their sit
     } catch (error) {
       console.error('Error in AI analysis:', error);
       res.status(500).json({ error: 'Failed to complete AI analysis' });
+    }
+  });
+
+  // Privacy Settings API Endpoints
+  app.get('/api/privacy-settings/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const settings = await storage.getPrivacySettings(userId);
+      
+      if (!settings) {
+        // Return default settings if none exist
+        const defaultSettings = {
+          dataRetentionDays: 90,
+          storeRawRecordings: false,
+          localProcessingOnly: false,
+          shareForResearch: false,
+          supervisionAccess: true,
+          autoDeleteTranscripts: true,
+          encryptionLevel: 'enhanced',
+          automaticAnonymization: true,
+          piiDetectionLevel: 'standard',
+          preserveTherapeuticContext: true,
+          anonymizationReviewRequired: false,
+          customAnonymizationRules: []
+        };
+        return res.json(defaultSettings);
+      }
+      
+      res.json(settings);
+    } catch (error) {
+      console.error('Error fetching privacy settings:', error);
+      res.status(500).json({ error: 'Failed to fetch privacy settings' });
+    }
+  });
+
+  app.post('/api/privacy-settings/:userId', express.json(), async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const settings = req.body;
+      
+      const updatedSettings = await storage.updatePrivacySettings(userId, settings);
+      res.json(updatedSettings);
+    } catch (error) {
+      console.error('Error updating privacy settings:', error);
+      res.status(500).json({ error: 'Failed to update privacy settings' });
+    }
+  });
+
+  // PII Anonymization Test Endpoint
+  app.post('/api/privacy/test-anonymization', express.json(), async (req, res) => {
+    try {
+      const { text, settings } = req.body;
+      
+      if (!text || !settings) {
+        return res.status(400).json({ error: 'Text and settings are required' });
+      }
+
+      const result = await piiAnonymizer.anonymizeText(text, settings);
+      res.json(result);
+    } catch (error) {
+      console.error('Error testing anonymization:', error);
+      res.status(500).json({ error: 'Failed to test anonymization' });
     }
   });
 
