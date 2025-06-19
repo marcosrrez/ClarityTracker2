@@ -1,4 +1,4 @@
-import { Clock, Users, Calendar, TrendingUp, UserCheck, Brain } from "lucide-react";
+import { Clock, Users, Calendar, TrendingUp, UserCheck, Brain, Info } from "lucide-react";
 import { useLogEntries, useAppSettings } from "@/hooks/use-firestore";
 import { useUser } from "@/lib/firebase";
 import { useQuery } from "@tanstack/react-query";
@@ -7,6 +7,8 @@ import { ClickableMetricCard } from "./ClickableMetricCard";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { calculateDashboardMetrics } from "@/lib/dashboard-calculations";
+import { calculateCurrentMilestone, calculateTimeToCompletion } from "@/lib/milestone-calculator";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export const QuickStatsGrid = () => {
   const { entries, loading: entriesLoading, refetch } = useLogEntries();
