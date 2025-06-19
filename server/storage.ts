@@ -140,6 +140,10 @@ export interface IStorage {
   createAiInsight(insight: InsertAiInsightsHistory): Promise<AiInsightsHistory>;
   updateAiInsight(id: string, updates: Partial<AiInsightsHistory>): Promise<void>;
   
+  // Session Recording Insights Integration
+  generateSessionInsights(sessionRecordingId: string, userId: string): Promise<AiInsightsHistory[]>;
+  getInsightCardsByUserId(userId: string, cardTypes?: string[]): Promise<AiInsightsHistory[]>;
+  
   // Log Entries functionality
   createLogEntry(entry: any): Promise<any>;
   getLogEntries(userId: string): Promise<any[]>;
@@ -1785,6 +1789,137 @@ ${content}`;
       .where(eq(privacySettingsTable.userId, userId));
     
     return { ...existing, ...updatedSettings };
+  }
+
+  // Session Recording Insights Integration Implementation
+  async generateSessionInsights(sessionRecordingId: string, userId: string): Promise<AiInsightsHistory[]> {
+    const { db } = await import("./db");
+    
+    // Get session analysis data (this would come from the session recording analysis)
+    const sessionAnalysis = await db
+      .select()
+      .from(sessionIntelligenceTable)
+      .where(eq(sessionIntelligenceTable.sessionId, sessionRecordingId))
+      .limit(1);
+
+    if (!sessionAnalysis.length) {
+      return [];
+    }
+
+    const analysis = sessionAnalysis[0];
+    const insights: InsertAiInsightsHistory[] = [];
+
+    // Generate Pattern Recognition Card
+    if (analysis.clinicalInsights) {
+      const clinicalData = analysis.clinicalInsights as any;
+      if (clinicalData?.patterns?.length > 0) {
+        insights.push({
+          userId,
+          insightType: 'session_pattern',
+          title: 'Pattern Detected in Session',
+          content: `I noticed you frequently used ${clinicalData.patterns[0]} technique. This shows strong consistency in your therapeutic approach.`,
+          sourceType: 'session_recording',
+          sessionRecordingId,
+          cardStyle: 'coaching',
+          priority: 'medium',
+          metadata: {
+            confidenceScore: 0.85,
+            ebpTechniques: clinicalData.patterns || []
+          }
+        });
+      }
+    }
+
+    // Generate Therapeutic Alliance Card
+    if (analysis.engagementScore && analysis.engagementScore > 0.7) {
+      insights.push({
+        userId,
+        insightType: 'therapeutic_alliance',
+        title: 'Strong Alliance Building',
+        content: `Your engagement score of ${Math.round(analysis.engagementScore * 100)}% shows excellent rapport building. Consider discussing this technique in supervision.`,
+        sourceType: 'alliance_tracking',
+        sessionRecordingId,
+        cardStyle: 'growth',
+        priority: 'medium',
+        metadata: {
+          therapeuticAlliance: {
+            score: analysis.engagementScore,
+            trend: 'improving'
+          }
+        }
+      });
+    }
+
+    // Generate Risk Assessment Card if needed
+    if (analysis.riskAssessment) {
+      const riskData = analysis.riskAssessment as any;
+      if (riskData?.level && riskData.level !== 'low') {
+        insights.push({
+          userId,
+          insightType: 'risk_assessment',
+          title: 'Risk Indicators Detected',
+          content: `Session analysis identified ${riskData.level} risk indicators. Review session notes and prepare for supervision discussion.`,
+          sourceType: 'session_recording',
+          sessionRecordingId,
+          cardStyle: 'risk',
+          priority: riskData.level === 'high' ? 'urgent' : 'high',
+          metadata: {
+            riskIndicators: riskData.indicators || []
+          }
+        });
+      }
+    }
+
+    // Generate Supervision Focus Card
+    if (analysis.complianceScore && analysis.complianceScore < 70) {
+      insights.push({
+        userId,
+        insightType: 'supervision_prep',
+        title: 'Supervision Focus Area',
+        content: `Compliance score of ${analysis.complianceScore}% suggests reviewing documentation standards. Great opportunity for skill development.`,
+        sourceType: 'ebp_analysis',
+        sessionRecordingId,
+        cardStyle: 'supervision',
+        priority: 'medium',
+        metadata: {
+          supervisionMarkers: ['documentation_review', 'ebp_adherence']
+        }
+      });
+    }
+
+    // Save all generated insights
+    const createdInsights: AiInsightsHistory[] = [];
+    for (const insight of insights) {
+      const created = await this.createAiInsight(insight);
+      createdInsights.push(created);
+    }
+
+    return createdInsights;
+  }
+
+  async getInsightCardsByUserId(userId: string, cardTypes?: string[]): Promise<AiInsightsHistory[]> {
+    const { db } = await import("./db");
+    
+    let query = db
+      .select()
+      .from(aiInsightsHistoryTable)
+      .where(eq(aiInsightsHistoryTable.userId, userId));
+
+    if (cardTypes && cardTypes.length > 0) {
+      // Filter by card types if specified
+      query = query.where(
+        and(
+          eq(aiInsightsHistoryTable.userId, userId),
+          sql`${aiInsightsHistoryTable.cardStyle} = ANY(${cardTypes})`
+        )
+      );
+    }
+
+    const results = await query
+      .orderBy(desc(aiInsightsHistoryTable.createdAt))
+      .limit(50); // Limit for performance
+
+    return results as AiInsightsHistory[];
   }
 }
 

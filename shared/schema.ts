@@ -1971,20 +1971,30 @@ export const insertPatternAnalysisSchema = patternAnalysisSchema.omit({
   createdAt: true
 });
 
-// AI Insights History Schema - stores generated AI coaching insights
+// AI Insights History Schema - stores generated AI coaching insights including session-generated cards
 export const aiInsightsHistorySchema = z.object({
   id: z.string(),
   userId: z.string(),
-  insightType: z.enum(['coaching', 'competency', 'pattern', 'supervision_prep', 'cross_session']),
+  insightType: z.enum(['coaching', 'competency', 'pattern', 'supervision_prep', 'cross_session', 'session_pattern', 'therapeutic_alliance', 'clinical_growth', 'risk_assessment', 'achievement']),
   title: z.string(),
   content: z.string(),
-  sourceType: z.enum(['dashboard_coaching', 'competency_analysis', 'pattern_detection', 'supervision_intelligence', 'cross_session_analysis']),
+  sourceType: z.enum(['dashboard_coaching', 'competency_analysis', 'pattern_detection', 'supervision_intelligence', 'cross_session_analysis', 'session_recording', 'ebp_analysis', 'alliance_tracking']),
   sourceData: z.record(z.any()).optional(), // Original AI response data
+  sessionRecordingId: z.string().optional(), // Link to source session recording
   metadata: z.object({
     sessionsAnalyzed: z.number().optional(),
     triggerConditions: z.array(z.string()).optional(),
-    confidenceScore: z.number().optional()
+    confidenceScore: z.number().optional(),
+    ebpTechniques: z.array(z.string()).optional(),
+    therapeuticAlliance: z.object({
+      score: z.number(),
+      trend: z.string()
+    }).optional(),
+    supervisionMarkers: z.array(z.string()).optional(),
+    riskIndicators: z.array(z.string()).optional()
   }).optional(),
+  cardStyle: z.enum(['coaching', 'learning', 'supervision', 'growth', 'risk', 'achievement']).default('coaching'),
+  priority: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
   helpful: z.boolean().optional(),
   actionTaken: z.string().optional(),
   userFeedback: z.string().optional(),
