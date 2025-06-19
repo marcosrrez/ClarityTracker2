@@ -220,19 +220,21 @@ export class AdvancedDingerService {
   }
 
   /**
-   * Build adaptive prompt based on context
+   * Build adaptive prompt based on context with comprehensive supervision framework
    */
   private buildAdaptivePrompt(query: string, context: ReasoningContext): string {
-    const { userProfile, currentMode, complexityLevel, reasoningType } = context;
+    const { userProfile, currentMode, complexityLevel, reasoningType, sessionHistory } = context;
     
     const modeInstructions = this.getModeInstructions(currentMode);
     const complexityGuidance = this.getComplexityGuidance(complexityLevel);
     const reasoningInstructions = this.getReasoningInstructions(reasoningType);
+    return `You are Dr. AI Supervisor, a PhD-level licensed counselor with 20+ years of clinical practice, supervision, and research experience. You provide supplemental support to human supervisors working with LACs, LPCs, and other mental health professionals.
 
-    return `You are Dinger, an advanced AI coaching system for Licensed Associate Counselors.
+## CORE IDENTITY & SUPERVISION APPROACH
+You combine expert clinical knowledge, teaching excellence, and cutting-edge research capabilities. Your responses follow structured supervision protocols while remaining conversational and supportive.
 
-CONTEXT ANALYSIS:
-- User Experience: ${userProfile.experienceLevel} (${userProfile.monthsOfExperience} months)
+## CURRENT SUPERVISION CONTEXT:
+- Supervisee Experience: ${userProfile.experienceLevel} (${userProfile.monthsOfExperience} months)
 - Current Mode: ${currentMode}
 - Complexity Level: ${complexityLevel}
 - Reasoning Type: ${reasoningType}
@@ -240,6 +242,12 @@ CONTEXT ANALYSIS:
 - Recent Focus Areas: ${userProfile.recentFocusAreas.join(', ')}
 - Learning Style: ${userProfile.learningStyle}
 - Communication Preference: ${userProfile.communicationPreference}
+- Confidence Level: ${userProfile.confidenceLevel}%
+- Strength Areas: ${userProfile.strengthAreas.join(', ')}
+- Challenge Areas: ${userProfile.challengeAreas.join(', ')}
+
+## SUPERVISION FRAMEWORK FOR ${currentMode.toUpperCase()} MODE:
+${this.getSupervisoryGuidance(currentMode, userProfile.experienceLevel)}
 
 ${modeInstructions}
 
@@ -247,7 +255,33 @@ ${complexityGuidance}
 
 ${reasoningInstructions}
 
-RECENT CONVERSATION PATTERNS:
+## RECENT SUPERVISION HISTORY:
+${sessionHistory.length > 0 ? 
+  sessionHistory.slice(0, 3).map(conv => 
+    `- ${conv.emotionalTone} discussion about ${conv.competencyAreas.join(', ')}`
+  ).join('\n') : 
+  'No recent supervision history available'
+}
+
+## SUPERVISION RESPONSE PROTOCOL:
+For case consultations, structure your response with:
+1. **Case Summary**: Brief restatement of key information
+2. **Clinical Impressions**: Diagnostic considerations and case conceptualization  
+3. **Risk Assessment**: Safety evaluation with specific recommendations
+4. **Treatment Recommendations**: Evidence-based interventions with implementation guidance
+5. **Supervision Focus**: Areas for supervisee development
+6. **Research Support**: Relevant studies and evidence base
+7. **Follow-up**: Next steps and monitoring recommendations
+
+For teaching requests, provide:
+1. **Learning Objectives**: Clear, measurable goals
+2. **Content Delivery**: Structured presentation of information
+3. **Examples**: Case illustrations and practical applications
+4. **Practice Opportunities**: Exercises and skill-building activities
+5. **Assessment**: Methods to evaluate understanding
+6. **Resources**: Additional reading and learning materials
+
+CURRENT QUERY ANALYSIS:
 ${context.sessionHistory.slice(0, 3).map(session => 
   `- Query: "${session.query}" | Tone: ${session.emotionalTone} | Areas: ${session.competencyAreas.join(', ')}`
 ).join('\n')}
@@ -538,33 +572,169 @@ Provide clear, concise guidance without extensive reasoning exposition. Focus on
   }
 
   /**
-   * Get user profile with fallback defaults
+   * Get comprehensive user profile with session data integration
    */
   private async getUserProfile(userId: string): Promise<CounselorProfile> {
-    // Implementation would fetch from database
-    // Fallback to defaults for now
+    try {
+      // Import storage here to avoid circular dependency
+      const { storage } = await import('./storage');
+      
+      // Get user's log entries for analysis
+      const logEntries = await storage.getLogEntries();
+      
+      // Get Dinger profile if exists
+      let existingProfile = null;
+      try {
+        const { db } = await import('./db');
+        const { dingerUserProfileTable } = await import('../shared/schema');
+        const { eq } = await import('drizzle-orm');
+        
+        const profiles = await db.select()
+          .from(dingerUserProfileTable)
+          .where(eq(dingerUserProfileTable.userId, userId))
+          .limit(1);
+          
+        if (profiles.length > 0) {
+          const profile = profiles[0];
+          existingProfile = {
+            ...profile,
+            primaryModalities: JSON.parse(profile.primaryModalities || '[]'),
+            clientPopulations: JSON.parse(profile.clientPopulations || '[]'),
+            strengthAreas: JSON.parse(profile.strengthAreas || '[]'),
+            challengeAreas: JSON.parse(profile.challengeAreas || '[]'),
+            recentFocusAreas: JSON.parse(profile.recentFocusAreas || '[]'),
+            adaptiveSettings: JSON.parse(profile.adaptiveSettings || '{}')
+          };
+        }
+      } catch (dbError) {
+        console.log('Note: Dinger profile not found, analyzing from session data');
+      }
+
+      // Analyze session data for dynamic profile creation
+      const sessionAnalysis = this.analyzeSessionData(logEntries);
+      
+      return {
+        userId,
+        experienceLevel: existingProfile?.experienceLevel || sessionAnalysis.inferredExperienceLevel,
+        monthsOfExperience: existingProfile?.monthsOfExperience || sessionAnalysis.estimatedMonthsExperience,
+        primaryModalities: existingProfile?.primaryModalities || sessionAnalysis.detectedModalities,
+        clientPopulations: existingProfile?.clientPopulations || sessionAnalysis.clientDemographics,
+        strengthAreas: existingProfile?.strengthAreas || sessionAnalysis.identifiedStrengths,
+        challengeAreas: existingProfile?.challengeAreas || sessionAnalysis.growthAreas,
+        learningStyle: existingProfile?.learningStyle || 'collaborative',
+        communicationPreference: existingProfile?.communicationPreference || 'supportive',
+        recentFocusAreas: sessionAnalysis.recentThemes,
+        confidenceLevel: existingProfile?.confidenceLevel || sessionAnalysis.confidenceIndicators,
+        lastActive: new Date()
+      };
+    } catch (error) {
+      console.error('Error building user profile:', error);
+      // Fallback to basic profile
+      return {
+        userId,
+        experienceLevel: 'developing',
+        monthsOfExperience: 12,
+        primaryModalities: ['CBT', 'Person-Centered'],
+        clientPopulations: ['Adults'],
+        strengthAreas: ['Active Listening'],
+        challengeAreas: ['Documentation'],
+        learningStyle: 'collaborative',
+        communicationPreference: 'supportive',
+        recentFocusAreas: ['Clinical Skills'],
+        confidenceLevel: 70,
+        lastActive: new Date()
+      };
+    }
+  }
+
+  /**
+   * Analyze session data to create dynamic user profile
+   */
+  private analyzeSessionData(logEntries: any[]): any {
+    if (!logEntries || logEntries.length === 0) {
+      return {
+        inferredExperienceLevel: 'developing',
+        estimatedMonthsExperience: 6,
+        detectedModalities: ['Person-Centered'],
+        clientDemographics: ['Adults'],
+        identifiedStrengths: ['Rapport Building'],
+        growthAreas: ['Documentation'],
+        recentThemes: ['Getting Started'],
+        confidenceIndicators: 65
+      };
+    }
+
+    const totalHours = logEntries.reduce((sum, entry) => sum + (entry.clientContactHours || 0), 0);
+    const recentEntries = logEntries.slice(0, 10);
+    
+    // Extract themes from notes
+    const allNotes = logEntries.map(entry => entry.notes || '').join(' ').toLowerCase();
+    
+    // Detect modalities from session content
+    const modalityKeywords = {
+      'CBT': ['cognitive', 'behavioral', 'thought', 'thinking patterns', 'cbt', 'homework'],
+      'Person-Centered': ['empathy', 'unconditional positive regard', 'reflection', 'feelings'],
+      'Psychodynamic': ['unconscious', 'defense mechanisms', 'transference', 'childhood'],
+      'Solution-Focused': ['goals', 'solutions', 'strengths', 'exceptions', 'scaling'],
+      'DBT': ['mindfulness', 'distress tolerance', 'emotional regulation', 'dbt'],
+      'EMDR': ['trauma', 'bilateral stimulation', 'emdr', 'processing']
+    };
+    
+    const detectedModalities = Object.keys(modalityKeywords).filter(modality => 
+      modalityKeywords[modality].some(keyword => allNotes.includes(keyword))
+    );
+
+    // Recent themes analysis
+    const recentNotes = recentEntries.map(entry => entry.notes || '').join(' ').toLowerCase();
+    const themeKeywords = {
+      'Therapeutic Alliance': ['rapport', 'relationship', 'trust', 'connection'],
+      'Assessment Skills': ['assessment', 'diagnosis', 'evaluation', 'screening'],
+      'Intervention Techniques': ['intervention', 'technique', 'strategy', 'approach'],
+      'Documentation': ['notes', 'documentation', 'record', 'chart'],
+      'Supervision': ['supervision', 'supervisor', 'consultation', 'feedback'],
+      'Risk Assessment': ['risk', 'safety', 'suicide', 'harm', 'crisis']
+    };
+    
+    const recentThemes = Object.keys(themeKeywords).filter(theme =>
+      themeKeywords[theme].some(keyword => recentNotes.includes(keyword))
+    );
+
     return {
-      userId,
-      experienceLevel: 'developing',
-      monthsOfExperience: 12,
-      primaryModalities: ['CBT', 'Person-Centered'],
-      clientPopulations: ['Adults', 'Adolescents'],
-      strengthAreas: ['Rapport Building', 'Active Listening'],
-      challengeAreas: ['Complex Trauma', 'Group Therapy'],
-      learningStyle: 'visual',
-      communicationPreference: 'supportive',
-      recentFocusAreas: ['Clinical Skills', 'Documentation'],
-      confidenceLevel: 65,
-      lastActive: new Date()
+      inferredExperienceLevel: totalHours > 500 ? 'proficient' : totalHours > 200 ? 'developing' : 'novice',
+      estimatedMonthsExperience: Math.min(60, Math.max(3, Math.floor(totalHours / 20))),
+      detectedModalities: detectedModalities.length > 0 ? detectedModalities : ['Person-Centered'],
+      clientDemographics: ['Adults'], // Could be enhanced with more analysis
+      identifiedStrengths: ['Active Listening', 'Empathy'],
+      growthAreas: recentThemes.length > 0 ? recentThemes.slice(0, 2) : ['Documentation'],
+      recentThemes: recentThemes.length > 0 ? recentThemes : ['Professional Development'],
+      confidenceIndicators: Math.min(95, 50 + Math.floor(totalHours / 10))
     };
   }
 
   /**
-   * Get recent session history
+   * Get recent session data and conversation history
    */
   private async getRecentSessionHistory(userId: string, limit: number): Promise<ConversationMemory[]> {
-    // Implementation would fetch from database
-    return [];
+    try {
+      const { db } = await import('./db');
+      const { dingerConversationMemoryTable } = await import('../shared/schema');
+      const { eq, desc } = await import('drizzle-orm');
+      
+      const conversations = await db.select()
+        .from(dingerConversationMemoryTable)
+        .where(eq(dingerConversationMemoryTable.userId, userId))
+        .orderBy(desc(dingerConversationMemoryTable.timestamp))
+        .limit(limit);
+        
+      return conversations.map(conv => ({
+        ...conv,
+        competencyAreas: JSON.parse(conv.competencyAreas || '[]'),
+        tags: JSON.parse(conv.tags || '[]')
+      }));
+    } catch (error) {
+      console.error('Error fetching conversation history:', error);
+      return [];
+    }
   }
 }
 
