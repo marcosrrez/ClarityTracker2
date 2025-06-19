@@ -4723,8 +4723,9 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
           type: 'enhanced_research'
         });
       } else {
-        const { advancedDinger } = await import('./advanced-dinger-service');
-        const response = await advancedDinger.generateEnhancedResponse(query, userId, mode);
+        // Use enhanced Dinger service with session data integration
+        const { enhancedDingerService } = await import('./enhanced-dinger-service');
+        const response = await enhancedDingerService.generateSupervisionResponse(query, userId, mode);
         res.json(response);
       }
     } catch (error) {
