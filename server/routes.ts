@@ -2376,6 +2376,116 @@ Please provide a helpful, professional response that's personalized to their sit
     }
   });
 
+  // Clinical Metrics API for dashboard intelligence
+  app.get('/api/ai/clinical-metrics', async (req, res) => {
+    try {
+      const userId = req.session?.user?.uid;
+      if (!userId) {
+        return res.status(401).json({ error: 'Not authenticated' });
+      }
+
+      // Get recent session analyses
+      const recentAnalyses = await db.select()
+        .from(sessionAnalyses)
+        .where(eq(sessionAnalyses.userId, userId))
+        .orderBy(desc(sessionAnalyses.createdAt))
+        .limit(20);
+
+      if (!recentAnalyses.length) {
+        return res.json({
+          overallScore: 0,
+          trend: "neutral",
+          breakdown: {
+            therapeuticTechniques: 0,
+            clinicalInsight: 0,
+            documentationQuality: 0,
+            evidenceBasedPractice: 0
+          }
+        });
+      }
+
+      // Calculate Clinical Intelligence Score from real session data
+      let totalScore = 0;
+      let scoreCount = 0;
+      const breakdown = {
+        therapeuticTechniques: 0,
+        clinicalInsight: 0,
+        documentationQuality: 0,
+        evidenceBasedPractice: 0
+      };
+
+      recentAnalyses.forEach(analysis => {
+        if (analysis.clinicalInsights && typeof analysis.clinicalInsights === 'object') {
+          const insights = analysis.clinicalInsights as any;
+          
+          // Score therapeutic techniques from real analysis
+          if (insights.therapeuticTechniques?.length > 0) {
+            breakdown.therapeuticTechniques += Math.min(100, insights.therapeuticTechniques.length * 20);
+            scoreCount++;
+          }
+          
+          // Score clinical insight quality from patterns detected
+          if (insights.clinicalPatterns?.length > 0) {
+            breakdown.clinicalInsight += Math.min(100, insights.clinicalPatterns.length * 25);
+            scoreCount++;
+          }
+          
+          // Score documentation quality from transcript completeness
+          if (analysis.transcriptionData) {
+            const transcriptLength = typeof analysis.transcriptionData === 'string' 
+              ? analysis.transcriptionData.length 
+              : JSON.stringify(analysis.transcriptionData).length;
+            breakdown.documentationQuality += Math.min(100, transcriptLength / 50);
+            scoreCount++;
+          }
+          
+          // Score evidence-based practice from detected techniques
+          if (insights.evidenceBasedTechniques?.length > 0) {
+            breakdown.evidenceBasedPractice += Math.min(100, insights.evidenceBasedTechniques.length * 30);
+            scoreCount++;
+          }
+        }
+      });
+
+      // Calculate averages from actual session data
+      if (scoreCount > 0) {
+        Object.keys(breakdown).forEach(key => {
+          breakdown[key] = Math.round(breakdown[key] / recentAnalyses.length);
+          totalScore += breakdown[key];
+        });
+        totalScore = Math.round(totalScore / Object.keys(breakdown).length);
+      }
+
+      // Determine trend from progression analysis
+      let trend = "neutral";
+      if (recentAnalyses.length >= 5) {
+        const recentScores = recentAnalyses.slice(0, 5).map(a => {
+          const insights = a.clinicalInsights as any;
+          return (insights?.therapeuticTechniques?.length || 0) + 
+                 (insights?.clinicalPatterns?.length || 0) + 
+                 (insights?.evidenceBasedTechniques?.length || 0);
+        });
+        
+        const firstHalf = recentScores.slice(0, 2).reduce((sum, score) => sum + score, 0) / 2;
+        const secondHalf = recentScores.slice(-2).reduce((sum, score) => sum + score, 0) / 2;
+        
+        if (secondHalf > firstHalf * 1.1) trend = "improving";
+        else if (secondHalf < firstHalf * 0.9) trend = "declining";
+      }
+
+      res.json({
+        overallScore: totalScore,
+        trend,
+        breakdown,
+        sessionCount: recentAnalyses.length,
+        lastUpdated: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error calculating clinical metrics:', error);
+      res.status(500).json({ error: 'Failed to calculate clinical metrics' });
+    }
+  });
+
   // Enhanced Competency Data API
   app.get('/api/ai/enhanced-competency-data/:userId', async (req, res) => {
     try {
