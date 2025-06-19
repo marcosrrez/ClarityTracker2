@@ -1,4 +1,4 @@
-import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import * as cheerio from 'cheerio';
 
 interface ResearchSource {
@@ -26,11 +26,11 @@ interface EnhancedResearchResult {
 }
 
 class EnhancedResearchService {
-  private openai: OpenAI | null;
+  private genAI: GoogleGenerativeAI | null;
   private researchSources: ResearchSource[];
 
   constructor() {
-    this.openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
+    this.genAI = process.env.GOOGLE_AI_API_KEY ? new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY) : null;
     
     this.researchSources = [
       {
@@ -116,29 +116,23 @@ class EnhancedResearchService {
   }
 
   private async enhanceQuery(query: string): Promise<string> {
-    if (!this.openai) {
+    if (!this.genAI) {
       return query;
     }
 
     try {
-      // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-      const response = await this.openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [
-          {
-            role: "system",
-            content: "You are an expert research librarian specializing in mental health and clinical psychology. Convert user queries into optimized academic search terms."
-          },
-          {
-            role: "user",
-            content: `Convert this query into optimal academic search terms for mental health research: "${query}"`
-          }
-        ],
-        max_tokens: 100,
-        temperature: 0.3
-      });
+      const model = this.genAI.getGenerativeModel({ model: "gemini-pro" });
+      
+      const prompt = `You are an expert research librarian specializing in mental health and clinical psychology. Convert user queries into optimized academic search terms for mental health research.
 
-      return response.choices[0].message.content || query;
+Convert this query into optimal academic search terms: "${query}"
+
+Return only the enhanced search terms, no explanation needed.`;
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      
+      return response.text()?.trim() || query;
     } catch (error) {
       console.error('Query enhancement error:', error);
       return query;
@@ -243,40 +237,36 @@ class EnhancedResearchService {
   }
 
   private async rankResults(results: EnhancedResearchResult[], originalQuery: string): Promise<EnhancedResearchResult[]> {
-    if (!this.openai) {
+    if (!this.genAI) {
       return results.sort((a, b) => b.relevanceScore - a.relevanceScore);
     }
 
     try {
-      // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-      const response = await this.openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [
-          {
-            role: "system",
-            content: "You are an expert research librarian. Rank research results by relevance to the user's query. Consider clinical applicability, methodological rigor, and practical utility."
-          },
-          {
-            role: "user",
-            content: `Original query: "${originalQuery}"
+      const model = this.genAI.getGenerativeModel({ model: "gemini-pro" });
+      
+      const prompt = `You are an expert research librarian. Rank research results by relevance to the user's query. Consider clinical applicability, methodological rigor, and practical utility.
 
-Rate each result's relevance (1-100) and provide brief reasoning:
+Original query: "${originalQuery}"
+
+Rate each result's relevance (1-100) and provide brief reasoning. Return JSON format: {"rankings": [{"index": 1, "score": 85, "reasoning": "..."}]}
 
 ${results.map((result, index) => 
   `${index + 1}. ${result.title}\n   ${result.snippet.substring(0, 150)}...`
-).join('\n\n')}`
-          }
-        ],
-        response_format: { type: "json_object" },
-        max_tokens: 1000
-      });
+).join('\n\n')}`;
 
-      const rankings = JSON.parse(response.choices[0].message.content || '{}');
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+      
+      const rankings = JSON.parse(text || '{"rankings": []}');
       
       // Apply AI rankings to update relevance scores
-      results.forEach((result, index) => {
-        const aiScore = rankings[index + 1]?.score || result.relevanceScore;
-        result.relevanceScore = Math.round((result.relevanceScore + aiScore) / 2);
+      rankings.rankings?.forEach((ranking: any) => {
+        const resultIndex = ranking.index - 1;
+        if (results[resultIndex]) {
+          const aiScore = ranking.score || results[resultIndex].relevanceScore;
+          results[resultIndex].relevanceScore = Math.round((results[resultIndex].relevanceScore + aiScore) / 2);
+        }
       });
 
     } catch (error) {
@@ -287,22 +277,16 @@ ${results.map((result, index) =>
   }
 
   async generateComprehensiveSummary(results: EnhancedResearchResult[], query: string): Promise<string> {
-    if (!this.openai || results.length === 0) {
+    if (!this.genAI || results.length === 0) {
       return "Research summary not available.";
     }
 
     try {
-      // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-      const response = await this.openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [
-          {
-            role: "system",
-            content: "You are a clinical research expert. Synthesize research findings into actionable clinical insights for mental health practitioners."
-          },
-          {
-            role: "user",
-            content: `Based on these research findings for "${query}", provide a comprehensive summary with:
+      const model = this.genAI.getGenerativeModel({ model: "gemini-pro" });
+      
+      const prompt = `You are a clinical research expert. Synthesize research findings into actionable clinical insights for mental health practitioners.
+
+Based on these research findings for "${query}", provide a comprehensive summary with:
 1. Key findings and consensus
 2. Clinical implications
 3. Practical applications
@@ -311,14 +295,12 @@ ${results.map((result, index) =>
 Research Results:
 ${results.map(result => 
   `• ${result.title} (${result.source}, ${result.publicationYear})\n  ${result.snippet}`
-).join('\n\n')}`
-          }
-        ],
-        max_tokens: 800,
-        temperature: 0.3
-      });
+).join('\n\n')}`;
 
-      return response.choices[0].message.content || "Summary generation failed.";
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      
+      return response.text() || "Summary generation failed.";
     } catch (error) {
       console.error('Summary generation error:', error);
       return "Unable to generate research summary.";
