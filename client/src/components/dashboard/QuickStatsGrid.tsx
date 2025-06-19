@@ -73,6 +73,14 @@ export const QuickStatsGrid = () => {
   // Use standardized calculations
   const metrics = calculateDashboardMetrics(entries);
   
+  // Calculate milestone information
+  const milestoneInfo = calculateCurrentMilestone(metrics.totalClientHours, settings);
+  const timeToCompletion = calculateTimeToCompletion(
+    metrics.totalClientHours, 
+    metrics.thisWeekClientHours, 
+    settings
+  );
+  
   // Calculate days to next check-in
   const checkInInterval = settings?.licenseInfo?.supervisionCheckInInterval || 30;
   const lacDate = settings?.licenseInfo?.lacLicenseDate;
@@ -133,12 +141,38 @@ export const QuickStatsGrid = () => {
                   {Math.round(metrics.totalClientHours * 10) / 10}
                 </h2>
                 <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">
-                  / 80 hours
+                  / {milestoneInfo.currentMilestone.target} hours
                 </span>
               </div>
-              <p className="text-gray-600 dark:text-gray-400 text-sm font-medium mb-2">
-                Client Contact Progress
-              </p>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="cursor-help">
+                      <p className="text-gray-600 dark:text-gray-400 text-sm font-medium mb-1 flex items-center gap-1">
+                        {milestoneInfo.currentMilestone.name}
+                        <Info className="h-3 w-3 text-gray-400" />
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-500 mb-2">
+                        {milestoneInfo.currentMilestone.description}
+                      </p>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <div className="space-y-2">
+                      <p className="font-medium">Milestone Progress</p>
+                      <p className="text-sm">
+                        Phase {milestoneInfo.phaseInfo.current} of your licensing journey
+                      </p>
+                      <p className="text-sm">
+                        Total Goal: {milestoneInfo.totalProgress.remaining + metrics.totalClientHours} hours
+                      </p>
+                      <p className="text-sm">
+                        Overall Progress: {milestoneInfo.totalProgress.percentage.toFixed(1)}%
+                      </p>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               
               {/* Progress milestone indicator */}
               <div className="flex items-center space-x-2">
@@ -219,12 +253,48 @@ export const QuickStatsGrid = () => {
               </div>
             )}
             
-            {/* Time to completion estimate */}
-            {metrics.totalClientHours > 0 && metrics.totalClientHours < 80 && (
+            {/* Time to completion estimate with tooltip */}
+            {milestoneInfo.currentMilestone.remaining > 0 && (
               <div className="text-right">
-                <div className="text-xs text-gray-500 dark:text-gray-400">
-                  {Math.ceil((80 - metrics.totalClientHours) / (metrics.thisWeekClientHours || 1))} weeks to goal
-                </div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="cursor-help flex items-center gap-1">
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          {timeToCompletion.milestone.realistic ? 
+                            `${timeToCompletion.milestone.weeks} weeks to milestone` :
+                            'Keep logging hours!'
+                          }
+                        </div>
+                        <Info className="h-3 w-3 text-gray-400" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <div className="space-y-2">
+                        <p className="font-medium">Time Projections</p>
+                        <div className="space-y-1">
+                          <p className="text-sm">
+                            <span className="font-medium">Next Milestone:</span> 
+                            {timeToCompletion.milestone.realistic ? 
+                              ` ${timeToCompletion.milestone.weeks} weeks` :
+                              ' Log more hours for estimate'
+                            }
+                          </p>
+                          <p className="text-sm">
+                            <span className="font-medium">Total Goal:</span>
+                            {timeToCompletion.total.realistic ? 
+                              ` ${timeToCompletion.total.weeks} weeks (${Math.round(timeToCompletion.total.weeks / 52 * 10) / 10} years)` :
+                              ' Continue steady progress'
+                            }
+                          </p>
+                        </div>
+                        <p className="text-xs text-gray-400">
+                          Based on current pace: {metrics.thisWeekClientHours.toFixed(1)} hours/week
+                        </p>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             )}
           </div>

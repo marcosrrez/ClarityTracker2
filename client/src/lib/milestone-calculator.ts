@@ -56,7 +56,7 @@ export function calculateCurrentMilestone(
   
   // Find current milestone
   let currentMilestone = phases[0];
-  let nextMilestone: typeof phases[0] | null = phases[1] || null;
+  let nextMilestone = phases[1] || null;
   let phaseIndex = 0;
   
   for (let i = 0; i < phases.length; i++) {
@@ -66,9 +66,10 @@ export function calculateCurrentMilestone(
       phaseIndex = i;
       break;
     } else if (i === phases.length - 1) {
-      // If we've passed all predefined milestones, create a custom one
+      // If we've passed all predefined milestones, handle end cases
       const remaining = totalGoal - currentHours;
-      if (remaining > 0) {
+      if (remaining > 0 && totalGoal > phases[phases.length - 1].hours) {
+        // Create custom milestone for goals beyond predefined phases
         currentMilestone = {
           hours: totalGoal,
           name: "Final Sprint",
@@ -77,14 +78,14 @@ export function calculateCurrentMilestone(
         nextMilestone = null;
         phaseIndex = phases.length;
       } else {
-        // Goal complete
-        currentMilestone = {
+        // Use the last phase or goal complete
+        currentMilestone = remaining > 0 ? phases[phases.length - 1] : {
           hours: totalGoal,
           name: "Goal Complete",
           description: "Licensure requirements fulfilled"
         };
         nextMilestone = null;
-        phaseIndex = phases.length;
+        phaseIndex = phases.length - (remaining > 0 ? 1 : 0);
       }
     }
   }
