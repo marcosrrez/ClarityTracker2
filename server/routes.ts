@@ -6422,6 +6422,105 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
     }
   });
 
+  // Enhanced session description analysis for Clinical Intelligence Platform
+  app.post('/api/ai/analyze-session-description', async (req, res) => {
+    try {
+      const { description, sessionType, primaryIntervention } = req.body;
+      
+      if (!description) {
+        return res.status(400).json({ error: 'Session description is required' });
+      }
+
+      const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+      const analysisPrompt = `
+      Analyze this therapy session description as a Clinical Intelligence Platform providing comprehensive professional development insights:
+
+      Description: "${description}"
+      Session Type: ${sessionType || 'Not specified'}
+      Primary Intervention: ${primaryIntervention || 'Not specified'}
+
+      Provide detailed analysis in JSON format with clinical intelligence enhancements:
+      {
+        "sessionSummary": "brief professional overview",
+        "ebpTechniques": [
+          {
+            "technique": "identified technique",
+            "adherence": 85,
+            "effectiveness": 78,
+            "supervisorNotes": "specific feedback for supervision discussion",
+            "improvementSuggestions": "concrete ways to enhance this technique"
+          }
+        ],
+        "supervisionPoints": [
+          {
+            "category": "technique",
+            "content": "specific point for supervision discussion",
+            "priority": "medium",
+            "developmentalFocus": "skill area this addresses",
+            "supervisorQuestions": ["specific questions to ask supervisor about this area"]
+          }
+        ],
+        "progressNote": {
+          "format": "SOAP",
+          "sections": {
+            "subjective": "client's reported experience",
+            "objective": "observable behaviors and interventions used",
+            "assessment": "clinical assessment, progress, and technique effectiveness",
+            "plan": "next steps, interventions to continue/modify, supervision topics"
+          },
+          "confidence": 85,
+          "clinicalQuality": "assessment of documentation completeness and professional standards"
+        },
+        "riskAssessment": {
+          "level": "low",
+          "factors": ["any risk factors identified"],
+          "actionItems": ["specific steps to address identified risks"],
+          "supervisionUrgency": "timeline for discussing with supervisor"
+        },
+        "therapeuticAlliance": 82,
+        "recommendations": ["clinical recommendations for next session"],
+        "professionalDevelopment": {
+          "competencyAreas": ["specific clinical competencies demonstrated or needing development"],
+          "learningOpportunities": ["suggested training, reading, or skill development based on this session"],
+          "licensureRelevance": "how this session contributes to licensure requirements",
+          "careerGrowth": "insights for long-term professional development"
+        },
+        "clinicalPatterns": {
+          "clientPresentation": "patterns in client's presentation that inform treatment planning",
+          "interventionEffectiveness": "analysis of which approaches worked best and why",
+          "therapeuticRelationship": "observations about rapport, resistance, engagement",
+          "treatmentProgression": "insights about client's therapeutic journey"
+        },
+        "futureSessionPlanning": {
+          "nextSessionFocus": "recommended primary focus areas",
+          "techniqueRecommendations": "specific evidence-based approaches to try",
+          "potentialChallenges": "anticipated obstacles and preparation strategies",
+          "measurementOpportunities": "ways to track progress objectively"
+        }
+      }
+      `;
+
+      const result = await model.generateContent(analysisPrompt);
+      const response = result.response;
+      const analysisText = response.text();
+      
+      // Parse JSON response
+      const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const analysis = JSON.parse(jsonMatch[0]);
+        res.json(analysis);
+      } else {
+        res.status(500).json({ error: 'Failed to parse AI analysis' });
+      }
+
+    } catch (error) {
+      console.error('Session description analysis error:', error);
+      res.status(500).json({ error: 'Analysis failed' });
+    }
+  });
+
   // Real-time engagement analysis endpoint for advanced mode
   app.post('/api/ai/analyze-realtime-engagement', async (req, res) => {
     try {

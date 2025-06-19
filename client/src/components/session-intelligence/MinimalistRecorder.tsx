@@ -31,6 +31,7 @@ interface SessionAnalysis {
     effectiveness: number;
     supervisorNotes?: string;
     timing?: number[];
+    improvementSuggestions?: string;
   }>;
   supervisionPoints: Array<{
     category: string;
@@ -38,6 +39,8 @@ interface SessionAnalysis {
     priority: string;
     transcriptSnippet?: string;
     timestamp?: number;
+    developmentalFocus?: string;
+    supervisorQuestions?: string[];
   }>;
   progressNote: {
     format: string;
@@ -49,13 +52,34 @@ interface SessionAnalysis {
     };
     confidence: number;
     completeness?: number;
+    clinicalQuality?: string;
   };
   riskAssessment: {
     level: string;
     factors: string[];
+    actionItems?: string[];
+    supervisionUrgency?: string;
   };
   therapeuticAlliance: number;
   recommendations: string[];
+  professionalDevelopment?: {
+    competencyAreas: string[];
+    learningOpportunities: string[];
+    licensureRelevance: string;
+    careerGrowth: string;
+  };
+  clinicalPatterns?: {
+    clientPresentation: string;
+    interventionEffectiveness: string;
+    therapeuticRelationship: string;
+    treatmentProgression: string;
+  };
+  futureSessionPlanning?: {
+    nextSessionFocus: string;
+    techniqueRecommendations: string;
+    potentialChallenges: string;
+    measurementOpportunities: string;
+  };
 }
 
 type SessionMode = 'in-person' | 'telehealth' | 'upload' | 'describe';
@@ -745,6 +769,63 @@ export function MinimalistRecorder() {
             </CardContent>
           </Card>
 
+          {/* Professional Development Insights */}
+          {analysisResult.professionalDevelopment && (
+            <Card className="border-0 shadow-lg">
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Brain className="h-5 w-5 text-blue-600" />
+                    <h3 className="text-lg font-medium">Professional Development Insights</h3>
+                  </div>
+                  
+                  {/* Competency Areas */}
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-gray-900 dark:text-white">Clinical Competencies</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {analysisResult.professionalDevelopment.competencyAreas.map((competency, index) => (
+                        <Badge key={index} variant="secondary" className="text-xs">
+                          {competency}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Learning Opportunities */}
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-gray-900 dark:text-white">Learning Opportunities</h4>
+                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
+                      <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
+                        {analysisResult.professionalDevelopment.learningOpportunities.map((opportunity, index) => (
+                          <li key={index} className="flex items-start gap-2">
+                            <Target className="h-3 w-3 text-blue-600 mt-1 shrink-0" />
+                            {opportunity}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* Licensure Relevance */}
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-gray-900 dark:text-white">Licensure Progress</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 bg-green-50 dark:bg-green-900/20 rounded-lg p-3">
+                      {analysisResult.professionalDevelopment.licensureRelevance}
+                    </p>
+                  </div>
+
+                  {/* Career Growth */}
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-gray-900 dark:text-white">Career Growth Insights</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3">
+                      {analysisResult.professionalDevelopment.careerGrowth}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Evidence-Based Practice Analysis */}
           {analysisResult.ebpTechniques.length > 0 && (
             <Card className="border-0 shadow-lg">
@@ -837,6 +918,147 @@ export function MinimalistRecorder() {
                   <div>
                     <strong className="text-orange-600 dark:text-orange-400">PLAN:</strong>
                     <p className="mt-1 ml-4">{analysisResult.progressNote.sections.plan}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Clinical Patterns Analysis */}
+          {analysisResult.clinicalPatterns && (
+            <Card className="border-0 shadow-lg">
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-green-600" />
+                    <h3 className="text-lg font-medium">Clinical Pattern Analysis</h3>
+                  </div>
+                  
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium text-gray-900 dark:text-white">Client Presentation</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-300 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
+                        {analysisResult.clinicalPatterns.clientPresentation}
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium text-gray-900 dark:text-white">Intervention Effectiveness</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-300 bg-green-50 dark:bg-green-900/20 rounded-lg p-3">
+                        {analysisResult.clinicalPatterns.interventionEffectiveness}
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium text-gray-900 dark:text-white">Therapeutic Relationship</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-300 bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3">
+                        {analysisResult.clinicalPatterns.therapeuticRelationship}
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium text-gray-900 dark:text-white">Treatment Progression</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-300 bg-orange-50 dark:bg-orange-900/20 rounded-lg p-3">
+                        {analysisResult.clinicalPatterns.treatmentProgression}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Enhanced Supervision Points */}
+          {analysisResult.supervisionPoints && analysisResult.supervisionPoints.length > 0 && (
+            <Card className="border-0 shadow-lg">
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Eye className="h-5 w-5 text-purple-600" />
+                    <h3 className="text-lg font-medium">Enhanced Supervision Preparation</h3>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {analysisResult.supervisionPoints.map((point, index) => (
+                      <div key={index} className="border rounded-lg p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <Badge 
+                            variant={point.priority === 'high' ? 'destructive' : point.priority === 'medium' ? 'default' : 'secondary'}
+                            className="text-xs"
+                          >
+                            {point.category} - {point.priority} priority
+                          </Badge>
+                        </div>
+                        
+                        <p className="text-sm text-gray-700 dark:text-gray-300">{point.content}</p>
+                        
+                        {point.developmentalFocus && (
+                          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
+                            <p className="text-sm text-gray-600 dark:text-gray-300">
+                              <strong>Developmental Focus:</strong> {point.developmentalFocus}
+                            </p>
+                          </div>
+                        )}
+                        
+                        {point.supervisorQuestions && point.supervisorQuestions.length > 0 && (
+                          <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3">
+                            <p className="text-sm font-medium text-gray-900 dark:text-white mb-2">Questions for Supervisor:</p>
+                            <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
+                              {point.supervisorQuestions.map((question, qIndex) => (
+                                <li key={qIndex} className="flex items-start gap-2">
+                                  <span className="text-purple-600">•</span>
+                                  {question}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Future Session Planning */}
+          {analysisResult.futureSessionPlanning && (
+            <Card className="border-0 shadow-lg">
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Target className="h-5 w-5 text-orange-600" />
+                    <h3 className="text-lg font-medium">Future Session Planning</h3>
+                  </div>
+                  
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium text-gray-900 dark:text-white">Next Session Focus</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-300 bg-orange-50 dark:bg-orange-900/20 rounded-lg p-3">
+                        {analysisResult.futureSessionPlanning.nextSessionFocus}
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium text-gray-900 dark:text-white">Technique Recommendations</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-300 bg-green-50 dark:bg-green-900/20 rounded-lg p-3">
+                        {analysisResult.futureSessionPlanning.techniqueRecommendations}
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium text-gray-900 dark:text-white">Potential Challenges</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-300 bg-red-50 dark:bg-red-900/20 rounded-lg p-3">
+                        {analysisResult.futureSessionPlanning.potentialChallenges}
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium text-gray-900 dark:text-white">Measurement Opportunities</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-300 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
+                        {analysisResult.futureSessionPlanning.measurementOpportunities}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </CardContent>
