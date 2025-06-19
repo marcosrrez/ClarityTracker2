@@ -1731,6 +1731,61 @@ ${content}`;
       nextReviewDate,
     };
   }
+
+  // Privacy Settings Methods
+  async getPrivacySettings(userId: string): Promise<any> {
+    const { db } = await import("./db");
+    const { eq } = await import("drizzle-orm");
+    
+    const settings = await db
+      .select()
+      .from(privacySettingsTable)
+      .where(eq(privacySettingsTable.userId, userId))
+      .limit(1);
+    
+    return settings[0] || null;
+  }
+
+  async createPrivacySettings(settings: any): Promise<any> {
+    const { db } = await import("./db");
+    const id = crypto.randomUUID();
+    
+    const newSettings = {
+      id,
+      ...settings,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    
+    await db.insert(privacySettingsTable).values(newSettings);
+    return newSettings;
+  }
+
+  async updatePrivacySettings(userId: string, updates: any): Promise<any> {
+    const { db } = await import("./db");
+    const { eq } = await import("drizzle-orm");
+    
+    // Check if settings exist
+    const existing = await this.getPrivacySettings(userId);
+    
+    if (!existing) {
+      // Create new settings if none exist
+      return await this.createPrivacySettings({ userId, ...updates });
+    }
+    
+    // Update existing settings
+    const updatedSettings = {
+      ...updates,
+      updatedAt: new Date(),
+    };
+    
+    await db
+      .update(privacySettingsTable)
+      .set(updatedSettings)
+      .where(eq(privacySettingsTable.userId, userId));
+    
+    return { ...existing, ...updatedSettings };
+  }
 }
 
 export const storage = new DatabaseStorage();
