@@ -2896,6 +2896,80 @@ Please provide a helpful, professional response that's personalized to their sit
     }
   });
 
+  // Real-time Anonymization Demo Endpoint
+  app.post('/api/privacy/anonymize-demo', express.json(), async (req, res) => {
+    try {
+      const { text, detectionLevel = 'standard' } = req.body;
+      
+      if (!text || typeof text !== 'string') {
+        return res.status(400).json({ error: 'Text content required' });
+      }
+
+      const startTime = Date.now();
+      
+      // Simulate real-time anonymization based on detection level
+      let processed = text;
+      const detectedTypes: string[] = [];
+      
+      if (detectionLevel === 'basic') {
+        // Basic: Names only
+        processed = processed
+          .replace(/\b[A-Z][a-z]+ [A-Z][a-z]+\b/g, 'Client-A')
+          .replace(/\b\d{3}-\d{3}-\d{4}\b/g, '[PHONE]');
+        detectedTypes.push('Names', 'Phone Numbers');
+      } else if (detectionLevel === 'standard') {
+        // Standard: Names, dates, addresses, phone numbers
+        processed = processed
+          .replace(/\b[A-Z][a-z]+ [A-Z][a-z]+\b/g, (match, offset) => {
+            const names = ['Client-A', 'Spouse-A', 'Child-A', 'Child-B'];
+            return names[Math.floor(offset / 20) % names.length];
+          })
+          .replace(/\b\d{1,2}\/\d{1,2}\/\d{4}\b/g, '[DATE]')
+          .replace(/\b\d{3}-\d{3}-\d{4}\b/g, '[PHONE]')
+          .replace(/\b\d+\s+[A-Z][a-z]+\s+(Street|Avenue|Road|Drive)[^,]*[^.]*\b/g, '[ADDRESS]')
+          .replace(/\b[A-Za-z]+ \d{1,2}(st|nd|rd|th), \d{4}\b/g, '[VISIT-DATE]');
+        detectedTypes.push('Names', 'Dates', 'Addresses', 'Phone Numbers');
+      } else {
+        // Comprehensive: All PII plus contextual identifiers
+        processed = processed
+          .replace(/\b[A-Z][a-z]+ [A-Z][a-z]+\b/g, (match, offset) => {
+            const names = ['Client-A', 'Spouse-A', 'Child-A', 'Child-B'];
+            return names[Math.floor(offset / 20) % names.length];
+          })
+          .replace(/\b\d{1,2}\/\d{1,2}\/\d{4}\b/g, '[DATE]')
+          .replace(/\b\d{3}-\d{3}-\d{4}\b/g, '[PHONE]')
+          .replace(/\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b/g, '[EMAIL]')
+          .replace(/\b\d+\s+[A-Z][a-z]+\s+(Street|Avenue|Road|Drive)[^,]*[^.]*\b/g, '[ADDRESS]')
+          .replace(/\b[A-Za-z]+ \d{1,2}(st|nd|rd|th), \d{4}\b/g, '[VISIT-DATE]')
+          .replace(/\b[A-Z][a-z]+\s+\d+mg\b/g, '[MEDICATION]')
+          .replace(/\bage \d+\b/g, '[AGE]')
+          .replace(/\b[A-Z][a-z]+\s+(headquarters|office|hospital|clinic)\b/g, '[WORKPLACE]');
+        detectedTypes.push('Names', 'Dates', 'Addresses', 'Phone Numbers', 'Email', 'Medical Info', 'Ages', 'Workplaces');
+      }
+      
+      const processingTime = Date.now() - startTime;
+      const privacyScore = Math.min(95, 70 + (detectedTypes.length * 5));
+      
+      res.json({
+        success: true,
+        originalText: text,
+        anonymizedText: processed,
+        detectedTypes,
+        processingTime,
+        privacyScore,
+        preservedContext: true,
+        clinicalValueRetained: processed.length > text.length * 0.8
+      });
+      
+    } catch (error) {
+      console.error('Error in anonymization demo:', error);
+      res.status(500).json({ 
+        error: 'Anonymization failed',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // Privacy Settings API Endpoints
   app.get('/api/privacy-settings/:userId', async (req, res) => {
     try {
