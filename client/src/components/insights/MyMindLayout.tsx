@@ -1464,11 +1464,12 @@ export function MyMindLayout({ galleryItems, onItemClick, onRefresh }: MyMindLay
             {/* Modern Chat Interface - Fixed Height with Proper Scrolling */}
             <div 
               ref={chatContainerRef}
-              className="overflow-y-auto relative" 
+              className="flex-1 overflow-y-auto relative" 
               style={{ 
                 scrollBehavior: 'smooth',
-                height: 'calc(100vh - 45px - 90px)', // Optimized for more chat space
-                maxHeight: 'calc(100vh - 45px - 90px)'
+                minHeight: 0, // Allow flexbox to shrink
+                overflowY: 'auto',
+                overflowX: 'hidden'
               }} 
               id="chat-container"
               onScroll={handleScroll}

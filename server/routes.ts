@@ -4702,10 +4702,31 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
         return res.status(400).json({ error: 'Query and userId are required' });
       }
 
-      const { advancedDinger } = await import('./advanced-dinger-service');
-      const response = await advancedDinger.generateEnhancedResponse(query, userId, mode);
-      
-      res.json(response);
+      // Check if this is a research request
+      const isResearchQuery = query.toLowerCase().includes('research') || 
+                             query.toLowerCase().includes('study') || 
+                             query.toLowerCase().includes('evidence') ||
+                             query.toLowerCase().includes('articles') ||
+                             mode === 'researcher';
+
+      if (isResearchQuery) {
+        const { enhancedResearchService } = await import('./enhanced-research-service');
+        const researchResults = await enhancedResearchService.searchMultipleSources(query, 6);
+        
+        const summary = await enhancedResearchService.generateComprehensiveSummary(researchResults, query);
+        
+        res.json({
+          response: `I found ${researchResults.length} relevant research sources for your query about "${query}". ${summary}`,
+          researchResults,
+          summary,
+          mode: 'research',
+          type: 'enhanced_research'
+        });
+      } else {
+        const { advancedDinger } = await import('./advanced-dinger-service');
+        const response = await advancedDinger.generateEnhancedResponse(query, userId, mode);
+        res.json(response);
+      }
     } catch (error) {
       console.error('Enhanced Dinger chat error:', error);
       res.status(500).json({ error: 'Failed to generate enhanced response' });
