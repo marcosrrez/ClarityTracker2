@@ -218,10 +218,10 @@ export const QuickStatsGrid = () => {
             )}
             
             {/* Time to completion estimate */}
-            {totalClientHours > 0 && totalClientHours < 100 && (
+            {metrics.totalClientHours > 0 && metrics.totalClientHours < 100 && (
               <div className="text-right">
                 <div className="text-xs text-gray-500 dark:text-gray-400">
-                  {Math.ceil((100 - totalClientHours) / (thisWeekClientHours || 1))} weeks to goal
+                  {Math.ceil((100 - metrics.totalClientHours) / (metrics.thisWeekClientHours || 1))} weeks to goal
                 </div>
               </div>
             )}
@@ -235,7 +235,7 @@ export const QuickStatsGrid = () => {
         {/* Direct vs Indirect Hours Breakdown */}
         <ClickableMetricCard 
           category="direct_hours_breakdown" 
-          value={totalClientHours}
+          value={metrics.totalClientHours}
           className="block"
         >
           <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-xl rounded-xl p-4 relative overflow-hidden">
@@ -247,7 +247,7 @@ export const QuickStatsGrid = () => {
                 <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               </div>
               <span className="text-xs text-blue-600 dark:text-blue-400 font-semibold">
-                {Math.round((totalClientHours / 80) * 100)}% of 80 req.
+                {Math.round((metrics.totalClientHours / 80) * 100)}% of 80 req.
               </span>
             </div>
             
@@ -255,13 +255,13 @@ export const QuickStatsGrid = () => {
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600 dark:text-gray-400">Direct</span>
                 <span className="text-sm font-bold text-black dark:text-white">
-                  {(totalClientHours * 0.7).toFixed(1)}h
+                  {(metrics.totalClientHours * 0.7).toFixed(1)}h
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600 dark:text-gray-400">Indirect</span>
                 <span className="text-sm font-bold text-black dark:text-white">
-                  {(totalClientHours * 0.3).toFixed(1)}h
+                  {(metrics.totalClientHours * 0.3).toFixed(1)}h
                 </span>
               </div>
             </div>
@@ -275,11 +275,11 @@ export const QuickStatsGrid = () => {
               <div className="h-full flex">
                 <div 
                   className="bg-blue-500 transition-all duration-1000"
-                  style={{ width: `${(totalClientHours * 0.7 / 80) * 100}%` }}
+                  style={{ width: `${(metrics.totalClientHours * 0.7 / 80) * 100}%` }}
                 />
                 <div 
                   className="bg-blue-300 transition-all duration-1000"
-                  style={{ width: `${(totalClientHours * 0.3 / 80) * 100}%` }}
+                  style={{ width: `${(metrics.totalClientHours * 0.3 / 80) * 100}%` }}
                 />
               </div>
             </div>
@@ -290,12 +290,12 @@ export const QuickStatsGrid = () => {
         {/* Exam Eligibility Status */}
         <ClickableMetricCard 
           category="exam_eligibility" 
-          value={totalClientHours >= 80 && totalSupervisionHours >= 40 ? 1 : 0}
+          value={metrics.totalClientHours >= 80 && metrics.totalSupervisionHours >= 40 ? 1 : 0}
           className="block"
         >
           <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-xl rounded-xl p-4 relative overflow-hidden">
           <div className={`absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl to-transparent rounded-full -translate-y-8 translate-x-8 ${
-            totalClientHours >= 80 && totalSupervisionHours >= 40 
+            metrics.totalClientHours >= 80 && metrics.totalSupervisionHours >= 40 
               ? 'from-green-50/30' 
               : 'from-yellow-50/30'
           }`} />
@@ -303,26 +303,26 @@ export const QuickStatsGrid = () => {
           <div className="relative">
             <div className="flex items-center justify-between mb-3">
               <div className={`p-2 rounded-lg ${
-                totalClientHours >= 80 && totalSupervisionHours >= 40 
+                metrics.totalClientHours >= 80 && metrics.totalSupervisionHours >= 40 
                   ? 'bg-green-500/10' 
                   : 'bg-yellow-500/10'
               }`}>
                 <Users className={`h-4 w-4 ${
-                  totalClientHours >= 80 && totalSupervisionHours >= 40 
+                  metrics.totalClientHours >= 80 && metrics.totalSupervisionHours >= 40 
                     ? 'text-green-600 dark:text-green-400' 
                     : 'text-yellow-600 dark:text-yellow-400'
                 }`} />
               </div>
               
               <div className={`w-1.5 h-1.5 rounded-full ${
-                totalClientHours >= 80 && totalSupervisionHours >= 40 
+                metrics.totalClientHours >= 80 && metrics.totalSupervisionHours >= 40 
                   ? 'bg-green-500' 
                   : 'bg-yellow-500 animate-pulse'
               }`} />
             </div>
             
             <div className="text-xl font-bold text-black dark:text-white mb-1">
-              {totalClientHours >= 80 && totalSupervisionHours >= 40 ? 'Ready' : 'In Progress'}
+              {metrics.totalClientHours >= 80 && metrics.totalSupervisionHours >= 40 ? 'Ready' : 'In Progress'}
             </div>
             
             <div className="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2">
@@ -333,7 +333,7 @@ export const QuickStatsGrid = () => {
             <div className="space-y-1">
               <div className="flex items-center space-x-2">
                 <div className={`w-1 h-1 rounded-full ${
-                  totalClientHours >= 80 ? 'bg-green-500' : 'bg-gray-300'
+                  metrics.totalClientHours >= 80 ? 'bg-green-500' : 'bg-gray-300'
                 }`} />
                 <span className="text-xs text-gray-500 dark:text-gray-400">
                   80+ Client Hours
@@ -341,7 +341,7 @@ export const QuickStatsGrid = () => {
               </div>
               <div className="flex items-center space-x-2">
                 <div className={`w-1 h-1 rounded-full ${
-                  totalSupervisionHours >= 40 ? 'bg-green-500' : 'bg-gray-300'
+                  metrics.totalSupervisionHours >= 40 ? 'bg-green-500' : 'bg-gray-300'
                 }`} />
                 <span className="text-xs text-gray-500 dark:text-gray-400">
                   40+ Supervision Hours
