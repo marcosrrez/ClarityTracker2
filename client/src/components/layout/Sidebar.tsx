@@ -34,6 +34,7 @@ import {
   FileText,
   Mic,
   Activity,
+  Lock,
 } from "lucide-react";
 
 const getNavigationItems = (accountType: string, permissions: any) => {
@@ -48,6 +49,7 @@ const getNavigationItems = (accountType: string, permissions: any) => {
       { href: "/appointments", label: "Appointments", icon: ClipboardList, group: "professional" },
       { href: "/journal", label: "Reflection Journal", icon: FileText, group: "professional" },
       { href: "/settings", label: "Settings", icon: Settings, group: "utility" },
+      { href: "/privacy-settings", label: "Privacy & Data", icon: Lock, group: "utility" },
       { href: "/help", label: "Help", icon: HelpCircle, group: "utility" },
     ];
   }
@@ -69,6 +71,7 @@ const getNavigationItems = (accountType: string, permissions: any) => {
         { href: "/user-management", label: "User Management", icon: Users, group: "enterprise" },
       ] : []),
       { href: "/settings", label: "Settings", icon: Settings, group: "utility" },
+      { href: "/privacy-settings", label: "Privacy & Data", icon: Lock, group: "utility" },
       { href: "/feedback", label: "Feedback", icon: MessageSquare, group: "utility" },
       { href: "/help", label: "Help", icon: HelpCircle, group: "utility" },
     ];
@@ -92,6 +95,7 @@ const getNavigationItems = (accountType: string, permissions: any) => {
 
   const utilityItems = [
     { href: "/settings", label: "Settings", icon: Settings, group: "utility" },
+    { href: "/privacy-settings", label: "Privacy & Data", icon: Lock, group: "utility" },
     { href: "/feedback", label: "Feedback", icon: MessageSquare, group: "utility" },
     { href: "/help", label: "Help", icon: HelpCircle, group: "utility" },
   ];
