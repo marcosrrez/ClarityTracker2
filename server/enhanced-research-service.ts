@@ -121,7 +121,7 @@ class EnhancedResearchService {
     }
 
     try {
-      const model = this.genAI.getGenerativeModel({ model: "gemini-pro" });
+      const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       
       const prompt = `You are an expert research librarian specializing in mental health and clinical psychology. Convert user queries into optimized academic search terms for mental health research.
 
@@ -242,7 +242,7 @@ Return only the enhanced search terms, no explanation needed.`;
     }
 
     try {
-      const model = this.genAI.getGenerativeModel({ model: "gemini-pro" });
+      const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       
       const prompt = `You are an expert research librarian. Rank research results by relevance to the user's query. Consider clinical applicability, methodological rigor, and practical utility.
 
@@ -282,7 +282,7 @@ ${results.map((result, index) =>
     }
 
     try {
-      const model = this.genAI.getGenerativeModel({ model: "gemini-pro" });
+      const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       
       const prompt = `You are a clinical research expert. Synthesize research findings into actionable clinical insights for mental health practitioners.
 
