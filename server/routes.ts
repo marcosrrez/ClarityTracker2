@@ -3880,7 +3880,7 @@ Please provide a helpful, professional response that's personalized to their sit
   // Research and web scraping endpoints
   app.post('/api/research/search', async (req, res) => {
     try {
-      const { query, limit = 5 } = req.body;
+      const { query, limit = 5, userId } = req.body;
       
       if (!query || typeof query !== 'string') {
         return res.status(400).json({ error: 'Query is required' });
@@ -3904,6 +3904,23 @@ Please provide a helpful, professional response that's personalized to their sit
         clinicalFocus: result.clinicalFocus,
         practicalApplications: result.practicalApplications
       }));
+      
+      // Save search query to research history if userId provided
+      if (userId) {
+        try {
+          const historyId = `history_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          await db.insert(researchHistoryTable).values({
+            id: historyId,
+            userId: userId,
+            query: query,
+            resultsCount: results.length,
+            searchContext: clinicalResults.summary?.substring(0, 500) || `Search for "${query}" returned ${results.length} clinical research results`
+          });
+        } catch (historyError) {
+          console.log('Could not save search history:', historyError);
+          // Continue even if history save fails
+        }
+      }
       
       res.json({ 
         results,
