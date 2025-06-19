@@ -115,8 +115,8 @@ export const QuickStatsGrid = () => {
       subtitle: "AI Score",
       changeLabel: clinicalMetrics?.trend || "Analyzing",
       icon: Brain,
-      iconColor: clinicalMetrics?.overallScore >= 80 ? "text-emerald-500" : 
-                 clinicalMetrics?.overallScore >= 60 ? "text-blue-500" : "text-amber-500",
+      iconColor: (clinicalMetrics?.overallScore || 0) >= 80 ? "text-emerald-500" : 
+                 (clinicalMetrics?.overallScore || 0) >= 60 ? "text-blue-500" : "text-amber-500",
       trend: clinicalMetrics?.trend || "neutral",
     },
   ];

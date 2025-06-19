@@ -101,13 +101,13 @@ Session Details:
 - Format: ${session.sessionFormat || 'In Person'}
 
 Supervisor: ${session.supervisorId}
-Supervisee: ${supervisee.superviseeName}
+Supervisee: ${supervisee.superviseeId}
 
 ${session.notes ? `Agenda: ${session.notes}` : ''}
 
 Reminder: This session is scheduled for ${reminderDays} day(s) from now.
       `,
-      userEmail: supervisee.superviseeEmail,
+      userEmail: supervisee.superviseeId,
       userId: session.supervisorId,
       timestamp: new Date(),
     };
@@ -663,7 +663,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // In a real implementation, you'd want to archive rather than delete
       // and ensure proper authorization
       await storage.updateSuperviseeRelationship(req.params.id, { 
-        status: 'archived',
+        status: 'completed',
         endDate: new Date() 
       });
       res.json({ success: true });
