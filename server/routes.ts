@@ -7660,6 +7660,200 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
     }
   });
 
+  // Privacy Settings API Endpoints
+  app.get("/api/privacy/settings", async (req, res) => {
+    try {
+      const userId = req.headers['user-id'] as string;
+      if (!userId) {
+        return res.status(401).json({ error: "User ID required" });
+      }
+
+      // Get user's privacy settings or return defaults
+      let settings = await storage.getPrivacySettings(userId);
+      if (!settings) {
+        // Create default settings
+        const defaultSettings = {
+          userId,
+          dataRetentionDays: 90,
+          storeRawRecordings: false,
+          localProcessingOnly: false,
+          shareForResearch: false,
+          supervisionAccess: true,
+          autoDeleteTranscripts: true,
+          encryptionLevel: 'enhanced' as const,
+          consentVersion: '1.0',
+          dataProcessingAgreement: false
+        };
+        settings = await storage.createPrivacySettings(defaultSettings);
+      }
+
+      res.json(settings);
+    } catch (error) {
+      console.error("Privacy settings fetch error:", error);
+      res.status(500).json({ error: "Failed to load privacy settings" });
+    }
+  });
+
+  app.post("/api/privacy/settings", express.json(), async (req, res) => {
+    try {
+      const userId = req.headers['user-id'] as string;
+      if (!userId) {
+        return res.status(401).json({ error: "User ID required" });
+      }
+
+      const settingsData = { ...req.body, userId };
+      const updatedSettings = await storage.updatePrivacySettings(userId, settingsData);
+      
+      // Update data retention policies based on new settings
+      await storage.applyDataRetentionPolicies(userId, settingsData.dataRetentionDays);
+      
+      res.json(updatedSettings);
+    } catch (error) {
+      console.error("Privacy settings update error:", error);
+      res.status(500).json({ error: "Failed to update privacy settings" });
+    }
+  });
+
+  app.get("/api/privacy/data-usage", async (req, res) => {
+    try {
+      const userId = req.headers['user-id'] as string;
+      if (!userId) {
+        return res.status(401).json({ error: "User ID required" });
+      }
+
+      const dataUsage = await storage.getUserDataUsage(userId);
+      res.json(dataUsage);
+    } catch (error) {
+      console.error("Data usage fetch error:", error);
+      res.status(500).json({ error: "Failed to load data usage" });
+    }
+  });
+
+  app.post("/api/privacy/delete-data", express.json(), async (req, res) => {
+    try {
+      const userId = req.headers['user-id'] as string;
+      if (!userId) {
+        return res.status(401).json({ error: "User ID required" });
+      }
+
+      const { type, reason } = req.body;
+      
+      // Create deletion request for audit trail
+      const deletionRequest = await storage.createDataDeletionRequest({
+        userId,
+        requestType: type,
+        reason,
+        status: 'pending',
+        verificationRequired: true
+      });
+
+      // Process deletion based on type
+      let deletionResult;
+      switch (type) {
+        case 'recordings':
+          deletionResult = await storage.deleteUserRecordings(userId);
+          break;
+        case 'transcripts':
+          deletionResult = await storage.deleteUserTranscripts(userId);
+          break;
+        case 'analytics':
+          deletionResult = await storage.deleteUserAnalytics(userId);
+          break;
+        case 'all':
+          deletionResult = await storage.deleteAllUserData(userId);
+          break;
+        default:
+          throw new Error("Invalid deletion type");
+      }
+
+      // Update deletion request with results
+      await storage.updateDataDeletionRequest(deletionRequest.id, {
+        status: 'completed',
+        itemsDeleted: deletionResult.itemsDeleted,
+        bytesDeleted: deletionResult.bytesDeleted,
+        completedAt: new Date(),
+        auditLog: deletionResult.auditLog
+      });
+
+      res.json({ 
+        success: true, 
+        deletionRequestId: deletionRequest.id,
+        itemsDeleted: deletionResult.itemsDeleted,
+        bytesDeleted: deletionResult.bytesDeleted
+      });
+    } catch (error) {
+      console.error("Data deletion error:", error);
+      res.status(500).json({ error: "Failed to delete data" });
+    }
+  });
+
+  app.get("/api/privacy/export-data", async (req, res) => {
+    try {
+      const userId = req.headers['user-id'] as string;
+      if (!userId) {
+        return res.status(401).json({ error: "User ID required" });
+      }
+
+      const exportData = await storage.exportUserData(userId);
+      
+      // Set headers for file download
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename="claritylog-data-export-${new Date().toISOString().split('T')[0]}.json"`);
+      
+      res.json({
+        exportDate: new Date().toISOString(),
+        userId: userId,
+        privacySettings: exportData.privacySettings,
+        sessionData: exportData.sessionData,
+        clinicalInsights: exportData.clinicalInsights,
+        hourLogs: exportData.hourLogs,
+        supervisionRecords: exportData.supervisionRecords,
+        dataUsageStatistics: exportData.dataUsageStatistics
+      });
+    } catch (error) {
+      console.error("Data export error:", error);
+      res.status(500).json({ error: "Failed to export data" });
+    }
+  });
+
+  app.get("/api/privacy/audit-log", async (req, res) => {
+    try {
+      const userId = req.headers['user-id'] as string;
+      if (!userId) {
+        return res.status(401).json({ error: "User ID required" });
+      }
+
+      const auditLog = await storage.getPrivacyAuditLog(userId);
+      res.json(auditLog);
+    } catch (error) {
+      console.error("Audit log fetch error:", error);
+      res.status(500).json({ error: "Failed to load audit log" });
+    }
+  });
+
+  // Data retention compliance endpoint
+  app.post("/api/privacy/apply-retention-policies", async (req, res) => {
+    try {
+      const userId = req.headers['user-id'] as string;
+      if (!userId) {
+        return res.status(401).json({ error: "User ID required" });
+      }
+
+      const { retentionDays } = req.body;
+      const result = await storage.applyDataRetentionPolicies(userId, retentionDays);
+      
+      res.json({
+        success: true,
+        itemsProcessed: result.itemsProcessed,
+        itemsDeleted: result.itemsDeleted,
+        nextReviewDate: result.nextReviewDate
+      });
+    } catch (error) {
+      console.error("Retention policy application error:", error);
+      res.status(500).json({ error: "Failed to apply retention policies" });
+    }
+  });
+
   // Add security error handler as the last middleware
   app.use(securityErrorHandler);
 

@@ -948,6 +948,132 @@ export const insertRiskAssessmentSchema = riskAssessmentSchema.omit({
 export type RiskAssessment = z.infer<typeof riskAssessmentSchema>;
 export type InsertRiskAssessment = z.infer<typeof insertRiskAssessmentSchema>;
 
+// Privacy Settings Schema - for user data control and HIPAA compliance
+export const privacySettingsTable = pgTable('privacy_settings', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull().unique(),
+  dataRetentionDays: integer('data_retention_days').notNull().default(90),
+  storeRawRecordings: boolean('store_raw_recordings').default(false),
+  localProcessingOnly: boolean('local_processing_only').default(false),
+  shareForResearch: boolean('share_for_research').default(false),
+  supervisionAccess: boolean('supervision_access').default(true),
+  autoDeleteTranscripts: boolean('auto_delete_transcripts').default(true),
+  encryptionLevel: varchar('encryption_level', { length: 20 }).notNull().default('enhanced'),
+  consentVersion: varchar('consent_version', { length: 20 }).default('1.0'),
+  consentDate: timestamp('consent_date').defaultNow(),
+  dataProcessingAgreement: boolean('data_processing_agreement').default(false),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const privacySettingsSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  dataRetentionDays: z.number().min(0).max(3650).default(90),
+  storeRawRecordings: z.boolean().default(false),
+  localProcessingOnly: z.boolean().default(false),
+  shareForResearch: z.boolean().default(false),
+  supervisionAccess: z.boolean().default(true),
+  autoDeleteTranscripts: z.boolean().default(true),
+  encryptionLevel: z.enum(['standard', 'enhanced', 'maximum']).default('enhanced'),
+  consentVersion: z.string().default('1.0'),
+  consentDate: z.date().default(() => new Date()),
+  dataProcessingAgreement: z.boolean().default(false),
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date()),
+});
+
+export const insertPrivacySettingsSchema = privacySettingsSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type PrivacySettings = z.infer<typeof privacySettingsSchema>;
+export type InsertPrivacySettings = z.infer<typeof insertPrivacySettingsSchema>;
+
+// Data Usage Tracking Schema - for privacy dashboard analytics
+export const dataUsageTrackingTable = pgTable('data_usage_tracking', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  dataType: varchar('data_type', { length: 50 }).notNull(), // recordings, transcripts, insights, analytics
+  category: varchar('category', { length: 50 }).notNull(), // session_data, clinical_notes, behavioral_patterns
+  sizeBytes: integer('size_bytes').notNull().default(0),
+  itemCount: integer('item_count').notNull().default(1),
+  retentionDate: timestamp('retention_date'), // when this data should be deleted
+  lastAccessed: timestamp('last_accessed').defaultNow(),
+  encryptionStatus: varchar('encryption_status', { length: 20 }).default('encrypted'),
+  storageTier: varchar('storage_tier', { length: 20 }).default('active'), // active, archival, deletion_queue
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const dataUsageTrackingSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  dataType: z.enum(['recordings', 'transcripts', 'insights', 'analytics']),
+  category: z.string(),
+  sizeBytes: z.number().min(0).default(0),
+  itemCount: z.number().min(0).default(1),
+  retentionDate: z.date().optional(),
+  lastAccessed: z.date().default(() => new Date()),
+  encryptionStatus: z.enum(['encrypted', 'in_transit', 'processing']).default('encrypted'),
+  storageTier: z.enum(['active', 'archival', 'deletion_queue']).default('active'),
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date()),
+});
+
+export const insertDataUsageTrackingSchema = dataUsageTrackingSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type DataUsageTracking = z.infer<typeof dataUsageTrackingSchema>;
+export type InsertDataUsageTracking = z.infer<typeof insertDataUsageTrackingSchema>;
+
+// Data Deletion Requests Schema - for audit trail and compliance
+export const dataDeletionRequestTable = pgTable('data_deletion_requests', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  requestType: varchar('request_type', { length: 50 }).notNull(), // all, recordings, transcripts, analytics
+  reason: text('reason'), // user-provided reason
+  status: varchar('status', { length: 20 }).notNull().default('pending'), // pending, processing, completed, failed
+  itemsDeleted: integer('items_deleted').default(0),
+  bytesDeleted: integer('bytes_deleted').default(0),
+  completedAt: timestamp('completed_at'),
+  verificationRequired: boolean('verification_required').default(true),
+  verifiedAt: timestamp('verified_at'),
+  auditLog: text('audit_log'), // JSON array of deletion steps
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const dataDeletionRequestSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  requestType: z.enum(['all', 'recordings', 'transcripts', 'analytics']),
+  reason: z.string().optional(),
+  status: z.enum(['pending', 'processing', 'completed', 'failed']).default('pending'),
+  itemsDeleted: z.number().min(0).default(0),
+  bytesDeleted: z.number().min(0).default(0),
+  completedAt: z.date().optional(),
+  verificationRequired: z.boolean().default(true),
+  verifiedAt: z.date().optional(),
+  auditLog: z.array(z.any()).default([]),
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date()),
+});
+
+export const insertDataDeletionRequestSchema = dataDeletionRequestSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type DataDeletionRequest = z.infer<typeof dataDeletionRequestSchema>;
+export type InsertDataDeletionRequest = z.infer<typeof insertDataDeletionRequestSchema>;
+
 // Dinger User Profile Schema - for personalized AI coaching
 export const dingerUserProfileTable = pgTable('dinger_user_profiles', {
   id: varchar('id', { length: 255 }).primaryKey(),

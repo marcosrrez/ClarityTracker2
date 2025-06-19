@@ -51,6 +51,7 @@ import ClientOnboardingFlow from "@/pages/ClientOnboardingFlow";
 import SessionIntelligenceDemo from "@/pages/SessionIntelligenceDemo";
 import SessionIntelligenceNew from "@/pages/SessionIntelligenceNew";
 import EnhancedSessionRecording from "@/pages/EnhancedSessionRecording";
+import PrivacySettings from "@/pages/PrivacySettings";
 
 import NotFound from "@/pages/not-found";
 
@@ -103,6 +104,7 @@ function Router() {
       <Route path="/session-intelligence" component={SessionIntelligenceNew} />
       <Route path="/session-intelligence-new" component={SessionIntelligenceNew} />
       <Route path="/enhanced-session-recording" component={EnhancedSessionRecording} />
+      <Route path="/privacy-settings" component={PrivacySettings} />
       <Route path="/account-setup">
         <AuthGuard requireAccountSetup={false}>
           <AccountSetupPage />
