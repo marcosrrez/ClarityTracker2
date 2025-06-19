@@ -15,12 +15,24 @@ import {
   Sparkles,
   TrendingUp,
   RefreshCw,
-
   ChevronDown,
   ChevronUp,
-  Award,
-  AlertTriangle
+  AlertTriangle,
+  Award
 } from "lucide-react";
+
+// Session Insight Card type for unified MyMind experience
+interface SessionInsightCard {
+  id: string;
+  userId: string;
+  sessionRecordingId?: string;
+  title: string;
+  content: string;
+  cardStyle: 'coaching' | 'growth' | 'supervision' | 'risk' | 'achievement';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  createdAt: string;
+  updatedAt: string;
+}
 
 interface PersonalizedInsights {
   weeklyFocus: string;
