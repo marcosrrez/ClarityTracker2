@@ -177,21 +177,24 @@ export const QuickStatsGrid = () => {
               {/* Progress milestone indicator */}
               <div className="flex items-center space-x-2">
                 <div className="flex space-x-1">
-                  {[20, 40, 60, 80].map((milestone, index) => (
-                    <div 
-                      key={milestone}
-                      className={`w-2 h-2 rounded-full transition-colors duration-500 ${
-                        metrics.totalClientHours >= milestone 
-                          ? 'bg-green-500' 
-                          : 'bg-gray-200 dark:bg-gray-600'
-                      }`}
-                    />
-                  ))}
+                  {[0.25, 0.5, 0.75, 1.0].map((percentage, index) => {
+                    const milestoneHours = milestoneInfo.currentMilestone.target * percentage;
+                    return (
+                      <div 
+                        key={index}
+                        className={`w-2 h-2 rounded-full transition-colors duration-500 ${
+                          metrics.totalClientHours >= milestoneHours
+                            ? 'bg-green-500' 
+                            : 'bg-gray-200 dark:bg-gray-600'
+                        }`}
+                      />
+                    );
+                  })}
                 </div>
                 <span className="text-xs text-gray-500 dark:text-gray-400">
-                  {metrics.totalClientHours >= 60 ? 'Nearly there!' : 
-                   metrics.totalClientHours >= 40 ? 'Halfway mark' :
-                   metrics.totalClientHours >= 20 ? 'Good start' : 'Getting started'}
+                  {milestoneInfo.currentMilestone.progress / milestoneInfo.currentMilestone.target >= 0.75 ? 'Nearly there!' : 
+                   milestoneInfo.currentMilestone.progress / milestoneInfo.currentMilestone.target >= 0.5 ? 'Halfway mark' :
+                   milestoneInfo.currentMilestone.progress / milestoneInfo.currentMilestone.target >= 0.25 ? 'Good start' : 'Getting started'}
                 </span>
               </div>
             </div>
@@ -214,7 +217,7 @@ export const QuickStatsGrid = () => {
                     stroke="#34C759"
                     strokeWidth="2.5"
                     strokeLinecap="round"
-                    strokeDasharray={`${Math.min((metrics.totalClientHours / 80) * 100, 100)}, 100`}
+                    strokeDasharray={`${Math.min((milestoneInfo.currentMilestone.progress / milestoneInfo.currentMilestone.target) * 100, 100)}, 100`}
                     className="transition-all duration-2000 ease-out"
                     style={{
                       filter: 'drop-shadow(0 0 2px rgba(52, 199, 89, 0.3))'
@@ -223,10 +226,10 @@ export const QuickStatsGrid = () => {
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <span className="text-lg font-bold text-green-600 dark:text-green-400">
-                    {Math.round((metrics.totalClientHours / 80) * 100)}%
+                    {Math.round((milestoneInfo.currentMilestone.progress / milestoneInfo.currentMilestone.target) * 100)}%
                   </span>
                   <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                    complete
+                    milestone
                   </span>
                 </div>
               </div>
@@ -319,7 +322,7 @@ export const QuickStatsGrid = () => {
                 <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               </div>
               <span className="text-xs text-blue-600 dark:text-blue-400 font-semibold">
-                {Math.round((metrics.totalClientHours / 80) * 100)}% of 80 req.
+                {Math.round((milestoneInfo.currentMilestone.progress / milestoneInfo.currentMilestone.target) * 100)}% of milestone
               </span>
             </div>
             
@@ -347,11 +350,11 @@ export const QuickStatsGrid = () => {
               <div className="h-full flex">
                 <div 
                   className="bg-blue-500 transition-all duration-1000"
-                  style={{ width: `${(metrics.totalClientHours * 0.7 / 80) * 100}%` }}
+                  style={{ width: `${(metrics.directClientHours / milestoneInfo.currentMilestone.target) * 100}%` }}
                 />
                 <div 
                   className="bg-blue-300 transition-all duration-1000"
-                  style={{ width: `${(metrics.totalClientHours * 0.3 / 80) * 100}%` }}
+                  style={{ width: `${(metrics.indirectClientHours / milestoneInfo.currentMilestone.target) * 100}%` }}
                 />
               </div>
             </div>

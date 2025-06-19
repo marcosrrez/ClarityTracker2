@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLogEntries, useAppSettings } from "./use-firestore";
 import { generateMilestoneMessage } from "@/components/dashboard/MilestoneCelebration";
+import { calculateCurrentMilestone, getCustomMilestoneIntervals } from "@/lib/milestone-calculator";
 
 interface MilestoneData {
   type: 'hours' | 'supervision' | 'goal_completion' | 'streak';
@@ -32,10 +33,14 @@ export const useMilestoneDetection = () => {
     if (!entries || entries.length === 0) return;
 
     const checkMilestones = () => {
-      const milestoneThresholds = [25, 50, 100, 250, 500, 750, 1000, 1250, 1500, 2000];
+      // Use dynamic milestone intervals based on user settings
+      const milestoneThresholds = getCustomMilestoneIntervals(settings);
       const supervisionThresholds = [10, 25, 50, 75, 100, 150, 200];
 
-      // Check for CCH milestones
+      // Get current milestone info
+      const milestoneInfo = calculateCurrentMilestone(totals.totalHours, settings);
+
+      // Check for CCH milestones using licensing phases
       for (const threshold of milestoneThresholds) {
         const key = `milestone_cch_${threshold}`;
         const hasSeenMilestone = localStorage.getItem(key);
@@ -46,19 +51,27 @@ export const useMilestoneDetection = () => {
           const nextThreshold = milestoneThresholds.find(t => t > threshold);
           const goalTotal = settings?.goals?.totalCCH || 2000;
           
+          // Determine if this is a licensing phase milestone
+          const isLicensingPhase = [100, 250, 500, 750, 1000, 1500, 2000].includes(threshold);
+          const phaseTitle = isLicensingPhase ? 
+            `${milestoneInfo.currentMilestone.name} Complete!` : 
+            `${threshold} Clinical Hours Complete!`;
+          
           setCelebrationData({
             type: 'hours',
             value: totals.totalHours,
             total: goalTotal,
-            title: `${threshold} Clinical Hours Complete!`,
-            description: `You've successfully logged ${threshold} client contact hours toward your licensure goal.`,
+            title: phaseTitle,
+            description: isLicensingPhase ? 
+              `You've completed the ${milestoneInfo.currentMilestone.name} - ${milestoneInfo.currentMilestone.description}` :
+              `You've successfully logged ${threshold} client contact hours toward your licensure goal.`,
             nextGoal: nextThreshold ? `Next milestone: ${nextThreshold} hours` : 'Continue building your clinical expertise!',
             cognitiveMessage: generateMilestoneMessage('hours', threshold),
             achievements: [
               `Demonstrated consistency in clinical practice documentation`,
               `Built professional habits that will serve your entire career`,
               `Maintained detailed records for licensure requirements`,
-              threshold >= 100 ? `Proven commitment to professional excellence` : `Established foundation for clinical growth`,
+              isLicensingPhase ? `Completed ${milestoneInfo.currentMilestone.name} phase of licensing journey` : `Established foundation for clinical growth`,
               threshold >= 500 ? `Reached significant progress toward licensure` : `Created momentum for continued success`
             ].filter(Boolean)
           });
