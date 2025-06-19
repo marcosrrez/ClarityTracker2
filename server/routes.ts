@@ -2377,31 +2377,33 @@ Please provide a helpful, professional response that's personalized to their sit
   });
 
   // Clinical Metrics API for dashboard intelligence
-  app.get('/api/ai/clinical-metrics', async (req, res) => {
+  app.get('/api/ai/clinical-metrics/:userId', async (req, res) => {
     try {
-      // For demo purposes, provide realistic clinical intelligence metrics
-      // These would normally be calculated from actual session analyses
-      const clinicalMetrics = {
-        overallScore: 82,
-        trend: "improving",
-        breakdown: {
-          therapeuticTechniques: 85,
-          clinicalInsight: 78,
-          documentationQuality: 88,
-          evidenceBasedPractice: 79
-        },
-        sessionCount: 12,
-        lastUpdated: new Date().toISOString()
-      };
+      const { userId } = req.params;
+      
+      // Get recent session analyses for authentic clinical metrics
+      const sessionAnalyses = await db.select()
+        .from(sessionAnalysisTable)
+        .where(eq(sessionAnalysisTable.userId, userId))
+        .orderBy(desc(sessionAnalysisTable.createdAt))
+        .limit(20);
 
-      res.json(clinicalMetrics);
-    } catch (error) {
-      console.error('Error calculating clinical metrics:', error);
-      res.status(500).json({ error: 'Failed to calculate clinical metrics' });
-    }
-  });
+      if (!sessionAnalyses.length) {
+        return res.json({
+          overallScore: 0,
+          trend: "neutral",
+          breakdown: {
+            therapeuticTechniques: 0,
+            clinicalInsight: 0,
+            documentationQuality: 0,
+            evidenceBasedPractice: 0
+          },
+          sessionCount: 0,
+          lastUpdated: new Date().toISOString()
+        });
+      }
 
-      // Calculate Clinical Intelligence Score from real session data
+      // Calculate Clinical Intelligence Score from authentic session data
       let totalScore = 0;
       let scoreCount = 0;
       const breakdown = {
@@ -2411,17 +2413,17 @@ Please provide a helpful, professional response that's personalized to their sit
         evidenceBasedPractice: 0
       };
 
-      recentAnalyses.forEach(analysis => {
+      sessionAnalyses.forEach(analysis => {
         if (analysis.clinicalInsights && typeof analysis.clinicalInsights === 'object') {
           const insights = analysis.clinicalInsights as any;
           
-          // Score therapeutic techniques from real analysis
+          // Score therapeutic techniques from authentic analysis
           if (insights.therapeuticTechniques?.length > 0) {
             breakdown.therapeuticTechniques += Math.min(100, insights.therapeuticTechniques.length * 20);
             scoreCount++;
           }
           
-          // Score clinical insight quality from patterns detected
+          // Score clinical insight quality from detected patterns
           if (insights.clinicalPatterns?.length > 0) {
             breakdown.clinicalInsight += Math.min(100, insights.clinicalPatterns.length * 25);
             scoreCount++;
@@ -2444,19 +2446,19 @@ Please provide a helpful, professional response that's personalized to their sit
         }
       });
 
-      // Calculate averages from actual session data
+      // Calculate averages from authentic session data
       if (scoreCount > 0) {
         Object.keys(breakdown).forEach(key => {
-          breakdown[key] = Math.round(breakdown[key] / recentAnalyses.length);
-          totalScore += breakdown[key];
+          breakdown[key as keyof typeof breakdown] = Math.round(breakdown[key as keyof typeof breakdown] / sessionAnalyses.length);
+          totalScore += breakdown[key as keyof typeof breakdown];
         });
         totalScore = Math.round(totalScore / Object.keys(breakdown).length);
       }
 
-      // Determine trend from progression analysis
+      // Determine trend from authentic progression analysis
       let trend = "neutral";
-      if (recentAnalyses.length >= 5) {
-        const recentScores = recentAnalyses.slice(0, 5).map(a => {
+      if (sessionAnalyses.length >= 5) {
+        const recentScores = sessionAnalyses.slice(0, 5).map(a => {
           const insights = a.clinicalInsights as any;
           return (insights?.therapeuticTechniques?.length || 0) + 
                  (insights?.clinicalPatterns?.length || 0) + 
@@ -2474,9 +2476,33 @@ Please provide a helpful, professional response that's personalized to their sit
         overallScore: totalScore,
         trend,
         breakdown,
-        sessionCount: recentAnalyses.length,
+        sessionCount: sessionAnalyses.length,
         lastUpdated: new Date().toISOString()
       });
+    } catch (error) {
+      console.error('Error calculating clinical metrics:', error);
+      res.status(500).json({ error: 'Failed to calculate clinical metrics' });
+    }
+  });
+
+  // Clinical Intelligence Score API - Demo Version for Investor Presentation  
+  app.get('/api/ai/clinical-metrics', async (req, res) => {
+    try {
+      // Provide realistic clinical intelligence metrics for demo
+      const clinicalMetrics = {
+        overallScore: 82,
+        trend: "improving",
+        breakdown: {
+          therapeuticTechniques: 85,
+          clinicalInsight: 78,
+          documentationQuality: 88,
+          evidenceBasedPractice: 79
+        },
+        sessionCount: 12,
+        lastUpdated: new Date().toISOString()
+      };
+
+      res.json(clinicalMetrics);
     } catch (error) {
       console.error('Error calculating clinical metrics:', error);
       res.status(500).json({ error: 'Failed to calculate clinical metrics' });
