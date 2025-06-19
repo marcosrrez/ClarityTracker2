@@ -10,6 +10,8 @@ interface SearchResult {
   source: string;
   domain: string;
   relevanceScore?: number;
+  authors?: string[];
+  publishDate?: string;
 }
 
 interface ScrapedContent {
@@ -115,19 +117,30 @@ Return only a number between 0-100.`;
     const results: SearchResult[] = [];
     
     try {
-      // Search PubMed first for medical/psychological research
-      const pubmedResults = await this.searchPubMed(query, Math.ceil(limit * 1.5));
-      results.push(...pubmedResults);
+      // Search all sources in parallel for better performance
+      const [pubmedResults, scholarResults, searxResults] = await Promise.allSettled([
+        this.searchPubMed(query, Math.ceil(limit * 0.6)), // PubMed gets priority (60%)
+        this.searchGoogleScholar(query, Math.ceil(limit * 0.3)), // Google Scholar (30%)
+        this.searchSearXNG(query, Math.ceil(limit * 0.2)) // SearXNG for broader coverage (20%)
+      ]);
 
-      // If we need more results, search Google Scholar
-      if (results.length < limit * 1.5) {
-        const scholarResults = await this.searchGoogleScholar(query, limit - results.length);
-        results.push(...scholarResults);
+      // Collect results from all successful searches
+      if (pubmedResults.status === 'fulfilled') {
+        results.push(...pubmedResults.value);
       }
+      if (scholarResults.status === 'fulfilled') {
+        results.push(...scholarResults.value);
+      }
+      if (searxResults.status === 'fulfilled') {
+        results.push(...searxResults.value);
+      }
+
+      // Remove duplicates based on title similarity
+      const uniqueResults = this.removeDuplicates(results);
 
       // Calculate relevance scores for all results
       const scoredResults = await Promise.all(
-        results.map(async (result) => {
+        uniqueResults.map(async (result) => {
           const relevanceScore = await this.calculateRelevanceScore(query, result.title, result.snippet);
           return { ...result, relevanceScore };
         })
@@ -144,6 +157,70 @@ Return only a number between 0-100.`;
       console.error('Research search error:', error);
       throw new Error('Failed to search research content');
     }
+  }
+
+  /**
+   * Remove duplicate results based on title similarity
+   */
+  private removeDuplicates(results: SearchResult[]): SearchResult[] {
+    const uniqueResults: SearchResult[] = [];
+    const seenTitles = new Set<string>();
+
+    for (const result of results) {
+      const normalizedTitle = result.title.toLowerCase().replace(/[^\w\s]/g, '').trim();
+      
+      // Check if we've seen a very similar title
+      let isDuplicate = false;
+      for (const seenTitle of seenTitles) {
+        if (this.calculateSimilarity(normalizedTitle, seenTitle) > 0.8) {
+          isDuplicate = true;
+          break;
+        }
+      }
+
+      if (!isDuplicate) {
+        seenTitles.add(normalizedTitle);
+        uniqueResults.push(result);
+      }
+    }
+
+    return uniqueResults;
+  }
+
+  /**
+   * Calculate string similarity for duplicate detection
+   */
+  private calculateSimilarity(str1: string, str2: string): number {
+    const longer = str1.length > str2.length ? str1 : str2;
+    const shorter = str1.length > str2.length ? str2 : str1;
+    
+    if (longer.length === 0) return 1.0;
+    
+    const editDistance = this.levenshteinDistance(longer, shorter);
+    return (longer.length - editDistance) / longer.length;
+  }
+
+  /**
+   * Calculate Levenshtein distance between two strings
+   */
+  private levenshteinDistance(str1: string, str2: string): number {
+    const matrix = Array(str2.length + 1).fill(null).map(() => Array(str1.length + 1).fill(null));
+
+    for (let i = 0; i <= str1.length; i++) matrix[0][i] = i;
+    for (let j = 0; j <= str2.length; j++) matrix[j][0] = j;
+
+    for (let j = 1; j <= str2.length; j++) {
+      for (let i = 1; i <= str1.length; i++) {
+        const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
+        matrix[j][i] = Math.min(
+          matrix[j][i - 1] + 1, // deletion
+          matrix[j - 1][i] + 1, // insertion
+          matrix[j - 1][i - 1] + indicator // substitution
+        );
+      }
+    }
+
+    return matrix[str2.length][str1.length];
   }
 
   /**
@@ -232,12 +309,131 @@ Return only a number between 0-100.`;
   }
 
   /**
-   * Search Google Scholar (simplified approach)
+   * Search Google Scholar using SerpAPI or direct scraping
    */
   private async searchGoogleScholar(query: string, limit: number): Promise<SearchResult[]> {
-    // Note: This is a simplified implementation
-    // In production, consider using official Google Custom Search API
-    return [];
+    try {
+      // Use Google Scholar search with academic focus
+      const scholarQuery = `${query} therapy counseling psychology mental health`;
+      const encodedQuery = encodeURIComponent(scholarQuery);
+      
+      // Direct Google Scholar search (simplified approach for demo)
+      const searchUrl = `https://scholar.google.com/scholar?q=${encodedQuery}&hl=en&num=${limit}`;
+      
+      const response = await fetch(searchUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+      });
+      
+      if (!response.ok) {
+        console.log('Google Scholar search failed, skipping');
+        return [];
+      }
+      
+      const html = await response.text();
+      const results: SearchResult[] = [];
+      
+      // Parse Google Scholar results using regex (basic approach)
+      const resultPattern = /<div class="gs_ri">[\s\S]*?<\/div>/g;
+      const matches = html.match(resultPattern) || [];
+      
+      for (let i = 0; i < Math.min(matches.length, limit); i++) {
+        const match = matches[i];
+        
+        // Extract title
+        const titleMatch = match.match(/<h3[^>]*><a[^>]*href="([^"]*)"[^>]*>(.*?)<\/a><\/h3>/);
+        if (!titleMatch) continue;
+        
+        const url = titleMatch[1];
+        const title = titleMatch[2].replace(/<[^>]*>/g, '').trim();
+        
+        // Extract snippet
+        const snippetMatch = match.match(/<span class="gs_rs">(.*?)<\/span>/);
+        const snippet = snippetMatch ? snippetMatch[1].replace(/<[^>]*>/g, '').trim() : title;
+        
+        // Extract source info
+        const sourceMatch = match.match(/<div class="gs_a">(.*?)<\/div>/);
+        const sourceInfo = sourceMatch ? sourceMatch[1].replace(/<[^>]*>/g, '').trim() : 'Google Scholar';
+        
+        if (title && snippet && title.length > 20) {
+          results.push({
+            title: title,
+            url: url.startsWith('http') ? url : `https://scholar.google.com${url}`,
+            snippet: snippet,
+            source: sourceInfo.split(' - ')[0] || 'Google Scholar',
+            domain: new URL(url.startsWith('http') ? url : 'https://scholar.google.com').hostname
+          });
+        }
+      }
+      
+      return results;
+    } catch (error) {
+      console.error('Google Scholar search error:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Search SearXNG for broader academic coverage
+   */
+  private async searchSearXNG(query: string, limit: number): Promise<SearchResult[]> {
+    try {
+      // Use public SearXNG instance with academic focus
+      const searxUrl = 'https://search.bus-hit.me/search';
+      const params = new URLSearchParams({
+        q: `${query} site:pubmed.ncbi.nlm.nih.gov OR site:psycnet.apa.org OR site:researchgate.net OR site:arxiv.org`,
+        format: 'json',
+        categories: 'science',
+        engines: 'google,bing,duckduckgo'
+      });
+      
+      const response = await fetch(`${searxUrl}?${params.toString()}`, {
+        headers: {
+          'User-Agent': 'ClarityLog Research Bot 1.0',
+          'Accept': 'application/json'
+        },
+        timeout: 10000
+      });
+      
+      if (!response.ok) {
+        console.log('SearXNG search failed, skipping');
+        return [];
+      }
+      
+      const data = await response.json() as any;
+      const results: SearchResult[] = [];
+      
+      if (data.results && Array.isArray(data.results)) {
+        for (const result of data.results.slice(0, limit)) {
+          if (result.title && result.url && result.content) {
+            // Filter for academic sources
+            const domain = new URL(result.url).hostname;
+            const isAcademic = this.trustedDomains.some(trusted => 
+              domain.includes(trusted) || trusted.includes(domain)
+            );
+            
+            if (isAcademic || result.title.toLowerCase().includes('therapy') || 
+                result.title.toLowerCase().includes('psychology') ||
+                result.title.toLowerCase().includes('counseling')) {
+              
+              results.push({
+                title: result.title,
+                url: result.url,
+                snippet: result.content,
+                source: domain,
+                domain: domain
+              });
+            }
+          }
+        }
+      }
+      
+      return results;
+    } catch (error) {
+      console.error('SearXNG search error:', error);
+      return [];
+    }
   }
 
   /**
