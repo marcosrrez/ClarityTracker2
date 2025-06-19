@@ -4683,17 +4683,20 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
       const savedData = insertSavedResearchSchema.parse(req.body);
       const savedId = `saved_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
-      // Generate comprehensive analysis using original proven ResearchService
+      // Generate comprehensive analysis using abstract content from search results
       let comprehensiveSummary = savedData.snippet || '';
       
-      if (savedData.url) {
+      if (savedData.snippet && savedData.snippet.length > 100) {
         try {
           console.log('Generating comprehensive analysis for:', savedData.title);
-          // Extract content and generate comprehensive analysis using original service
-          const content = await researchService.extractContentFromUrl(savedData.url);
-          if (content && content.content && content.content.length > 200) {
-            comprehensiveSummary = await researchService.generateComprehensiveSummary(content);
-          }
+          // Use the abstract/snippet directly for comprehensive analysis
+          const contentData = {
+            title: savedData.title,
+            content: savedData.snippet,
+            wordCount: savedData.snippet.split(' ').length,
+            source: savedData.source || 'PubMed'
+          };
+          comprehensiveSummary = await researchService.generateComprehensiveSummary(contentData);
           console.log('Generated comprehensive analysis, length:', comprehensiveSummary.length);
         } catch (summaryError) {
           console.log('Could not generate comprehensive analysis, using snippet:', summaryError);

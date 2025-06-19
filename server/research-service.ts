@@ -151,6 +151,7 @@ Return only a number between 0-100.`;
    */
   private async searchPubMed(query: string, limit: number): Promise<SearchResult[]> {
     try {
+      // Step 1: Search for article IDs
       const searchUrl = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=${encodeURIComponent(query)}&retmax=${limit}&retmode=json`;
       
       const response = await fetch(searchUrl);
@@ -160,23 +161,65 @@ Return only a number between 0-100.`;
         return [];
       }
 
+      // Step 2: Get detailed abstracts and metadata
       const ids = data.esearchresult.idlist.join(',');
-      const summaryUrl = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id=${ids}&retmode=json`;
+      const fetchUrl = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id=${ids}&retmode=xml`;
       
-      const summaryResponse = await fetch(summaryUrl);
-      const summaryData = await summaryResponse.json() as any;
+      const fetchResponse = await fetch(fetchUrl);
+      const xmlText = await fetchResponse.text();
       
+      // Parse XML to extract article details
       const results: SearchResult[] = [];
+      const articleMatches = xmlText.match(/<PubmedArticle>[\s\S]*?<\/PubmedArticle>/g) || [];
       
-      for (const id of data.esearchresult.idlist) {
-        const article = summaryData.result[id];
-        if (article) {
+      for (let i = 0; i < articleMatches.length && i < limit; i++) {
+        const articleXml = articleMatches[i];
+        const pmid = data.esearchresult.idlist[i];
+        
+        // Extract title
+        const titleMatch = articleXml.match(/<ArticleTitle>([\s\S]*?)<\/ArticleTitle>/);
+        const title = titleMatch ? titleMatch[1].replace(/<[^>]*>/g, '').trim() : 'Untitled';
+        
+        // Extract abstract
+        const abstractMatch = articleXml.match(/<Abstract>([\s\S]*?)<\/Abstract>/);
+        let abstract = '';
+        if (abstractMatch) {
+          const abstractText = abstractMatch[1];
+          // Extract text from AbstractText elements
+          const abstractTextMatches = abstractText.match(/<AbstractText[^>]*>([\s\S]*?)<\/AbstractText>/g) || [];
+          abstract = abstractTextMatches
+            .map(match => match.replace(/<[^>]*>/g, '').trim())
+            .join(' ')
+            .trim();
+        }
+        
+        // Extract authors
+        const authorMatches = articleXml.match(/<Author[^>]*>[\s\S]*?<\/Author>/g) || [];
+        const authors = authorMatches.slice(0, 3).map(authorXml => {
+          const lastNameMatch = authorXml.match(/<LastName>(.*?)<\/LastName>/);
+          const firstNameMatch = authorXml.match(/<(?:ForeName|FirstName)>(.*?)<\/(?:ForeName|FirstName)>/);
+          const lastName = lastNameMatch ? lastNameMatch[1] : '';
+          const firstName = firstNameMatch ? firstNameMatch[1] : '';
+          return firstName && lastName ? `${lastName}, ${firstName.charAt(0)}.` : lastName || firstName;
+        }).filter(Boolean);
+        
+        // Extract journal
+        const journalMatch = articleXml.match(/<Title>(.*?)<\/Title>/);
+        const journal = journalMatch ? journalMatch[1] : 'PubMed';
+        
+        // Extract publication date
+        const dateMatch = articleXml.match(/<PubDate>[\s\S]*?<Year>(\d{4})<\/Year>/);
+        const year = dateMatch ? dateMatch[1] : '';
+        
+        if (title && (abstract || title.length > 20)) {
           results.push({
-            title: article.title || 'Untitled',
-            url: `https://pubmed.ncbi.nlm.nih.gov/${id}/`,
-            snippet: article.title || '',
-            source: 'PubMed',
-            domain: 'pubmed.ncbi.nlm.nih.gov'
+            title: title,
+            url: `https://pubmed.ncbi.nlm.nih.gov/${pmid}/`,
+            snippet: abstract || title,
+            source: journal,
+            domain: 'pubmed.ncbi.nlm.nih.gov',
+            authors: authors,
+            publishDate: year
           });
         }
       }
