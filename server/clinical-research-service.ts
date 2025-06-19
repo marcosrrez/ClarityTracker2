@@ -192,6 +192,86 @@ Focus on actionable insights for mental health practitioners.`;
   }
 
   /**
+   * Generate comprehensive clinical analysis for saved research
+   */
+  async generateComprehensiveClinicalAnalysis(
+    title: string,
+    snippet: string,
+    authors?: string[],
+    source?: string
+  ): Promise<string> {
+    if (!this.genAI) {
+      return snippet;
+    }
+
+    try {
+      const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+      
+      const prompt = `As a clinical research expert, provide a comprehensive analysis of this research paper for mental health practitioners. Generate a detailed, structured analysis with the following sections:
+
+**Research Paper:**
+Title: ${title}
+Authors: ${authors?.join(', ') || 'Not specified'}
+Source: ${source || 'Academic Journal'}
+Abstract/Summary: ${snippet}
+
+Please provide a comprehensive clinical analysis with these specific sections:
+
+## Executive Summary
+Brief overview of the study's purpose, methodology, and key findings with clinical relevance.
+
+## Research Methodology & Design
+Description of study design, participants, measures used, and methodology quality assessment.
+
+## Key Findings & Results
+Primary outcomes, statistical significance, effect sizes, and clinical significance of results.
+
+## Clinical Applications
+- **Assessment considerations:** How findings inform client assessment and evaluation
+- **Intervention strategies:** Specific treatment approaches and implementation protocols
+- **Client population considerations:** Who benefits most from these interventions
+- **Treatment planning:** How to integrate findings into treatment plans
+
+## Theoretical Implications
+How findings contribute to theoretical understanding and clinical models in mental health practice.
+
+## Professional Development Insights
+- **Supervision topics:** Key areas for clinical supervision discussions
+- **Training recommendations:** Skills development priorities for practitioners
+- **Cultural competency factors:** Diversity and inclusion considerations
+
+## Limitations & Future Research
+Study limitations, generalizability concerns, and areas needing further investigation.
+
+## Practice Recommendations
+Concrete, actionable recommendations for mental health practitioners including:
+- Implementation protocols
+- Training requirements
+- Assessment tools
+- Session structure modifications
+
+Format as structured markdown with clear headers and bullet points for clinical application.`;
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      let analysisText = response.text()?.trim();
+
+      if (!analysisText) {
+        return snippet;
+      }
+
+      // Clean up any markdown formatting issues
+      analysisText = analysisText.replace(/```markdown\n?/g, '').replace(/```\n?/g, '');
+      
+      return analysisText;
+      
+    } catch (error) {
+      console.error('Error generating comprehensive clinical analysis:', error);
+      return snippet;
+    }
+  }
+
+  /**
    * Helper methods
    */
   private addClinicalTerms(query: string): string {
