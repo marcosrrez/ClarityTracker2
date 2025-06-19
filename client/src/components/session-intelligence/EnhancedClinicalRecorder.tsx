@@ -92,9 +92,80 @@ const EnhancedClinicalRecorder: React.FC = () => {
   const [emotionalStates, setEmotionalStates] = useState<{therapist: string, client: string}>({ therapist: 'calm', client: 'anxious' });
   const [engagementMetrics, setEngagementMetrics] = useState({ eyeContact: 75, bodyLanguage: 82, vocalTone: 78 });
 
+  // Session hour logging state
+  const [showHourLogging, setShowHourLogging] = useState(false);
+  const [sessionComplete, setSessionComplete] = useState(false);
+  const [hourLogData, setHourLogData] = useState({
+    sessionType: 'direct' as 'direct' | 'group' | 'supervision',
+    duration: 0,
+    clientInitials: '',
+    sessionDate: new Date().toISOString().split('T')[0],
+    notes: ''
+  });
+  const [isLoggingHours, setIsLoggingHours] = useState(false);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
+
+  // Handle recording completion and show hour logging
+  const handleRecordingComplete = () => {
+    setIsRecording(false);
+    setSessionComplete(true);
+    setShowHourLogging(true);
+    
+    // Auto-populate duration from recording time
+    const durationInMinutes = Math.round(sessionDuration / 60);
+    const roundedDuration = Math.round(durationInMinutes / 15) * 15; // Round to 15min intervals
+    
+    setHourLogData(prev => ({
+      ...prev,
+      duration: Math.max(15, roundedDuration) // Minimum 15 minutes
+    }));
+  };
+
+  // Handle session hour logging
+  const handleLogSessionHours = async () => {
+    setIsLoggingHours(true);
+    
+    try {
+      const response = await fetch('/api/log-entries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: hourLogData.sessionType,
+          date: hourLogData.sessionDate,
+          duration: hourLogData.duration,
+          clientInitials: hourLogData.clientInitials,
+          notes: hourLogData.notes,
+          recordingId: `session_${Date.now()}`, // Link to recording
+          source: 'clinical_recorder'
+        })
+      });
+
+      if (response.ok) {
+        // Success feedback and close panel
+        setShowHourLogging(false);
+        
+        // Show success message
+        const successMessage = `Recording saved and ${hourLogData.duration / 60} hours logged toward licensure`;
+        console.log(successMessage); // You can replace with toast notification
+        
+        // Reset form
+        setHourLogData({
+          sessionType: 'direct',
+          duration: 0,
+          clientInitials: '',
+          sessionDate: new Date().toISOString().split('T')[0],
+          notes: ''
+        });
+      }
+    } catch (error) {
+      console.error('Failed to log session hours:', error);
+    } finally {
+      setIsLoggingHours(false);
+    }
+  };
 
   // File upload and session description states
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -473,6 +544,9 @@ const EnhancedClinicalRecorder: React.FC = () => {
 
     // Generate final progress note
     await generateProgressNote();
+    
+    // Trigger session completion and hour logging
+    handleRecordingComplete();
   };
 
   return (
@@ -1002,6 +1076,162 @@ const EnhancedClinicalRecorder: React.FC = () => {
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* Session Hour Logging Panel */}
+      <AnimatePresence>
+        {showHourLogging && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-blue-900 dark:text-blue-100">
+                  <Clock className="h-5 w-5" />
+                  Log Session Hours
+                </CardTitle>
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  Record this session toward your licensure requirements
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Session Type */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                      Session Type
+                    </label>
+                    <Select 
+                      value={hourLogData.sessionType} 
+                      onValueChange={(value: 'direct' | 'group' | 'supervision') => 
+                        setHourLogData(prev => ({ ...prev, sessionType: value }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="direct">Direct Client Contact</SelectItem>
+                        <SelectItem value="group">Group Session</SelectItem>
+                        <SelectItem value="supervision">Supervision Session</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-blue-600 dark:text-blue-400">
+                      {hourLogData.sessionType === 'direct' && 'Counts toward direct client contact hours'}
+                      {hourLogData.sessionType === 'group' && 'Group therapy session'}
+                      {hourLogData.sessionType === 'supervision' && 'Clinical supervision hour'}
+                    </p>
+                  </div>
+
+                  {/* Duration */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                      Duration (minutes)
+                    </label>
+                    <Select 
+                      value={hourLogData.duration.toString()} 
+                      onValueChange={(value) => 
+                        setHourLogData(prev => ({ ...prev, duration: parseInt(value) }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="15">15 minutes</SelectItem>
+                        <SelectItem value="30">30 minutes</SelectItem>
+                        <SelectItem value="45">45 minutes</SelectItem>
+                        <SelectItem value="60">1 hour</SelectItem>
+                        <SelectItem value="75">1 hour 15 minutes</SelectItem>
+                        <SelectItem value="90">1 hour 30 minutes</SelectItem>
+                        <SelectItem value="120">2 hours</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-blue-600 dark:text-blue-400">
+                      Auto-populated from recording: {Math.round(sessionDuration / 60)} min
+                    </p>
+                  </div>
+
+                  {/* Date */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                      Session Date
+                    </label>
+                    <input
+                      type="date"
+                      value={hourLogData.sessionDate}
+                      onChange={(e) => setHourLogData(prev => ({ ...prev, sessionDate: e.target.value }))}
+                      className="w-full px-3 py-2 border border-blue-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Client Initials (optional) */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                    Client Initials (optional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g., J.D."
+                    value={hourLogData.clientInitials}
+                    onChange={(e) => setHourLogData(prev => ({ ...prev, clientInitials: e.target.value }))}
+                    className="w-full px-3 py-2 border border-blue-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                {/* Notes */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                    Session Notes (optional)
+                  </label>
+                  <Textarea
+                    placeholder="Brief session summary or notes..."
+                    value={hourLogData.notes}
+                    onChange={(e) => setHourLogData(prev => ({ ...prev, notes: e.target.value }))}
+                    className="min-h-[80px] border-blue-200 focus:border-blue-500"
+                  />
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center justify-between pt-4 border-t border-blue-200 dark:border-blue-800">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowHourLogging(false)}
+                    className="text-blue-700 border-blue-300 hover:bg-blue-100"
+                  >
+                    Save Recording Only
+                  </Button>
+                  <Button
+                    onClick={handleLogSessionHours}
+                    disabled={isLoggingHours}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    {isLoggingHours ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                        Logging Hours...
+                      </>
+                    ) : (
+                      <>
+                        Save & Log {hourLogData.duration / 60} Hours
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-xs text-blue-600 dark:text-blue-400">
+                    This session will be linked to your recording and count toward licensure requirements
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
