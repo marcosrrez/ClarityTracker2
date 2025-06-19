@@ -144,7 +144,41 @@ export const QuickStatsGrid = () => {
                   / {milestoneInfo.currentMilestone.target} hours
                 </span>
               </div>
-              <div>
+              <div className="hidden sm:block">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="cursor-help">
+                        <p className="text-gray-600 dark:text-gray-400 text-sm font-medium mb-1 flex items-center gap-1">
+                          {milestoneInfo.currentMilestone.name}
+                          <Info className="h-3 w-3 text-gray-400" />
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-500 mb-2">
+                          {milestoneInfo.currentMilestone.description}
+                        </p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">
+                          Phase {milestoneInfo.phaseInfo.current} • Overall: {milestoneInfo.totalProgress.percentage.toFixed(1)}%
+                        </p>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <div className="space-y-2">
+                        <p className="font-medium">Total Goal Progress</p>
+                        <p className="text-sm">
+                          {metrics.totalClientHours.toFixed(1)} / {milestoneInfo.totalProgress.remaining + metrics.totalClientHours} hours
+                        </p>
+                        <p className="text-sm">
+                          Overall Progress: {milestoneInfo.totalProgress.percentage.toFixed(1)}%
+                        </p>
+                        <p className="text-sm">
+                          Current Phase: {milestoneInfo.phaseInfo.current} of {milestoneInfo.phaseInfo.total}
+                        </p>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <div className="block sm:hidden">
                 <p className="text-gray-600 dark:text-gray-400 text-sm font-medium mb-1">
                   {milestoneInfo.currentMilestone.name}
                 </p>

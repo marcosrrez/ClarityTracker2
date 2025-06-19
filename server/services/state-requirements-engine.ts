@@ -129,6 +129,30 @@ export class StateRequirementsEngine {
         ],
         lastUpdated: new Date(),
       }
+    },
+    'Arkansas': {
+      'LPC': {
+        id: 'ar-lpc',
+        state: 'Arkansas',
+        licenseType: 'LPC',
+        totalCCH: 3000,
+        directCCH: 1900,
+        supervisionHours: 150,
+        ethicsHours: 6,
+        groupSupervisionRatio: 2,
+        maxGroupParticipants: 6,
+        renewalCEHours: 40,
+        renewalPeriodMonths: 24,
+        specialRequirements: [
+          'Must complete 3000 supervised hours total',
+          '1900 hours must be direct client contact',
+          'Supervision by Board-approved supervisor required',
+          'Minimum 2-year timeframe for completion',
+          'At least 100 hours individual supervision',
+          'Ethics training includes Arkansas state laws'
+        ],
+        lastUpdated: new Date(),
+      }
     }
   };
 

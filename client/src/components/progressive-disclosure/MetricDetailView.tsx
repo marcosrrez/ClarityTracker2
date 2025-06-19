@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useUser } from '@/lib/firebase';
-import { useLogEntries } from '@/hooks/use-firestore';
+import { useLogEntries, useAppSettings } from '@/hooks/use-firestore';
+import { StateRequirementsCard } from '../dashboard/StateRequirementsCard';
 
 interface MetricDetailProps {
   category: string;
@@ -30,6 +31,7 @@ interface MetricData {
 export function MetricDetailView({ category, onBack, onDrillDown }: MetricDetailProps) {
   const { user } = useUser();
   const { entries: userEntries, loading: entriesLoading } = useLogEntries();
+  const { settings } = useAppSettings();
   const [data, setData] = useState<MetricData | null>(null);
 
   useEffect(() => {
