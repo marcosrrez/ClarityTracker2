@@ -131,7 +131,7 @@ export const QuickStatsGrid = () => {
                   {Math.round(metrics.totalClientHours * 10) / 10}
                 </h2>
                 <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">
-                  / 100 hours
+                  / 80 hours
                 </span>
               </div>
               <p className="text-gray-600 dark:text-gray-400 text-sm font-medium mb-2">
@@ -141,7 +141,7 @@ export const QuickStatsGrid = () => {
               {/* Progress milestone indicator */}
               <div className="flex items-center space-x-2">
                 <div className="flex space-x-1">
-                  {[25, 50, 75, 100].map((milestone, index) => (
+                  {[20, 40, 60, 80].map((milestone, index) => (
                     <div 
                       key={milestone}
                       className={`w-2 h-2 rounded-full transition-colors duration-500 ${
@@ -153,9 +153,9 @@ export const QuickStatsGrid = () => {
                   ))}
                 </div>
                 <span className="text-xs text-gray-500 dark:text-gray-400">
-                  {metrics.totalClientHours >= 75 ? 'Nearly there!' : 
-                   metrics.totalClientHours >= 50 ? 'Halfway mark' :
-                   metrics.totalClientHours >= 25 ? 'Good start' : 'Getting started'}
+                  {metrics.totalClientHours >= 60 ? 'Nearly there!' : 
+                   metrics.totalClientHours >= 40 ? 'Halfway mark' :
+                   metrics.totalClientHours >= 20 ? 'Good start' : 'Getting started'}
                 </span>
               </div>
             </div>
@@ -178,7 +178,7 @@ export const QuickStatsGrid = () => {
                     stroke="#34C759"
                     strokeWidth="2.5"
                     strokeLinecap="round"
-                    strokeDasharray={`${Math.min((metrics.totalClientHours / 100) * 100, 100)}, 100`}
+                    strokeDasharray={`${Math.min((metrics.totalClientHours / 80) * 100, 100)}, 100`}
                     className="transition-all duration-2000 ease-out"
                     style={{
                       filter: 'drop-shadow(0 0 2px rgba(52, 199, 89, 0.3))'
@@ -187,7 +187,7 @@ export const QuickStatsGrid = () => {
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <span className="text-lg font-bold text-green-600 dark:text-green-400">
-                    {Math.round((metrics.totalClientHours / 100) * 100)}%
+                    {Math.round((metrics.totalClientHours / 80) * 100)}%
                   </span>
                   <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
                     complete
@@ -218,10 +218,10 @@ export const QuickStatsGrid = () => {
             )}
             
             {/* Time to completion estimate */}
-            {metrics.totalClientHours > 0 && metrics.totalClientHours < 100 && (
+            {metrics.totalClientHours > 0 && metrics.totalClientHours < 80 && (
               <div className="text-right">
                 <div className="text-xs text-gray-500 dark:text-gray-400">
-                  {Math.ceil((100 - metrics.totalClientHours) / (metrics.thisWeekClientHours || 1))} weeks to goal
+                  {Math.ceil((80 - metrics.totalClientHours) / (metrics.thisWeekClientHours || 1))} weeks to goal
                 </div>
               </div>
             )}
