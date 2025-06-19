@@ -100,10 +100,43 @@ export const CompetencyTracker = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
+  // Fetch enhanced competency data from Clinical Intelligence Platform
+  const { data: enhancedData, isLoading: enhancedLoading } = useQuery({
+    queryKey: ['/api/ai/enhanced-competency-data', user?.uid],
+    enabled: !!user?.uid,
+    refetchInterval: 60000, // Real-time updates from session analyses
+  });
+
   const analyzeCompetencies = () => {
     setIsAnalyzing(true);
     
-    // Enhanced Intelligence Hub competency analysis
+    // Use enhanced data from Clinical Intelligence Platform if available
+    if (enhancedData && !enhancedLoading) {
+      const enhancedCompetencies = COUNSELING_COMPETENCIES.map(comp => {
+        const enhancedCompData = enhancedData[comp.id as keyof typeof enhancedData];
+        if (enhancedCompData) {
+          // Calculate progress from real session analysis scores
+          const scores = enhancedCompData.scores || [];
+          const avgScore = scores.length > 0 
+            ? scores.reduce((sum: number, s: any) => sum + s.score, 0) / scores.length 
+            : 0;
+          
+          return {
+            ...comp,
+            progress: Math.round(avgScore),
+            evidenceCount: enhancedCompData.evidence?.length || 0,
+            trend: enhancedCompData.trend || 'neutral'
+          };
+        }
+        return comp;
+      });
+      
+      setCompetencies(enhancedCompetencies);
+      setIsAnalyzing(false);
+      return;
+    }
+    
+    // Fallback to traditional analysis if no enhanced data
     const totalSessions = logEntries.length;
     const canProvideAdvancedAnalysis = totalSessions >= 25;
     const canMapCompetencyProgression = totalSessions >= 15;

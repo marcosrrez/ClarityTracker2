@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLogEntries } from "@/hooks/use-firestore";
 import { useAuth } from "@/hooks/use-auth";
+import { useQuery } from "@tanstack/react-query";
 import { generatePersonalizedDashboardInsights } from "@/lib/ai";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -39,11 +40,27 @@ export const PersonalizedAICoaching = () => {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
 
+  // Fetch enhanced coaching insights from Clinical Intelligence Platform
+  const { data: enhancedInsights, isLoading: enhancedLoading } = useQuery({
+    queryKey: ['/api/ai/enhanced-coaching-insights', user?.uid],
+    enabled: !!user?.uid,
+    refetchInterval: 60000, // Real-time updates from session analyses
+  });
+
   const generateInsights = async () => {
     if (!logEntries.length || !user) return;
     
     setIsLoading(true);
     try {
+      // Use enhanced insights from Clinical Intelligence Platform if available
+      if (enhancedInsights && !enhancedLoading) {
+        setInsights(enhancedInsights);
+        setLastUpdated(new Date());
+        setIsLoading(false);
+        return;
+      }
+      
+      // Fallback to traditional AI insights
       const result = await generatePersonalizedDashboardInsights(logEntries, userProfile);
       setInsights(result);
       setLastUpdated(new Date());

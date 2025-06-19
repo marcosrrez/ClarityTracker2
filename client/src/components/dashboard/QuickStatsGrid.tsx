@@ -1,6 +1,7 @@
-import { Clock, Users, Calendar, TrendingUp, UserCheck } from "lucide-react";
+import { Clock, Users, Calendar, TrendingUp, UserCheck, Brain } from "lucide-react";
 import { useLogEntries, useAppSettings } from "@/hooks/use-firestore";
 import { useUser } from "@/lib/firebase";
+import { useQuery } from "@tanstack/react-query";
 import { EnhancedStatsCard } from "./EnhancedStatsCard";
 import { ClickableMetricCard } from "./ClickableMetricCard";
 import { motion } from "framer-motion";
@@ -12,6 +13,13 @@ export const QuickStatsGrid = () => {
   const { user } = useUser();
   const [supervisors, setSupervisors] = useState([]);
   const [supervisorsLoading, setSupervisorsLoading] = useState(true);
+
+  // Fetch Clinical Intelligence metrics
+  const { data: clinicalMetrics } = useQuery({
+    queryKey: ['/api/ai/clinical-metrics', user?.uid],
+    enabled: !!user?.uid,
+    refetchInterval: 30000,
+  });
 
   useEffect(() => {
     const loadSupervisors = async () => {
@@ -113,13 +121,14 @@ export const QuickStatsGrid = () => {
       trend: supervisionTrend,
     },
     {
-      title: "Days to Check-in",
-      value: daysToCheckIn?.toString() || "—",
-      subtitle: "Next",
-      changeLabel: daysToCheckIn ? (daysToCheckIn <= 7 ? "Due soon!" : "Scheduled") : "Not scheduled",
-      icon: Calendar,
-      iconColor: daysToCheckIn && daysToCheckIn <= 7 ? "text-orange-500" : "text-green-500",
-      trend: "neutral",
+      title: "Clinical Intelligence",
+      value: clinicalMetrics?.overallScore ? `${Math.round(clinicalMetrics.overallScore)}/100` : "—",
+      subtitle: "AI Score",
+      changeLabel: clinicalMetrics?.trend || "Analyzing",
+      icon: Brain,
+      iconColor: clinicalMetrics?.overallScore >= 80 ? "text-emerald-500" : 
+                 clinicalMetrics?.overallScore >= 60 ? "text-blue-500" : "text-amber-500",
+      trend: clinicalMetrics?.trend || "neutral",
     },
   ];
 
