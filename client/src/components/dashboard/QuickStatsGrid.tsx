@@ -116,7 +116,7 @@ export const QuickStatsGrid = () => {
       {/* Primary Metric - Dominant Focus */}
       <ClickableMetricCard 
         category="direct_hours" 
-        value={totalClientHours}
+        value={metrics.totalClientHours}
         className="block"
       >
         <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-2xl p-6 relative overflow-hidden">
@@ -128,7 +128,7 @@ export const QuickStatsGrid = () => {
             <div className="flex-1">
               <div className="flex items-baseline space-x-1 mb-1">
                 <h2 className="text-3xl font-bold text-black dark:text-white">
-                  {Math.round(totalClientHours * 10) / 10}
+                  {Math.round(metrics.totalClientHours * 10) / 10}
                 </h2>
                 <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">
                   / 100 hours
@@ -145,7 +145,7 @@ export const QuickStatsGrid = () => {
                     <div 
                       key={milestone}
                       className={`w-2 h-2 rounded-full transition-colors duration-500 ${
-                        totalClientHours >= milestone 
+                        metrics.totalClientHours >= milestone 
                           ? 'bg-green-500' 
                           : 'bg-gray-200 dark:bg-gray-600'
                       }`}
@@ -153,9 +153,9 @@ export const QuickStatsGrid = () => {
                   ))}
                 </div>
                 <span className="text-xs text-gray-500 dark:text-gray-400">
-                  {totalClientHours >= 75 ? 'Nearly there!' : 
-                   totalClientHours >= 50 ? 'Halfway mark' :
-                   totalClientHours >= 25 ? 'Good start' : 'Getting started'}
+                  {metrics.totalClientHours >= 75 ? 'Nearly there!' : 
+                   metrics.totalClientHours >= 50 ? 'Halfway mark' :
+                   metrics.totalClientHours >= 25 ? 'Good start' : 'Getting started'}
                 </span>
               </div>
             </div>
@@ -178,7 +178,7 @@ export const QuickStatsGrid = () => {
                     stroke="#34C759"
                     strokeWidth="2.5"
                     strokeLinecap="round"
-                    strokeDasharray={`${Math.min((totalClientHours / 100) * 100, 100)}, 100`}
+                    strokeDasharray={`${Math.min((metrics.totalClientHours / 100) * 100, 100)}, 100`}
                     className="transition-all duration-2000 ease-out"
                     style={{
                       filter: 'drop-shadow(0 0 2px rgba(52, 199, 89, 0.3))'
@@ -187,7 +187,7 @@ export const QuickStatsGrid = () => {
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <span className="text-lg font-bold text-green-600 dark:text-green-400">
-                    {Math.round((totalClientHours / 100) * 100)}%
+                    {Math.round((metrics.totalClientHours / 100) * 100)}%
                   </span>
                   <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
                     complete
@@ -199,20 +199,20 @@ export const QuickStatsGrid = () => {
           
           {/* Enhanced contextual information */}
           <div className="mt-4 flex items-center justify-between">
-            {thisWeekClientHours - lastWeekClientHours !== 0 && (
+            {metrics.thisWeekClientHours - metrics.lastWeekClientHours !== 0 && (
               <div className="flex items-center space-x-2">
                 <div className={`w-1.5 h-1.5 rounded-full ${
-                  thisWeekClientHours - lastWeekClientHours > 0 
+                  metrics.thisWeekClientHours - metrics.lastWeekClientHours > 0 
                     ? 'bg-green-500 animate-pulse' 
                     : 'bg-orange-500'
                 }`} />
                 <span className={`text-sm font-medium ${
-                  thisWeekClientHours - lastWeekClientHours > 0 
+                  metrics.thisWeekClientHours - metrics.lastWeekClientHours > 0 
                     ? 'text-green-600 dark:text-green-400' 
                     : 'text-orange-600 dark:text-orange-400'
                 }`}>
-                  {thisWeekClientHours - lastWeekClientHours > 0 ? '+' : ''}
-                  {(thisWeekClientHours - lastWeekClientHours).toFixed(1)} this week
+                  {metrics.thisWeekClientHours - metrics.lastWeekClientHours > 0 ? '+' : ''}
+                  {(metrics.thisWeekClientHours - metrics.lastWeekClientHours).toFixed(1)} this week
                 </span>
               </div>
             )}
