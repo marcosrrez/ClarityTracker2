@@ -19,6 +19,11 @@ interface PrivacySettings {
   supervisionAccess: boolean;
   autoDeleteTranscripts: boolean;
   encryptionLevel: 'standard' | 'enhanced' | 'maximum';
+  // Automatic Anonymization Settings
+  automaticAnonymization: boolean;
+  piiDetectionLevel: 'basic' | 'standard' | 'comprehensive';
+  preserveTherapeuticContext: boolean;
+  anonymizationReviewRequired: boolean;
 }
 
 interface DataUsage {
@@ -47,7 +52,12 @@ export default function PrivacySettings() {
     shareForResearch: false,
     supervisionAccess: true,
     autoDeleteTranscripts: true,
-    encryptionLevel: 'enhanced'
+    encryptionLevel: 'enhanced',
+    // Automatic Anonymization Settings
+    automaticAnonymization: true,
+    piiDetectionLevel: 'standard',
+    preserveTherapeuticContext: true,
+    anonymizationReviewRequired: false
   });
   const [dataUsage, setDataUsage] = useState<DataUsage | null>(null);
   const [isLoading, setIsLoading] = useState(true);
