@@ -66,6 +66,44 @@ export default function PrivacySettings() {
   const [deletionType, setDeletionType] = useState<'all' | 'recordings' | 'transcripts' | 'analytics'>('recordings');
   const [deletionReason, setDeletionReason] = useState('');
 
+  // Calculate privacy protection score
+  const calculatePrivacyScore = () => {
+    let score = 0;
+    const weights = {
+      automaticAnonymization: 25,
+      localProcessingOnly: 20,
+      encryptionLevel: 15,
+      autoDeleteTranscripts: 15,
+      piiDetectionLevel: 10,
+      preserveTherapeuticContext: 10,
+      storeRawRecordings: -15 // Negative because storing raw recordings reduces privacy
+    };
+
+    if (settings.automaticAnonymization) score += weights.automaticAnonymization;
+    if (settings.localProcessingOnly) score += weights.localProcessingOnly;
+    if (settings.autoDeleteTranscripts) score += weights.autoDeleteTranscripts;
+    if (settings.preserveTherapeuticContext) score += weights.preserveTherapeuticContext;
+    if (settings.storeRawRecordings) score += weights.storeRawRecordings;
+
+    // Add encryption level score
+    switch (settings.encryptionLevel) {
+      case 'maximum': score += weights.encryptionLevel; break;
+      case 'enhanced': score += weights.encryptionLevel * 0.7; break;
+      case 'standard': score += weights.encryptionLevel * 0.4; break;
+    }
+
+    // Add PII detection level score
+    switch (settings.piiDetectionLevel) {
+      case 'comprehensive': score += weights.piiDetectionLevel; break;
+      case 'standard': score += weights.piiDetectionLevel * 0.7; break;
+      case 'basic': score += weights.piiDetectionLevel * 0.4; break;
+    }
+
+    return Math.max(0, Math.min(100, Math.round(score)));
+  };
+
+  const privacyScore = calculatePrivacyScore();
+
   useEffect(() => {
     loadPrivacySettings();
     loadDataUsage();
