@@ -346,7 +346,7 @@ export function SupervisionTracker() {
           )}
           
           {/* Recent Sessions */}
-          {metrics.recentSessions.length > 0 && (
+          {metrics.recentSessions && metrics.recentSessions.length > 0 && (
             <div className="space-y-2">
               <h4 className="text-sm font-medium text-gray-700">Recent Sessions</h4>
               <div className="space-y-2">

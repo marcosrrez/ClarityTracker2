@@ -6629,15 +6629,12 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
   app.get('/api/supervision/metrics/:userId', async (req, res) => {
     try {
       const { userId } = req.params;
-      console.log('Fetching supervision metrics for userId:', userId);
       
       // Use the same data source as the working supervisors API
       const supervisors = await storage.getSupervisorsByUserId(userId);
-      console.log('Found supervisors:', supervisors.length, 'supervisors');
       
       // Count active supervisors using the same logic as QuickStatsGrid
       const activeSupervisors = supervisors.filter((s: any) => s.isActive === true).length;
-      console.log('Active supervisors count:', activeSupervisors);
       
       // Calculate total hours from supervisors (they store totalHours)
       const totalHours = supervisors.reduce((sum: number, supervisor: any) => {
@@ -6655,7 +6652,6 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
         progressPercentage: Math.min((totalHours / 50) * 100, 100)
       };
 
-      console.log('Returning metrics:', metrics);
       res.json(metrics);
     } catch (error) {
       console.error('Error fetching supervision metrics:', error);
