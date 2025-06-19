@@ -6,6 +6,7 @@ import { EnhancedStatsCard } from "./EnhancedStatsCard";
 import { ClickableMetricCard } from "./ClickableMetricCard";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
+import { calculateDashboardMetrics } from "@/lib/dashboard-calculations";
 
 export const QuickStatsGrid = () => {
   const { entries, loading: entriesLoading, refetch } = useLogEntries();
@@ -67,9 +68,8 @@ export const QuickStatsGrid = () => {
     );
   }
 
-  // Calculate stats from entries
-  const totalClientHours = entries.reduce((sum, entry) => sum + entry.clientContactHours, 0);
-  const totalSupervisionHours = entries.reduce((sum, entry) => sum + entry.supervisionHours, 0);
+  // Use standardized calculations
+  const metrics = calculateDashboardMetrics(entries);
   
   // Calculate days to next check-in
   const checkInInterval = settings?.licenseInfo?.supervisionCheckInInterval || 30;
@@ -78,47 +78,26 @@ export const QuickStatsGrid = () => {
     ? Math.max(0, checkInInterval - Math.floor((Date.now() - lacDate.getTime()) / (1000 * 60 * 60 * 24)) % checkInInterval)
     : null;
 
-  // Calculate recent activity (this week vs last week)
-  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  const twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
-  
-  const thisWeekEntries = entries.filter(entry => new Date(entry.dateOfContact) >= weekAgo);
-  const lastWeekEntries = entries.filter(entry => {
-    const date = new Date(entry.dateOfContact);
-    return date >= twoWeeksAgo && date < weekAgo;
-  });
-  
-  const thisWeekClientHours = thisWeekEntries.reduce((sum, entry) => sum + entry.clientContactHours, 0);
-  const lastWeekClientHours = lastWeekEntries.reduce((sum, entry) => sum + entry.clientContactHours, 0);
-  const thisWeekSupervisionHours = thisWeekEntries.reduce((sum, entry) => sum + entry.supervisionHours, 0);
-  const lastWeekSupervisionHours = lastWeekEntries.reduce((sum, entry) => sum + entry.supervisionHours, 0);
-
-  // Calculate trends
-  const clientHoursTrend = thisWeekClientHours > lastWeekClientHours ? "up" : 
-                          thisWeekClientHours < lastWeekClientHours ? "down" : "neutral";
-  const supervisionTrend = thisWeekSupervisionHours > lastWeekSupervisionHours ? "up" : 
-                          thisWeekSupervisionHours < lastWeekSupervisionHours ? "down" : "neutral";
-
   const stats = [
     {
       title: "Client Contact Hours",
-      value: totalClientHours.toFixed(1),
+      value: metrics.totalClientHours.toFixed(1),
       subtitle: "Total",
-      change: thisWeekClientHours - lastWeekClientHours,
+      change: metrics.thisWeekClientHours - metrics.lastWeekClientHours,
       changeLabel: "vs last week",
       icon: Clock,
       iconColor: "text-blue-500",
-      trend: clientHoursTrend,
+      trend: metrics.clientHoursTrend,
     },
     {
       title: "Supervision Hours",
-      value: (Math.round(totalSupervisionHours * 10) / 10).toString(),
+      value: (Math.round(metrics.totalSupervisionHours * 10) / 10).toString(),
       subtitle: "Total", 
-      change: thisWeekSupervisionHours - lastWeekSupervisionHours,
+      change: metrics.thisWeekSupervisionHours - metrics.lastWeekSupervisionHours,
       changeLabel: "vs last week",
       icon: Users,
       iconColor: "text-purple-500",
-      trend: supervisionTrend,
+      trend: metrics.supervisionTrend,
     },
     {
       title: "Clinical Intelligence",

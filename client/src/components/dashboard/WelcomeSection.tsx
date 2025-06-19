@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useAccountType } from "@/hooks/use-account-type";
 import { useLogEntries } from "@/hooks/use-firestore";
 import { QuickLogWidget } from "@/components/entries/QuickLogWidget";
+import { calculateDashboardMetrics } from "@/lib/dashboard-calculations";
 
 export const WelcomeSection = () => {
   const { user, userProfile } = useAuth();
@@ -32,8 +33,9 @@ export const WelcomeSection = () => {
   }, [entries, userProfile]);
 
   const generatePersonalizedWelcome = () => {
-    const sessionCount = entries?.length || 0;
-    const totalHours = entries?.reduce((sum: number, entry: any) => sum + (entry.clientContactHours || 0), 0) || 0;
+    const metrics = calculateDashboardMetrics(entries || []);
+    const sessionCount = metrics.validSessions;
+    const totalHours = metrics.totalClientHours;
     
     // Smart, rule-based personalized messages without greeting duplication
     let message = "";
@@ -95,7 +97,7 @@ export const WelcomeSection = () => {
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <span className="text-2xl font-bold text-black dark:text-white">
-                  {entries?.length || 0}
+                  {calculateDashboardMetrics(entries || []).validSessions}
                 </span>
                 <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
                   sessions
