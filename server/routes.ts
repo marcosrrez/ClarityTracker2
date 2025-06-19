@@ -2243,6 +2243,347 @@ Please provide a helpful, professional response that's personalized to their sit
     }
   });
 
+  // Clinical Intelligence Dashboard Enhancement API
+  app.get('/api/ai/enhanced-smart-insights/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      // Get user's recent session analyses
+      const sessionAnalyses = await db.select()
+        .from(sessionAnalysisTable)
+        .where(eq(sessionAnalysisTable.userId, userId))
+        .orderBy(desc(sessionAnalysisTable.analysisDate))
+        .limit(10);
+
+      // Get traditional log entries for fallback
+      const logEntries = await storage.getEntriesByUserId(userId) || [];
+      
+      const insights = [];
+      
+      // Generate insights from session analyses if available
+      if (sessionAnalyses.length > 0) {
+        const latestAnalysis = sessionAnalyses[0];
+        const analysisData = typeof latestAnalysis.analysisData === 'string' 
+          ? JSON.parse(latestAnalysis.analysisData) 
+          : latestAnalysis.analysisData;
+
+        // Clinical Development Insights
+        if (analysisData.professionalDevelopment?.developmentInsights?.length > 0) {
+          insights.push({
+            id: `dev_${Date.now()}`,
+            type: 'growth_observation',
+            title: 'Clinical Development Opportunity',
+            message: analysisData.professionalDevelopment.developmentInsights[0],
+            urgency: 'medium',
+            actionLabel: 'Review Development Plan',
+            actionUrl: '/session-intelligence',
+            canDismiss: true,
+            createdAt: new Date()
+          });
+        }
+
+        // Supervision Preparation Insights
+        if (analysisData.supervisionPreparation?.discussionPoints?.length > 0) {
+          insights.push({
+            id: `sup_${Date.now()}`,
+            type: 'supervision_prep',
+            title: 'Supervision Discussion Ready',
+            message: `Key topics identified: ${analysisData.supervisionPreparation.discussionPoints.slice(0, 2).join(', ')}`,
+            urgency: 'high',
+            actionLabel: 'Prepare for Supervision',
+            actionUrl: '/supervision',
+            canDismiss: true,
+            createdAt: new Date()
+          });
+        }
+
+        // Clinical Risk Insights
+        if (analysisData.riskAssessment?.riskLevel && analysisData.riskAssessment.riskLevel !== 'Low') {
+          insights.push({
+            id: `risk_${Date.now()}`,
+            type: 'pattern_alert',
+            title: 'Clinical Attention Required',
+            message: `${analysisData.riskAssessment.riskLevel} risk indicators detected. Review recommended.`,
+            urgency: 'high',
+            actionLabel: 'Review Risk Assessment',
+            actionUrl: '/session-intelligence',
+            canDismiss: false,
+            createdAt: new Date()
+          });
+        }
+
+        // EBP Effectiveness Insights
+        if (analysisData.evidenceBasedPractice?.adherenceScore && analysisData.evidenceBasedPractice.adherenceScore < 70) {
+          insights.push({
+            id: `ebp_${Date.now()}`,
+            type: 'growth_observation',  
+            title: 'EBP Integration Opportunity',
+            message: `Evidence-based practice adherence at ${analysisData.evidenceBasedPractice.adherenceScore}%. Consider integrating more structured interventions.`,
+            urgency: 'medium',
+            actionLabel: 'Explore EBP Techniques',
+            actionUrl: '/session-intelligence',
+            canDismiss: true,
+            createdAt: new Date()
+          });
+        }
+
+        // Competency Milestone Insights
+        if (analysisData.professionalDevelopment?.competencyScores) {
+          const competencyScores = analysisData.professionalDevelopment.competencyScores;
+          const lowScores = Object.entries(competencyScores).filter(([_, score]) => score < 65);
+          
+          if (lowScores.length > 0) {
+            const [competency, score] = lowScores[0];
+            insights.push({
+              id: `comp_${Date.now()}`,
+              type: 'milestone',
+              title: 'Competency Development Focus',
+              message: `${competency.replace(/([A-Z])/g, ' $1').trim()} needs attention (${score}%). Focus area for upcoming sessions.`,
+              urgency: 'medium',
+              actionLabel: 'View Competency Tracker',
+              actionUrl: '/dashboard',
+              canDismiss: true,
+              createdAt: new Date()
+            });
+          }
+        }
+      }
+
+      // Fallback to basic insights if no session analyses available
+      if (insights.length === 0 && logEntries.length > 0) {
+        const recentEntries = logEntries.slice(-5);
+        const totalHours = recentEntries.reduce((sum, entry) => sum + entry.clientContactHours, 0);
+        
+        if (totalHours > 0) {
+          insights.push({
+            id: `basic_${Date.now()}`,
+            type: 'growth_observation',
+            title: 'Recent Session Activity',
+            message: `${totalHours} client contact hours logged recently. Consider using session intelligence for deeper insights.`,
+            urgency: 'low',
+            actionLabel: 'Try Session Intelligence',
+            actionUrl: '/session-intelligence',
+            canDismiss: true,
+            createdAt: new Date()
+          });
+        }
+      }
+
+      res.json(insights);
+    } catch (error) {
+      console.error('Error generating enhanced insights:', error);
+      res.status(500).json({ error: 'Failed to generate enhanced insights' });
+    }
+  });
+
+  // Enhanced Competency Data API
+  app.get('/api/ai/enhanced-competency-data/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      // Get session analyses with competency scores
+      const sessionAnalyses = await db.select()
+        .from(sessionAnalysisTable)
+        .where(eq(sessionAnalysisTable.userId, userId))
+        .orderBy(desc(sessionAnalysisTable.analysisDate))
+        .limit(20);
+
+      const competencyData = {
+        therapeuticRelationship: { scores: [], evidence: [], trend: 'neutral' },
+        assessmentEvaluation: { scores: [], evidence: [], trend: 'neutral' },
+        interventionTechniques: { scores: [], evidence: [], trend: 'neutral' },
+        multiculturalCompetence: { scores: [], evidence: [], trend: 'neutral' },
+        ethicalPractice: { scores: [], evidence: [], trend: 'neutral' },
+        professionalDevelopment: { scores: [], evidence: [], trend: 'neutral' }
+      };
+
+      // Process session analyses for competency data
+      sessionAnalyses.forEach(analysis => {
+        const data = typeof analysis.analysisData === 'string' 
+          ? JSON.parse(analysis.analysisData) 
+          : analysis.analysisData;
+          
+        if (data.professionalDevelopment?.competencyScores) {
+          const scores = data.professionalDevelopment.competencyScores;
+          const date = analysis.analysisDate.toISOString().split('T')[0];
+          
+          Object.keys(competencyData).forEach(competency => {
+            if (scores[competency]) {
+              competencyData[competency].scores.push({
+                date,
+                score: scores[competency],
+                sessionType: data.sessionType || 'Individual'
+              });
+            }
+          });
+        }
+
+        // Add evidence from EBP techniques
+        if (data.evidenceBasedPractice?.techniquesIdentified) {
+          data.evidenceBasedPractice.techniquesIdentified.forEach(technique => {
+            if (technique.effectiveness > 70) {
+              competencyData.interventionTechniques.evidence.push({
+                type: 'EBP Implementation',
+                description: `Effective use of ${technique.technique} (${technique.effectiveness}% effectiveness)`,
+                date: analysis.analysisDate.toISOString().split('T')[0]
+              });
+            }
+          });
+        }
+
+        // Add evidence from supervision points
+        if (data.supervisionPreparation?.developmentalFocus) {
+          data.supervisionPreparation.developmentalFocus.forEach(focus => {
+            const competencyKey = mapFocusToCompetency(focus);
+            if (competencyKey && competencyData[competencyKey]) {
+              competencyData[competencyKey].evidence.push({
+                type: 'Supervision Focus',
+                description: focus,
+                date: analysis.analysisDate.toISOString().split('T')[0]
+              });
+            }
+          });
+        }
+      });
+
+      // Calculate trends for each competency
+      Object.keys(competencyData).forEach(competency => {
+        const scores = competencyData[competency].scores;
+        if (scores.length >= 3) {
+          const recent = scores.slice(-3).map(s => s.score);
+          const older = scores.slice(-6, -3).map(s => s.score);
+          
+          if (older.length > 0) {
+            const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length;
+            const olderAvg = older.reduce((a, b) => a + b, 0) / older.length;
+            
+            if (recentAvg > olderAvg + 5) competencyData[competency].trend = 'up';
+            else if (recentAvg < olderAvg - 5) competencyData[competency].trend = 'down';
+          }
+        }
+      });
+
+      res.json(competencyData);
+    } catch (error) {
+      console.error('Error generating enhanced competency data:', error);
+      res.status(500).json({ error: 'Failed to generate enhanced competency data' });
+    }
+  });
+
+  // Enhanced Coaching Insights API
+  app.get('/api/ai/enhanced-coaching-insights/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      // Get recent session analyses
+      const sessionAnalyses = await db.select()
+        .from(sessionAnalysisTable)
+        .where(eq(sessionAnalysisTable.userId, userId))
+        .orderBy(desc(sessionAnalysisTable.analysisDate))
+        .limit(5);
+
+      const logEntries = await storage.getEntriesByUserId(userId) || [];
+
+      let insights = {
+        weeklyFocus: 'Continue building your therapeutic skills through consistent practice and reflection.',
+        skillDevelopmentTip: 'Focus on developing your core counseling competencies through evidence-based practice.',
+        supervisionTopic: 'Discuss your recent client interactions and any challenging cases.',
+        professionalGrowthInsight: 'Regular session logging and reflection support your professional development.',
+        therapyProfileInsight: null,
+        competencyFocus: null,
+        patternAlert: null
+      };
+
+      // Generate insights from session analyses
+      if (sessionAnalyses.length > 0) {
+        const latestAnalysis = sessionAnalyses[0];
+        const data = typeof latestAnalysis.analysisData === 'string' 
+          ? JSON.parse(latestAnalysis.analysisData) 
+          : latestAnalysis.analysisData;
+
+        // Professional Development Focus
+        if (data.professionalDevelopment?.developmentInsights?.length > 0) {
+          insights.weeklyFocus = data.professionalDevelopment.developmentInsights[0];
+        }
+
+        // Skill Development from EBP Analysis
+        if (data.evidenceBasedPractice?.techniquesIdentified?.length > 0) {
+          const techniques = data.evidenceBasedPractice.techniquesIdentified;
+          const lowEffectiveness = techniques.filter(t => t.effectiveness < 60);
+          if (lowEffectiveness.length > 0) {
+            insights.skillDevelopmentTip = `Focus on improving ${lowEffectiveness[0].technique} implementation. Consider additional training or supervision on this technique.`;
+          } else {
+            const bestTechnique = techniques.reduce((a, b) => a.effectiveness > b.effectiveness ? a : b);
+            insights.skillDevelopmentTip = `Great work with ${bestTechnique.technique} (${bestTechnique.effectiveness}% effectiveness). Consider expanding this strength to other areas.`;
+          }
+        }
+
+        // Supervision Topics
+        if (data.supervisionPreparation?.discussionPoints?.length > 0) {
+          insights.supervisionTopic = `Discuss: ${data.supervisionPreparation.discussionPoints.slice(0, 2).join(' and ')}.`;
+        }
+
+        // Therapy Profile Insight
+        if (data.clinicalPatterns?.therapeuticApproach) {
+          insights.therapyProfileInsight = `Your therapeutic approach shows ${data.clinicalPatterns.therapeuticApproach} tendencies. This aligns well with your client presentations.`;
+        }
+
+        // Competency Focus
+        if (data.professionalDevelopment?.competencyScores) {
+          const scores = data.professionalDevelopment.competencyScores;
+          const lowestCompetency = Object.entries(scores).reduce((a, b) => a[1] < b[1] ? a : b);
+          insights.competencyFocus = `Focus on developing ${lowestCompetency[0].replace(/([A-Z])/g, ' $1').trim()} skills (current: ${lowestCompetency[1]}%).`;
+        }
+
+        // Pattern Alerts
+        if (data.riskAssessment?.riskLevel && data.riskAssessment.riskLevel !== 'Low') {
+          insights.patternAlert = `${data.riskAssessment.riskLevel} risk patterns detected in recent sessions. Schedule additional supervision to address these concerns.`;
+        }
+
+        // Professional Growth from multiple sessions
+        if (sessionAnalyses.length >= 3) {
+          const developmentTrends = sessionAnalyses.map(s => {
+            const d = typeof s.analysisData === 'string' ? JSON.parse(s.analysisData) : s.analysisData;
+            return d.professionalDevelopment?.overallCompetencyScore || 0;
+          });
+          
+          const avgRecent = developmentTrends.slice(0, 2).reduce((a, b) => a + b, 0) / 2;
+          const avgOlder = developmentTrends.slice(2).reduce((a, b) => a + b, 0) / (developmentTrends.length - 2);
+          
+          if (avgRecent > avgOlder + 5) {
+            insights.professionalGrowthInsight = `Your competency scores are trending upward (${avgRecent.toFixed(1)}% recent vs ${avgOlder.toFixed(1)}% baseline). Your consistent practice is paying off!`;
+          } else if (avgRecent < avgOlder - 5) {
+            insights.professionalGrowthInsight = `Your competency scores suggest a need for additional focus. Consider discussing skill development strategies in your next supervision session.`;
+          }
+        }
+      }
+
+      res.json(insights);
+    } catch (error) {
+      console.error('Error generating enhanced coaching insights:', error);
+      res.status(500).json({ error: 'Failed to generate enhanced coaching insights' });
+    }
+  });
+
+  // Helper function to map supervision focus to competency areas
+  function mapFocusToCompetency(focus) {
+    const focusLower = focus.toLowerCase();
+    if (focusLower.includes('rapport') || focusLower.includes('alliance') || focusLower.includes('relationship')) {
+      return 'therapeuticRelationship';
+    } else if (focusLower.includes('assessment') || focusLower.includes('diagnosis') || focusLower.includes('evaluation')) {
+      return 'assessmentEvaluation';
+    } else if (focusLower.includes('intervention') || focusLower.includes('technique') || focusLower.includes('cbt') || focusLower.includes('therapy')) {
+      return 'interventionTechniques';
+    } else if (focusLower.includes('cultural') || focusLower.includes('multicultural') || focusLower.includes('diversity')) {
+      return 'multiculturalCompetence';
+    } else if (focusLower.includes('ethical') || focusLower.includes('legal') || focusLower.includes('boundary')) {
+      return 'ethicalPractice';
+    } else if (focusLower.includes('professional') || focusLower.includes('development') || focusLower.includes('supervision')) {
+      return 'professionalDevelopment';
+    }
+    return null;
+  }
+
   // Optimized AI Analysis with Caching
   app.post('/api/intelligence/ai-analysis', express.json(), async (req, res) => {
     try {

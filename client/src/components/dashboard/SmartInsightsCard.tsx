@@ -30,9 +30,9 @@ interface SmartInsight {
 export function SmartInsightsCard() {
   const [dismissedInsights, setDismissedInsights] = useState<string[]>([]);
 
-  // Fetch smart insights from background AI analysis
+  // Fetch enhanced smart insights from Clinical Intelligence Platform
   const { data: insights, isLoading } = useQuery<SmartInsight[]>({
-    queryKey: ['/api/ai/smart-insights'],
+    queryKey: ['/api/ai/enhanced-smart-insights', 'demo-user'],
     refetchInterval: 30000, // Check for new insights every 30 seconds
   });
 

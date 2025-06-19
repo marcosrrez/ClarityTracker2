@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLogEntries, useInsightCards } from "@/hooks/use-firestore";
 import { useAuth } from "@/hooks/use-auth";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
