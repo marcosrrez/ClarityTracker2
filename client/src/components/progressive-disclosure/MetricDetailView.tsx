@@ -312,6 +312,13 @@ export function MetricDetailView({ category, onBack, onDrillDown }: MetricDetail
         </CardContent>
       </Card>
 
+      {/* State Requirements Educational Content */}
+      <StateRequirementsCard 
+        settings={settings}
+        currentHours={data.totalHours}
+        category={category as "direct_hours" | "supervision" | "total_hours"}
+      />
+
       {/* Recent Activity */}
       <Card>
         <CardHeader>
