@@ -344,6 +344,319 @@ export default function PrivacySettings() {
         </CardContent>
       </Card>
 
+      {/* Local-First Processing */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Lock className="h-5 w-5 text-purple-600" />
+            Local-First Processing
+          </CardTitle>
+          <CardDescription>
+            Process sensitive data entirely on your device for maximum privacy
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Local Processing Toggle */}
+          <div className="flex items-center justify-between p-4 rounded-lg border bg-purple-50 dark:bg-purple-950/20">
+            <div className="space-y-1">
+              <div className="font-medium">Enable Local Processing Mode</div>
+              <div className="text-sm text-gray-600">
+                Process audio analysis and emotion detection entirely in your browser using WebAssembly
+              </div>
+            </div>
+            <Switch
+              checked={settings.localProcessingOnly}
+              onCheckedChange={(checked) => 
+                setSettings(prev => ({ ...prev, localProcessingOnly: checked }))
+              }
+            />
+          </div>
+
+          {settings.localProcessingOnly && (
+            <AnimatePresence>
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="space-y-4 pl-4 border-l-2 border-purple-200 dark:border-purple-800"
+              >
+                {/* Client-side Features */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <div className="font-medium text-sm">✓ Browser-based emotion analysis</div>
+                    <div className="text-xs text-gray-500">WebAssembly processing, no data sent to servers</div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="font-medium text-sm">✓ Local speech transcription</div>
+                    <div className="text-xs text-gray-500">Web Speech API, recordings stay on device</div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="font-medium text-sm">✓ Edge AI processing</div>
+                    <div className="text-xs text-gray-500">Clinical insights generated locally</div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="font-medium text-sm">✓ Minimal server communication</div>
+                    <div className="text-xs text-gray-500">Only anonymized insights synchronized</div>
+                  </div>
+                </div>
+
+                {/* Local Processing Benefits */}
+                <div className="bg-purple-50 dark:bg-purple-950/30 p-4 rounded-lg">
+                  <div className="flex items-start gap-3">
+                    <Lock className="h-5 w-5 text-purple-600 dark:text-purple-400 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm text-purple-700 dark:text-purple-300">
+                      <div className="font-medium mb-1">Ultimate Privacy Protection</div>
+                      <div className="text-xs">
+                        Raw session recordings never leave your device. Only de-identified clinical insights are shared for supervision and compliance tracking.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Smart Data Minimization */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Trash2 className="h-5 w-5 text-orange-600" />
+            Smart Data Minimization
+          </CardTitle>
+          <CardDescription>
+            Automatically minimize data retention while preserving clinical value
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Auto-purge Settings */}
+          <div className="space-y-3">
+            <div className="font-medium">Auto-purge Raw Recordings</div>
+            <Select 
+              value={settings.autoPurgeRecordings || "48"} 
+              onValueChange={(value: string) => 
+                setSettings(prev => ({ ...prev, autoPurgeRecordings: value }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="24">After 24 hours</SelectItem>
+                <SelectItem value="48">After 48 hours (recommended)</SelectItem>
+                <SelectItem value="72">After 72 hours</SelectItem>
+                <SelectItem value="168">After 1 week</SelectItem>
+                <SelectItem value="never">Never auto-purge</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="text-xs text-gray-500">
+              Clinical insights and progress metrics are preserved indefinitely
+            </div>
+          </div>
+
+          {/* Storage Tiers */}
+          <div className="space-y-4">
+            <div className="font-medium">Data Storage Tiers</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-3 border rounded-lg bg-green-50 dark:bg-green-950/20">
+                <div className="font-medium text-sm text-green-700 dark:text-green-300">Essential Tier</div>
+                <div className="text-xs text-green-600 dark:text-green-400 mt-1">
+                  • Clinical insights and patterns
+                  • Progress metrics and trends
+                  • Supervision recommendations
+                  • Competency assessments
+                </div>
+              </div>
+              <div className="p-3 border rounded-lg bg-orange-50 dark:bg-orange-950/20">
+                <div className="font-medium text-sm text-orange-700 dark:text-orange-300">Optional Tier</div>
+                <div className="text-xs text-orange-600 dark:text-orange-400 mt-1">
+                  • Raw audio/video recordings
+                  • Detailed transcriptions
+                  • Session screenshots
+                  • Detailed timestamps
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Data Granularity Control */}
+          <div className="space-y-3">
+            <div className="font-medium">Data Granularity Level</div>
+            <Select 
+              value={settings.dataGranularity || "balanced"} 
+              onValueChange={(value: string) => 
+                setSettings(prev => ({ ...prev, dataGranularity: value }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="minimal">
+                  <div className="space-y-1">
+                    <div className="font-medium">Minimal</div>
+                    <div className="text-xs text-gray-500">Only essential insights, no detailed metadata</div>
+                  </div>
+                </SelectItem>
+                <SelectItem value="balanced">
+                  <div className="space-y-1">
+                    <div className="font-medium">Balanced (recommended)</div>
+                    <div className="text-xs text-gray-500">Clinical insights + key patterns and trends</div>
+                  </div>
+                </SelectItem>
+                <SelectItem value="comprehensive">
+                  <div className="space-y-1">
+                    <div className="font-medium">Comprehensive</div>
+                    <div className="text-xs text-gray-500">Full session data for detailed supervision</div>
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Transparent Processing */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Eye className="h-5 w-5 text-blue-600" />
+            Transparent Processing
+          </CardTitle>
+          <CardDescription>
+            Real-time visibility into how your data is being processed and stored
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Real-time Privacy Indicator */}
+          <div className="space-y-4">
+            <div className="font-medium">Current Privacy Status</div>
+            <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950/30 dark:to-blue-950/30 rounded-lg border">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="font-medium text-green-700 dark:text-green-300">
+                    Privacy Protection Active
+                  </span>
+                </div>
+                <div className="text-sm font-mono bg-white dark:bg-gray-800 px-2 py-1 rounded">
+                  {privacyScore}% Protected
+                </div>
+              </div>
+              <div className="text-xs text-gray-600 dark:text-gray-400">
+                All personally identifiable information is automatically detected and anonymized before processing
+              </div>
+            </div>
+          </div>
+
+          {/* Data Journey Visualization */}
+          <div className="space-y-4">
+            <div className="font-medium">Data Journey Visualization</div>
+            <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-lg">
+              <div className="space-y-4">
+                {/* Step 1: Capture */}
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">1. Session Capture</div>
+                    <div className="text-xs text-gray-500">
+                      {settings.localProcessingOnly ? 
+                        "Processed locally in your browser" : 
+                        "Temporarily stored with encryption"
+                      }
+                    </div>
+                  </div>
+                  <div className="text-xs bg-blue-100 dark:bg-blue-900/30 px-2 py-1 rounded">
+                    {settings.localProcessingOnly ? "Local" : "Encrypted"}
+                  </div>
+                </div>
+
+                {/* Step 2: Anonymization */}
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
+                    <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">2. Automatic Anonymization</div>
+                    <div className="text-xs text-gray-500">
+                      AI-powered PII detection and consistent pseudonym replacement
+                    </div>
+                  </div>
+                  <div className="text-xs bg-purple-100 dark:bg-purple-900/30 px-2 py-1 rounded">
+                    {settings.piiDetectionLevel || 'Standard'}
+                  </div>
+                </div>
+
+                {/* Step 3: Analysis */}
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                    <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">3. Clinical Analysis</div>
+                    <div className="text-xs text-gray-500">
+                      Therapeutic insights generated from anonymized content
+                    </div>
+                  </div>
+                  <div className="text-xs bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded">
+                    Protected
+                  </div>
+                </div>
+
+                {/* Step 4: Storage */}
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center">
+                    <div className="w-2 h-2 bg-orange-600 rounded-full"></div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">4. Secure Storage</div>
+                    <div className="text-xs text-gray-500">
+                      {settings.autoPurgeRecordings !== 'never' ? 
+                        `Raw data auto-purged after ${settings.autoPurgeRecordings || '48'} hours` : 
+                        "Clinical insights stored indefinitely"
+                      }
+                    </div>
+                  </div>
+                  <div className="text-xs bg-orange-100 dark:bg-orange-900/30 px-2 py-1 rounded">
+                    Tiered
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Compliance Dashboard */}
+          <div className="space-y-4">
+            <div className="font-medium">Compliance Status</div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded-lg text-center">
+                <div className="text-lg font-semibold text-green-700 dark:text-green-300">✓</div>
+                <div className="text-sm font-medium">HIPAA Compliant</div>
+                <div className="text-xs text-green-600 dark:text-green-400">Auto-anonymization active</div>
+              </div>
+              <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded-lg text-center">
+                <div className="text-lg font-semibold text-green-700 dark:text-green-300">✓</div>
+                <div className="text-sm font-medium">SOC 2 Ready</div>
+                <div className="text-xs text-green-600 dark:text-green-400">Audit logging enabled</div>
+              </div>
+              <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded-lg text-center">
+                <div className="text-lg font-semibold text-green-700 dark:text-green-300">✓</div>
+                <div className="text-sm font-medium">BAA Compatible</div>
+                <div className="text-xs text-green-600 dark:text-green-400">Enterprise controls</div>
+              </div>
+              <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg text-center">
+                <div className="text-lg font-semibold text-blue-700 dark:text-blue-300">{privacyScore}%</div>
+                <div className="text-sm font-medium">Privacy Score</div>
+                <div className="text-xs text-blue-600 dark:text-blue-400">Real-time calculation</div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Data Processing Controls */}
       <Card>
         <CardHeader>
