@@ -39,6 +39,7 @@ import { ConversationAnalysisService } from "./services/conversation-analysis-se
 import { SupervisionService } from "./services/supervision-service";
 import { progressiveDisclosureService } from "./progressive-disclosure-service";
 import { researchService } from "./research-service";
+import { clinicalResearchService } from "./clinical-research-service";
 import { sessionIntelligence } from "./session-intelligence-service";
 import { 
   researchCollectionsTable, 
@@ -3885,11 +3886,40 @@ Please provide a helpful, professional response that's personalized to their sit
         return res.status(400).json({ error: 'Query is required' });
       }
 
-      const results = await researchService.searchResearch(query, limit);
-      res.json({ results });
+      // Use clinical research service for practice-focused results
+      const clinicalResults = await clinicalResearchService.searchClinicalResearch(query, limit);
+      
+      // Transform clinical results to match expected frontend format
+      const results = clinicalResults.results.map(result => ({
+        title: result.title,
+        snippet: result.snippet,
+        url: result.url,
+        source: result.source,
+        authors: result.authors,
+        publicationYear: result.publicationYear,
+        relevanceScore: result.relevanceScore,
+        type: result.type,
+        accessibility: result.accessibility,
+        // Additional clinical-specific data
+        clinicalFocus: result.clinicalFocus,
+        practicalApplications: result.practicalApplications
+      }));
+      
+      res.json({ 
+        results,
+        summary: clinicalResults.summary,
+        clinicalImplications: clinicalResults.clinicalImplications
+      });
     } catch (error) {
-      console.error('Research search error:', error);
-      res.status(500).json({ error: 'Failed to search research content' });
+      console.error('Clinical research search error:', error);
+      // Fallback to original service if clinical service fails
+      try {
+        const results = await researchService.searchResearch(query, limit);
+        res.json({ results });
+      } catch (fallbackError) {
+        console.error('Fallback research search error:', fallbackError);
+        res.status(500).json({ error: 'Failed to search research content' });
+      }
     }
   });
 
