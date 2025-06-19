@@ -4662,6 +4662,7 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
 
   app.post('/api/research/save', async (req, res) => {
     try {
+      console.log('Attempting to save research with data:', JSON.stringify(req.body, null, 2));
       const savedData = insertSavedResearchSchema.parse(req.body);
       const savedId = `saved_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
@@ -4690,7 +4691,7 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
         collectionId: savedData.collectionId,
         title: savedData.title,
         url: savedData.url,
-        domain: savedData.domain,
+        domain: savedData.domain || new URL(savedData.url).hostname,
         source: savedData.source,
         snippet: savedData.snippet,
         summaryGenerated: comprehensiveSummary, // Store the comprehensive analysis
@@ -4704,8 +4705,11 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
       
       res.json({ savedResearch });
     } catch (error) {
-      console.error('Save research error:', error);
-      res.status(500).json({ error: 'Failed to save research' });
+      console.error('Save research error - Full details:', error);
+      if (error.issues) {
+        console.error('Validation issues:', JSON.stringify(error.issues, null, 2));
+      }
+      res.status(500).json({ error: 'Failed to save research', details: error.message });
     }
   });
 

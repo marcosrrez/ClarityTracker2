@@ -1161,7 +1161,7 @@ export const savedResearchTable = pgTable('saved_research', {
   collectionId: varchar('collection_id', { length: 255 }),
   title: text('title').notNull(),
   url: text('url').notNull(),
-  domain: varchar('domain', { length: 255 }).notNull(),
+  domain: varchar('domain', { length: 255 }),
   source: varchar('source', { length: 100 }).notNull(), // pubmed, scholar, etc
   snippet: text('snippet'),
   authors: text('authors'), // JSON array
@@ -1211,7 +1211,7 @@ export const savedResearchSchema = z.object({
   collectionId: z.string().optional(),
   title: z.string().min(1, "Title is required"),
   url: z.string().url("Valid URL is required"),
-  domain: z.string(),
+  domain: z.string().optional(),
   source: z.string(),
   snippet: z.string().optional(),
   authors: z.array(z.string()).default([]),
