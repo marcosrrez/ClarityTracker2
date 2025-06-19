@@ -6625,6 +6625,58 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
     }
   });
 
+  // Get supervision metrics for a specific user
+  app.get('/api/supervision/metrics/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      // Get supervisor relationships for this user (using correct field name)
+      const supervisorRelationships = await db.select()
+        .from(supervisorTable)
+        .where(eq(supervisorTable.userId, userId));
+
+      // Get active supervisors count (isActive is stored as string)
+      const activeSupervisors = supervisorRelationships.filter(s => s.isActive === 'true').length;
+      
+      // Get supervision sessions this month
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      
+      const supervisionSessions = await db.select()
+        .from(supervisionSessionTable)
+        .where(
+          and(
+            eq(supervisionSessionTable.superviseeId, userId),
+            gte(supervisionSessionTable.sessionDate, startOfMonth)
+          )
+        );
+
+      // Calculate total supervision hours (durationMinutes converted to hours)
+      const totalHours = supervisionSessions.reduce((sum, session) => {
+        const minutes = parseInt(session.durationMinutes) || 0;
+        return sum + (minutes / 60);
+      }, 0);
+      
+      const metrics = {
+        activeSupervisors,
+        totalHours: Math.round(totalHours * 10) / 10, // Round to 1 decimal
+        sessionsThisMonth: supervisionSessions.length,
+        progressPercentage: Math.min((totalHours / 50) * 100, 100) // Assuming 50 hours required
+      };
+
+      res.json(metrics);
+    } catch (error) {
+      console.error('Error fetching supervision metrics:', error);
+      res.status(500).json({ 
+        activeSupervisors: 0,
+        totalHours: 0,
+        sessionsThisMonth: 0,
+        progressPercentage: 0
+      });
+    }
+  });
+
   // Progress Sharing API
   app.post('/api/progress/share', async (req, res) => {
     try {
