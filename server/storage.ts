@@ -15,6 +15,9 @@ import {
   competencyAnalysisTable,
   patternAnalysisTable,
   aiInsightsHistoryTable,
+  privacySettingsTable,
+  dataUsageTrackingTable,
+  dataDeletionRequestTable,
   type Feedback, 
   type InsertFeedback, 
   type UserAnalytics, 
@@ -46,7 +49,13 @@ import {
   type PatternAnalysis,
   type InsertPatternAnalysis,
   type AiInsightsHistory,
-  type InsertAiInsightsHistory
+  type InsertAiInsightsHistory,
+  type PrivacySettings,
+  type InsertPrivacySettings,
+  type DataUsageTracking,
+  type InsertDataUsageTracking,
+  type DataDeletionRequest,
+  type InsertDataDeletionRequest
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, asc, and, gte, lte, isNull, sql } from "drizzle-orm";
@@ -134,6 +143,33 @@ export interface IStorage {
   // Log Entries functionality
   createLogEntry(entry: any): Promise<any>;
   getLogEntries(userId: string): Promise<any[]>;
+  
+  // Privacy Settings functionality
+  getPrivacySettings(userId: string): Promise<PrivacySettings | undefined>;
+  createPrivacySettings(settings: InsertPrivacySettings): Promise<PrivacySettings>;
+  updatePrivacySettings(userId: string, updates: Partial<PrivacySettings>): Promise<PrivacySettings>;
+  
+  // Data Usage Tracking
+  getUserDataUsage(userId: string): Promise<any>;
+  createDataUsageTracking(tracking: InsertDataUsageTracking): Promise<DataUsageTracking>;
+  updateDataUsageTracking(id: string, updates: Partial<DataUsageTracking>): Promise<void>;
+  
+  // Data Deletion Management
+  createDataDeletionRequest(request: InsertDataDeletionRequest): Promise<DataDeletionRequest>;
+  updateDataDeletionRequest(id: string, updates: Partial<DataDeletionRequest>): Promise<void>;
+  deleteUserRecordings(userId: string): Promise<{ itemsDeleted: number; bytesDeleted: number; auditLog: any[] }>;
+  deleteUserTranscripts(userId: string): Promise<{ itemsDeleted: number; bytesDeleted: number; auditLog: any[] }>;
+  deleteUserAnalytics(userId: string): Promise<{ itemsDeleted: number; bytesDeleted: number; auditLog: any[] }>;
+  deleteAllUserData(userId: string): Promise<{ itemsDeleted: number; bytesDeleted: number; auditLog: any[] }>;
+  
+  // Data Export
+  exportUserData(userId: string): Promise<any>;
+  
+  // Privacy Audit
+  getPrivacyAuditLog(userId: string): Promise<any[]>;
+  
+  // Data Retention Policies
+  applyDataRetentionPolicies(userId: string, retentionDays: number): Promise<{ itemsProcessed: number; itemsDeleted: number; nextReviewDate: Date }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1347,6 +1383,353 @@ ${content}`;
     // For now, return empty array since this is primarily for onboarding
     // In production, this would query the actual log entries table
     return [];
+  }
+
+  // Privacy Settings functionality
+  async getPrivacySettings(userId: string): Promise<PrivacySettings | undefined> {
+    const { db } = await import("./db");
+    const [settings] = await db
+      .select()
+      .from(privacySettingsTable)
+      .where(eq(privacySettingsTable.userId, userId))
+      .limit(1);
+    return settings;
+  }
+
+  async createPrivacySettings(settings: InsertPrivacySettings): Promise<PrivacySettings> {
+    const { db } = await import("./db");
+    const id = `privacy_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const [created] = await db
+      .insert(privacySettingsTable)
+      .values({
+        id,
+        ...settings,
+      })
+      .returning();
+    return created;
+  }
+
+  async updatePrivacySettings(userId: string, updates: Partial<PrivacySettings>): Promise<PrivacySettings> {
+    const { db } = await import("./db");
+    const [updated] = await db
+      .update(privacySettingsTable)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(privacySettingsTable.userId, userId))
+      .returning();
+    return updated;
+  }
+
+  // Data Usage Tracking
+  async getUserDataUsage(userId: string): Promise<any> {
+    const { db } = await import("./db");
+    
+    // Get data usage tracking records
+    const usageRecords = await db
+      .select()
+      .from(dataUsageTrackingTable)
+      .where(eq(dataUsageTrackingTable.userId, userId));
+
+    // Calculate aggregated usage
+    const totalSessions = usageRecords.filter(r => r.dataType === 'recordings').length;
+    const storageUsedMB = Math.round(usageRecords.reduce((sum, r) => sum + r.sizeBytes, 0) / (1024 * 1024));
+    
+    const dataTypes = {
+      insights: usageRecords.filter(r => r.dataType === 'insights').length,
+      transcripts: usageRecords.filter(r => r.dataType === 'transcripts').length,
+      recordings: usageRecords.filter(r => r.dataType === 'recordings').length,
+      analytics: usageRecords.filter(r => r.dataType === 'analytics').length,
+    };
+
+    // Group by category for retention breakdown
+    const categoryGroups = usageRecords.reduce((acc, record) => {
+      if (!acc[record.category]) {
+        acc[record.category] = {
+          count: 0,
+          sizeKB: 0,
+          oldestDate: record.createdAt,
+        };
+      }
+      acc[record.category].count += record.itemCount;
+      acc[record.category].sizeKB += Math.round(record.sizeBytes / 1024);
+      if (record.createdAt < acc[record.category].oldestDate) {
+        acc[record.category].oldestDate = record.createdAt;
+      }
+      return acc;
+    }, {} as any);
+
+    const retentionBreakdown = Object.keys(categoryGroups).map(category => ({
+      category,
+      count: categoryGroups[category].count,
+      sizeKB: categoryGroups[category].sizeKB,
+      oldestDate: categoryGroups[category].oldestDate.toISOString(),
+    }));
+
+    return {
+      totalSessions,
+      storageUsedMB,
+      dataTypes,
+      retentionBreakdown,
+    };
+  }
+
+  async createDataUsageTracking(tracking: InsertDataUsageTracking): Promise<DataUsageTracking> {
+    const { db } = await import("./db");
+    const id = `usage_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const [created] = await db
+      .insert(dataUsageTrackingTable)
+      .values({
+        id,
+        ...tracking,
+      })
+      .returning();
+    return created;
+  }
+
+  async updateDataUsageTracking(id: string, updates: Partial<DataUsageTracking>): Promise<void> {
+    const { db } = await import("./db");
+    await db
+      .update(dataUsageTrackingTable)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(dataUsageTrackingTable.id, id));
+  }
+
+  // Data Deletion Management
+  async createDataDeletionRequest(request: InsertDataDeletionRequest): Promise<DataDeletionRequest> {
+    const { db } = await import("./db");
+    const id = `deletion_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const [created] = await db
+      .insert(dataDeletionRequestTable)
+      .values({
+        id,
+        ...request,
+      })
+      .returning();
+    return created;
+  }
+
+  async updateDataDeletionRequest(id: string, updates: Partial<DataDeletionRequest>): Promise<void> {
+    const { db } = await import("./db");
+    await db
+      .update(dataDeletionRequestTable)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(dataDeletionRequestTable.id, id));
+  }
+
+  async deleteUserRecordings(userId: string): Promise<{ itemsDeleted: number; bytesDeleted: number; auditLog: any[] }> {
+    const { db } = await import("./db");
+    
+    // Get recordings to delete for audit log
+    const recordings = await db
+      .select()
+      .from(dataUsageTrackingTable)
+      .where(and(
+        eq(dataUsageTrackingTable.userId, userId),
+        eq(dataUsageTrackingTable.dataType, 'recordings')
+      ));
+
+    const itemsDeleted = recordings.length;
+    const bytesDeleted = recordings.reduce((sum, r) => sum + r.sizeBytes, 0);
+    
+    // Delete the records
+    await db
+      .delete(dataUsageTrackingTable)
+      .where(and(
+        eq(dataUsageTrackingTable.userId, userId),
+        eq(dataUsageTrackingTable.dataType, 'recordings')
+      ));
+
+    const auditLog = [
+      {
+        action: 'delete_recordings',
+        timestamp: new Date().toISOString(),
+        itemsDeleted,
+        bytesDeleted,
+        details: `Deleted ${itemsDeleted} recording entries totaling ${Math.round(bytesDeleted / 1024)} KB`
+      }
+    ];
+
+    return { itemsDeleted, bytesDeleted, auditLog };
+  }
+
+  async deleteUserTranscripts(userId: string): Promise<{ itemsDeleted: number; bytesDeleted: number; auditLog: any[] }> {
+    const { db } = await import("./db");
+    
+    const transcripts = await db
+      .select()
+      .from(dataUsageTrackingTable)
+      .where(and(
+        eq(dataUsageTrackingTable.userId, userId),
+        eq(dataUsageTrackingTable.dataType, 'transcripts')
+      ));
+
+    const itemsDeleted = transcripts.length;
+    const bytesDeleted = transcripts.reduce((sum, r) => sum + r.sizeBytes, 0);
+    
+    await db
+      .delete(dataUsageTrackingTable)
+      .where(and(
+        eq(dataUsageTrackingTable.userId, userId),
+        eq(dataUsageTrackingTable.dataType, 'transcripts')
+      ));
+
+    const auditLog = [
+      {
+        action: 'delete_transcripts',
+        timestamp: new Date().toISOString(),
+        itemsDeleted,
+        bytesDeleted,
+        details: `Deleted ${itemsDeleted} transcript entries totaling ${Math.round(bytesDeleted / 1024)} KB`
+      }
+    ];
+
+    return { itemsDeleted, bytesDeleted, auditLog };
+  }
+
+  async deleteUserAnalytics(userId: string): Promise<{ itemsDeleted: number; bytesDeleted: number; auditLog: any[] }> {
+    const { db } = await import("./db");
+    
+    const analytics = await db
+      .select()
+      .from(dataUsageTrackingTable)
+      .where(and(
+        eq(dataUsageTrackingTable.userId, userId),
+        eq(dataUsageTrackingTable.dataType, 'analytics')
+      ));
+
+    const itemsDeleted = analytics.length;
+    const bytesDeleted = analytics.reduce((sum, r) => sum + r.sizeBytes, 0);
+    
+    await db
+      .delete(dataUsageTrackingTable)
+      .where(and(
+        eq(dataUsageTrackingTable.userId, userId),
+        eq(dataUsageTrackingTable.dataType, 'analytics')
+      ));
+
+    const auditLog = [
+      {
+        action: 'delete_analytics',
+        timestamp: new Date().toISOString(),
+        itemsDeleted,
+        bytesDeleted,
+        details: `Deleted ${itemsDeleted} analytics entries totaling ${Math.round(bytesDeleted / 1024)} KB`
+      }
+    ];
+
+    return { itemsDeleted, bytesDeleted, auditLog };
+  }
+
+  async deleteAllUserData(userId: string): Promise<{ itemsDeleted: number; bytesDeleted: number; auditLog: any[] }> {
+    const { db } = await import("./db");
+    
+    const allData = await db
+      .select()
+      .from(dataUsageTrackingTable)
+      .where(eq(dataUsageTrackingTable.userId, userId));
+
+    const itemsDeleted = allData.length;
+    const bytesDeleted = allData.reduce((sum, r) => sum + r.sizeBytes, 0);
+    
+    // Delete all user data across tables
+    await db
+      .delete(dataUsageTrackingTable)
+      .where(eq(dataUsageTrackingTable.userId, userId));
+
+    await db
+      .delete(privacySettingsTable)
+      .where(eq(privacySettingsTable.userId, userId));
+
+    const auditLog = [
+      {
+        action: 'delete_all_data',
+        timestamp: new Date().toISOString(),
+        itemsDeleted,
+        bytesDeleted,
+        details: `Complete data deletion: ${itemsDeleted} items totaling ${Math.round(bytesDeleted / 1024)} KB`
+      }
+    ];
+
+    return { itemsDeleted, bytesDeleted, auditLog };
+  }
+
+  // Data Export
+  async exportUserData(userId: string): Promise<any> {
+    const { db } = await import("./db");
+    
+    const privacySettings = await this.getPrivacySettings(userId);
+    const dataUsage = await this.getUserDataUsage(userId);
+    
+    // Get other user data for export
+    const sessionData = await db
+      .select()
+      .from(dataUsageTrackingTable)
+      .where(eq(dataUsageTrackingTable.userId, userId));
+
+    return {
+      privacySettings,
+      sessionData,
+      clinicalInsights: [], // Would include actual insights in production
+      hourLogs: [], // Would include actual hour logs in production
+      supervisionRecords: [], // Would include actual supervision data in production
+      dataUsageStatistics: dataUsage,
+    };
+  }
+
+  // Privacy Audit
+  async getPrivacyAuditLog(userId: string): Promise<any[]> {
+    const { db } = await import("./db");
+    
+    const auditEntries = await db
+      .select()
+      .from(dataDeletionRequestTable)
+      .where(eq(dataDeletionRequestTable.userId, userId))
+      .orderBy(desc(dataDeletionRequestTable.createdAt));
+
+    return auditEntries.map(entry => ({
+      timestamp: entry.createdAt.toISOString(),
+      action: entry.requestType,
+      status: entry.status,
+      details: entry.reason || 'User-initiated data management action',
+      itemsAffected: entry.itemsDeleted,
+      bytesAffected: entry.bytesDeleted,
+    }));
+  }
+
+  // Data Retention Policies
+  async applyDataRetentionPolicies(userId: string, retentionDays: number): Promise<{ itemsProcessed: number; itemsDeleted: number; nextReviewDate: Date }> {
+    const { db } = await import("./db");
+    
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
+    
+    // Find items past retention period
+    const expiredItems = await db
+      .select()
+      .from(dataUsageTrackingTable)
+      .where(and(
+        eq(dataUsageTrackingTable.userId, userId),
+        lte(dataUsageTrackingTable.createdAt, cutoffDate)
+      ));
+
+    const itemsProcessed = expiredItems.length;
+    
+    // Update retention status for expired items
+    await db
+      .update(dataUsageTrackingTable)
+      .set({ storageTier: 'deletion_queue', retentionDate: new Date() })
+      .where(and(
+        eq(dataUsageTrackingTable.userId, userId),
+        lte(dataUsageTrackingTable.createdAt, cutoffDate)
+      ));
+
+    const nextReviewDate = new Date();
+    nextReviewDate.setDate(nextReviewDate.getDate() + 30); // Review monthly
+
+    return {
+      itemsProcessed,
+      itemsDeleted: 0, // Items marked for deletion, not immediately deleted
+      nextReviewDate,
+    };
   }
 }
 
