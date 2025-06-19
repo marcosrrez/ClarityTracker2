@@ -258,7 +258,18 @@ ${results.map((result, index) =>
       const response = await result.response;
       const text = response.text();
       
-      const rankings = JSON.parse(text || '{"rankings": []}');
+      // Clean up markdown formatting from Google AI response
+      let cleanText = text?.trim() || '{"rankings": []}';
+      
+      // Remove markdown code blocks
+      cleanText = cleanText.replace(/^```json\s*/i, '').replace(/^```\s*/i, '');
+      cleanText = cleanText.replace(/\s*```$/g, '');
+      
+      // Find JSON object in the response
+      const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+      const jsonText = jsonMatch ? jsonMatch[0] : '{"rankings": []}';
+      
+      const rankings = JSON.parse(jsonText);
       
       // Apply AI rankings to update relevance scores
       rankings.rankings?.forEach((ranking: any) => {
