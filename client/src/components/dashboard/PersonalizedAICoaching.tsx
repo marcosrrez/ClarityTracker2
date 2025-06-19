@@ -32,6 +32,21 @@ interface PersonalizedInsights {
   patternAlert?: string;
 }
 
+interface SessionInsightCard {
+  id: string;
+  type: string;
+  title: string;
+  content: string;
+  cardStyle: 'coaching' | 'learning' | 'supervision' | 'growth' | 'risk' | 'achievement';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  sourceType: string;
+  sessionRecordingId?: string;
+  metadata?: any;
+  createdAt: string;
+  helpful?: boolean;
+  actionTaken?: string;
+}
+
 export const PersonalizedAICoaching = () => {
   const { user, userProfile } = useAuth();
   const { entries: logEntries = [], loading } = useLogEntries();
@@ -45,6 +60,13 @@ export const PersonalizedAICoaching = () => {
     queryKey: ['/api/ai/enhanced-coaching-insights', user?.uid],
     enabled: !!user?.uid,
     refetchInterval: 60000, // Real-time updates from session analyses
+  });
+
+  // Fetch session recording insight cards for unified MyMind experience
+  const { data: sessionInsightCards, isLoading: cardsLoading, refetch: refetchCards } = useQuery({
+    queryKey: ['/api/my-mind/insight-cards', user?.uid],
+    enabled: !!user?.uid,
+    refetchInterval: 30000, // Frequent updates for new session insights
   });
 
   const generateInsights = async () => {
@@ -266,6 +288,122 @@ export const PersonalizedAICoaching = () => {
                       {insights.professionalGrowthInsight}
                     </p>
                   </div>
+
+                  {/* Session Recording Insight Cards */}
+                  {sessionInsightCards?.cards && sessionInsightCards.cards.length > 0 && (
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-2 mt-6">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        <h4 className="font-semibold text-gray-900 text-sm">Session Insights</h4>
+                        <Badge variant="outline" className="text-xs">From Recordings</Badge>
+                      </div>
+                      {sessionInsightCards.cards.slice(0, 3).map((card: SessionInsightCard) => (
+                        <div 
+                          key={card.id}
+                          className={`p-6 rounded-2xl border transition-colors duration-200 ${
+                            card.cardStyle === 'risk' ? 'bg-red-50 border-red-200 hover:bg-red-100' :
+                            card.cardStyle === 'growth' ? 'bg-green-50 border-green-200 hover:bg-green-100' :
+                            card.cardStyle === 'supervision' ? 'bg-yellow-50 border-yellow-200 hover:bg-yellow-100' :
+                            card.cardStyle === 'achievement' ? 'bg-purple-50 border-purple-200 hover:bg-purple-100' :
+                            'bg-blue-50 border-blue-200 hover:bg-blue-100'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-center space-x-3">
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                                card.cardStyle === 'risk' ? 'bg-red-100' :
+                                card.cardStyle === 'growth' ? 'bg-green-100' :
+                                card.cardStyle === 'supervision' ? 'bg-yellow-100' :
+                                card.cardStyle === 'achievement' ? 'bg-purple-100' :
+                                'bg-blue-100'
+                              }`}>
+                                {card.cardStyle === 'risk' ? <AlertTriangle className="h-4 w-4 text-red-500" /> :
+                                 card.cardStyle === 'growth' ? <TrendingUp className="h-4 w-4 text-green-500" /> :
+                                 card.cardStyle === 'supervision' ? <Users className="h-4 w-4 text-yellow-600" /> :
+                                 card.cardStyle === 'achievement' ? <Award className="h-4 w-4 text-purple-500" /> :
+                                 <Lightbulb className="h-4 w-4 text-blue-500" />}
+                              </div>
+                              <div>
+                                <h5 className="font-bold text-gray-900 text-sm">{card.title}</h5>
+                                {card.priority === 'urgent' && (
+                                  <Badge variant="destructive" className="text-xs mt-1">Urgent</Badge>
+                                )}
+                                {card.priority === 'high' && (
+                                  <Badge variant="secondary" className="text-xs mt-1">High Priority</Badge>
+                                )}
+                              </div>
+                            </div>
+                            {card.sessionRecordingId && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                className="text-xs"
+                                onClick={() => {
+                                  // Navigate to session recording view
+                                  console.log('View session:', card.sessionRecordingId);
+                                }}
+                              >
+                                View Session
+                              </Button>
+                            )}
+                          </div>
+                          <p className="text-gray-700 text-sm leading-relaxed font-medium">
+                            {card.content}
+                          </p>
+                          <div className="flex items-center justify-between mt-4">
+                            <span className="text-xs text-gray-500">
+                              {new Date(card.createdAt).toLocaleDateString()}
+                            </span>
+                            <div className="flex items-center space-x-2">
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                className="text-xs"
+                                onClick={async () => {
+                                  await fetch(`/api/my-mind/insight-cards/${card.id}/feedback`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ helpful: true })
+                                  });
+                                  await refetchCards();
+                                }}
+                              >
+                                👍 Helpful
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                className="text-xs"
+                                onClick={async () => {
+                                  await fetch(`/api/my-mind/insight-cards/${card.id}/feedback`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ helpful: false })
+                                  });
+                                  await refetchCards();
+                                }}
+                              >
+                                👎 Not Helpful
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {sessionInsightCards.cards.length > 3 && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="w-full"
+                          onClick={() => {
+                            // Navigate to full MyMind view
+                            window.location.href = '/insights';
+                          }}
+                        >
+                          View All {sessionInsightCards.cards.length} Session Insights
+                        </Button>
+                      )}
+                    </div>
+                  )}
 
                   {/* Intelligence Hub Enhanced Insights */}
                   {insights.therapyProfileInsight && (

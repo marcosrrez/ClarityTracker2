@@ -3032,6 +3032,96 @@ Please provide a helpful, professional response that's personalized to their sit
     }
   });
 
+  // Session Recording Insights Integration API
+  app.post('/api/sessions/:sessionId/generate-insights', express.json(), async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      const { userId } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({ error: 'User ID is required' });
+      }
+
+      // Generate insights from session recording analysis
+      const insights = await storage.generateSessionInsights(sessionId, userId);
+      
+      res.json({
+        success: true,
+        insightsGenerated: insights.length,
+        insights: insights.map(insight => ({
+          id: insight.id,
+          type: insight.insightType,
+          title: insight.title,
+          cardStyle: insight.cardStyle,
+          priority: insight.priority
+        }))
+      });
+    } catch (error) {
+      console.error('Error generating session insights:', error);
+      res.status(500).json({ error: 'Failed to generate session insights' });
+    }
+  });
+
+  // Get Insight Cards for MyMind component
+  app.get('/api/my-mind/insight-cards/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { cardTypes } = req.query;
+      
+      let filterTypes: string[] | undefined;
+      if (cardTypes && typeof cardTypes === 'string') {
+        filterTypes = cardTypes.split(',');
+      }
+
+      const insightCards = await storage.getInsightCardsByUserId(userId, filterTypes);
+      
+      // Format cards for MyMind component
+      const formattedCards = insightCards.map(card => ({
+        id: card.id,
+        type: card.insightType,
+        title: card.title,
+        content: card.content,
+        cardStyle: card.cardStyle,
+        priority: card.priority,
+        sourceType: card.sourceType,
+        sessionRecordingId: card.sessionRecordingId,
+        metadata: card.metadata,
+        createdAt: card.createdAt,
+        helpful: card.helpful,
+        actionTaken: card.actionTaken
+      }));
+
+      res.json({
+        success: true,
+        cards: formattedCards,
+        totalCards: formattedCards.length
+      });
+    } catch (error) {
+      console.error('Error fetching insight cards:', error);
+      res.status(500).json({ error: 'Failed to fetch insight cards' });
+    }
+  });
+
+  // Update Insight Card Feedback
+  app.post('/api/my-mind/insight-cards/:cardId/feedback', express.json(), async (req, res) => {
+    try {
+      const { cardId } = req.params;
+      const { helpful, actionTaken, userFeedback } = req.body;
+      
+      await storage.updateAiInsight(cardId, {
+        helpful,
+        actionTaken,
+        userFeedback,
+        updatedAt: new Date()
+      });
+
+      res.json({ success: true, message: 'Feedback updated successfully' });
+    } catch (error) {
+      console.error('Error updating insight card feedback:', error);
+      res.status(500).json({ error: 'Failed to update feedback' });
+    }
+  });
+
   // Batch AI Processing
   app.post('/api/intelligence/batch-analysis', express.json(), async (req, res) => {
     try {
