@@ -52,14 +52,16 @@ export class EnhancedDingerService {
       const response = await result.response;
       const responseText = response.text();
 
-      // Extract structured insights from response
-      const insights = this.extractInsights(responseText, context);
+      // Extract structured insights from response with enhanced competency mapping
+      const insights = this.extractEnhancedInsights(responseText, context);
 
       return {
         response: responseText,
         sessionInsights: insights.sessionInsights,
         resourceRecommendations: insights.resources,
         supervisionFocus: insights.supervisionTopics,
+        competencyAreas: insights.competencyAreas,
+        riskFactors: insights.riskFactors,
         confidenceLevel: 85
       };
 
@@ -136,6 +138,8 @@ export class EnhancedDingerService {
   private buildSupervisionPrompt(query: string, context: SupervisionContext, mode: string): string {
     const supervisionLevel = this.getSupervisionLevel(context.experienceLevel);
     const sessionSummary = this.createSessionSummary(context);
+    const riskAssessment = this.assessRiskFactors(query, context);
+    const consultationFramework = this.getCaseConsultationFramework(context.experienceLevel);
 
     return `You are Dr. AI Supervisor, a PhD-level licensed counselor with 20+ years of clinical practice, supervision, and research experience. You provide supplemental support to human supervisors working with LACs and mental health professionals.
 
@@ -150,22 +154,36 @@ export class EnhancedDingerService {
 ## SESSION DATA SUMMARY
 ${sessionSummary}
 
+## RISK ASSESSMENT SCREENING
+${riskAssessment}
+
+## CASE CONSULTATION FRAMEWORK
+${consultationFramework}
+
 ## SUPERVISION APPROACH FOR ${context.experienceLevel.toUpperCase()} LEVEL
 ${supervisionLevel}
 
-## STRUCTURED SUPERVISION PROTOCOL
-Based on the supervisee's question and session data, provide guidance that includes:
+## STRUCTURED CLINICAL SUPERVISION PROTOCOL
 
-1. **Clinical Perspective**: Address the specific question with evidence-based insight
-2. **Session Connection**: Reference relevant patterns from their actual session data
-3. **Skill Development**: Targeted recommendations based on their experience level
-4. **Supervision Focus**: Specific areas to discuss with human supervisor
-5. **Next Steps**: Practical actions they can take
+### Phase 1: Clinical Assessment
+1. **Safety Evaluation**: Assess any immediate risk factors or safety concerns
+2. **Case Conceptualization**: Connect presenting issue to theoretical framework
+3. **Evidence-Base Review**: Reference relevant research and best practices
 
-## CURRENT QUESTION
+### Phase 2: Skill Development Analysis
+4. **Competency Mapping**: Identify CACREP standards being addressed
+5. **Technical Skills**: Evaluate intervention techniques and clinical skills
+6. **Professional Development**: Assess growth areas and learning objectives
+
+### Phase 3: Supervision Planning
+7. **Action Steps**: Provide specific, measurable recommendations
+8. **Supervisor Discussion Points**: Key topics for human supervision
+9. **Follow-Up Monitoring**: Identify areas needing ongoing assessment
+
+## CURRENT CONSULTATION REQUEST
 "${query}"
 
-Please provide a comprehensive yet accessible response that connects their question to their actual clinical experience and development needs.`;
+Using the structured protocol above, provide comprehensive supervision that integrates their actual session data with evidence-based clinical guidance. Address safety concerns immediately if present, then proceed through systematic case analysis.`;
   }
 
   /**
@@ -284,6 +302,144 @@ Please provide a comprehensive yet accessible response that connects their quest
 Themes include: ${context.recentThemes.join(', ')}. 
 Current strengths: ${context.strengthAreas.join(', ')}.
 Development focus: ${context.challengeAreas.join(', ')}.`;
+  }
+
+  /**
+   * Assess risk factors from query and session data
+   */
+  private assessRiskFactors(query: string, context: SupervisionContext): string {
+    const riskKeywords = {
+      'High Priority': ['suicide', 'harm', 'crisis', 'danger', 'emergency', 'safety', 'abuse', 'violence'],
+      'Medium Priority': ['risk', 'concern', 'worried', 'anxiety', 'depression', 'trauma', 'substance'],
+      'Clinical Attention': ['boundaries', 'dual relationship', 'ethics', 'competence', 'supervision']
+    };
+
+    const queryLower = query.toLowerCase();
+    const sessionNotes = context.sessionData.map(s => s.notes || '').join(' ').toLowerCase();
+    
+    let riskLevel = 'Standard';
+    let riskFactors: string[] = [];
+
+    // Check for high priority risks
+    if (riskKeywords['High Priority'].some(keyword => queryLower.includes(keyword) || sessionNotes.includes(keyword))) {
+      riskLevel = 'HIGH PRIORITY - IMMEDIATE ATTENTION REQUIRED';
+      riskFactors.push('Safety concerns detected - immediate supervisor consultation required');
+    }
+    
+    // Check for medium priority risks
+    else if (riskKeywords['Medium Priority'].some(keyword => queryLower.includes(keyword) || sessionNotes.includes(keyword))) {
+      riskLevel = 'Medium Priority';
+      riskFactors.push('Clinical risk factors present - enhanced monitoring recommended');
+    }
+    
+    // Check for clinical attention needs
+    else if (riskKeywords['Clinical Attention'].some(keyword => queryLower.includes(keyword) || sessionNotes.includes(keyword))) {
+      riskLevel = 'Clinical Attention';
+      riskFactors.push('Professional development focus - supervision discussion recommended');
+    }
+
+    return `Risk Level: ${riskLevel}
+${riskFactors.length > 0 ? 'Identified Factors: ' + riskFactors.join('; ') : 'No immediate risk factors identified'}
+Supervisee Experience: ${context.experienceLevel} (${context.totalHours} hours) - ${this.getRiskGuidance(context.experienceLevel)}`;
+  }
+
+  /**
+   * Get case consultation framework based on experience level
+   */
+  private getCaseConsultationFramework(experienceLevel: 'novice' | 'developing' | 'proficient' | 'expert'): string {
+    const frameworks = {
+      'novice': `## NOVICE CONSULTATION PROTOCOL
+1. **Safety First**: Always assess client safety and welfare
+2. **Basic Skills Focus**: Concentrate on fundamental therapeutic skills
+3. **Structured Approach**: Use clear, step-by-step intervention planning
+4. **Frequent Check-ins**: Regular supervisor consultation for all cases
+5. **Skill Building**: Focus on core competencies and confidence building`,
+
+      'developing': `## DEVELOPING CONSULTATION PROTOCOL  
+1. **Case Conceptualization**: Practice connecting theory to client presentation
+2. **Intervention Selection**: Explore evidence-based treatment options
+3. **Skill Refinement**: Build on existing strengths while addressing gaps
+4. **Autonomy Building**: Increase independent decision-making with support
+5. **Specialization Exploration**: Begin identifying areas of clinical interest`,
+
+      'proficient': `## PROFICIENT CONSULTATION PROTOCOL
+1. **Complex Case Management**: Handle challenging or multi-faceted cases
+2. **Advanced Techniques**: Implement specialized interventions
+3. **Leadership Development**: Begin mentoring newer clinicians
+4. **Research Integration**: Apply current research to clinical practice
+5. **Ethical Reasoning**: Navigate complex ethical dilemmas independently`,
+
+      'expert': `## EXPERT CONSULTATION PROTOCOL
+1. **Peer Consultation**: Collaborative problem-solving approach
+2. **Innovation**: Develop and test new therapeutic approaches
+3. **Teaching Excellence**: Share expertise with supervisees and colleagues
+4. **Research Contribution**: Contribute to clinical knowledge base
+5. **Systems Thinking**: Address organizational and systemic factors`
+    };
+
+    return frameworks[experienceLevel];
+  }
+
+  /**
+   * Get risk-specific guidance based on experience level
+   */
+  private getRiskGuidance(experienceLevel: 'novice' | 'developing' | 'proficient' | 'expert'): string {
+    const guidance = {
+      'novice': 'Requires immediate supervisor consultation for any risk assessment',
+      'developing': 'Consult supervisor before implementing risk management protocols',
+      'proficient': 'Implement standard protocols with supervisor notification',
+      'expert': 'Manage independently with appropriate documentation and follow-up'
+    };
+
+    return guidance[experienceLevel];
+  }
+
+  /**
+   * Enhanced insight extraction with competency mapping
+   */
+  private extractEnhancedInsights(responseText: string, context: SupervisionContext): any {
+    const insights = {
+      sessionInsights: [],
+      resources: [],
+      supervisionTopics: [],
+      competencyAreas: [],
+      riskFactors: []
+    };
+
+    // Session insights with competency mapping
+    if (context.sessionData.length > 0) {
+      insights.sessionInsights = [
+        `Clinical Experience: ${context.totalHours} hours (${context.experienceLevel} level)`,
+        `Recent Focus: ${context.recentThemes.slice(0, 2).join(', ')}`,
+        `Growth Areas: ${context.challengeAreas.join(', ')}`,
+        `Demonstrated Strengths: ${context.strengthAreas.join(', ')}`
+      ];
+    }
+
+    // CACREP competency areas identified
+    const competencyMapping = {
+      'Therapeutic Alliance': 'CACREP 2.F.5.g - Counseling relationship development',
+      'Assessment Skills': 'CACREP 2.F.7 - Assessment and testing',
+      'Risk Assessment': 'CACREP 2.F.5.m - Crisis intervention and suicide prevention',
+      'Documentation': 'CACREP 2.F.1.l - Records and documentation requirements',
+      'Cultural Competence': 'CACREP 2.F.2.a - Multicultural counseling competencies'
+    };
+
+    context.recentThemes.forEach(theme => {
+      if (competencyMapping[theme]) {
+        insights.competencyAreas.push(competencyMapping[theme]);
+      }
+    });
+
+    // Supervision focus based on experience level and themes
+    insights.supervisionTopics = [
+      `${context.experienceLevel} development priorities`,
+      ...context.challengeAreas.map(area => `${area} skill building`),
+      'Professional identity development',
+      'Ethical decision-making practice'
+    ];
+
+    return insights;
   }
 }
 
