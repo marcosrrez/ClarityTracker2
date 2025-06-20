@@ -5,14 +5,17 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useAuth } from "@/hooks/use-auth";
+import { Shield, Clock } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
+  rememberMe: z.boolean().default(false),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -31,15 +34,23 @@ export const LoginForm = ({ onSwitchToSignUp }: LoginFormProps) => {
     handleSubmit,
     formState: { errors },
     getValues,
+    setValue,
+    watch,
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      rememberMe: false, // Default to more secure option
+    },
   });
+
+  const rememberMe = watch("rememberMe");
 
   const onSubmit = async (data: LoginFormData) => {
     try {
       setIsLoading(true);
       setError(null);
-      await signIn(data.email, data.password);
+      // Pass rememberMe selection to existing signIn method
+      await signIn(data.email, data.password, data.rememberMe);
     } catch (error: any) {
       setError(error.message || "Failed to sign in");
     } finally {
@@ -102,6 +113,44 @@ export const LoginForm = ({ onSwitchToSignUp }: LoginFormProps) => {
           {errors.password && (
             <p className="text-sm text-red-500">{errors.password.message}</p>
           )}
+        </div>
+
+        {/* Session Security Options */}
+        <div className="space-y-3">
+          <div className="flex items-start space-x-3">
+            <Checkbox
+              id="rememberMe"
+              checked={rememberMe}
+              onCheckedChange={(checked) => setValue("rememberMe", checked as boolean)}
+              disabled={isLoading}
+              className="mt-1"
+            />
+            <div className="space-y-1">
+              <Label 
+                htmlFor="rememberMe" 
+                className="text-sm font-medium text-gray-700 cursor-pointer flex items-center gap-2"
+              >
+                {rememberMe ? (
+                  <>
+                    <Shield className="h-4 w-4 text-green-600" />
+                    Keep me signed in for 30 days
+                  </>
+                ) : (
+                  <>
+                    <Clock className="h-4 w-4 text-blue-600" />
+                    Sign me out when I close the browser
+                  </>
+                )}
+              </Label>
+              <p className="text-xs text-gray-500 leading-relaxed">
+                {rememberMe ? (
+                  "More convenient but less secure. Only use on personal devices."
+                ) : (
+                  "More secure option. Recommended for shared or public computers."
+                )}
+              </p>
+            </div>
+          </div>
         </div>
 
         <Button 
