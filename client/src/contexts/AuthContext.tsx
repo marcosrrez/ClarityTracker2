@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useRef } from "react";
+import { createContext, useContext, useEffect, useState, useRef, useCallback } from "react";
 import {
   User,
   UserCredential,
@@ -17,7 +17,6 @@ import {
 import { auth } from "@/lib/firebase";
 import { getUserProfile, createUserProfile, updateUserProfile as updateUserProfileInFirestore } from "@/lib/firestore";
 import type { UserProfile } from "@shared/schema";
-import { useSessionTimeout } from "@/hooks/useSessionTimeout";
 import { SessionWarningModal } from "@/components/auth/SessionWarningModal";
 
 interface AuthContextType {
@@ -55,6 +54,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [sessionTimeout, setSessionTimeout] = useState<number | null>(20); // Default 20 minutes
   const [showSessionWarning, setShowSessionWarning] = useState(false);
   const [warningCountdown, setWarningCountdown] = useState(120); // 2 minutes in seconds
+  
+  // Session timeout refs
+  const timeoutRef = useRef<NodeJS.Timeout>();
+  const warningRef = useRef<NodeJS.Timeout>();
+  const lastActivityRef = useRef<number>(Date.now());
 
   useEffect(() => {
     let mounted = true;
@@ -332,21 +336,43 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   // Session timeout functionality
-  const { resetTimers } = useSessionTimeout({
-    timeoutMinutes: sessionTimeout || 20,
-    warningMinutes: 2,
-    enabled: !!user && !!sessionTimeout,
-    user,
-    logout,
-    onWarning: () => {
-      setWarningCountdown(120); // Reset to 2 minutes
-      setShowSessionWarning(true);
-    },
-    onTimeout: () => {
-      setShowSessionWarning(false);
-      // Logout is handled by the hook
-    },
-  });
+  const resetTimers = useCallback(() => {
+    // Clear existing timers
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    if (warningRef.current) {
+      clearTimeout(warningRef.current);
+    }
+
+    // Only set timers if user is logged in and timeout is enabled
+    if (!user || !sessionTimeout) {
+      return;
+    }
+
+    const timeoutMs = sessionTimeout * 60 * 1000;
+    const warningMs = (sessionTimeout - 2) * 60 * 1000; // 2 minutes before timeout
+    
+    lastActivityRef.current = Date.now();
+
+    // Set warning timer
+    if (warningMs > 0) {
+      warningRef.current = setTimeout(() => {
+        setWarningCountdown(120); // Reset to 2 minutes
+        setShowSessionWarning(true);
+      }, warningMs);
+    }
+
+    // Set logout timer
+    timeoutRef.current = setTimeout(async () => {
+      try {
+        setShowSessionWarning(false);
+        await logout();
+      } catch (error) {
+        console.error('Auto-logout failed:', error);
+      }
+    }, timeoutMs);
+  }, [user, sessionTimeout, logout]);
 
   const handleStaySignedIn = () => {
     setShowSessionWarning(false);
@@ -361,6 +387,64 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       console.error("Error signing out from warning:", error);
     }
   };
+
+  // Activity tracking
+  const handleActivity = useCallback(() => {
+    const now = Date.now();
+    const timeSinceLastActivity = now - lastActivityRef.current;
+    
+    // Only reset if it's been more than 30 seconds since last activity
+    // This prevents excessive timer resets
+    if (timeSinceLastActivity > 30000) {
+      resetTimers();
+    }
+  }, [resetTimers]);
+
+  // Activity event listeners
+  useEffect(() => {
+    if (!user || !sessionTimeout) {
+      return;
+    }
+
+    const events = [
+      'mousedown',
+      'mousemove', 
+      'keypress',
+      'scroll',
+      'touchstart',
+      'click',
+    ];
+
+    // Add throttled event listeners
+    events.forEach(event => {
+      document.addEventListener(event, handleActivity, true);
+    });
+
+    // Initialize timers
+    resetTimers();
+
+    return () => {
+      // Cleanup event listeners
+      events.forEach(event => {
+        document.removeEventListener(event, handleActivity, true);
+      });
+      
+      // Clear timers
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      if (warningRef.current) {
+        clearTimeout(warningRef.current);
+      }
+    };
+  }, [user, sessionTimeout, handleActivity, resetTimers]);
+
+  // Reset timers when user logs in
+  useEffect(() => {
+    if (user && sessionTimeout) {
+      resetTimers();
+    }
+  }, [user, sessionTimeout, resetTimers]);
 
   const value: AuthContextType = {
     user,
