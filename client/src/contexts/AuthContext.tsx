@@ -17,6 +17,8 @@ import {
 import { auth } from "@/lib/firebase";
 import { getUserProfile, createUserProfile, updateUserProfile as updateUserProfileInFirestore } from "@/lib/firestore";
 import type { UserProfile } from "@shared/schema";
+import { useSessionTimeout } from "@/hooks/useSessionTimeout";
+import { SessionWarningModal } from "@/components/auth/SessionWarningModal";
 
 interface AuthContextType {
   user: User | null;
@@ -50,7 +52,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [sessionTimeout, setSessionTimeout] = useState<number | null>(null);
+  const [sessionTimeout, setSessionTimeout] = useState<number | null>(20); // Default 20 minutes
+  const [showSessionWarning, setShowSessionWarning] = useState(false);
+  const [warningCountdown, setWarningCountdown] = useState(120); // 2 minutes in seconds
 
   useEffect(() => {
     let mounted = true;
@@ -327,6 +331,37 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  // Session timeout functionality
+  const { resetTimers } = useSessionTimeout({
+    timeoutMinutes: sessionTimeout || 20,
+    warningMinutes: 2,
+    enabled: !!user && !!sessionTimeout,
+    user,
+    logout,
+    onWarning: () => {
+      setWarningCountdown(120); // Reset to 2 minutes
+      setShowSessionWarning(true);
+    },
+    onTimeout: () => {
+      setShowSessionWarning(false);
+      // Logout is handled by the hook
+    },
+  });
+
+  const handleStaySignedIn = () => {
+    setShowSessionWarning(false);
+    resetTimers();
+  };
+
+  const handleSignOutFromWarning = async () => {
+    setShowSessionWarning(false);
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Error signing out from warning:", error);
+    }
+  };
+
   const value: AuthContextType = {
     user,
     userProfile,
@@ -341,5 +376,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setSessionTimeout,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+      <SessionWarningModal
+        isOpen={showSessionWarning}
+        onStaySignedIn={handleStaySignedIn}
+        onSignOut={handleSignOutFromWarning}
+        remainingSeconds={warningCountdown}
+      />
+    </AuthContext.Provider>
+  );
 };
