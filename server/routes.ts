@@ -2245,6 +2245,112 @@ Please provide a helpful, professional response that's personalized to their sit
     }
   });
 
+  // Azure Speech Processing APIs
+  app.post('/api/azure/process-recorded-audio', express.json(), async (req, res) => {
+    try {
+      const { audioData, sessionMetadata, realtimeTranscript } = req.body;
+      
+      if (!process.env.AZURE_SPEECH_KEY) {
+        return res.json({ 
+          success: true,
+          finalTranscript: realtimeTranscript || '',
+          confidence: 0.7,
+          fallbackUsed: true,
+          message: 'Azure Speech Service not configured, using fallback transcript'
+        });
+      }
+
+      // Convert base64 audio to buffer
+      const audioBuffer = Buffer.from(audioData, 'base64');
+      
+      // Import Azure Speech Service dynamically
+      const { AzureSpeechService } = await import('./azure-speech-service');
+      const speechService = new AzureSpeechService();
+      
+      // Process audio with Azure Speech Services
+      const transcriptionResult = await speechService.transcribeAudioBlob(audioBuffer, sessionMetadata);
+      
+      res.json({
+        success: true,
+        finalTranscript: transcriptionResult.transcript,
+        confidence: transcriptionResult.confidence,
+        segments: transcriptionResult.segments,
+        fallbackUsed: false
+      });
+      
+    } catch (error) {
+      console.error('Azure speech processing failed:', error);
+      
+      // Return fallback transcript
+      res.json({
+        success: true,
+        finalTranscript: req.body.realtimeTranscript || '',
+        confidence: 0.7,
+        fallbackUsed: true,
+        error: error.message
+      });
+    }
+  });
+
+  app.post('/api/azure/process-uploaded-audio', upload.single('audio'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No audio file provided' });
+      }
+
+      if (!process.env.AZURE_SPEECH_KEY) {
+        return res.status(503).json({ error: 'Azure Speech Service not configured' });
+      }
+
+      // Import Azure Speech Service
+      const { AzureSpeechService } = await import('./azure-speech-service');
+      const speechService = new AzureSpeechService();
+      
+      // Process uploaded file
+      const transcriptionResult = await speechService.processUploadedFile(
+        req.file.buffer, 
+        req.file.mimetype
+      );
+      
+      res.json({
+        success: true,
+        transcript: transcriptionResult.transcript,
+        confidence: transcriptionResult.confidence,
+        segments: transcriptionResult.segments
+      });
+      
+    } catch (error) {
+      console.error('File processing failed:', error);
+      res.status(500).json({ 
+        error: 'Failed to process audio file',
+        details: error.message 
+      });
+    }
+  });
+
+  app.post('/api/azure/start-speech-recognition', express.json(), async (req, res) => {
+    try {
+      const { sessionMode, sessionType, intervention } = req.body;
+      
+      if (!process.env.AZURE_SPEECH_KEY) {
+        return res.status(503).json({ error: 'Azure Speech Service not configured' });
+      }
+      
+      // In a production system, you'd set up WebSocket connection for real-time streaming
+      // For now, we'll acknowledge the request and use browser-based recognition
+      res.json({
+        success: true,
+        message: 'Speech recognition initialized',
+        mode: sessionMode,
+        realTimeSupported: false // Browser fallback for real-time
+      });
+      
+    } catch (error) {
+      console.error('Failed to start speech recognition:', error);
+      res.status(500).json({ error: 'Failed to initialize speech recognition' });
+    }
+  });
+
   // Clinical Intelligence Dashboard Enhancement API
   app.get('/api/ai/enhanced-smart-insights/:userId', async (req, res) => {
     try {

@@ -729,7 +729,7 @@ export function MinimalistRecorder() {
                   ref={fileInputRef}
                   type="file"
                   accept="audio/*,video/*"
-                  onChange={handleFileUpload}
+                  onChange={handleFileUploadSelect}
                   className="hidden"
                 />
                 <Button
