@@ -98,6 +98,8 @@ export function MinimalistRecorder() {
   const [isProcessingFile, setIsProcessingFile] = useState(false);
   const [advancedMode, setAdvancedMode] = useState(false);
   const [showLiveMetrics, setShowLiveMetrics] = useState(false);
+  const [transcript, setTranscript] = useState('');
+  const [isTranscribing, setIsTranscribing] = useState(false);
   
   // Advanced features state
   const [recordingQuality, setRecordingQuality] = useState({ audio: 95, video: 88 });
@@ -107,6 +109,9 @@ export function MinimalistRecorder() {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const durationIntervalRef = useRef<NodeJS.Timeout>();
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   // Format duration helper
   const formatDuration = (seconds: number): string => {
@@ -135,12 +140,166 @@ export function MinimalistRecorder() {
   }, [isRecording, isPaused]);
 
   const startRecording = async () => {
-    setIsRecording(true);
-    setIsPaused(false);
-    setSessionDuration(0);
-    
-    if (advancedMode) {
-      await initializeAdvancedRecording();
+    try {
+      setIsRecording(true);
+      setIsPaused(false);
+      setSessionDuration(0);
+      setTranscript('');
+      setIsTranscribing(true);
+      
+      // Initialize media recording with Azure Speech integration
+      await initializeRecordingWithAzure();
+      
+      if (advancedMode) {
+        await initializeAdvancedRecording();
+      }
+    } catch (error) {
+      console.error('Failed to start recording:', error);
+      setIsRecording(false);
+      setIsTranscribing(false);
+    }
+  };
+
+  const initializeRecordingWithAzure = async () => {
+    try {
+      // Get media stream
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: true,
+        video: currentMode === 'telehealth' || currentMode === 'in-person'
+      });
+      
+      streamRef.current = stream;
+      audioChunksRef.current = [];
+      
+      // Set up MediaRecorder for audio capture
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm;codecs=opus'
+      });
+      
+      mediaRecorderRef.current = mediaRecorder;
+      
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+      
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        // Process the recorded audio when recording stops
+        setTimeout(() => processRecordedAudio(audioBlob), 100);
+      };
+      
+      // Start recording
+      mediaRecorder.start(1000); // Collect data every second
+      
+      // Start Azure Speech transcription
+      await startAzureTranscription(stream);
+      
+    } catch (error) {
+      console.error('Error initializing recording with Azure:', error);
+      throw error;
+    }
+  };
+
+  const startAzureTranscription = async (stream: MediaStream) => {
+    try {
+      const response = await fetch('/api/azure/start-speech-recognition', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionMode: currentMode,
+          sessionType: sessionType,
+          intervention: primaryIntervention
+        })
+      });
+
+      if (response.ok) {
+        console.log('Azure Speech Recognition initialized');
+        // Start real-time transcription processing
+        startRealtimeTranscription();
+      } else {
+        console.warn('Azure Speech Service unavailable, using browser fallback');
+        startBrowserSpeechRecognition();
+      }
+    } catch (error) {
+      console.error('Azure transcription failed, using browser fallback:', error);
+      startBrowserSpeechRecognition();
+    }
+  };
+
+  const startRealtimeTranscription = () => {
+    // Poll for transcription updates from Azure
+    const transcriptionInterval = setInterval(async () => {
+      if (!isRecording) {
+        clearInterval(transcriptionInterval);
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/azure/get-transcription-update');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.transcript) {
+            setTranscript(prev => prev + ' ' + data.transcript);
+            
+            // Add to speaker diarization if available
+            if (data.speaker) {
+              setSpeakerDiarization(prev => [...prev, {
+                speaker: data.speaker,
+                text: data.transcript,
+                timestamp: sessionDuration
+              }]);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to get transcription update:', error);
+      }
+    }, 2000);
+
+    // Store interval for cleanup
+    (window as any).transcriptionInterval = transcriptionInterval;
+  };
+
+  const startBrowserSpeechRecognition = () => {
+    if ('webkitSpeechRecognition' in window) {
+      const recognition = new (window as any).webkitSpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+      
+      recognition.onresult = (event: any) => {
+        let interimTranscript = '';
+        let finalTranscript = '';
+        
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript;
+          } else {
+            interimTranscript += transcript;
+          }
+        }
+        
+        if (finalTranscript) {
+          setTranscript(prev => prev + ' ' + finalTranscript);
+          setSpeakerDiarization(prev => [...prev, {
+            speaker: 'Speaker',
+            text: finalTranscript,
+            timestamp: sessionDuration
+          }]);
+        }
+      };
+      
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+      };
+      
+      recognition.start();
+      (window as any).speechRecognition = recognition;
     }
   };
 
@@ -294,9 +453,100 @@ export function MinimalistRecorder() {
     setIsPaused(!isPaused);
   };
 
+  const processRecordedAudio = async (audioBlob: Blob) => {
+    try {
+      setIsAnalyzing(true);
+      
+      // Convert audio blob to base64 for Azure processing
+      const base64Audio = await blobToBase64(audioBlob);
+      
+      // Send to Azure Speech Services for final transcription and analysis
+      const response = await fetch('/api/azure/process-recorded-audio', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          audioData: base64Audio,
+          sessionMetadata: {
+            mode: currentMode,
+            type: sessionType,
+            intervention: primaryIntervention,
+            duration: sessionDuration
+          },
+          realtimeTranscript: transcript
+        })
+      });
+
+      if (response.ok) {
+        const analysisData = await response.json();
+        
+        // Update transcript with final Azure result
+        if (analysisData.finalTranscript) {
+          setTranscript(analysisData.finalTranscript);
+        }
+        
+        // Trigger comprehensive session analysis
+        await analyzeSessionContent(analysisData.finalTranscript || transcript);
+      } else {
+        // Fall back to analyzing existing transcript
+        await analyzeSessionContent(transcript);
+      }
+      
+    } catch (error) {
+      console.error('Error processing recorded audio:', error);
+      // Fall back to analyzing existing transcript
+      await analyzeSessionContent(transcript);
+    } finally {
+      setIsAnalyzing(false);
+      setIsTranscribing(false);
+    }
+  };
+
+  const blobToBase64 = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        resolve(result.split(',')[1]); // Remove data:audio/webm;base64, prefix
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  };
+
   const stopRecording = () => {
     setIsRecording(false);
     setIsPaused(false);
+    setIsTranscribing(false);
+    
+    // Stop media recording
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+    }
+    
+    // Stop media streams
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+    }
+    
+    // Clean up intervals and speech recognition
+    if ((window as any).transcriptionInterval) {
+      clearInterval((window as any).transcriptionInterval);
+    }
+    
+    if ((window as any).speechRecognition) {
+      (window as any).speechRecognition.stop();
+    }
+    
+    if ((window as any).qualityInterval) {
+      clearInterval((window as any).qualityInterval);
+    }
+    
+    if ((window as any).videoInterval) {
+      clearInterval((window as any).videoInterval);
+    }
+    
     if (durationIntervalRef.current) {
       clearInterval(durationIntervalRef.current);
     }
