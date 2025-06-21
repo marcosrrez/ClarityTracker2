@@ -487,16 +487,22 @@ export function MinimalistRecorder() {
         }
         
         // Trigger comprehensive session analysis
-        await analyzeSessionContent(analysisData.finalTranscript || transcript);
+        if (analysisData.finalTranscript || transcript) {
+          await analyzeSessionContent(analysisData.finalTranscript || transcript);
+        }
       } else {
         // Fall back to analyzing existing transcript
-        await analyzeSessionContent(transcript);
+        if (transcript) {
+          await analyzeSessionContent(transcript);
+        }
       }
       
     } catch (error) {
       console.error('Error processing recorded audio:', error);
       // Fall back to analyzing existing transcript
-      await analyzeSessionContent(transcript);
+      if (transcript) {
+        await analyzeSessionContent(transcript);
+      }
     } finally {
       setIsAnalyzing(false);
       setIsTranscribing(false);
@@ -514,6 +520,43 @@ export function MinimalistRecorder() {
       reader.readAsDataURL(blob);
     });
   };
+
+  const analyzeSessionContent = async (sessionTranscript: string) => {
+    try {
+      setIsAnalyzing(true);
+      
+      const analysisPayload = {
+        sessionContent: sessionTranscript,
+        sessionType: sessionType,
+        primaryIntervention: primaryIntervention,
+        sessionDuration: sessionDuration,
+        sessionMode: currentMode,
+        speakerDiarization: speakerDiarization
+      };
+
+      const response = await fetch('/api/ai/analyze-comprehensive-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(analysisPayload)
+      });
+
+      if (response.ok) {
+        const analysis = await response.json();
+        setAnalysisResult(analysis);
+      } else {
+        console.error('Session analysis failed');
+      }
+      
+    } catch (error) {
+      console.error('Error analyzing session content:', error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+
 
   const stopRecording = () => {
     setIsRecording(false);
@@ -562,7 +605,7 @@ export function MinimalistRecorder() {
     }
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUploadSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       setUploadedFile(file);
