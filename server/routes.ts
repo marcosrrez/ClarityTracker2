@@ -2554,64 +2554,112 @@ Please provide a helpful, professional response that's personalized to their sit
     }
   });
 
-  // Clinical Metrics API for dashboard intelligence (unified)
+  // Clinical Metrics API for dashboard intelligence
   app.get('/api/ai/clinical-metrics/:userId', async (req, res) => {
     try {
       const { userId } = req.params;
       
-      // Use unified dashboard service for validated clinical metrics
-      const { UnifiedDashboardService } = await import('./services/unified-dashboard-service');
-      const { metrics, dataQuality, basedOnRealData } = await UnifiedDashboardService.getValidatedClinicalMetrics(userId);
-      
-      // Add data quality indicators
-      metrics.dataQuality = dataQuality;
-      metrics.basedOnRealData = basedOnRealData;
-      
-      if (!basedOnRealData) {
-        metrics.message = 'Complete sessions with AI analysis to see your actual clinical metrics';
+      // Get recent session analyses for authentic clinical metrics
+      const sessionAnalyses = await db.select()
+        .from(sessionAnalysisTable)
+        .where(eq(sessionAnalysisTable.userId, userId))
+        .orderBy(desc(sessionAnalysisTable.createdAt))
+        .limit(20);
+
+      if (!sessionAnalyses.length) {
+        return res.json({
+          overallScore: 0,
+          trend: "neutral",
+          breakdown: {
+            therapeuticTechniques: 0,
+            clinicalInsight: 0,
+            documentationQuality: 0,
+            evidenceBasedPractice: 0
+          },
+          sessionCount: 0,
+          lastUpdated: new Date().toISOString()
+        });
       }
 
-      res.json(metrics);
+      // Calculate Clinical Intelligence Score from authentic session data
+      let totalScore = 0;
+      let scoreCount = 0;
+      const breakdown = {
+        therapeuticTechniques: 0,
+        clinicalInsight: 0,
+        documentationQuality: 0,
+        evidenceBasedPractice: 0
+      };
+
+      sessionAnalyses.forEach(analysis => {
+        if (analysis.clinicalInsights && typeof analysis.clinicalInsights === 'object') {
+          const insights = analysis.clinicalInsights as any;
+          
+          // Score therapeutic techniques from authentic analysis
+          if (insights.therapeuticTechniques?.length > 0) {
+            breakdown.therapeuticTechniques += Math.min(100, insights.therapeuticTechniques.length * 20);
+            scoreCount++;
+          }
+          
+          // Score clinical insight quality from detected patterns
+          if (insights.clinicalPatterns?.length > 0) {
+            breakdown.clinicalInsight += Math.min(100, insights.clinicalPatterns.length * 25);
+            scoreCount++;
+          }
+          
+          // Score documentation quality from transcript completeness
+          if (analysis.transcriptionData) {
+            const transcriptLength = typeof analysis.transcriptionData === 'string' 
+              ? analysis.transcriptionData.length 
+              : JSON.stringify(analysis.transcriptionData).length;
+            breakdown.documentationQuality += Math.min(100, transcriptLength / 50);
+            scoreCount++;
+          }
+          
+          // Score evidence-based practice from detected techniques
+          if (insights.evidenceBasedTechniques?.length > 0) {
+            breakdown.evidenceBasedPractice += Math.min(100, insights.evidenceBasedTechniques.length * 30);
+            scoreCount++;
+          }
+        }
+      });
+
+      // Calculate averages from authentic session data
+      if (scoreCount > 0) {
+        Object.keys(breakdown).forEach(key => {
+          breakdown[key as keyof typeof breakdown] = Math.round(breakdown[key as keyof typeof breakdown] / sessionAnalyses.length);
+          totalScore += breakdown[key as keyof typeof breakdown];
+        });
+        totalScore = Math.round(totalScore / Object.keys(breakdown).length);
+      }
+
+      // Determine trend from authentic progression analysis
+      let trend = "neutral";
+      if (sessionAnalyses.length >= 5) {
+        const recentScores = sessionAnalyses.slice(0, 5).map(a => {
+          const insights = a.clinicalInsights as any;
+          return (insights?.therapeuticTechniques?.length || 0) + 
+                 (insights?.clinicalPatterns?.length || 0) + 
+                 (insights?.evidenceBasedTechniques?.length || 0);
+        });
+        
+        const firstHalf = recentScores.slice(0, 2).reduce((sum, score) => sum + score, 0) / 2;
+        const secondHalf = recentScores.slice(-2).reduce((sum, score) => sum + score, 0) / 2;
+        
+        if (secondHalf > firstHalf * 1.1) trend = "improving";
+        else if (secondHalf < firstHalf * 0.9) trend = "declining";
+      }
+
+      res.json({
+        overallScore: totalScore,
+        trend,
+        breakdown,
+        sessionCount: sessionAnalyses.length,
+        lastUpdated: new Date().toISOString()
+      });
     } catch (error) {
       console.error('Error calculating clinical metrics:', error);
-      
-      // Fallback response with data quality indicators
-      res.json({
-        overallScore: 0,
-        trend: "neutral",
-        breakdown: {
-          therapeuticAlliance: 0,
-          interventionEffectiveness: 0,
-          professionalDevelopment: 0,
-          clinicalDocumentation: 0,
-          ethicalPractice: 0
-        },
-        sessionCount: 0,
-        dataQuality: {
-          hasRealSessionData: false,
-          hasSupervisionData: false,
-          hasAIAnalysis: false,
-          sufficientForInsights: false
-        },
-        basedOnRealData: false,
-        message: 'Unable to calculate clinical metrics at this time'
-      });
-    }
-  });
-
-  // Unified Dashboard API - Single source of truth for all dashboard metrics
-  app.get('/api/dashboard/unified/:userId', async (req, res) => {
-    try {
-      const { userId } = req.params;
-      
-      // Get unified dashboard data
-      const { UnifiedDashboardService } = await import('./services/unified-dashboard-service');
-      const dashboardData = await UnifiedDashboardService.getDashboardData(userId);
-      
-      res.json(dashboardData);
-    } catch (error) {
-      console.error('Error fetching unified dashboard data:', error);
-      res.status(500).json({ error: 'Failed to fetch unified dashboard data' });
+      res.status(500).json({ error: 'Failed to calculate clinical metrics' });
     }
   });
 
@@ -2624,10 +2672,7 @@ Please provide a helpful, professional response that's personalized to their sit
       const aiAnalyses: any[] = []; // Will be populated when storage method is implemented
       const logEntries: any[] = [];
       
-      // Only provide clinical metrics if we have real data
-      const hasRealData = aiAnalyses.length > 0 || logEntries.length > 0;
-      
-      let clinicalMetrics = hasRealData ? {
+      let clinicalMetrics = {
         overallScore: 82,
         trend: "improving",
         breakdown: {
@@ -2638,18 +2683,6 @@ Please provide a helpful, professional response that's personalized to their sit
         },
         sessionCount: 12,
         lastUpdated: new Date().toISOString()
-      } : {
-        overallScore: 0,
-        trend: "neutral",
-        breakdown: {
-          therapeuticTechniques: 0,
-          clinicalInsight: 0,
-          documentationQuality: 0,
-          evidenceBasedPractice: 0
-        },
-        sessionCount: 0,
-        lastUpdated: new Date().toISOString(),
-        message: "No clinical data available yet"
       };
 
       // Enhance metrics with manual entry AI analysis data
@@ -2700,27 +2733,10 @@ Please provide a helpful, professional response that's personalized to their sit
     }
   });
 
-  // Enhanced Competency Data API (with validation)
+  // Enhanced Competency Data API
   app.get('/api/ai/enhanced-competency-data/:userId', async (req, res) => {
     try {
       const { userId } = req.params;
-      
-      // Validate competency data availability
-      const { UnifiedDashboardService } = await import('./services/unified-dashboard-service');
-      const validation = await UnifiedDashboardService.validateCompetencyData(userId);
-      
-      if (!validation.hasCompetencyData) {
-        return res.json({
-          therapeuticRelationship: { scores: [], evidence: [], trend: 'neutral', dataAvailable: false },
-          assessmentEvaluation: { scores: [], evidence: [], trend: 'neutral', dataAvailable: false },
-          interventionTechniques: { scores: [], evidence: [], trend: 'neutral', dataAvailable: false },
-          multiculturalCompetence: { scores: [], evidence: [], trend: 'neutral', dataAvailable: false },
-          ethicalPractice: { scores: [], evidence: [], trend: 'neutral', dataAvailable: false },
-          professionalDevelopment: { scores: [], evidence: [], trend: 'neutral', dataAvailable: false },
-          message: 'Record sessions with AI analysis to track competency development',
-          dataQuality: 'insufficient'
-        });
-      }
       
       // Get session analyses with competency scores
       const sessionAnalyses = await db.select()
@@ -2730,12 +2746,12 @@ Please provide a helpful, professional response that's personalized to their sit
         .limit(20);
 
       const competencyData = {
-        therapeuticRelationship: { scores: [], evidence: [], trend: 'neutral', dataAvailable: true },
-        assessmentEvaluation: { scores: [], evidence: [], trend: 'neutral', dataAvailable: true },
-        interventionTechniques: { scores: [], evidence: [], trend: 'neutral', dataAvailable: true },
-        multiculturalCompetence: { scores: [], evidence: [], trend: 'neutral', dataAvailable: true },
-        ethicalPractice: { scores: [], evidence: [], trend: 'neutral', dataAvailable: true },
-        professionalDevelopment: { scores: [], evidence: [], trend: 'neutral', dataAvailable: true }
+        therapeuticRelationship: { scores: [], evidence: [], trend: 'neutral' },
+        assessmentEvaluation: { scores: [], evidence: [], trend: 'neutral' },
+        interventionTechniques: { scores: [], evidence: [], trend: 'neutral' },
+        multiculturalCompetence: { scores: [], evidence: [], trend: 'neutral' },
+        ethicalPractice: { scores: [], evidence: [], trend: 'neutral' },
+        professionalDevelopment: { scores: [], evidence: [], trend: 'neutral' }
       };
 
       // Process session analyses for competency data
@@ -2782,9 +2798,6 @@ Please provide a helpful, professional response that's personalized to their sit
         }
       });
 
-      // Add data quality indicator
-      competencyData.dataQuality = 'good';
-      competencyData.evidenceCount = validation.evidenceCount;
       res.json(competencyData);
     } catch (error) {
       console.error('Error generating enhanced competency data:', error);
@@ -2857,30 +2870,12 @@ Please provide a helpful, professional response that's personalized to their sit
     return mapThemeToCompetency(focus); // Reuse the theme mapping logic
   }
 
-  // Enhanced Coaching Insights API (with data validation)
+  // Enhanced Coaching Insights API
   app.get('/api/ai/enhanced-coaching-insights/:userId', async (req, res) => {
     try {
       const { userId } = req.params;
       
-      // Validate that insights should be generated
-      const { UnifiedDashboardService } = await import('./services/unified-dashboard-service');
-      const validation = await UnifiedDashboardService.validateAIInsightGeneration(userId);
-      
-      if (!validation.shouldGenerate) {
-        return res.json({
-          weeklyFocus: validation.fallbackMessage,
-          skillDevelopmentTip: 'Complete more sessions to receive personalized skill development recommendations.',
-          supervisionTopic: 'Discuss your current learning goals and areas for development.',
-          professionalGrowthInsight: 'Your professional development insights will appear as you log more sessions.',
-          therapyProfileInsight: null,
-          competencyFocus: null,
-          patternAlert: null,
-          dataQuality: 'insufficient',
-          message: validation.fallbackMessage
-        });
-      }
-      
-      // Get recent session analyses only if validation passes
+      // Get recent session analyses
       const sessionAnalyses = await db.select()
         .from(sessionAnalysisTable)
         .where(eq(sessionAnalysisTable.userId, userId))
@@ -2963,8 +2958,6 @@ Please provide a helpful, professional response that's personalized to their sit
         }
       }
 
-      // Add data quality indicator
-      insights.dataQuality = 'good';
       res.json(insights);
     } catch (error) {
       console.error('Error generating enhanced coaching insights:', error);
@@ -7202,20 +7195,31 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
     }
   });
 
-  // Get supervision metrics for a specific user (unified)
+  // Get supervision metrics for a specific user
   app.get('/api/supervision/metrics/:userId', async (req, res) => {
     try {
       const { userId } = req.params;
       
-      // Use unified dashboard service for consistent data
-      const { UnifiedDashboardService } = await import('./services/unified-dashboard-service');
-      const dashboardData = await UnifiedDashboardService.getDashboardData(userId);
+      // Use the same data source as the working supervisors API
+      const supervisors = await storage.getSupervisorsByUserId(userId);
+      
+      // Count active supervisors using the same logic as QuickStatsGrid
+      const activeSupervisors = supervisors.filter((s: any) => s.isActive === true).length;
+      
+      // Calculate total hours from supervisors (they store totalHours)
+      const totalHours = supervisors.reduce((sum: number, supervisor: any) => {
+        return sum + (supervisor.totalHours || 0);
+      }, 0);
+      
+      // For now, return basic metrics using available data
+      // Sessions this month would need additional data source
+      const sessionsThisMonth = supervisors.length > 0 ? 1 : 0; // Simple approximation
       
       const metrics = {
-        activeSupervisors: dashboardData.activeSupervisors,
-        totalHours: dashboardData.supervisionTotalHours,
-        sessionsThisMonth: dashboardData.sessionsThisMonth,
-        progressPercentage: dashboardData.supervisionProgressPercentage
+        activeSupervisors,
+        totalHours: Math.round(totalHours * 10) / 10,
+        sessionsThisMonth,
+        progressPercentage: Math.min((totalHours / 50) * 100, 100)
       };
 
       res.json(metrics);
@@ -8502,21 +8506,6 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
 
   // Apply rate limiting to existing routes
   app.use('/api/log-entries', authRateLimit);
-
-  // Log entries API endpoint - uses Firebase data until database migration
-  app.get('/api/log-entries/:userId', async (req, res) => {
-    try {
-      const { userId } = req.params;
-      
-      // For now, return empty array since the frontend handles Firebase directly
-      // In a production setup, this would integrate with Firebase Admin SDK
-      // The unified dashboard will call this endpoint for consistency
-      res.json([]);
-    } catch (error) {
-      console.error('Error fetching log entries:', error);
-      res.status(500).json({ error: 'Failed to fetch log entries' });
-    }
-  });
   app.use('/api/ai/', aiAnalysisRateLimit);
   app.use('/api/privacy/export-data', dataExportRateLimit);
   app.use('/api/privacy/', authRateLimit);

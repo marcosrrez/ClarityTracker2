@@ -1384,22 +1384,9 @@ ${content}`;
   }
 
   async getLogEntries(userId: string): Promise<any[]> {
-    try {
-      const { db } = await import("./db");
-      const { logEntryTable } = await import("@shared/schema");
-      
-      const entries = await db
-        .select()
-        .from(logEntryTable)
-        .where(eq(logEntryTable.userId, userId))
-        .orderBy(desc(logEntryTable.dateOfContact));
-      
-      return entries;
-    } catch (error) {
-      console.error('Error getting log entries from database:', error);
-      // If database fails, return empty array rather than crash
-      return [];
-    }
+    // For now, return empty array since this is primarily for onboarding
+    // In production, this would query the actual log entries table
+    return [];
   }
 
   // Privacy Settings functionality

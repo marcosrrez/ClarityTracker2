@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { useUnifiedDashboardData } from '@/hooks/use-unified-dashboard';
-import { useAppSettings, useLogEntries } from '@/hooks/use-firestore';
+import { useLogEntries } from '@/hooks/use-firestore';
+import { useAppSettings } from '@/hooks/use-firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,13 +9,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Trophy, AlertTriangle } from 'lucide-react';
 import { updateAppSettings } from '@/lib/firestore';
-// import { EnhancedProgressSection } from "./EnhancedProgressSection"; // Temporarily disabled while updating
+import { EnhancedProgressSection } from "./EnhancedProgressSection";
 
 export const ProgressSection = () => {
   const { user } = useAuth();
   const { entries, loading: entriesLoading } = useLogEntries();
   const { settings, loading: settingsLoading, refetch: refetchSettings } = useAppSettings();
-  // const { data: dashboardData, isLoading: dashboardLoading } = useUnifiedDashboardData(); // Disabled - using Firebase data
   const { toast } = useToast();
   
   const [ethicsHours, setEthicsHours] = useState("");
@@ -45,31 +44,21 @@ export const ProgressSection = () => {
     );
   }
 
-  // Calculate metrics from Firebase data
-  const { totalClientHours, directClientHours, supervisionHours } = React.useMemo(() => {
-    if (!entries || entries.length === 0) {
-      return { totalClientHours: 0, directClientHours: 0, supervisionHours: 0 };
-    }
-    
-    const totalClient = entries.reduce((sum, entry) => {
-      return sum + (entry.clientHours || 0);
-    }, 0);
-    
-    const directClient = entries.reduce((sum, entry) => {
-      return sum + (entry.type === 'direct' ? (entry.clientHours || 0) : 0);
-    }, 0);
-    
-    const supervision = entries.reduce((sum, entry) => {
-      return sum + (entry.supervisionHours || 0);
-    }, 0);
-    
-    return { totalClientHours: totalClient, directClientHours: directClient, supervisionHours: supervision };
-  }, [entries]);
-  
-  const finalTotalCCH = totalClientHours;
-  const finalDirectCCH = directClientHours;
-  const finalSupervisionHours = supervisionHours;
-  const finalEthicsHours = settings?.ethicsHours || 0;
+  // Calculate progress from entries
+  const totalClientHours = entries.reduce((sum, entry) => sum + entry.clientContactHours, 0);
+  const directClientHours = entries.filter(entry => !entry.indirectHours).reduce((sum, entry) => sum + entry.clientContactHours, 0);
+  const totalSupervisionHours = entries.reduce((sum, entry) => sum + entry.supervisionHours, 0);
+
+  // Add imported hours
+  const importedTotalCCH = settings?.importedHours?.totalCCH || 0;
+  const importedDirectCCH = settings?.importedHours?.directCCH || 0;
+  const importedSupervisionHours = settings?.importedHours?.supervisionHours || 0;
+  const importedEthicsHours = settings?.importedHours?.ethicsHours || 0;
+
+  const finalTotalCCH = totalClientHours + importedTotalCCH;
+  const finalDirectCCH = directClientHours + importedDirectCCH;
+  const finalSupervisionHours = totalSupervisionHours + importedSupervisionHours;
+  const finalEthicsHours = importedEthicsHours;
 
   // Goals
   const goalTotalCCH = settings?.goals?.totalCCH || 2000;
@@ -77,7 +66,7 @@ export const ProgressSection = () => {
   const goalSupervisionHours = settings?.goals?.supervisionHours || 200;
   const goalEthicsHours = settings?.goals?.ethicsHours || 20;
 
-  // Progress percentages (use unified dashboard data when available)
+  // Progress percentages
   const totalCCHProgress = Math.min((finalTotalCCH / goalTotalCCH) * 100, 100);
   const directCCHProgress = Math.min((finalDirectCCH / goalDirectCCH) * 100, 100);
   const supervisionProgress = Math.min((finalSupervisionHours / goalSupervisionHours) * 100, 100);
