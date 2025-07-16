@@ -2624,7 +2624,10 @@ Please provide a helpful, professional response that's personalized to their sit
       const aiAnalyses: any[] = []; // Will be populated when storage method is implemented
       const logEntries: any[] = [];
       
-      let clinicalMetrics = {
+      // Only provide clinical metrics if we have real data
+      const hasRealData = aiAnalyses.length > 0 || logEntries.length > 0;
+      
+      let clinicalMetrics = hasRealData ? {
         overallScore: 82,
         trend: "improving",
         breakdown: {
@@ -2635,6 +2638,18 @@ Please provide a helpful, professional response that's personalized to their sit
         },
         sessionCount: 12,
         lastUpdated: new Date().toISOString()
+      } : {
+        overallScore: 0,
+        trend: "neutral",
+        breakdown: {
+          therapeuticTechniques: 0,
+          clinicalInsight: 0,
+          documentationQuality: 0,
+          evidenceBasedPractice: 0
+        },
+        sessionCount: 0,
+        lastUpdated: new Date().toISOString(),
+        message: "No clinical data available yet"
       };
 
       // Enhance metrics with manual entry AI analysis data

@@ -77,7 +77,7 @@ export class UnifiedDashboardService {
       // Final totals
       const totalClientHours = coreMetrics.totalClientHours + importedTotalCCH;
       const directClientHours = coreMetrics.directClientHours + importedDirectCCH;
-      const supervisionHours = coreMetrics.supervisionHours + importedSupervisionHours;
+      const supervisionHours = coreMetrics.totalSupervisionHours + importedSupervisionHours;
       const ethicsHours = importedEthicsHours;
       
       // Goals

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { useLogEntries } from '@/hooks/use-firestore';
+import { useUnifiedDashboardData } from '@/hooks/use-unified-dashboard';
 import { useAppSettings } from '@/hooks/use-firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
@@ -9,18 +9,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Trophy, AlertTriangle } from 'lucide-react';
 import { updateAppSettings } from '@/lib/firestore';
-import { EnhancedProgressSection } from "./EnhancedProgressSection";
+// import { EnhancedProgressSection } from "./EnhancedProgressSection"; // Temporarily disabled while updating
 
 export const ProgressSection = () => {
   const { user } = useAuth();
-  const { entries, loading: entriesLoading } = useLogEntries();
+  const { data: dashboardData, isLoading: dashboardLoading } = useUnifiedDashboardData();
   const { settings, loading: settingsLoading, refetch: refetchSettings } = useAppSettings();
   const { toast } = useToast();
   
   const [ethicsHours, setEthicsHours] = useState("");
   const [savingEthics, setSavingEthics] = useState(false);
 
-  if (entriesLoading || settingsLoading) {
+  if (dashboardLoading || settingsLoading) {
     return (
       <section className="mb-8">
         <h3 className="text-lg font-semibold text-foreground mb-6">Licensure Progress</h3>
@@ -44,21 +44,11 @@ export const ProgressSection = () => {
     );
   }
 
-  // Calculate progress from entries
-  const totalClientHours = entries.reduce((sum, entry) => sum + entry.clientContactHours, 0);
-  const directClientHours = entries.filter(entry => !entry.indirectHours).reduce((sum, entry) => sum + entry.clientContactHours, 0);
-  const totalSupervisionHours = entries.reduce((sum, entry) => sum + entry.supervisionHours, 0);
-
-  // Add imported hours
-  const importedTotalCCH = settings?.importedHours?.totalCCH || 0;
-  const importedDirectCCH = settings?.importedHours?.directCCH || 0;
-  const importedSupervisionHours = settings?.importedHours?.supervisionHours || 0;
-  const importedEthicsHours = settings?.importedHours?.ethicsHours || 0;
-
-  const finalTotalCCH = totalClientHours + importedTotalCCH;
-  const finalDirectCCH = directClientHours + importedDirectCCH;
-  const finalSupervisionHours = totalSupervisionHours + importedSupervisionHours;
-  const finalEthicsHours = importedEthicsHours;
+  // Use unified dashboard data
+  const finalTotalCCH = dashboardData?.totalClientHours || 0;
+  const finalDirectCCH = dashboardData?.directClientHours || 0;
+  const finalSupervisionHours = dashboardData?.supervisionHours || 0;
+  const finalEthicsHours = dashboardData?.ethicsHours || 0;
 
   // Goals
   const goalTotalCCH = settings?.goals?.totalCCH || 2000;
@@ -66,11 +56,11 @@ export const ProgressSection = () => {
   const goalSupervisionHours = settings?.goals?.supervisionHours || 200;
   const goalEthicsHours = settings?.goals?.ethicsHours || 20;
 
-  // Progress percentages
-  const totalCCHProgress = Math.min((finalTotalCCH / goalTotalCCH) * 100, 100);
-  const directCCHProgress = Math.min((finalDirectCCH / goalDirectCCH) * 100, 100);
-  const supervisionProgress = Math.min((finalSupervisionHours / goalSupervisionHours) * 100, 100);
-  const ethicsProgress = Math.min((finalEthicsHours / goalEthicsHours) * 100, 100);
+  // Progress percentages (use unified dashboard data when available)
+  const totalCCHProgress = dashboardData?.totalCCHProgress || Math.min((finalTotalCCH / goalTotalCCH) * 100, 100);
+  const directCCHProgress = dashboardData?.directCCHProgress || Math.min((finalDirectCCH / goalDirectCCH) * 100, 100);
+  const supervisionProgress = dashboardData?.supervisionProgress || Math.min((finalSupervisionHours / goalSupervisionHours) * 100, 100);
+  const ethicsProgress = dashboardData?.ethicsProgress || Math.min((finalEthicsHours / goalEthicsHours) * 100, 100);
 
   // Check milestones
   const hasReached1000CCH = finalTotalCCH >= 1000;

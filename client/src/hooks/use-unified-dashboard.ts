@@ -43,9 +43,16 @@ export function useUnifiedDashboard() {
   
   return useQuery({
     queryKey: ['/api/dashboard/unified', user?.uid],
+    queryFn: async () => {
+      const response = await fetch(`/api/dashboard/unified/${user?.uid}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch dashboard data');
+      }
+      return response.json();
+    },
     enabled: !!user?.uid,
-    refetchInterval: 30000, // Refetch every 30 seconds
-    staleTime: 10000, // Consider data stale after 10 seconds
+    refetchInterval: 60000, // Refetch every 1 minute instead of 30 seconds
+    staleTime: 30000, // Consider data stale after 30 seconds
     retry: 3,
     retryDelay: 1000
   });
