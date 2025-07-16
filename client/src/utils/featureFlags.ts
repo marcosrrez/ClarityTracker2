@@ -28,20 +28,20 @@ class FeatureFlagManager {
   private rolloutConfig: FeatureFlagConfig[] = [
     {
       flag: 'enhancedAI',
-      defaultValue: false,
-      rolloutPercentage: 0, // Start at 0% for controlled rollout
+      defaultValue: true,
+      rolloutPercentage: 100, // ACTIVATED - Full rollout
       environmentOverride: 'VITE_ENABLE_ENHANCED_AI'
     },
     {
       flag: 'offlineSync',
-      defaultValue: false,
-      rolloutPercentage: 0,
+      defaultValue: true,
+      rolloutPercentage: 100, // ACTIVATED - Full rollout
       environmentOverride: 'VITE_ENABLE_OFFLINE_SYNC'
     },
     {
       flag: 'complianceValidation',
-      defaultValue: false,
-      rolloutPercentage: 0,
+      defaultValue: true,
+      rolloutPercentage: 100, // ACTIVATED - Full rollout
       environmentOverride: 'VITE_ENABLE_COMPLIANCE_CHECK'
     },
     {
@@ -90,9 +90,9 @@ class FeatureFlagManager {
 
   private initializeFlags(): FeatureFlags {
     const flags: FeatureFlags = {
-      enhancedAI: false,
-      offlineSync: false,
-      complianceValidation: false,
+      enhancedAI: true,
+      offlineSync: true,
+      complianceValidation: true,
       advancedAnalytics: false,
       mobileEnhancements: false,
       enterpriseIntegration: false
