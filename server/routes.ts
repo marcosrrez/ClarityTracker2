@@ -8592,12 +8592,78 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
 
   app.get('/api/admin/cost-optimization', adminRateLimit, async (req, res) => {
     try {
-      const { geographicRedundancyService } = await import('./geographic-redundancy');
-      const optimization = await geographicRedundancyService.optimizeCrossRegionCosts();
+      const { costOptimizationService } = await import('./cost-optimization-service');
+      const optimization = await costOptimizationService.getComprehensiveCostAnalysis();
       res.json(optimization);
     } catch (error) {
       console.error('Cost optimization analysis failed:', error);
       res.status(500).json({ error: 'Cost optimization analysis failed' });
+    }
+  });
+
+  app.post('/api/admin/implement-cost-optimization', adminRateLimit, async (req, res) => {
+    try {
+      const { costOptimizationService } = await import('./cost-optimization-service');
+      const result = await costOptimizationService.implementAllOptimizations();
+      res.json(result);
+    } catch (error) {
+      console.error('Cost optimization implementation failed:', error);
+      res.status(500).json({ error: 'Cost optimization implementation failed' });
+    }
+  });
+
+  app.get('/api/admin/performance-optimization', adminRateLimit, async (req, res) => {
+    try {
+      const { performanceOptimizationService } = await import('./performance-optimization-service');
+      const analysis = await performanceOptimizationService.getPerformanceAnalysis();
+      res.json(analysis);
+    } catch (error) {
+      console.error('Performance optimization analysis failed:', error);
+      res.status(500).json({ error: 'Performance optimization analysis failed' });
+    }
+  });
+
+  app.post('/api/admin/implement-performance-optimization', adminRateLimit, async (req, res) => {
+    try {
+      const { performanceOptimizationService } = await import('./performance-optimization-service');
+      const result = await performanceOptimizationService.implementAllOptimizations();
+      res.json(result);
+    } catch (error) {
+      console.error('Performance optimization implementation failed:', error);
+      res.status(500).json({ error: 'Performance optimization implementation failed' });
+    }
+  });
+
+  app.get('/api/admin/production-readiness', adminRateLimit, async (req, res) => {
+    try {
+      const { productionReadinessService } = await import('./production-readiness-service');
+      const readiness = await productionReadinessService.validateProductionReadiness();
+      res.json(readiness);
+    } catch (error) {
+      console.error('Production readiness validation failed:', error);
+      res.status(500).json({ error: 'Production readiness validation failed' });
+    }
+  });
+
+  app.get('/api/admin/deployment-plan', adminRateLimit, async (req, res) => {
+    try {
+      const { productionReadinessService } = await import('./production-readiness-service');
+      const plan = await productionReadinessService.generateDeploymentPlan();
+      res.json(plan);
+    } catch (error) {
+      console.error('Deployment plan generation failed:', error);
+      res.status(500).json({ error: 'Deployment plan generation failed' });
+    }
+  });
+
+  app.post('/api/admin/finalize-implementation', adminRateLimit, async (req, res) => {
+    try {
+      const { productionReadinessService } = await import('./production-readiness-service');
+      const result = await productionReadinessService.finalizeImplementation();
+      res.json(result);
+    } catch (error) {
+      console.error('Implementation finalization failed:', error);
+      res.status(500).json({ error: 'Implementation finalization failed' });
     }
   });
 
