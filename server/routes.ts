@@ -52,6 +52,7 @@ import { progressiveDisclosureService } from "./progressive-disclosure-service";
 import { researchService } from "./research-service";
 import { clinicalResearchService } from "./clinical-research-service";
 import { sessionIntelligence } from "./session-intelligence-service";
+import { phase3AHandlers } from "./phase3a-foundation.js";
 import { 
   researchCollectionsTable, 
   savedResearchTable, 
@@ -8725,6 +8726,12 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
       res.status(500).json({ error: 'Failed to get executions' });
     }
   });
+
+  // Phase 3A Foundation API Endpoints
+  app.post('/api/phase3a/analyze-session', basicRateLimit, phase3AHandlers.analyzeSession);
+  app.post('/api/phase3a/sync-mobile', basicRateLimit, phase3AHandlers.syncMobile);
+  app.post('/api/phase3a/check-compliance', basicRateLimit, phase3AHandlers.checkCompliance);
+  app.get('/api/phase3a/status', basicRateLimit, phase3AHandlers.getStatus);
 
   // Add security error handler as the last middleware
   app.use(securityErrorHandler);
