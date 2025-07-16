@@ -9,6 +9,17 @@ import { handleTwilioWebhook } from "./sms-service";
 import { sendWelcomeEmail } from "./welcome-email";
 import { sendWelcomeEmail as sendCampaignWelcome } from "./email-campaigns";
 import { piiAnonymizer } from "./pii-anonymizer";
+import { backupVerificationService } from "./backup-verification";
+import { disasterRecoveryService } from "./disaster-recovery";
+import { 
+  rateLimitingService, 
+  basicRateLimit, 
+  authRateLimit, 
+  aiAnalysisRateLimit, 
+  adminRateLimit, 
+  dataExportRateLimit, 
+  requestLogger 
+} from "./rate-limiting";
 import { 
   rateLimiters, 
   speedLimiters, 
@@ -8335,6 +8346,170 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
       res.status(500).json({ error: 'Failed to load data usage' });
     }
   });
+
+  // ========================================
+  // ADMIN API ENDPOINTS - BACKUP & RECOVERY
+  // ========================================
+
+  // Backup Verification Endpoints
+  app.post('/api/admin/backup-verification', adminRateLimit, async (req, res) => {
+    try {
+      const result = await backupVerificationService.runDailyVerification();
+      res.json(result);
+    } catch (error) {
+      console.error('Backup verification error:', error);
+      res.status(500).json({ error: 'Failed to run backup verification' });
+    }
+  });
+
+  app.get('/api/admin/backup-status', adminRateLimit, async (req, res) => {
+    try {
+      const status = await backupVerificationService.getLatestVerificationStatus();
+      res.json(status);
+    } catch (error) {
+      console.error('Backup status error:', error);
+      res.status(500).json({ error: 'Failed to get backup status' });
+    }
+  });
+
+  app.get('/api/admin/backup-history', adminRateLimit, async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 10;
+      const history = await backupVerificationService.getVerificationHistory(limit);
+      res.json(history);
+    } catch (error) {
+      console.error('Backup history error:', error);
+      res.status(500).json({ error: 'Failed to get backup history' });
+    }
+  });
+
+  // Disaster Recovery Endpoints
+  app.get('/api/admin/disaster-recovery/plan', adminRateLimit, async (req, res) => {
+    try {
+      const plan = disasterRecoveryService.getRecoveryPlan();
+      res.json(plan);
+    } catch (error) {
+      console.error('Recovery plan error:', error);
+      res.status(500).json({ error: 'Failed to get recovery plan' });
+    }
+  });
+
+  app.post('/api/admin/disaster-recovery/test', adminRateLimit, async (req, res) => {
+    try {
+      const { procedureId, dryRun = true } = req.body;
+      const result = await disasterRecoveryService.executeRecoveryProcedure(procedureId, dryRun);
+      res.json(result);
+    } catch (error) {
+      console.error('Recovery test error:', error);
+      res.status(500).json({ error: 'Failed to execute recovery test' });
+    }
+  });
+
+  app.post('/api/admin/disaster-recovery/test-all', adminRateLimit, async (req, res) => {
+    try {
+      const { dryRun = true } = req.body;
+      const results = await disasterRecoveryService.runAllRecoveryTests(dryRun);
+      res.json(results);
+    } catch (error) {
+      console.error('Recovery test all error:', error);
+      res.status(500).json({ error: 'Failed to execute all recovery tests' });
+    }
+  });
+
+  app.get('/api/admin/disaster-recovery/runbook', adminRateLimit, async (req, res) => {
+    try {
+      const runbook = await disasterRecoveryService.generateRecoveryRunbook();
+      res.setHeader('Content-Type', 'text/markdown');
+      res.setHeader('Content-Disposition', 'attachment; filename="disaster-recovery-runbook.md"');
+      res.send(runbook);
+    } catch (error) {
+      console.error('Recovery runbook error:', error);
+      res.status(500).json({ error: 'Failed to generate recovery runbook' });
+    }
+  });
+
+  app.get('/api/admin/disaster-recovery/test-history', adminRateLimit, async (req, res) => {
+    try {
+      const history = await disasterRecoveryService.getRecoveryTestHistory();
+      res.json(history);
+    } catch (error) {
+      console.error('Recovery test history error:', error);
+      res.status(500).json({ error: 'Failed to get recovery test history' });
+    }
+  });
+
+  // Rate Limiting Management Endpoints
+  app.get('/api/admin/rate-limit/stats', adminRateLimit, async (req, res) => {
+    try {
+      const timeRange = req.query.timeRange as '1h' | '24h' | '7d' || '24h';
+      const stats = await rateLimitingService.getRateLimitStats(timeRange);
+      res.json(stats);
+    } catch (error) {
+      console.error('Rate limit stats error:', error);
+      res.status(500).json({ error: 'Failed to get rate limit stats' });
+    }
+  });
+
+  app.post('/api/admin/rate-limit/cleanup', adminRateLimit, async (req, res) => {
+    try {
+      const { daysToKeep = 30 } = req.body;
+      const result = await rateLimitingService.cleanupOldLogs(daysToKeep);
+      res.json(result);
+    } catch (error) {
+      console.error('Rate limit cleanup error:', error);
+      res.status(500).json({ error: 'Failed to cleanup rate limit logs' });
+    }
+  });
+
+  // System Health Endpoint
+  app.get('/api/admin/system-health', adminRateLimit, async (req, res) => {
+    try {
+      const backupStatus = await backupVerificationService.getLatestVerificationStatus();
+      const rateLimitStats = await rateLimitingService.getRateLimitStats('1h');
+      
+      const healthStatus = {
+        timestamp: new Date().toISOString(),
+        backup: {
+          status: backupStatus?.status || 'unknown',
+          lastVerified: backupStatus?.timestamp || null,
+          integrityScore: backupStatus?.metrics?.integrityScore || 0
+        },
+        rateLimiting: {
+          totalRequests: rateLimitStats?.totalRequests || 0,
+          rateLimitedPercentage: rateLimitStats?.rateLimitedPercentage || 0,
+          status: (rateLimitStats?.rateLimitedPercentage || 0) > 10 ? 'warning' : 'healthy'
+        },
+        database: {
+          status: 'connected', // This would be more sophisticated in production
+          connectionCount: 'unknown'
+        },
+        overall: 'healthy'
+      };
+
+      // Determine overall health
+      if (healthStatus.backup.status === 'failure' || healthStatus.rateLimiting.status === 'warning') {
+        healthStatus.overall = 'warning';
+      }
+
+      res.json(healthStatus);
+    } catch (error) {
+      console.error('System health error:', error);
+      res.status(500).json({ 
+        error: 'Failed to get system health',
+        timestamp: new Date().toISOString(),
+        overall: 'error'
+      });
+    }
+  });
+
+  // Apply rate limiting to existing routes
+  app.use('/api/log-entries', authRateLimit);
+  app.use('/api/ai/', aiAnalysisRateLimit);
+  app.use('/api/privacy/export-data', dataExportRateLimit);
+  app.use('/api/privacy/', authRateLimit);
+  
+  // Add request logging middleware
+  app.use(requestLogger);
 
   // Add security error handler as the last middleware
   app.use(securityErrorHandler);

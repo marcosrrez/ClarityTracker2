@@ -775,6 +775,48 @@ export const supervisionAnalyticsTable = pgTable('supervision_analytics', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+// Backup Verification Logs - tracks backup verification results
+export const backupVerificationLogTable = pgTable('backup_verification_logs', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  timestamp: timestamp('timestamp').notNull(),
+  status: varchar('status', { length: 20 }).notNull(), // success, warning, failure
+  details: text('details').notNull(),
+  metrics: text('metrics').notNull(), // JSON object with verification metrics
+  alerts: text('alerts').notNull(), // JSON array of alert messages
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Rate Limiting Logs - tracks API rate limiting events
+export const rateLimitLogTable = pgTable('rate_limit_logs', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  ip: varchar('ip', { length: 45 }).notNull(), // IPv4 or IPv6
+  userId: varchar('user_id', { length: 255 }), // null for unauthenticated requests
+  endpoint: varchar('endpoint', { length: 255 }).notNull(),
+  method: varchar('method', { length: 10 }).notNull(),
+  status: varchar('status', { length: 20 }).notNull(), // allowed, rate_limited, blocked
+  requestCount: integer('request_count').notNull(),
+  windowStart: timestamp('window_start').notNull(),
+  windowEnd: timestamp('window_end').notNull(),
+  userAgent: text('user_agent'),
+  timestamp: timestamp('timestamp').defaultNow().notNull(),
+});
+
+// System Health Metrics - tracks overall system health
+export const systemHealthMetricsTable = pgTable('system_health_metrics', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  timestamp: timestamp('timestamp').notNull(),
+  cpuUsage: real('cpu_usage'),
+  memoryUsage: real('memory_usage'),
+  dbConnectionCount: integer('db_connection_count'),
+  activeUserCount: integer('active_user_count'),
+  responseTime: real('response_time'), // milliseconds
+  errorRate: real('error_rate'), // percentage
+  backupStatus: varchar('backup_status', { length: 20 }), // success, warning, failure
+  apiRateLimit: text('api_rate_limit'), // JSON object with rate limit status
+  alerts: text('alerts'), // JSON array of active alerts
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 export const riskAssessmentTable = pgTable('risk_assessments', {
   id: varchar('id', { length: 255 }).primaryKey(),
   userId: varchar('user_id', { length: 255 }).notNull(),
