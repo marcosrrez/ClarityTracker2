@@ -18,7 +18,6 @@ import { useMilestoneDetection } from "@/hooks/use-milestone-detection";
 import { useAppSettings } from "@/hooks/use-firestore";
 import { useAccountType } from "@/hooks/use-account-type";
 import { useLocation } from "wouter";
-import { ComplianceValidator } from "@/components/features/ComplianceValidator";
 
 export const Dashboard = () => {
   const { showCelebration, celebrationData, closeCelebration } = useMilestoneDetection();
@@ -91,13 +90,6 @@ export const Dashboard = () => {
         <ErrorBoundary>
           <div>
             <QuickStatsGrid />
-          </div>
-        </ErrorBoundary>
-        
-        {/* Compliance Status - Phase 3A Feature */}
-        <ErrorBoundary>
-          <div>
-            <ComplianceValidator userId="current-user" />
           </div>
         </ErrorBoundary>
         

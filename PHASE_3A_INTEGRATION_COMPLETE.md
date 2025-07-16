@@ -29,15 +29,15 @@
   - Pending items count display
 - **Access**: Visible to all users on session recording page
 
-### ✅ International Compliance - Main Dashboard
-- **Location**: `/` (Dashboard) → Compliance status card
-- **Integration**: Displays automated compliance validation
+### ✅ International Compliance - Background Service
+- **Location**: Background service (not user-facing)
+- **Integration**: Automated compliance validation for all operations
 - **User Experience**: 
-  - Real-time compliance status for US (HIPAA), EU (GDPR), CA (PIPEDA)
-  - Automatic validation results
-  - Compliance score with detailed breakdown
-  - Background validation without user intervention
-- **Access**: Available to all users on main dashboard
+  - Transparent background validation for US (HIPAA), EU (GDPR), CA (PIPEDA)
+  - Automatic compliance checking without user intervention
+  - Administrative monitoring via `/phase3a-demo` interface
+  - Users benefit from compliance without seeing technical details
+- **Access**: Automatic validation for all users, admin interface for monitoring
 
 ## Technical Implementation Details
 
@@ -112,10 +112,10 @@
    - Real-time sync status updates
    - Offline capabilities notification
 
-3. **Dashboard Compliance** (`/`)
-   - Compliance validation card on main dashboard
-   - Automated multi-jurisdiction validation
-   - Real-time compliance scoring
+3. **Background Compliance** (Automatic)
+   - Automated compliance validation for all operations
+   - Multi-jurisdiction validation (US, EU, CA)
+   - Administrative monitoring via demo interface
 
 ### Demo Access
 - **Full Demo**: `/phase3a-demo` - Complete feature demonstration
