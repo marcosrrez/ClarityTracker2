@@ -28,6 +28,8 @@ import {
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { EnhancedSessionAnalysis } from '@/components/features/EnhancedSessionAnalysis';
+import { MobileOfflineSync } from '@/components/features/MobileOfflineSync';
 
 interface SessionMetadata {
   clientId: string;
@@ -384,6 +386,9 @@ export default function SessionRecording() {
         <p className="text-gray-600 dark:text-gray-400">
           Record therapy sessions with real-time transcription and AI-powered clinical insights
         </p>
+        <div className="flex justify-center">
+          <MobileOfflineSync userId="current-user" />
+        </div>
       </div>
 
       <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
@@ -559,48 +564,38 @@ export default function SessionRecording() {
         </TabsContent>
 
         <TabsContent value="analysis" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Brain className="w-5 h-5" />
-                AI Clinical Analysis
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {Object.keys(analysisResults).length > 0 ? (
-                <div className="space-y-4">
-                  {analysisResults.sessionAnalysis && (
-                    <div>
-                      <h4 className="font-medium mb-2">Session Analysis</h4>
-                      <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg text-sm">
-                        <pre className="whitespace-pre-wrap">
-                          {JSON.stringify(analysisResults.sessionAnalysis, null, 2)}
-                        </pre>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {analysisResults.riskAssessment && (
-                    <div>
-                      <h4 className="font-medium mb-2 flex items-center gap-2">
-                        <Shield className="w-4 h-4" />
-                        Risk Assessment
-                      </h4>
-                      <div className="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg text-sm">
-                        <pre className="whitespace-pre-wrap">
-                          {JSON.stringify(analysisResults.riskAssessment, null, 2)}
-                        </pre>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
+          {recordingState.transcript ? (
+            <EnhancedSessionAnalysis 
+              sessionData={{
+                transcript: recordingState.transcript,
+                duration: recordingState.duration,
+                sessionType: sessionMetadata.sessionType,
+                clinicalFocus: sessionMetadata.notes,
+                userId: 'current-user' // TODO: Get from auth context
+              }}
+              onAnalysisComplete={(analysis) => {
+                setAnalysisResults(prev => ({ ...prev, enhanced: analysis }));
+              }}
+            />
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Brain className="w-5 h-5" />
+                  AI Clinical Analysis
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                 <div className="text-center py-8 text-gray-500">
-                  Complete a recording session to see AI analysis results.
+                  <Brain className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                  <h3 className="text-lg font-medium mb-2">Enhanced AI Analysis Ready</h3>
+                  <p className="text-gray-600">
+                    Complete your recording to generate comprehensive clinical insights with Phase 3A enhanced processing
+                  </p>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
     </div>
