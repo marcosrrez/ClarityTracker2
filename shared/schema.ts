@@ -801,6 +801,20 @@ export const rateLimitLogTable = pgTable('rate_limit_logs', {
   timestamp: timestamp('timestamp').defaultNow().notNull(),
 });
 
+// Storage Monitoring Logs - tracks storage usage and alerts
+export const storageMonitoringLogTable = pgTable('storage_monitoring_logs', {
+  id: serial('id').primaryKey(),
+  timestamp: timestamp('timestamp').notNull().defaultNow(),
+  storage_type: varchar('storage_type', { length: 50 }).notNull(), // 'backup', 'database', 'system'
+  total_space_gb: real('total_space_gb').notNull(),
+  used_space_gb: real('used_space_gb').notNull(),
+  available_space_gb: real('available_space_gb').notNull(),
+  usage_percentage: real('usage_percentage').notNull(),
+  alert_level: varchar('alert_level', { length: 20 }).notNull(), // 'normal', 'warning', 'critical'
+  cleanup_actions: jsonb('cleanup_actions'), // JSON array of cleanup actions taken
+  retention_policy_enforced: boolean('retention_policy_enforced').default(false)
+});
+
 // System Health Metrics - tracks overall system health
 export const systemHealthMetricsTable = pgTable('system_health_metrics', {
   id: varchar('id', { length: 255 }).primaryKey(),

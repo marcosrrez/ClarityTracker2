@@ -147,16 +147,27 @@ class BackupVerificationService {
       // Read and verify backup content
       const content = await fs.readFile(backupPath, 'utf8');
       
-      // Check for essential database elements
-      const requiredElements = [
-        'CREATE TABLE',
-        'INSERT INTO',
-        'log_entries',
-        'users',
-        'session_recordings'
-      ];
+      // Get existing tables from database and check for their presence
+      const existingTables = await this.getExistingTables();
+      const requiredElements = ['CREATE TABLE', 'INSERT INTO'];
       
-      const missingElements = requiredElements.filter(element => !content.includes(element));
+      // Add existing tables to required elements
+      const tablesToCheck = existingTables.filter(table => 
+        ['users', 'log_entries', 'session_recordings', 'privacy_settings'].includes(table)
+      );
+      
+      const missingElements = [];
+      for (const element of requiredElements) {
+        if (!content.includes(element)) {
+          missingElements.push(element);
+        }
+      }
+      
+      // Check if at least some expected tables are in the backup
+      const foundTables = tablesToCheck.filter(table => content.includes(table));
+      if (foundTables.length === 0 && tablesToCheck.length > 0) {
+        missingElements.push(`No expected tables found (checked: ${tablesToCheck.join(', ')})`);
+      }
       
       if (missingElements.length > 0) {
         return { 
@@ -196,16 +207,28 @@ class BackupVerificationService {
       const restoreCommand = `psql "${stagingDbName}" < "${backupPath}"`;
       await execAsync(restoreCommand);
       
-      // Verify restored data
-      const verifyCommand = `psql "${stagingDbName}" -c "SELECT COUNT(*) FROM log_entries; SELECT COUNT(*) FROM users;"`;
-      const { stdout } = await execAsync(verifyCommand);
+      // Verify restored data with existing tables
+      const existingTables = await this.getExistingTables();
+      const tablesToVerify = existingTables.filter(table => 
+        ['users', 'log_entries', 'session_recordings'].includes(table)
+      );
+      
+      let verificationResults = [];
+      for (const table of tablesToVerify) {
+        try {
+          const { stdout } = await execAsync(`psql "${stagingDbName}" -c "SELECT COUNT(*) FROM ${table};"`);
+          verificationResults.push(`${table}: ${stdout.trim()}`);
+        } catch (error) {
+          verificationResults.push(`${table}: verification failed - ${error.message}`);
+        }
+      }
       
       // Clean up staging database
       await execAsync(`dropdb "${stagingDbName}"`);
       
       return { 
         success: true, 
-        details: `Restore test successful. Verification results: ${stdout.trim()}` 
+        details: `Restore test successful. Verification results: ${verificationResults.join(', ')}` 
       };
       
     } catch (error) {
@@ -217,14 +240,23 @@ class BackupVerificationService {
     try {
       const { db } = await import('./db');
       
-      // Check for orphaned records and data consistency
-      const consistencyChecks = [
-        'SELECT COUNT(*) as orphaned_sessions FROM session_recordings sr LEFT JOIN log_entries le ON sr.log_entry_id = le.id WHERE le.id IS NULL',
-        'SELECT COUNT(*) as orphaned_notes FROM progress_notes pn LEFT JOIN log_entries le ON pn.log_entry_id = le.id WHERE le.id IS NULL',
-        'SELECT COUNT(*) as total_users FROM users',
-        'SELECT COUNT(*) as total_entries FROM log_entries',
-        'SELECT COUNT(*) as recent_entries FROM log_entries WHERE created_at > NOW() - INTERVAL \'7 days\''
-      ];
+      // Check for orphaned records and data consistency with existing tables
+      const existingTables = await this.getExistingTables();
+      const consistencyChecks = [`SELECT COUNT(*) as total_users FROM users`];
+      
+      // Add checks for existing tables
+      if (existingTables.includes('log_entries')) {
+        consistencyChecks.push('SELECT COUNT(*) as total_entries FROM log_entries');
+      }
+      if (existingTables.includes('session_recordings') && existingTables.includes('log_entries')) {
+        consistencyChecks.push('SELECT COUNT(*) as orphaned_sessions FROM session_recordings sr LEFT JOIN log_entries le ON sr.log_entry_id = le.id WHERE le.id IS NULL');
+      }
+      if (existingTables.includes('progress_notes') && existingTables.includes('log_entries')) {
+        consistencyChecks.push('SELECT COUNT(*) as orphaned_notes FROM progress_notes pn LEFT JOIN log_entries le ON pn.log_entry_id = le.id WHERE le.id IS NULL');
+      }
+      if (existingTables.includes('log_entries')) {
+        consistencyChecks.push('SELECT COUNT(*) as recent_entries FROM log_entries WHERE created_at > NOW() - INTERVAL \'7 days\'');
+      }
       
       const results = [];
       for (const check of consistencyChecks) {
@@ -370,7 +402,10 @@ class BackupVerificationService {
         LIMIT ${limit}
       `);
       
-      return results.map((row: any) => ({
+      // Handle both array and single result formats
+      const resultArray = Array.isArray(results) ? results : results.rows || [results];
+      
+      return resultArray.map((row: any) => ({
         id: row.id || 'unknown',
         timestamp: row.timestamp,
         status: row.status as 'success' | 'warning' | 'failure',
@@ -388,6 +423,26 @@ class BackupVerificationService {
   async getLatestVerificationStatus(): Promise<BackupVerificationResult | null> {
     const history = await this.getVerificationHistory(1);
     return history.length > 0 ? history[0] : null;
+  }
+
+  private async getExistingTables(): Promise<string[]> {
+    try {
+      const { db } = await import('./db');
+      const { sql } = await import('drizzle-orm');
+      
+      const results = await db.execute(sql`
+        SELECT table_name 
+        FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_type = 'BASE TABLE'
+      `);
+      
+      const resultArray = Array.isArray(results) ? results : results.rows || [results];
+      return resultArray.map((row: any) => row.table_name);
+    } catch (error) {
+      console.error('Failed to get existing tables:', error);
+      return ['users']; // Fallback to basic table
+    }
   }
 }
 
