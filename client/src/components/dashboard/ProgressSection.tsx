@@ -13,8 +13,9 @@ import { updateAppSettings } from '@/lib/firestore';
 
 export const ProgressSection = () => {
   const { user } = useAuth();
-  const { data: dashboardData, isLoading: dashboardLoading } = useUnifiedDashboardData();
+  const { entries, loading: entriesLoading } = useLogEntries();
   const { settings, loading: settingsLoading, refetch: refetchSettings } = useAppSettings();
+  // const { data: dashboardData, isLoading: dashboardLoading } = useUnifiedDashboardData(); // Disabled - using Firebase data
   const { toast } = useToast();
   
   const [ethicsHours, setEthicsHours] = useState("");

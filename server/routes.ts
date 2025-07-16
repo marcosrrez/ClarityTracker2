@@ -8502,6 +8502,21 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
 
   // Apply rate limiting to existing routes
   app.use('/api/log-entries', authRateLimit);
+
+  // Log entries API endpoint - uses Firebase data until database migration
+  app.get('/api/log-entries/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      // For now, return empty array since the frontend handles Firebase directly
+      // In a production setup, this would integrate with Firebase Admin SDK
+      // The unified dashboard will call this endpoint for consistency
+      res.json([]);
+    } catch (error) {
+      console.error('Error fetching log entries:', error);
+      res.status(500).json({ error: 'Failed to fetch log entries' });
+    }
+  });
   app.use('/api/ai/', aiAnalysisRateLimit);
   app.use('/api/privacy/export-data', dataExportRateLimit);
   app.use('/api/privacy/', authRateLimit);

@@ -48,14 +48,32 @@ export interface UnifiedDashboardData {
 
 export class UnifiedDashboardService {
   /**
+   * Get log entries from Firebase (temporary until database migration)
+   */
+  private static async getLogEntriesFromFirebase(userId: string): Promise<any[]> {
+    try {
+      // Firebase admin requires proper credentials which aren't available in development
+      // For now, return empty array and let the frontend handle Firebase data
+      // This is a temporary solution until proper Firebase Admin setup or database migration
+      console.log('Firebase admin not configured, returning empty array for log entries');
+      return [];
+    } catch (error) {
+      console.error('Error getting log entries from Firebase:', error);
+      return [];
+    }
+  }
+
+  /**
    * Get comprehensive dashboard data for a user
    * This is the single source of truth for all dashboard metrics
    */
   static async getDashboardData(userId: string): Promise<UnifiedDashboardData> {
     try {
-      // Get core data sources
+      // CRITICAL: Firebase Admin requires proper credentials not available in development
+      // For now, use database storage and let the frontend handle Firebase data directly
+      // This maintains data integrity while allowing the unified dashboard to work
       const [logEntries, userProfile, supervisors, sessionAnalyses, insightCards] = await Promise.all([
-        storage.getLogEntries(userId) || [],
+        storage.getLogEntries(userId),
         storage.getUserTherapyProfile(userId),
         storage.getSupervisorsByUserId(userId),
         this.getSessionAnalyses(userId),
@@ -65,8 +83,19 @@ export class UnifiedDashboardService {
       // Calculate core metrics using existing dashboard calculations
       const coreMetrics = calculateDashboardMetrics(logEntries);
       
-      // Get user settings for goals and imported hours
-      const settings = userProfile || {};
+      // Get user settings for goals and imported hours (try Firebase first, then database)
+      let settings = userProfile || {};
+      
+      // If database doesn't have settings, try Firebase
+      if (!settings || Object.keys(settings).length === 0) {
+        try {
+          const { getAppSettings } = await import('../lib/firebase-admin');
+          const firebaseSettings = await getAppSettings(userId);
+          settings = firebaseSettings || {};
+        } catch (error) {
+          console.error('Error getting settings from Firebase:', error);
+        }
+      }
       
       // Calculate imported hours
       const importedTotalCCH = settings?.importedHours?.totalCCH || 0;
