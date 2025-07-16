@@ -29,6 +29,8 @@ export class StorageMonitoringService {
   private readonly WARNING_THRESHOLD = 0.8;  // 80%
   private readonly CRITICAL_THRESHOLD = 0.9; // 90%
   private readonly BACKUP_DIR = process.env.BACKUP_DIR || './backups';
+  private isHealthy: boolean = true;
+  private lastHealthCheck: Date = new Date();
   private readonly RETENTION_POLICY = {
     daily: 7,    // Keep 7 daily backups
     weekly: 4,   // Keep 4 weekly backups
