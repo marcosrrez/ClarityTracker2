@@ -53,6 +53,7 @@ import { researchService } from "./research-service";
 import { clinicalResearchService } from "./clinical-research-service";
 import { sessionIntelligence } from "./session-intelligence-service";
 import { phase3AHandlers } from "./phase3a-foundation.js";
+import { featureFlagHandlers } from "./feature-flag-api.js";
 import { 
   researchCollectionsTable, 
   savedResearchTable, 
@@ -8732,6 +8733,16 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
   app.post('/api/phase3a/sync-mobile', basicRateLimit, phase3AHandlers.syncMobile);
   app.post('/api/phase3a/check-compliance', basicRateLimit, phase3AHandlers.checkCompliance);
   app.get('/api/phase3a/status', basicRateLimit, phase3AHandlers.getStatus);
+
+  // Feature Flag Management API Endpoints
+  app.get('/api/feature-flags', adminRateLimit, featureFlagHandlers.getFlags);
+  app.post('/api/feature-flags/update', adminRateLimit, featureFlagHandlers.updateFlag);
+  app.post('/api/feature-flags/emergency-disable', adminRateLimit, featureFlagHandlers.emergencyDisable);
+  app.post('/api/feature-flags/emergency-disable-all', adminRateLimit, featureFlagHandlers.emergencyDisableAll);
+  app.post('/api/feature-flags/gradual-rollout', adminRateLimit, featureFlagHandlers.startGradualRollout);
+  app.get('/api/feature-flags/metrics', adminRateLimit, featureFlagHandlers.getMetrics);
+  app.post('/api/feature-flags/metrics', adminRateLimit, featureFlagHandlers.updateMetrics);
+  app.get('/api/feature-flags/rollback-status', adminRateLimit, featureFlagHandlers.getRollbackStatus);
 
   // Add security error handler as the last middleware
   app.use(securityErrorHandler);

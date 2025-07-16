@@ -52,6 +52,7 @@ import SessionIntelligenceDemo from "@/pages/SessionIntelligenceDemo";
 import SessionIntelligenceNew from "@/pages/SessionIntelligenceNew";
 import EnhancedSessionRecording from "@/pages/EnhancedSessionRecording";
 import PrivacySettings from "@/pages/PrivacySettings";
+import { Phase3ADemo } from "@/components/Phase3ADemo";
 
 import NotFound from "@/pages/not-found";
 
@@ -105,6 +106,7 @@ function Router() {
       <Route path="/session-intelligence-new" component={SessionIntelligenceNew} />
       <Route path="/enhanced-session-recording" component={EnhancedSessionRecording} />
       <Route path="/privacy-settings" component={PrivacySettings} />
+      <Route path="/phase3a-demo" component={() => <Phase3ADemo />} />
       <Route path="/account-setup">
         <AuthGuard requireAccountSetup={false}>
           <AccountSetupPage />
