@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useUnifiedDashboardData } from '@/hooks/use-unified-dashboard';
-import { useAppSettings } from '@/hooks/use-firestore';
+import { useAppSettings, useLogEntries } from '@/hooks/use-firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,7 +21,7 @@ export const ProgressSection = () => {
   const [ethicsHours, setEthicsHours] = useState("");
   const [savingEthics, setSavingEthics] = useState(false);
 
-  if (dashboardLoading || settingsLoading) {
+  if (entriesLoading || settingsLoading) {
     return (
       <section className="mb-8">
         <h3 className="text-lg font-semibold text-foreground mb-6">Licensure Progress</h3>
@@ -45,11 +45,31 @@ export const ProgressSection = () => {
     );
   }
 
-  // Use unified dashboard data
-  const finalTotalCCH = dashboardData?.totalClientHours || 0;
-  const finalDirectCCH = dashboardData?.directClientHours || 0;
-  const finalSupervisionHours = dashboardData?.supervisionHours || 0;
-  const finalEthicsHours = dashboardData?.ethicsHours || 0;
+  // Calculate metrics from Firebase data
+  const { totalClientHours, directClientHours, supervisionHours } = React.useMemo(() => {
+    if (!entries || entries.length === 0) {
+      return { totalClientHours: 0, directClientHours: 0, supervisionHours: 0 };
+    }
+    
+    const totalClient = entries.reduce((sum, entry) => {
+      return sum + (entry.clientHours || 0);
+    }, 0);
+    
+    const directClient = entries.reduce((sum, entry) => {
+      return sum + (entry.type === 'direct' ? (entry.clientHours || 0) : 0);
+    }, 0);
+    
+    const supervision = entries.reduce((sum, entry) => {
+      return sum + (entry.supervisionHours || 0);
+    }, 0);
+    
+    return { totalClientHours: totalClient, directClientHours: directClient, supervisionHours: supervision };
+  }, [entries]);
+  
+  const finalTotalCCH = totalClientHours;
+  const finalDirectCCH = directClientHours;
+  const finalSupervisionHours = supervisionHours;
+  const finalEthicsHours = settings?.ethicsHours || 0;
 
   // Goals
   const goalTotalCCH = settings?.goals?.totalCCH || 2000;
@@ -58,10 +78,10 @@ export const ProgressSection = () => {
   const goalEthicsHours = settings?.goals?.ethicsHours || 20;
 
   // Progress percentages (use unified dashboard data when available)
-  const totalCCHProgress = dashboardData?.totalCCHProgress || Math.min((finalTotalCCH / goalTotalCCH) * 100, 100);
-  const directCCHProgress = dashboardData?.directCCHProgress || Math.min((finalDirectCCH / goalDirectCCH) * 100, 100);
-  const supervisionProgress = dashboardData?.supervisionProgress || Math.min((finalSupervisionHours / goalSupervisionHours) * 100, 100);
-  const ethicsProgress = dashboardData?.ethicsProgress || Math.min((finalEthicsHours / goalEthicsHours) * 100, 100);
+  const totalCCHProgress = Math.min((finalTotalCCH / goalTotalCCH) * 100, 100);
+  const directCCHProgress = Math.min((finalDirectCCH / goalDirectCCH) * 100, 100);
+  const supervisionProgress = Math.min((finalSupervisionHours / goalSupervisionHours) * 100, 100);
+  const ethicsProgress = Math.min((finalEthicsHours / goalEthicsHours) * 100, 100);
 
   // Check milestones
   const hasReached1000CCH = finalTotalCCH >= 1000;
