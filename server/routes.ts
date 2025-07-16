@@ -8511,6 +8511,155 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
   // Add request logging middleware
   app.use(requestLogger);
 
+  // Geographic Redundancy API Endpoints
+  app.get('/api/admin/geographic-status', adminRateLimit, async (req, res) => {
+    try {
+      const { geographicRedundancyService } = await import('./geographic-redundancy');
+      const status = await geographicRedundancyService.getSystemStatus();
+      res.json(status);
+    } catch (error) {
+      console.error('Geographic status check failed:', error);
+      res.status(500).json({ error: 'Geographic status check failed' });
+    }
+  });
+
+  app.get('/api/admin/regional-health', adminRateLimit, async (req, res) => {
+    try {
+      const { geographicRedundancyService } = await import('./geographic-redundancy');
+      const health = await geographicRedundancyService.monitorRegionalHealth();
+      res.json(health);
+    } catch (error) {
+      console.error('Regional health check failed:', error);
+      res.status(500).json({ error: 'Regional health check failed' });
+    }
+  });
+
+  app.get('/api/admin/replication-status', adminRateLimit, async (req, res) => {
+    try {
+      const { geographicRedundancyService } = await import('./geographic-redundancy');
+      const status = await geographicRedundancyService.getReplicationStatus();
+      res.json(status);
+    } catch (error) {
+      console.error('Replication status check failed:', error);
+      res.status(500).json({ error: 'Replication status check failed' });
+    }
+  });
+
+  app.post('/api/admin/failover-test', adminRateLimit, async (req, res) => {
+    try {
+      const { geographicRedundancyService } = await import('./geographic-redundancy');
+      const { region } = req.body;
+      const result = await geographicRedundancyService.performAutomaticFailover(region);
+      res.json(result);
+    } catch (error) {
+      console.error('Failover test failed:', error);
+      res.status(500).json({ error: 'Failover test failed' });
+    }
+  });
+
+  app.get('/api/admin/compliance-check', adminRateLimit, async (req, res) => {
+    try {
+      const { geographicRedundancyService } = await import('./geographic-redundancy');
+      const compliance = await geographicRedundancyService.validateDataResidency();
+      res.json(compliance);
+    } catch (error) {
+      console.error('Compliance check failed:', error);
+      res.status(500).json({ error: 'Compliance check failed' });
+    }
+  });
+
+  app.post('/api/admin/backup-sync', adminRateLimit, async (req, res) => {
+    try {
+      const { geographicRedundancyService } = await import('./geographic-redundancy');
+      const result = await geographicRedundancyService.synchronizeBackups();
+      res.json(result);
+    } catch (error) {
+      console.error('Backup synchronization failed:', error);
+      res.status(500).json({ error: 'Backup synchronization failed' });
+    }
+  });
+
+  app.get('/api/admin/cross-region-latency', adminRateLimit, async (req, res) => {
+    try {
+      const { geographicRedundancyService } = await import('./geographic-redundancy');
+      const latency = await geographicRedundancyService.measureCrossRegionLatency();
+      res.json(latency);
+    } catch (error) {
+      console.error('Latency measurement failed:', error);
+      res.status(500).json({ error: 'Latency measurement failed' });
+    }
+  });
+
+  app.get('/api/admin/cost-optimization', adminRateLimit, async (req, res) => {
+    try {
+      const { geographicRedundancyService } = await import('./geographic-redundancy');
+      const optimization = await geographicRedundancyService.optimizeCrossRegionCosts();
+      res.json(optimization);
+    } catch (error) {
+      console.error('Cost optimization analysis failed:', error);
+      res.status(500).json({ error: 'Cost optimization analysis failed' });
+    }
+  });
+
+  // Disaster Recovery Runbook API Endpoints
+  app.get('/api/admin/runbooks', adminRateLimit, async (req, res) => {
+    try {
+      const { disasterRecoveryRunbooks } = await import('./disaster-recovery-runbooks');
+      const runbooks = disasterRecoveryRunbooks.getAvailableRunbooks();
+      res.json(runbooks);
+    } catch (error) {
+      console.error('Failed to get runbooks:', error);
+      res.status(500).json({ error: 'Failed to get runbooks' });
+    }
+  });
+
+  app.get('/api/admin/runbooks/:id', adminRateLimit, async (req, res) => {
+    try {
+      const { disasterRecoveryRunbooks } = await import('./disaster-recovery-runbooks');
+      const runbook = disasterRecoveryRunbooks.getRunbookDetails(req.params.id);
+      if (!runbook) {
+        return res.status(404).json({ error: 'Runbook not found' });
+      }
+      res.json(runbook);
+    } catch (error) {
+      console.error('Failed to get runbook details:', error);
+      res.status(500).json({ error: 'Failed to get runbook details' });
+    }
+  });
+
+  app.post('/api/admin/runbooks/:id/execute', adminRateLimit, async (req, res) => {
+    try {
+      const { disasterRecoveryRunbooks } = await import('./disaster-recovery-runbooks');
+      const execution = await disasterRecoveryRunbooks.executeRunbook(req.params.id);
+      res.json(execution);
+    } catch (error) {
+      console.error('Failed to execute runbook:', error);
+      res.status(500).json({ error: 'Failed to execute runbook' });
+    }
+  });
+
+  app.post('/api/admin/runbooks/:id/test', adminRateLimit, async (req, res) => {
+    try {
+      const { disasterRecoveryRunbooks } = await import('./disaster-recovery-runbooks');
+      const test = await disasterRecoveryRunbooks.testRunbook(req.params.id);
+      res.json(test);
+    } catch (error) {
+      console.error('Failed to test runbook:', error);
+      res.status(500).json({ error: 'Failed to test runbook' });
+    }
+  });
+
+  app.get('/api/admin/executions', adminRateLimit, async (req, res) => {
+    try {
+      const { disasterRecoveryRunbooks } = await import('./disaster-recovery-runbooks');
+      const executions = disasterRecoveryRunbooks.getAllExecutions();
+      res.json(executions);
+    } catch (error) {
+      console.error('Failed to get executions:', error);
+      res.status(500).json({ error: 'Failed to get executions' });
+    }
+  });
+
   // Add security error handler as the last middleware
   app.use(securityErrorHandler);
 

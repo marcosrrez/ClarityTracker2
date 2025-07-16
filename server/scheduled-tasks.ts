@@ -67,6 +67,76 @@ class ScheduledTaskService {
       }
     });
 
+    // Geographic redundancy monitoring every 5 minutes
+    this.scheduleMinutes(5, async () => {
+      console.log('Running geographic redundancy monitoring...');
+      try {
+        const { geographicRedundancyService } = await import('./geographic-redundancy');
+        const health = await geographicRedundancyService.monitorRegionalHealth();
+        
+        // Check for failed regions
+        const failedRegions = health.filter(region => region.status === 'failed');
+        if (failedRegions.length > 0) {
+          console.log('GEOGRAPHIC REDUNDANCY ALERT: Failed regions:', failedRegions.map(r => r.name));
+          
+          // Auto-failover for primary region failures
+          const primaryFailed = failedRegions.find(r => r.primary);
+          if (primaryFailed) {
+            console.log('PRIMARY REGION FAILED - Initiating automatic failover...');
+            const result = await geographicRedundancyService.performAutomaticFailover(primaryFailed.code);
+            console.log('Failover result:', result);
+          }
+        }
+        
+        // Check replication status
+        const replicationStatus = await geographicRedundancyService.getReplicationStatus();
+        const laggedReplications = replicationStatus.filter(r => r.status === 'lagging');
+        if (laggedReplications.length > 0) {
+          console.log('REPLICATION LAG ALERT:', laggedReplications.map(r => `${r.region}: ${r.lag}ms`));
+        }
+        
+      } catch (error) {
+        console.error('Geographic monitoring failed:', error);
+      }
+    });
+
+    // Cross-region backup sync every 15 minutes
+    this.scheduleMinutes(15, async () => {
+      console.log('Running cross-region backup sync...');
+      try {
+        const { geographicRedundancyService } = await import('./geographic-redundancy');
+        const result = await geographicRedundancyService.synchronizeBackups();
+        
+        if (!result.success) {
+          console.log('BACKUP SYNC ALERT: Cross-region sync failed:', result.errors);
+        } else {
+          console.log(`Backup sync completed: ${result.syncedFiles} files, ${(result.totalSize / 1024 / 1024).toFixed(2)} MB`);
+        }
+      } catch (error) {
+        console.error('Cross-region backup sync failed:', error);
+      }
+    });
+
+    // Compliance monitoring every 30 minutes
+    this.scheduleMinutes(30, async () => {
+      console.log('Running compliance monitoring...');
+      try {
+        const { geographicRedundancyService } = await import('./geographic-redundancy');
+        const compliance = await geographicRedundancyService.validateDataResidency();
+        
+        if (!compliance.compliant) {
+          console.log('COMPLIANCE VIOLATION ALERT:', compliance.violations);
+          
+          // Execute compliance violation runbook
+          const { disasterRecoveryRunbooks } = await import('./disaster-recovery-runbooks');
+          const execution = await disasterRecoveryRunbooks.executeRunbook('compliance-violation');
+          console.log('Compliance runbook execution:', execution.status);
+        }
+      } catch (error) {
+        console.error('Compliance monitoring failed:', error);
+      }
+    });
+
     console.log('Scheduled tasks started successfully');
   }
 
@@ -170,6 +240,21 @@ class ScheduledTaskService {
         console.error('Hourly task failed:', error);
       }
     }, 60 * 60 * 1000); // 1 hour
+    
+    this.intervals.push(interval);
+  }
+
+  private scheduleMinutes(minutes: number, task: () => Promise<void>): void {
+    // Run immediately, then every N minutes
+    task().catch(error => console.error(`Initial ${minutes}-minute task failed:`, error));
+    
+    const interval = setInterval(async () => {
+      try {
+        await task();
+      } catch (error) {
+        console.error(`${minutes}-minute task failed:`, error);
+      }
+    }, minutes * 60 * 1000);
     
     this.intervals.push(interval);
   }
