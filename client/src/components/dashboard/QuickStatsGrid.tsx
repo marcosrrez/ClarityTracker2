@@ -1,22 +1,27 @@
 import { Clock, Users, Calendar, TrendingUp, UserCheck, Brain, Info } from "lucide-react";
-import { useLogEntries, useAppSettings } from "@/hooks/use-firestore";
+import { useAppSettings } from "@/hooks/use-firestore";
+import { useUnifiedDashboardData } from "@/hooks/use-unified-dashboard";
 import { useUser } from "@/lib/firebase";
 import { useQuery } from "@tanstack/react-query";
 import { EnhancedStatsCard } from "./EnhancedStatsCard";
 import { ClickableMetricCard } from "./ClickableMetricCard";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { calculateDashboardMetrics } from "@/lib/dashboard-calculations";
 import { calculateCurrentMilestone, calculateTimeToCompletion } from "@/lib/milestone-calculator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export const QuickStatsGrid = () => {
-  const { entries, loading: entriesLoading, refetch } = useLogEntries();
   const { settings, loading: settingsLoading } = useAppSettings();
+  const { data: dashboardData, isLoading: dashboardLoading, error: dashboardError } = useUnifiedDashboardData();
   const { user } = useUser();
-  const [supervisors, setSupervisors] = useState([]);
-  const [supervisorsLoading, setSupervisorsLoading] = useState(true);
-
+  
+  // Fetch supervisors data separately for compatibility
+  const { data: supervisors = [] } = useQuery({
+    queryKey: ['/api/supervisors', user?.uid],
+    enabled: !!user?.uid,
+    refetchInterval: 30000,
+  });
+  
   // Fetch Clinical Intelligence metrics
   const { data: clinicalMetrics } = useQuery({
     queryKey: ['/api/ai/clinical-metrics', user?.uid],
@@ -24,27 +29,7 @@ export const QuickStatsGrid = () => {
     refetchInterval: 30000,
   });
 
-  useEffect(() => {
-    const loadSupervisors = async () => {
-      if (!user) return;
-      setSupervisorsLoading(true);
-      try {
-        const response = await fetch(`/api/supervisors/${user.uid}`);
-        if (response.ok) {
-          const data = await response.json();
-          setSupervisors(data);
-        }
-      } catch (error) {
-        console.error('Error loading supervisors:', error);
-      } finally {
-        setSupervisorsLoading(false);
-      }
-    };
-    
-    loadSupervisors();
-  }, [user]);
-
-  if (entriesLoading || settingsLoading) {
+  if (dashboardLoading || settingsLoading) {
     return (
       <section className="mb-8">
         <motion.h3 
@@ -70,8 +55,33 @@ export const QuickStatsGrid = () => {
     );
   }
 
-  // Use standardized calculations
-  const metrics = calculateDashboardMetrics(entries);
+  // Use unified dashboard data with fallback structure
+  const metrics = dashboardData ? {
+    totalClientHours: dashboardData.totalClientHours || 0,
+    directClientHours: dashboardData.directClientHours || 0,
+    supervisionHours: dashboardData.supervisionHours || 0,
+    ethicsHours: dashboardData.ethicsHours || 0,
+    totalSupervisionHours: dashboardData.supervisionHours || 0,
+    // Calculate weekly trends from available data (simplified)
+    thisWeekClientHours: 0,
+    lastWeekClientHours: 0,
+    thisWeekSupervisionHours: 0,
+    lastWeekSupervisionHours: 0,
+    clientHoursTrend: 'neutral' as const,
+    supervisionTrend: 'neutral' as const,
+  } : {
+    totalClientHours: 0,
+    directClientHours: 0,
+    supervisionHours: 0,
+    ethicsHours: 0,
+    totalSupervisionHours: 0,
+    thisWeekClientHours: 0,
+    lastWeekClientHours: 0,
+    thisWeekSupervisionHours: 0,
+    lastWeekSupervisionHours: 0,
+    clientHoursTrend: 'neutral' as const,
+    supervisionTrend: 'neutral' as const,
+  };
   
   // Calculate milestone information
   const milestoneInfo = calculateCurrentMilestone(metrics.totalClientHours, settings);

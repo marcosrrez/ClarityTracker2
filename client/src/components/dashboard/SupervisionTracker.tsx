@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Users, Clock, Calendar, TrendingUp, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { useUnifiedDashboardData } from "@/hooks/use-unified-dashboard";
 import { MetricDetailView } from '../progressive-disclosure/MetricDetailView';
 import { DataAnalysisView } from '../progressive-disclosure/DataAnalysisView';
 import { EducationalContentView } from '../progressive-disclosure/EducationalContentView';
@@ -52,7 +53,7 @@ export function SupervisionTracker() {
     progressPercentage: 0,
     recentSessions: []
   });
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: dashboardData, isLoading } = useUnifiedDashboardData();
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -80,26 +81,18 @@ export function SupervisionTracker() {
     setNavigation({ level: 'education', topic, context, dataPoint: navigation.dataPoint });
   };
 
-  // Fetch supervision metrics
+  // Use unified dashboard data for metrics
   useEffect(() => {
-    const fetchMetrics = async () => {
-      if (!user?.uid) return;
-      
-      try {
-        const response = await fetch(`/api/supervision/metrics/${user.uid}`);
-        if (response.ok) {
-          const data = await response.json();
-          setMetrics(data);
-        }
-      } catch (error) {
-        console.error('Error fetching supervision metrics:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchMetrics();
-  }, [user?.uid]);
+    if (dashboardData) {
+      setMetrics({
+        totalHours: dashboardData.supervisionTotalHours || 0,
+        sessionsThisMonth: dashboardData.sessionsThisMonth || 0,
+        activeSupervisors: dashboardData.activeSupervisors || 0,
+        progressPercentage: dashboardData.supervisionProgressPercentage || 0,
+        recentSessions: []
+      });
+    }
+  }, [dashboardData]);
 
   const handleLogSession = async () => {
     if (!user?.uid) return;
