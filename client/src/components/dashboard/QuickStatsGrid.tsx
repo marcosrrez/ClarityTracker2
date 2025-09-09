@@ -6,7 +6,6 @@ import { EnhancedStatsCard } from "./EnhancedStatsCard";
 import { ClickableMetricCard } from "./ClickableMetricCard";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { calculateDashboardMetrics } from "@/lib/dashboard-calculations";
 import { calculateCurrentMilestone, calculateTimeToCompletion } from "@/lib/milestone-calculator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -17,7 +16,14 @@ export const QuickStatsGrid = () => {
   const [supervisors, setSupervisors] = useState([]);
   const [supervisorsLoading, setSupervisorsLoading] = useState(true);
 
-  // Fetch Clinical Intelligence metrics
+  // Fetch unified dashboard metrics (replaces individual calculations)
+  const { data: unifiedMetrics, isLoading: unifiedLoading } = useQuery({
+    queryKey: [`/api/dashboard/unified-metrics/${user?.uid}`],
+    enabled: !!user?.uid,
+    refetchInterval: 30000,
+  });
+
+  // Fetch Clinical Intelligence metrics  
   const { data: clinicalMetrics } = useQuery({
     queryKey: ['/api/ai/clinical-metrics', user?.uid],
     enabled: !!user?.uid,
@@ -44,7 +50,7 @@ export const QuickStatsGrid = () => {
     loadSupervisors();
   }, [user]);
 
-  if (entriesLoading || settingsLoading) {
+  if (entriesLoading || settingsLoading || unifiedLoading) {
     return (
       <section className="mb-8">
         <motion.h3 
@@ -70,8 +76,25 @@ export const QuickStatsGrid = () => {
     );
   }
 
-  // Use standardized calculations
-  const metrics = calculateDashboardMetrics(entries);
+  // Use unified dashboard metrics (single source of truth)
+  const metrics = unifiedMetrics || {
+    totalSessions: 0,
+    validSessions: 0, 
+    totalClientHours: 0,
+    directClientHours: 0,
+    indirectClientHours: 0,
+    totalSupervisionHours: 0,
+    activeSupervisors: 0,
+    thisWeekSessions: 0,
+    thisWeekClientHours: 0,
+    thisWeekSupervisionHours: 0,
+    lastWeekSessions: 0,
+    lastWeekClientHours: 0,
+    lastWeekSupervisionHours: 0,
+    sessionTrend: 'neutral',
+    clientHoursTrend: 'neutral',
+    supervisionTrend: 'neutral'
+  };
   
   // Calculate milestone information
   const milestoneInfo = calculateCurrentMilestone(metrics.totalClientHours, settings);

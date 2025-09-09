@@ -7244,6 +7244,49 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
     }
   });
 
+  // Get unified dashboard metrics for a specific user
+  app.get('/api/dashboard/unified-metrics/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      // Use unified dashboard service for all dashboard calculations
+      const { UnifiedDashboardService } = await import('./services/unified-dashboard-service');
+      const metrics = await UnifiedDashboardService.getDashboardMetrics(userId);
+
+      res.json(metrics);
+    } catch (error) {
+      console.error('Error fetching unified dashboard metrics:', error);
+      res.status(500).json({ 
+        totalSessions: 0,
+        validSessions: 0,
+        totalClientHours: 0,
+        directClientHours: 0,
+        indirectClientHours: 0,
+        totalSupervisionHours: 0,
+        activeSupervisors: 0,
+        supervisionSessions: 0,
+        supervisionProgress: 0,
+        thisWeekSessions: 0,
+        thisWeekClientHours: 0,
+        thisWeekSupervisionHours: 0,
+        lastWeekSessions: 0,
+        lastWeekClientHours: 0,
+        lastWeekSupervisionHours: 0,
+        sessionTrend: 'neutral',
+        clientHoursTrend: 'neutral',
+        supervisionTrend: 'neutral',
+        totalAiAnalyses: 0,
+        validSessionsWithAnalysis: 0,
+        analysisCompletionRate: 0,
+        overallScore: 0,
+        clinicalTrend: 'needs_attention',
+        hasValidData: false,
+        lastUpdated: new Date().toISOString(),
+        dataQualityScore: 0
+      });
+    }
+  });
+
   // Progress Sharing API
   app.post('/api/progress/share', async (req, res) => {
     try {

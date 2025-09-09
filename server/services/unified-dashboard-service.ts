@@ -49,37 +49,48 @@ export class UnifiedDashboardService {
    */
   static async getDashboardMetrics(userId: string): Promise<UnifiedDashboardMetrics> {
     try {
-      // Parallel data fetching for efficiency
-      const [
-        logEntries,
-        supervisionSessions,
-        sessionAnalyses,
-        supervisors
-      ] = await Promise.all([
-        // Get all log entries for the user
-        db.select()
-          .from(logEntryTable)
-          .where(eq(logEntryTable.userId, userId))
-          .orderBy(desc(logEntryTable.dateOfContact)),
-          
-        // Get supervision sessions
-        db.select()
+      // The app uses Firestore for log entries, so we'll use the storage service instead
+      // Get log entries from storage (Firestore)
+      const { default: storage } = await import('../storage');
+      const logEntries = await storage.getEntriesByUserId(userId) || [];
+      
+      // Try to fetch from database tables, fallback gracefully if they don't exist
+      let supervisionSessions: any[] = [];
+      let sessionAnalyses: any[] = [];
+      let supervisors: any[] = [];
+
+      try {
+        supervisionSessions = await db.select()
           .from(supervisionSessionTable)
           .where(eq(supervisionSessionTable.superviseeId, userId))
-          .orderBy(desc(supervisionSessionTable.sessionDate)),
-          
-        // Get session analyses
-        db.select()
-          .from(sessionAnalysisTable)
-          .where(eq(sessionAnalysisTable.userId, userId)),
-          
-        // Get active supervisors
-        db.select()
-          .from(supervisorTable)
-          .where(eq(supervisorTable.isActive, 'true'))
-      ]);
+          .orderBy(desc(supervisionSessionTable.sessionDate));
+      } catch (error) {
+        console.log('Supervision sessions table not available, using Firestore data only');
+      }
 
-      // Calculate session metrics
+      try {
+        sessionAnalyses = await db.select()
+          .from(sessionAnalysisTable)
+          .where(eq(sessionAnalysisTable.userId, userId));
+      } catch (error) {
+        console.log('Session analyses table not available, using Firestore data only');
+      }
+
+      try {
+        supervisors = await db.select()
+          .from(supervisorTable)
+          .where(eq(supervisorTable.isActive, 'true'));
+      } catch (error) {
+        console.log('Supervisors table not available, using storage service');
+        // Fallback to storage service for supervisors
+        try {
+          supervisors = await storage.getSupervisorsByUserId(userId);
+        } catch (storageError) {
+          console.log('Storage supervisors not available either');
+        }
+      }
+
+      // Calculate session metrics from Firestore log entries
       const validEntries = logEntries.filter(entry => entry.clientContactHours > 0);
       const totalClientHours = logEntries.reduce((sum, entry) => sum + (entry.clientContactHours || 0), 0);
       const directClientHours = logEntries
@@ -108,14 +119,17 @@ export class UnifiedDashboardService {
       
       const activeSupervisors = Array.from(sessionSupervisorIds).length;
 
-      // Calculate weekly trends
+      // Calculate weekly trends from Firestore entries
       const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
       const twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
       
-      const thisWeekEntries = logEntries.filter(entry => new Date(entry.dateOfContact) >= weekAgo);
+      const thisWeekEntries = logEntries.filter(entry => {
+        const entryDate = entry.dateOfContact instanceof Date ? entry.dateOfContact : new Date(entry.dateOfContact);
+        return entryDate >= weekAgo;
+      });
       const lastWeekEntries = logEntries.filter(entry => {
-        const date = new Date(entry.dateOfContact);
-        return date >= twoWeeksAgo && date < weekAgo;
+        const entryDate = entry.dateOfContact instanceof Date ? entry.dateOfContact : new Date(entry.dateOfContact);
+        return entryDate >= twoWeeksAgo && entryDate < weekAgo;
       });
       
       const thisWeekValidEntries = thisWeekEntries.filter(entry => entry.clientContactHours > 0);
@@ -255,18 +269,14 @@ export class UnifiedDashboardService {
     minimumDataThreshold: boolean;
   }> {
     try {
-      const [validSessions, sessionAnalyses] = await Promise.all([
-        db.select()
-          .from(logEntryTable)
-          .where(and(
-            eq(logEntryTable.userId, userId),
-            sql`${logEntryTable.clientContactHours} > 0`
-          )),
-        
-        db.select()
-          .from(sessionAnalysisTable)
-          .where(eq(sessionAnalysisTable.userId, userId))
-      ]);
+      // Use Firestore for log entries and database for session analyses
+      const { default: storage } = await import('../storage');
+      const logEntries = await storage.getEntriesByUserId(userId) || [];
+      const validSessions = logEntries.filter(entry => entry.clientContactHours > 0);
+      
+      const sessionAnalyses = await db.select()
+        .from(sessionAnalysisTable)
+        .where(eq(sessionAnalysisTable.userId, userId));
 
       const sessionCount = validSessions.length;
       const analysisCount = sessionAnalyses.length;
