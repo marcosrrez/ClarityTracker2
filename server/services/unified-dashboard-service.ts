@@ -54,7 +54,6 @@ export class UnifiedDashboardService {
         logEntries,
         supervisionSessions,
         sessionAnalyses,
-        aiAnalyses,
         supervisors
       ] = await Promise.all([
         // Get all log entries for the user
@@ -73,11 +72,6 @@ export class UnifiedDashboardService {
         db.select()
           .from(sessionAnalysisTable)
           .where(eq(sessionAnalysisTable.userId, userId)),
-          
-        // Get AI analyses
-        db.select()
-          .from(aiAnalysisCacheTable)
-          .where(eq(aiAnalysisCacheTable.userId, userId)),
           
         // Get active supervisors
         db.select()
@@ -201,7 +195,7 @@ export class UnifiedDashboardService {
         supervisionTrend,
         
         // AI Analysis Data
-        totalAiAnalyses: aiAnalyses.length,
+        totalAiAnalyses: sessionAnalyses.length,
         validSessionsWithAnalysis,
         analysisCompletionRate: Math.round(analysisCompletionRate),
         

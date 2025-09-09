@@ -7200,27 +7200,9 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
     try {
       const { userId } = req.params;
       
-      // Use the same data source as the working supervisors API
-      const supervisors = await storage.getSupervisorsByUserId(userId);
-      
-      // Count active supervisors using the same logic as QuickStatsGrid
-      const activeSupervisors = supervisors.filter((s: any) => s.isActive === true).length;
-      
-      // Calculate total hours from supervisors (they store totalHours)
-      const totalHours = supervisors.reduce((sum: number, supervisor: any) => {
-        return sum + (supervisor.totalHours || 0);
-      }, 0);
-      
-      // For now, return basic metrics using available data
-      // Sessions this month would need additional data source
-      const sessionsThisMonth = supervisors.length > 0 ? 1 : 0; // Simple approximation
-      
-      const metrics = {
-        activeSupervisors,
-        totalHours: Math.round(totalHours * 10) / 10,
-        sessionsThisMonth,
-        progressPercentage: Math.min((totalHours / 50) * 100, 100)
-      };
+      // Use unified dashboard service for consistent calculations
+      const { UnifiedDashboardService } = await import('./services/unified-dashboard-service');
+      const metrics = await UnifiedDashboardService.getSupervisionMetrics(userId);
 
       res.json(metrics);
     } catch (error) {
@@ -7229,7 +7211,8 @@ Respond in JSON format with keys: subjective, objective, assessment, plan, billi
         activeSupervisors: 0,
         totalHours: 0,
         sessionsThisMonth: 0,
-        progressPercentage: 0
+        progressPercentage: 0,
+        dataSource: 'fallback'
       });
     }
   });
