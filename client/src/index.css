@@ -88,6 +88,15 @@
     float: left;
     height: 0;
     pointer-events: none;
+    font-family: 'Charter', 'Iowan Old Style', 'Apple Garamond', 'Baskerville', serif;
+    line-height: 1.75;
+    font-size: 1rem;
+  }
+  
+  /* Enhanced placeholder styling for expanded state */  
+  .premium-writing .ProseMirror.prose-xl p.is-editor-empty:first-child::before {
+    font-size: 1.125rem;
+    line-height: 1.75;
   }
   
   .prose-editor-content .bullet-list {

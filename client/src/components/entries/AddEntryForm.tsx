@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { Calendar as CalendarIcon, Check, Lightbulb, Clock, Zap, ChevronDown, ChevronUp, GraduationCap, Users, Heart, BookOpen, Bold, Italic, List, Quote, Maximize2, Minimize2, Type, Palette, Link2, Code, AlignLeft, AlignCenter, AlignRight, Brain, Sparkles } from "lucide-react";
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import Placeholder from '@tiptap/extension-placeholder';
 import Highlight from '@tiptap/extension-highlight';
 import TextStyle from '@tiptap/extension-text-style';
 import { Color } from '@tiptap/extension-color';
@@ -41,6 +42,16 @@ export const AddEntryForm = () => {
   const editor = useEditor({
     extensions: [
       StarterKit,
+      Placeholder.configure({
+        placeholder: ({ node }) => {
+          if (node.type.name === 'paragraph' && node.content.size === 0 && isNotesExpanded) {
+            return 'Describe what happened in this session, your interventions, client progress, challenges you faced, insights gained, and your professional reflections. Use this expanded space to capture detailed thoughts, therapeutic process notes, supervision insights, or learning reflections with full formatting support.';
+          }
+          return 'Describe what happened in this session, your interventions, client progress, challenges you faced, insights gained, and your professional reflections.';
+        },
+        showOnlyWhenEditable: true,
+        includeChildren: true,
+      }),
       Highlight,
       TextStyle,
       Color,
@@ -882,33 +893,6 @@ export const AddEntryForm = () => {
                         "[&_.ProseMirror]:min-h-[300px] [&_.ProseMirror]:outline-none [&_.ProseMirror]:border-none [&_.ProseMirror]:cursor-text [&_.ProseMirror]:p-0 [&_.ProseMirror]:leading-relaxed [&_.ProseMirror]:tracking-normal"
                       )}
                     />
-                    {/* Clickable placeholder overlay - fixed cursor alignment */}
-                    <div 
-                      className="absolute top-12 left-12 w-full h-full cursor-text"
-                      onClick={() => {
-                        editor?.commands.focus();
-                        editor?.commands.setTextSelection(0);
-                      }}
-                    >
-                      {!editor?.getText() && (
-                        <div 
-                          className="text-gray-400 dark:text-gray-500 leading-relaxed select-none pointer-events-none" 
-                          style={{
-                            fontFamily: 'Charter, "Iowan Old Style", "Apple Garamond", Baskerville, serif',
-                            fontSize: isNotesExpanded ? '1.125rem' : '1rem',
-                            lineHeight: '1.75',
-                            userSelect: 'none'
-                          }}
-                        >
-                          Describe what happened in this session, your interventions, client progress, challenges you faced, insights gained, and your professional reflections.
-                          {isNotesExpanded && (
-                            <div className="mt-6 text-base opacity-75">
-                              Use this expanded space to capture detailed thoughts, therapeutic process notes, supervision insights, or learning reflections with full formatting support.
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
                   </div>
                   <div className="absolute bottom-6 right-6 text-xs text-gray-400 font-medium bg-white dark:bg-gray-800 px-3 py-1 rounded-full">
                     {editor?.getText().length || 0} characters
