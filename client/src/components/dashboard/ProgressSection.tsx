@@ -3,7 +3,6 @@ import { useAuth } from '@/hooks/use-auth';
 import { useLogEntries } from '@/hooks/use-firestore';
 import { useAppSettings } from '@/hooks/use-firestore';
 import { useToast } from '@/hooks/use-toast';
-import { useQuery } from '@tanstack/react-query';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,18 +16,11 @@ export const ProgressSection = () => {
   const { entries, loading: entriesLoading } = useLogEntries();
   const { settings, loading: settingsLoading, refetch: refetchSettings } = useAppSettings();
   const { toast } = useToast();
-
-  // Fetch unified dashboard metrics for consistent calculations
-  const { data: unifiedMetrics, isLoading: unifiedLoading } = useQuery({
-    queryKey: [`/api/dashboard/unified-metrics/${user?.uid}`],
-    enabled: !!user?.uid,
-    refetchInterval: 30000,
-  });
   
   const [ethicsHours, setEthicsHours] = useState("");
   const [savingEthics, setSavingEthics] = useState(false);
 
-  if (entriesLoading || settingsLoading || unifiedLoading) {
+  if (entriesLoading || settingsLoading) {
     return (
       <section className="mb-8">
         <h3 className="text-lg font-semibold text-foreground mb-6">Licensure Progress</h3>
@@ -52,10 +44,10 @@ export const ProgressSection = () => {
     );
   }
 
-  // Use unified metrics for consistent base calculations
-  const totalClientHours = unifiedMetrics?.totalClientHours || 0;
-  const directClientHours = unifiedMetrics?.directClientHours || 0;
-  const totalSupervisionHours = unifiedMetrics?.totalSupervisionHours || 0;
+  // Calculate progress from entries
+  const totalClientHours = entries.reduce((sum, entry) => sum + entry.clientContactHours, 0);
+  const directClientHours = entries.filter(entry => !entry.indirectHours).reduce((sum, entry) => sum + entry.clientContactHours, 0);
+  const totalSupervisionHours = entries.reduce((sum, entry) => sum + entry.supervisionHours, 0);
 
   // Add imported hours
   const importedTotalCCH = settings?.importedHours?.totalCCH || 0;
