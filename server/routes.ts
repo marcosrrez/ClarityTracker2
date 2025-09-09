@@ -2875,7 +2875,29 @@ Please provide a helpful, professional response that's personalized to their sit
     try {
       const { userId } = req.params;
       
-      // Get recent session analyses
+      // Validate that user has meaningful session data before generating insights
+      const { UnifiedDashboardService } = await import('./services/unified-dashboard-service');
+      const dataValidation = await UnifiedDashboardService.validateAiCoachingData(userId);
+      
+      // If insufficient data, return appropriate fallback insights
+      if (!dataValidation.canGenerateInsights || !dataValidation.minimumDataThreshold) {
+        return res.json({
+          weeklyFocus: 'Start by logging your client sessions to unlock personalized AI coaching insights.',
+          skillDevelopmentTip: 'Begin tracking your professional activities to receive tailored guidance.',
+          supervisionTopic: 'Once you have session data, we\'ll suggest specific supervision topics.',
+          professionalGrowthInsight: `Add ${3 - dataValidation.sessionCount} more session entries to unlock AI-powered insights.`,
+          therapyProfileInsight: null,
+          competencyFocus: null,
+          patternAlert: null,
+          dataValidation: {
+            hasValidData: dataValidation.hasValidSessions,
+            sessionCount: dataValidation.sessionCount,
+            requiresMoreData: true
+          }
+        });
+      }
+
+      // Get recent session analyses for users with sufficient data
       const sessionAnalyses = await db.select()
         .from(sessionAnalysisTable)
         .where(eq(sessionAnalysisTable.userId, userId))
@@ -2891,7 +2913,12 @@ Please provide a helpful, professional response that's personalized to their sit
         professionalGrowthInsight: 'Regular session logging and reflection support your professional development.',
         therapyProfileInsight: null,
         competencyFocus: null,
-        patternAlert: null
+        patternAlert: null,
+        dataValidation: {
+          hasValidData: true,
+          sessionCount: dataValidation.sessionCount,
+          requiresMoreData: false
+        }
       };
 
       // Generate insights from session analyses
