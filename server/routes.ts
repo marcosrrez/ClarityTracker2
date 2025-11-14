@@ -48,6 +48,7 @@ import { ComplianceMonitoringService } from "./services/compliance-monitoring-se
 import { ResourceRecommendationEngine } from "./services/resource-recommendation-engine";
 import { ConversationAnalysisService } from "./services/conversation-analysis-service";
 import { SupervisionService } from "./services/supervision-service";
+import { handleClientSignup, handleClientLogin } from "./routes/auth-fixes";
 import { progressiveDisclosureService } from "./progressive-disclosure-service";
 import { researchService } from "./research-service";
 import { clinicalResearchService } from "./clinical-research-service";
@@ -5919,55 +5920,8 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
     }
   });
 
-  // Client Authentication Routes
-  app.post('/api/auth/client-signup', express.json(), async (req, res) => {
-    try {
-      const { firstName, lastName, email, password, communicationConsent } = req.body;
-      
-      // Validate required fields
-      if (!firstName || !lastName || !email || !password) {
-        return res.status(400).json({ error: 'All fields are required' });
-      }
-      
-      // Check if email already exists
-      const existingClient = await db
-        .select()
-        .from(clientTable)
-        .where(eq(clientTable.email, email))
-        .limit(1);
-      
-      if (existingClient.length > 0) {
-        return res.status(409).json({ error: 'Email already registered' });
-      }
-      
-      // Create client account
-      const [newClient] = await db
-        .insert(clientTable)
-        .values({
-          firstName,
-          lastName,
-          email,
-          hashedPassword: password, // In production, hash this password
-          accountType: 'standalone',
-          communicationConsent: communicationConsent || false,
-          onboardingCompleted: false,
-        })
-        .returning();
-      
-      res.json({ 
-        success: true, 
-        client: {
-          id: newClient.id,
-          firstName: newClient.firstName,
-          lastName: newClient.lastName,
-          email: newClient.email,
-        }
-      });
-    } catch (error) {
-      console.error('Client signup error:', error);
-      res.status(500).json({ error: 'Failed to create client account' });
-    }
-  });
+  // Client Authentication Routes - SECURE VERSION with bcrypt password hashing
+  app.post('/api/auth/client-signup', rateLimiters.auth, express.json(), handleClientSignup);
 
   // Update client
   app.patch('/api/clients/:id', express.json(), async (req, res) => {
@@ -6036,46 +5990,8 @@ Therapeutic Alliance: ${sessionAnalysis.therapeuticAlliance}/10`;
     }
   });
 
-  app.post('/api/auth/client-login', express.json(), async (req, res) => {
-    try {
-      const { email, password } = req.body;
-      
-      // Validate required fields
-      if (!email || !password) {
-        return res.status(400).json({ error: 'Email and password are required' });
-      }
-      
-      // Find client by email
-      const [client] = await db
-        .select()
-        .from(clientTable)
-        .where(eq(clientTable.email, email))
-        .limit(1);
-      
-      if (!client) {
-        return res.status(401).json({ error: 'Invalid email or password' });
-      }
-      
-      // In production, verify hashed password
-      if (client.hashedPassword !== password) {
-        return res.status(401).json({ error: 'Invalid email or password' });
-      }
-      
-      res.json({ 
-        success: true, 
-        client: {
-          id: client.id,
-          firstName: client.firstName,
-          lastName: client.lastName,
-          email: client.email,
-          onboardingCompleted: client.onboardingCompleted,
-        }
-      });
-    } catch (error) {
-      console.error('Client login error:', error);
-      res.status(500).json({ error: 'Failed to authenticate client' });
-    }
-  });
+  // Client Login - SECURE VERSION with bcrypt password verification
+  app.post('/api/auth/client-login', rateLimiters.auth, express.json(), handleClientLogin);
 
   app.post('/api/client/onboarding', express.json(), async (req, res) => {
     try {

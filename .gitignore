@@ -4,3 +4,25 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
+
+# Environment variables
+.env
+.env.local
+.env.production
+.env.*.local
+
+# Development artifacts
+.local/
+attached_assets/
+backups/
+test_*.js
+*.sql
+*.bin
+.replit-agent-*
+*-backup.*
+*-broken.*
+.vercel
+
+# Logs
+logs
+*.log
