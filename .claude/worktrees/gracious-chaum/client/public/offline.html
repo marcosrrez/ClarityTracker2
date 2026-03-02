@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClarityLog - Offline</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            text-align: center;
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+        }
+        
+        h1 {
+            font-size: 32px;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+        
+        p {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+            opacity: 0.9;
+        }
+        
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 12px 20px;
+            border-radius: 25px;
+            margin-bottom: 32px;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ff6b6b;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .retry-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 14px 28px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .retry-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .features {
+            margin-top: 32px;
+            text-align: left;
+        }
+        
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        .feature-icon {
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">📱</div>
+        <h1>You're Offline</h1>
+        <p>ClarityLog needs an internet connection to sync your latest data and insights.</p>
+        
+        <div class="status">
+            <div class="status-dot"></div>
+            <span>Checking connection...</span>
+        </div>
+        
+        <a href="/" class="retry-btn" id="retryBtn">Try Again</a>
+        
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">💾</div>
+                <span>Your data is safely stored locally</span>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🔄</div>
+                <span>Changes will sync when you're back online</span>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📊</div>
+                <span>Some features available offline</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check for connection and update UI
+        function updateConnectionStatus() {
+            const statusEl = document.querySelector('.status span');
+            const dotEl = document.querySelector('.status-dot');
+            
+            if (navigator.onLine) {
+                statusEl.textContent = 'Back online!';
+                dotEl.style.background = '#51cf66';
+                dotEl.style.animation = 'none';
+                
+                // Auto-redirect after a moment
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1500);
+            } else {
+                statusEl.textContent = 'Still offline';
+                dotEl.style.background = '#ff6b6b';
+            }
+        }
+        
+        // Listen for connection changes
+        window.addEventListener('online', updateConnectionStatus);
+        window.addEventListener('offline', updateConnectionStatus);
+        
+        // Check initial status
+        updateConnectionStatus();
+        
+        // Periodic connection check
+        setInterval(updateConnectionStatus, 5000);
+        
+        // Retry button functionality
+        document.getElementById('retryBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            updateConnectionStatus();
+            
+            if (navigator.onLine) {
+                window.location.href = '/';
+            }
+        });
+    </script>
+</body>
+</html>
